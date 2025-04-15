@@ -38,76 +38,76 @@ export class MemStorage implements IStorage {
   private initializeArtworks() {
     const sampleArtworks: InsertArtwork[] = [
       {
-        title: "Facial Treatment Promotion",
-        description: "Elegant design for facial treatments",
-        imageUrl: "https://images.unsplash.com/photo-1557053506-9eff64026ff3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1080&q=80",
-        format: "square",
-        isPro: true,
-        category: "facial"
-      },
-      {
-        title: "Skin Care Routine",
-        description: "Professional template for skin care services",
-        imageUrl: "https://images.unsplash.com/photo-1596704017254-9a92e7a12ecb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
+        title: "Segredos de uma Pele Radiante",
+        description: "Dicas para um cuidado perfeito da pele",
+        imageUrl: "https://images.unsplash.com/photo-1596704017454-7a8b113978b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
         format: "portrait",
         isPro: true,
-        category: "skin"
+        category: "pele"
       },
       {
-        title: "Beauty Stories Template",
-        description: "Elegant Instagram stories template",
-        imageUrl: "https://images.unsplash.com/photo-1560750588-73207b1ef5b8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1920&q=80",
-        format: "stories",
-        isPro: true,
-        category: "social"
-      },
-      {
-        title: "Aesthetic Service Promo",
-        description: "Clean design for aesthetic services",
-        imageUrl: "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1080&q=80",
-        format: "square",
-        isPro: true,
-        category: "promo"
-      },
-      {
-        title: "Aesthetic Procedure Post",
-        description: "Professional post for aesthetic procedures",
+        title: "5 mitos sobre o uso de protetor solar",
+        description: "Verdades e mentiras sobre proteção solar",
         imageUrl: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
         format: "portrait",
         isPro: true,
-        category: "procedures"
+        category: "proteção"
       },
       {
-        title: "Minimalist Beauty Template",
-        description: "Clean and minimalist design for beauty professionals",
-        imageUrl: "https://images.unsplash.com/photo-1614159102922-39bb647f58f7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1080&q=80",
-        format: "square",
-        isPro: true,
-        category: "minimalist"
-      },
-      {
-        title: "Beauty Products Stories",
-        description: "Instagram stories template for beauty products",
-        imageUrl: "https://images.unsplash.com/photo-1551392505-f4056032826e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1920&q=80",
-        format: "stories",
-        isPro: true,
-        category: "products"
-      },
-      {
-        title: "Aesthetic Treatment Promo",
-        description: "Promotional template for aesthetic treatments",
-        imageUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1080&q=80",
-        format: "square",
-        isPro: true,
-        category: "treatment"
-      },
-      {
-        title: "Professional Beauty Post",
-        description: "Professional social media post for beauty services",
-        imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
+        title: "Seu primeiro Botox?",
+        description: "O que você precisa saber antes do procedimento",
+        imageUrl: "https://images.unsplash.com/photo-1526045612212-70caf35c14df?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
         format: "portrait",
         isPro: true,
-        category: "beauty"
+        category: "botox"
+      },
+      {
+        title: "Drenagem linfática",
+        description: "Benefícios e procedimentos para tratamento estético",
+        imageUrl: "https://images.unsplash.com/photo-1615148758079-574a78a2f8ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1080&q=80",
+        format: "square",
+        isPro: true,
+        category: "drenagem"
+      },
+      {
+        title: "Cuidados sem fazer cirurgia",
+        description: "Tratamentos não invasivos para beleza",
+        imageUrl: "https://images.unsplash.com/photo-1526280503902-dedeea979a6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1080&q=80",
+        format: "square",
+        isPro: true,
+        category: "tratamentos"
+      },
+      {
+        title: "Protocolos para limpeza de pele",
+        description: "Guia completo para esteticistas",
+        imageUrl: "https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
+        format: "portrait",
+        isPro: true,
+        category: "limpeza"
+      },
+      {
+        title: "Hidratação profunda",
+        description: "Técnicas para hidratação da pele",
+        imageUrl: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
+        format: "portrait",
+        isPro: true,
+        category: "hidratação"
+      },
+      {
+        title: "Massagem modeladora",
+        description: "Técnicas e benefícios para o corpo",
+        imageUrl: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1080&q=80",
+        format: "square",
+        isPro: true,
+        category: "massagem"
+      },
+      {
+        title: "Rejuvenescimento facial",
+        description: "Procedimentos para diminuir marcas de expressão",
+        imageUrl: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-1.2.1&auto=format&fit=crop&w=1080&h=1350&q=80",
+        format: "portrait",
+        isPro: true,
+        category: "rejuvenescimento"
       }
     ];
     
