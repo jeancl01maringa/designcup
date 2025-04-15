@@ -1,5 +1,6 @@
 import HeroSection from "@/components/home/HeroSection";
 import SearchSection from "@/components/home/SearchSection";
+import CategorySection from "@/components/home/CategorySection";
 import ArtworkGrid from "@/components/home/ArtworkGrid";
 
 export default function Home() {
@@ -7,6 +8,7 @@ export default function Home() {
     <>
       <HeroSection />
       <SearchSection />
+      <CategorySection />
       <ArtworkGrid />
     </>
   );
