@@ -1,56 +1,99 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
-import { Heart, Share } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Heart, Bookmark, Share } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { SocialShare } from "@/components/sharing/SocialShare";
 import type { Artwork } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface ArtworkCardProps {
   artwork: Artwork;
 }
 
 export function ArtworkCard({ artwork }: ArtworkCardProps) {
-  const formatLabel = {
-    'square': 'Quadrado',
-    'portrait': 'Retrato',
-    'stories': 'Stories'
-  }[artwork.format] || artwork.format;
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLiked(!liked);
+    
+    // Exemplo de feedback visual, a implementação real usaria a API
+    toast({
+      title: liked ? "Removido dos favoritos" : "Adicionado aos favoritos",
+      description: liked ? "O item foi removido dos seus favoritos" : "O item foi adicionado aos seus favoritos",
+      duration: 2000,
+    });
+  };
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSaved(!saved);
+    
+    // Exemplo de feedback visual, a implementação real usaria a API
+    toast({
+      title: saved ? "Removido dos salvos" : "Salvo na sua coleção",
+      description: saved ? "O item foi removido da sua coleção" : "O item foi salvo na sua coleção",
+      duration: 2000,
+    });
+  };
+
+  const aspectRatio = {
+    'square': 'aspect-square',
+    'portrait': 'aspect-[4/5]',
+    'stories': 'aspect-[9/16]',
+  }[artwork.format] || 'aspect-square';
 
   return (
-    <Card className="overflow-hidden group">
-      <div className="relative">
-        <Link href={`/artwork/${artwork.id}`} className="block cursor-pointer">
+    <div className="relative rounded-lg overflow-hidden group">
+      <Link href={`/artwork/${artwork.id}`} className="block cursor-pointer">
+        <div className={`relative ${aspectRatio}`}>
           <img 
             src={artwork.imageUrl} 
             alt={artwork.title} 
-            className="w-full h-72 object-cover transition-transform group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-        </Link>
-        
-        <div className="absolute top-0 left-0 w-full p-3 flex justify-between items-center">
-          <Badge variant="outline" className="bg-white/80 backdrop-blur-sm">
-            {formatLabel}
-          </Badge>
           
-          {artwork.isPro && <ProBadge />}
+          {/* Pro badge */}
+          {artwork.isPro && (
+            <div className="absolute top-2 left-2 z-10">
+              <ProBadge />
+            </div>
+          )}
+          
+          {/* Título e descrição */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+            <h3 className="text-white text-lg font-semibold">{artwork.title}</h3>
+            {artwork.description && (
+              <p className="text-white/80 text-sm mt-1 line-clamp-1">{artwork.description}</p>
+            )}
+          </div>
+          
+          {/* Botões de ação */}
+          <div className="absolute bottom-3 right-3 flex space-x-2">
+            <button 
+              className={`p-2 rounded-full shadow-md transition-colors ${liked ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-700 hover:bg-white'}`}
+              onClick={handleLike}
+              aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            >
+              <Heart className="h-5 w-5" />
+            </button>
+            
+            <button 
+              className={`p-2 rounded-full shadow-md transition-colors ${saved ? 'bg-primary text-white' : 'bg-white/90 text-gray-700 hover:bg-white'}`}
+              onClick={handleSave}
+              aria-label={saved ? "Remover dos salvos" : "Salvar item"}
+            >
+              <Bookmark className="h-5 w-5" />
+            </button>
+          </div>
         </div>
-        
-        <div className="absolute bottom-0 left-0 w-full p-3 bg-gradient-to-t from-black/70 to-transparent">
-          <h3 className="text-white font-medium truncate">{artwork.title}</h3>
-        </div>
-      </div>
-      
-      <CardFooter className="p-3 flex justify-between bg-white">
-        <Button variant="ghost" size="sm" className="rounded-full px-3 text-gray-600 hover:text-gray-900">
-          <Heart className="h-4 w-4 mr-1" />
-          <span className="text-xs">Salvar</span>
-        </Button>
-        
-        <SocialShare artwork={artwork} />
-      </CardFooter>
-    </Card>
+      </Link>
+    </div>
   );
 }
