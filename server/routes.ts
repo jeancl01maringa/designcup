@@ -69,6 +69,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error creating artwork' });
     }
   });
+  
+  // API endpoint for social sharing
+  app.get('/api/share/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const artwork = await storage.getArtworkById(id);
+      
+      if (!artwork) {
+        return res.status(404).json({ message: 'Artwork not found' });
+      }
+      
+      // Optional custom parameters for sharing
+      const customTitle = req.query.title as string;
+      const customDescription = req.query.description as string;
+      
+      // Create share data with either custom or original values
+      const shareData = {
+        id: artwork.id,
+        title: customTitle || artwork.title,
+        description: customDescription || artwork.description,
+        imageUrl: artwork.imageUrl,
+        shareUrl: `${req.protocol}://${req.get('host')}/artwork/${artwork.id}`,
+        format: artwork.format,
+        isPro: artwork.isPro
+      };
+      
+      res.json(shareData);
+    } catch (error) {
+      res.status(500).json({ message: 'Error generating share data' });
+    }
+  });
 
   const httpServer = createServer(app);
 

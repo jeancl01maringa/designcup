@@ -22,14 +22,12 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   return (
     <Card className="overflow-hidden group">
       <div className="relative">
-        <Link href={`/artwork/${artwork.id}`}>
-          <a className="block cursor-pointer">
-            <img 
-              src={artwork.imageUrl} 
-              alt={artwork.title} 
-              className="w-full h-72 object-cover transition-transform group-hover:scale-105"
-            />
-          </a>
+        <Link href={`/artwork/${artwork.id}`} className="block cursor-pointer">
+          <img 
+            src={artwork.imageUrl} 
+            alt={artwork.title} 
+            className="w-full h-72 object-cover transition-transform group-hover:scale-105"
+          />
         </Link>
         
         <div className="absolute top-0 left-0 w-full p-3 flex justify-between items-center">

@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import Categories from "@/pages/Categories";
 import VideoClasses from "@/pages/VideoClasses";
 import More from "@/pages/More";
+import ArtworkDetail from "@/pages/ArtworkDetail";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/categorias" component={Categories} />
       <Route path="/video-aulas" component={VideoClasses} />
       <Route path="/mais" component={More} />
+      <Route path="/artwork/:id" component={ArtworkDetail} />
       <Route component={NotFound} />
     </Switch>
   );
