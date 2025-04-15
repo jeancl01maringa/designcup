@@ -6,12 +6,13 @@ import { useMobileMenu } from "@/hooks/use-mobile-menu";
 const Logo = () => (
   <div className="flex items-center">
     <Link href="/" className="flex items-center">
-      <svg className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
-        <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
-        <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+      <svg className="h-7 w-7 text-[#936037]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+        <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
       </svg>
-      <span className="ml-2 text-gray-900 font-serif font-semibold text-lg md:text-xl">Design para Estética</span>
+      <span className="ml-2 font-bold text-lg md:text-xl">
+        <span className="text-black">Design</span><span className="text-[#936037]">paraEstética</span>
+      </span>
     </Link>
   </div>
 );
