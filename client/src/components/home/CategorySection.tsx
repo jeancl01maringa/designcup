@@ -17,89 +17,89 @@ interface Category {
   items: CategoryItem[];
 }
 
-// Dados das categorias com formato de carrossel 2x2
+// Dados das categorias com as imagens fornecidas
 const categories: Category[] = [
   {
-    id: 'lavagem',
-    name: 'Lavagem',
-    color: 'bg-green-500',
-    bgColor: 'bg-green-100',
+    id: 'tratamentos-faciais',
+    name: 'Tratamentos Faciais',
+    color: 'bg-[#AA5E2F]',
+    bgColor: 'bg-[#FFF4E9]',
     items: [
       {
-        id: 'lavagem-1',
-        title: 'Hidratação profunda',
-        image: 'https://images.unsplash.com/photo-1545171709-49f212b5a6e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'tratamento-1',
+        title: 'Segredos de uma Pele Radiante',
+        image: '/attached_assets/atualização estética 09.jpg',
       },
       {
-        id: 'lavagem-2',
-        title: 'Limpeza facial',
-        image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'tratamento-2',
+        title: '5 mitos sobre o uso de protetor solar',
+        image: '/attached_assets/atualização estética 01.png',
       },
       {
-        id: 'lavagem-3',
-        title: 'Esfoliação',
-        image: 'https://images.unsplash.com/photo-1526045612212-70caf35c14df?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'tratamento-3',
+        title: 'Pele sem manchas',
+        image: '/attached_assets/Captura de tela 2025-04-03 233106.png',
       },
       {
-        id: 'lavagem-4',
-        title: 'Pele radiante',
-        image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'tratamento-4',
+        title: 'Preenchimento labial sem exageros',
+        image: '/attached_assets/Captura de tela 2025-04-03 233140.png',
       }
     ]
   },
   {
-    id: 'mecanica',
-    name: 'Mecânica',
-    color: 'bg-red-500',
-    bgColor: 'bg-red-100',
+    id: 'procedimentos',
+    name: 'Procedimentos',
+    color: 'bg-[#AA5E2F]',
+    bgColor: 'bg-[#FFF4E9]',
     items: [
       {
-        id: 'mecanica-1',
-        title: 'Massagem modeladora',
-        image: 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'procedimento-1',
+        title: 'Seu primeiro Botox?',
+        image: '/attached_assets/atualização estética 04 (1).png',
       },
       {
-        id: 'mecanica-2',
+        id: 'procedimento-2',
+        title: 'Beleza atemporal é um investimento',
+        image: '/attached_assets/Captura de tela 2025-04-03 232355.png',
+      },
+      {
+        id: 'procedimento-3',
+        title: 'Lábios dos sonhos sem fazer cirurgia',
+        image: '/attached_assets/atualização estética 05 (1).png',
+      },
+      {
+        id: 'procedimento-4',
+        title: 'Transforme sua pele, preserve sua essência',
+        image: '/attached_assets/Captura de tela 2025-04-03 23320922.png',
+      }
+    ]
+  },
+  {
+    id: 'estética-corporal',
+    name: 'Estética Corporal',
+    color: 'bg-[#AA5E2F]',
+    bgColor: 'bg-[#FFF4E9]',
+    items: [
+      {
+        id: 'corporal-1',
         title: 'Drenagem linfática',
-        image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        image: '/attached_assets/atualização estética 06 (1).png',
       },
       {
-        id: 'mecanica-3',
-        title: 'Rejuvenescimento facial',
-        image: 'https://images.unsplash.com/photo-1596704017454-7a8b113978b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'corporal-2',
+        title: 'Pele firme e viçosa',
+        image: '/attached_assets/atualização estética 10.jpg',
       },
       {
-        id: 'mecanica-4',
-        title: 'Firmeza e elasticidade',
-        image: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-      }
-    ]
-  },
-  {
-    id: 'seminovos',
-    name: 'Seminovos',
-    color: 'bg-purple-500',
-    bgColor: 'bg-purple-100',
-    items: [
-      {
-        id: 'seminovos-1',
-        title: 'Peelings químicos',
-        image: 'https://images.unsplash.com/photo-1596727147705-61a532a659bd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'corporal-3',
+        title: 'Relaxamento e rejuvenescimento',
+        image: '/attached_assets/Captura de tela 2025-04-03 231324.png',
       },
       {
-        id: 'seminovos-2',
-        title: 'Rejuvenescimento',
-        image: 'https://images.unsplash.com/photo-1591343395082-e120087004b4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-      },
-      {
-        id: 'seminovos-3',
-        title: 'Máscaras faciais',
-        image: 'https://images.unsplash.com/photo-1558507652-2d9626c4e67a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-      },
-      {
-        id: 'seminovos-4',
-        title: 'Microagulhamento',
-        image: 'https://images.unsplash.com/photo-1565693413579-8a23f559df49?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        id: 'corporal-4',
+        title: 'Segredos de uma Pele Radiante',
+        image: '/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png',
       }
     ]
   }

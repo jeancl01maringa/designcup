@@ -64,12 +64,13 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             className="w-full h-full object-cover"
           />
           
-          {/* Pro badge */}
+          {/* Pro badge com coroa */}
           {artwork.isPro && (
             <div className="absolute top-2 left-2 z-10">
               <div className="bg-white/80 backdrop-blur-sm py-1 px-2 rounded-full text-xs font-medium text-[#AA5E2F] flex items-center">
-                <svg className="w-3 h-3 mr-1 text-orange-500 fill-orange-500" viewBox="0 0 24 24">
-                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                <svg className="w-3.5 h-3.5 mr-1 text-[#AA5E2F] fill-[#AA5E2F]" viewBox="0 0 24 24">
+                  <path d="M12 1l3 5 5 1-4 4 1 5-5-2-5 2 1-5-4-4 5-1z" />
+                  <path d="M3 21h18v2H3z" />
                 </svg>
                 Premium
               </div>

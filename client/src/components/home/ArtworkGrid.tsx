@@ -4,12 +4,134 @@ import { Artwork } from "@shared/schema";
 import { ArtworkCard } from "./ArtworkCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Star, ImageIcon } from "lucide-react";
+import { Star, ImageIcon, Crown } from "lucide-react";
+
+// Interface simplificada para dados de mock
+interface MockArtwork {
+  id: number;
+  title: string;
+  description: string;
+  imageUrl: string;
+  category: string;
+  createdAt: Date;
+  isPro: boolean;
+  format: string; // "1:1", "9:16", "16:9", "1080:1350"
+}
+
+// Mock de dados com as imagens enviadas e diferentes formatos
+const mockArtworks: MockArtwork[] = [
+  {
+    id: 1,
+    title: "Segredos de uma Pele Radiante",
+    description: "Descubra os segredos para conseguir uma pele bonita e saudável.",
+    imageUrl: "/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png",
+    category: "facial",
+    createdAt: new Date(),
+    isPro: true,
+    format: "1:1" // quadrado
+  },
+  {
+    id: 2,
+    title: "5 mitos sobre o uso de protetor solar",
+    description: "Conheça os principais mitos sobre protetor solar e como usá-lo corretamente.",
+    imageUrl: "/attached_assets/atualização estética 01.png",
+    category: "facial",
+    createdAt: new Date(),
+    isPro: false,
+    format: "9:16" // stories
+  },
+  {
+    id: 3,
+    title: "Seu primeiro Botox?",
+    description: "Tudo o que você precisa saber antes do seu primeiro procedimento de Botox.",
+    imageUrl: "/attached_assets/atualização estética 04 (1).png",
+    category: "procedimentos",
+    createdAt: new Date(),
+    isPro: true,
+    format: "9:16" // stories
+  },
+  {
+    id: 4,
+    title: "Lábios dos sonhos sem fazer cirurgia",
+    description: "Confira como conseguir lábios perfeitos sem procedimentos cirúrgicos.",
+    imageUrl: "/attached_assets/atualização estética 05 (1).png",
+    category: "procedimentos",
+    createdAt: new Date(),
+    isPro: true,
+    format: "1:1" // quadrado
+  },
+  {
+    id: 5,
+    title: "Drenagem linfática",
+    description: "Os benefícios da drenagem linfática para uma silhueta perfeita.",
+    imageUrl: "/attached_assets/atualização estética 06 (1).png",
+    category: "corporal",
+    createdAt: new Date(),
+    isPro: false,
+    format: "9:16" // stories
+  },
+  {
+    id: 6,
+    title: "Pele firme e Viçosa",
+    description: "O segredo para uma pele iluminada e saudável está aqui.",
+    imageUrl: "/attached_assets/atualização estética 10.jpg",
+    category: "corporal",
+    createdAt: new Date(),
+    isPro: true,
+    format: "1:1" // quadrado
+  },
+  {
+    id: 7,
+    title: "Pele sem manchas",
+    description: "Clareadores e laser fazem a diferença.",
+    imageUrl: "/attached_assets/Captura de tela 2025-04-03 233106.png",
+    category: "facial",
+    createdAt: new Date(),
+    isPro: false,
+    format: "16:9" // paisagem
+  },
+  {
+    id: 8,
+    title: "Preenchimento labial sem exageros",
+    description: "Realce e dê volume com naturalidade.",
+    imageUrl: "/attached_assets/Captura de tela 2025-04-03 233140.png",
+    category: "procedimentos",
+    createdAt: new Date(),
+    isPro: true,
+    format: "1080:1350" // retrato
+  },
+  {
+    id: 9,
+    title: "Relaxamento e rejuvenescimento em uma única sessão!",
+    description: "Agende seu horário e sinta a diferença!",
+    imageUrl: "/attached_assets/Captura de tela 2025-04-03 231324.png",
+    category: "facial",
+    createdAt: new Date(),
+    isPro: true,
+    format: "1:1" // quadrado
+  },
+  {
+    id: 10,
+    title: "Beleza atemporal é um investimento",
+    description: "Protocolos de alta performance para uma pele jovem e saudável.",
+    imageUrl: "/attached_assets/Captura de tela 2025-04-03 232355.png",
+    category: "facial",
+    createdAt: new Date(),
+    isPro: true,
+    format: "1:1" // quadrado
+  }
+];
 
 export default function ArtworkGrid() {
-  const { data: artworks = [], isLoading, error } = useQuery<Artwork[]>({
+  // Usando mock de dados enquanto a API não está pronta
+  const { data: apiArtworks = [], isLoading, error } = useQuery<MockArtwork[]>({
     queryKey: ['/api/artworks'],
+    // Mockamos os dados mas mantemos a chamada API para futuro
+    initialData: mockArtworks
   });
+
+  // Usamos os dados do mock para apresentação
+  const artworks = mockArtworks;
 
   if (isLoading) {
     return (
@@ -18,15 +140,10 @@ export default function ArtworkGrid() {
           <Skeleton className="h-8 w-72 mb-2" />
           <Skeleton className="h-4 w-96" />
         </div>
-        <div className="grid gap-3"
-          style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-            gap: '12px'
-          }}>
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="rounded-lg overflow-hidden">
-              <Skeleton className="w-full aspect-square" />
+            <div key={i} className="mb-4 break-inside-avoid rounded-lg overflow-hidden">
+              <Skeleton className={`w-full ${i % 2 === 0 ? 'aspect-square' : 'aspect-[9/16]'}`} />
             </div>
           ))}
         </div>
@@ -44,6 +161,10 @@ export default function ArtworkGrid() {
     );
   }
 
+  // Separe os artworks por formato
+  const storiesArtworks = artworks.filter(art => art.format === "9:16");
+  const otherArtworks = artworks.filter(art => art.format !== "9:16");
+
   return (
     <section className="py-8 bg-white">
       <div className="container mx-auto px-4">
@@ -54,7 +175,7 @@ export default function ArtworkGrid() {
             </div>
             <h2 className="font-semibold text-lg text-[#1D1D1D]">Artes editáveis para sua Clínica</h2>
             <Badge variant="outline" className="bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
-              <Star className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
+              <Crown className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
               <span className="text-xs">Premium</span>
             </Badge>
           </div>
@@ -63,16 +184,12 @@ export default function ArtworkGrid() {
           </p>
         </div>
 
-        <div 
-          className="grid mb-10"
-          style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-            gap: '12px'
-          }}
-        >
-          {artworks.map((artwork: Artwork) => (
-            <ArtworkCard key={artwork.id} artwork={artwork} />
+        {/* Grid no estilo Pinterest - responsivo para diferentes formatos */}
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 mb-10">
+          {otherArtworks.map((artwork: Artwork) => (
+            <div key={artwork.id} className="mb-4 break-inside-avoid">
+              <ArtworkCard artwork={artwork} />
+            </div>
           ))}
         </div>
         
@@ -91,6 +208,15 @@ export default function ArtworkGrid() {
           <p className="text-sm text-[#4B4B4B] ml-7">
             Templates para Stories no formato 9:16 otimizados para Instagram.
           </p>
+        </div>
+
+        {/* Grid para stories */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {storiesArtworks.map((artwork: Artwork) => (
+            <div key={artwork.id} className="aspect-[9/16] relative">
+              <ArtworkCard artwork={artwork} />
+            </div>
+          ))}
         </div>
       </div>
     </section>
