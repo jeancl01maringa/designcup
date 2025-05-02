@@ -18,7 +18,12 @@ export default function ArtworkGrid() {
           <Skeleton className="h-8 w-72 mb-2" />
           <Skeleton className="h-4 w-96" />
         </div>
-        <div className="grid grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) gap-3">
+        <div className="grid gap-3"
+          style={{ 
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: '12px'
+          }}>
           {[...Array(8)].map((_, i) => (
             <div key={i} className="rounded-lg overflow-hidden">
               <Skeleton className="w-full aspect-square" />
@@ -40,16 +45,16 @@ export default function ArtworkGrid() {
   }
 
   return (
-    <section className="py-8">
+    <section className="py-8 bg-white">
       <div className="container mx-auto px-4">
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <div className="text-[#A85C20]">
+            <div className="text-[#AA5E2F]">
               <ImageIcon className="h-5 w-5" />
             </div>
-            <h2 className="font-semibold text-lg text-[#262626]">Artes editáveis para sua Clínica</h2>
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-              <Star className="h-3 w-3 fill-amber-500 text-amber-500 mr-1" />
+            <h2 className="font-semibold text-lg text-[#1D1D1D]">Artes editáveis para sua Clínica</h2>
+            <Badge variant="outline" className="bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
+              <Star className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
               <span className="text-xs">Premium</span>
             </Badge>
           </div>
@@ -59,7 +64,7 @@ export default function ArtworkGrid() {
         </div>
 
         <div 
-          className="grid gap-3 mb-10"
+          className="grid mb-10"
           style={{ 
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
@@ -74,12 +79,12 @@ export default function ArtworkGrid() {
         {/* Stories Section */}
         <div className="mb-6 mt-10">
           <div className="flex items-center gap-2 mb-2">
-            <div className="text-[#A85C20]">
+            <div className="text-[#AA5E2F]">
               <ImageIcon className="h-5 w-5" />
             </div>
-            <h2 className="font-semibold text-lg text-[#262626]">Stories para Estética</h2>
-            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-              <Star className="h-3 w-3 fill-orange-500 text-orange-500 mr-1" />
+            <h2 className="font-semibold text-lg text-[#1D1D1D]">Stories para Estética</h2>
+            <Badge variant="outline" className="bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
+              <Star className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
               <span className="text-xs">Novo</span>
             </Badge>
           </div>

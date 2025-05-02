@@ -7,12 +7,12 @@ import { User } from "lucide-react";
 const Logo = () => (
   <div className="flex items-center">
     <Link href="/" className="flex items-center">
-      <svg className="h-7 w-7 text-[#A85C20]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
         <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
       </svg>
       <span className="ml-2 font-bold text-lg md:text-xl">
-        <span className="text-[#2D2D2D]">Design</span><span className="text-[#A85C20]">paraEstética</span>
+        <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
       </span>
     </Link>
   </div>
@@ -36,7 +36,7 @@ const NavLinks = () => {
         <Link 
           key={item.path} 
           href={item.path}
-          className={`text-[#2D2D2D] hover:text-[#A85C20] font-medium text-sm ${location === item.path ? 'text-[#A85C20]' : ''}`}
+          className={`text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
         >
           {item.name}
         </Link>
@@ -47,7 +47,7 @@ const NavLinks = () => {
 
 const UserAvatar = () => (
   <div className="hidden md:flex items-center">
-    <Button variant="ghost" size="icon" className="rounded-full overflow-hidden w-9 h-9 p-0">
+    <Button variant="ghost" size="icon" className="rounded-full overflow-hidden w-9 h-9 p-0 hover-card">
       <img 
         src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80" 
         alt="User Profile"
@@ -79,7 +79,7 @@ const MobileMenu = () => {
           <Link 
             key={item.path} 
             href={item.path}
-            className={`block text-[#2D2D2D] hover:text-[#A85C20] font-medium text-base py-2 ${location === item.path ? 'text-[#A85C20]' : ''}`}
+            className={`block text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base py-2 transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
             onClick={() => setIsOpen(false)}
           >
             {item.name}
@@ -91,7 +91,7 @@ const MobileMenu = () => {
             alt="User Profile"
             className="w-8 h-8 rounded-full object-cover"
           />
-          <span className="text-[#2D2D2D] font-medium">Meu Perfil</span>
+          <span className="text-[#1D1D1D] font-medium">Meu Perfil</span>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ const MobileMenuButton = () => {
     <Button 
       variant="ghost" 
       size="icon"
-      className="md:hidden text-[#2D2D2D] hover:text-[#A85C20]"
+      className="md:hidden text-[#1D1D1D] hover:text-[#AA5E2F]"
       onClick={() => setIsOpen(!isOpen)}
     >
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

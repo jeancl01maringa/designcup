@@ -1,13 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --primary: 23 56% 43%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --muted: 35 100% 97%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --border: 25 50% 90%;
+    --input: 214.3 31.8% 91.4%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 25 60% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 25 70% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 23 56% 43%;
+    --radius: 0.75rem;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    @apply antialiased bg-background text-[#1D1D1D];
+  }
+}
+
+@layer components {
+  .hover-card {
+    @apply transition-all duration-200 ease-in-out cursor-pointer;
+  }
+  
+  .hover-card:hover {
+    @apply transform scale-[1.03] shadow-[0_8px_20px_rgba(0,0,0,0.1)];
+  }
+
+  .bg-secondary-light {
+    @apply bg-[#FFF4E9];
+  }
+  
+  .text-primary-brown {
+    @apply text-[#AA5E2F];
+  }
+  
+  .text-dark {
+    @apply text-[#1D1D1D];
+  }
+  
+  .btn-primary {
+    @apply bg-[#AA5E2F] text-white rounded-full px-4 py-2 hover:bg-[#95512A] transition-colors shadow-sm;
+  }
+  
+  .category-badge {
+    @apply text-xs font-medium px-3 py-1 rounded-full shadow-sm;
   }
 }
