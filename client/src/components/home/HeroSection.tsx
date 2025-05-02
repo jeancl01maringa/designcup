@@ -30,44 +30,29 @@ export default function HeroSection() {
           sua rotina com <span className="text-[#1D1D1D] font-medium">qualidade profissional</span>.
         </p>
         
-        {/* Format Tabs and Search Bar */}
-        <div className="w-full max-w-3xl mb-8">
-          <div className="bg-white rounded-lg p-3 shadow-sm">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="relative flex-grow w-full">
-                <input
-                  type="text"
-                  placeholder="Busque por artes, categorias, temas..."
-                  className="w-full py-3 px-5 pr-12 rounded-lg border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all"
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Button className="h-9 w-9 p-0 rounded-full bg-[#1f4ed8] hover:bg-[#1a44c2]">
-                    <Search className="h-4 w-4 text-white" />
-                  </Button>
-                </div>
-              </div>
-              
-              <Tabs defaultValue="all" className="w-full md:w-auto">
-                <TabsList className="grid grid-cols-4 w-full md:w-auto gap-1 bg-[#F9F9F9]">
-                  <TabsTrigger value="all" className="flex items-center gap-2 text-xs">
-                    <LayoutGrid className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Todos</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="stories" className="flex items-center gap-2 text-xs">
-                    <span className="inline-flex h-3.5 w-2.5 bg-[#FAF3EC] rounded-sm"></span>
-                    <span className="hidden sm:inline">Stories</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="square" className="flex items-center gap-2 text-xs">
-                    <span className="inline-flex h-3.5 w-3.5 bg-[#FAF3EC] rounded-sm"></span>
-                    <span className="hidden sm:inline">Quadrado</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="custom" className="flex items-center gap-2 text-xs">
-                    <Settings2 className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Personalizado</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+        {/* Search Bar with Format Dropdown */}
+        <div className="w-full max-w-xl mt-4">
+          <div className="relative flex items-center">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center border-r border-gray-200 pr-2">
+              <select className="text-sm text-gray-500 bg-transparent focus:outline-none focus:ring-0 p-0 pr-5 appearance-none cursor-pointer">
+                <option value="all">Todos os formatos</option>
+                <option value="stories">Stories (9:16)</option>
+                <option value="square">Quadrado (1:1)</option>
+                <option value="landscape">Paisagem (16:9)</option>
+                <option value="custom">Personalizado</option>
+              </select>
+              <LayoutGrid className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
+            
+            <input
+              type="text"
+              placeholder="Busque por artes, categorias, temas..."
+              className="w-full py-3 pl-36 pr-12 rounded-full border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all"
+            />
+            
+            <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 p-0 rounded-full bg-[#1f4ed8] hover:bg-[#1a44c2]">
+              <Search className="h-4 w-4 text-white" />
+            </Button>
           </div>
         </div>
       </div>
