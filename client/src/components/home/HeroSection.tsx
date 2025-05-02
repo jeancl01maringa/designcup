@@ -30,28 +30,29 @@ export default function HeroSection() {
         </p>
         
         {/* Search Bar with Format Dropdown */}
-        <div className="w-full max-w-xl mt-4">
+        <div className="w-full max-w-xl mt-6">
           <div className="relative flex items-center">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center border-r border-gray-200 pr-2">
+            <input
+              type="text"
+              placeholder="Busque por artes, categorias, temas..."
+              className="w-full py-3 px-5 pr-32 rounded-full border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all"
+            />
+            
+            {/* Format Dropdown - Positioned to the right */}
+            <div className="absolute right-12 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-3">
               <div className="relative">
-                <select className="text-sm font-medium appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 cursor-pointer">
+                <select className="text-sm font-medium appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 pl-1 cursor-pointer min-w-[90px]">
                   <option value="all">Formatos</option>
                   <option value="feed">Feed</option>
                   <option value="poster">Cartaz</option>
                   <option value="stories">Stories</option>
                   <option value="images">Imagens</option>
                 </select>
-                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA5E2F]" />
+                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1f4ed8]" />
               </div>
             </div>
             
-            <input
-              type="text"
-              placeholder="Busque por artes, categorias, temas..."
-              className="w-full py-3 pl-28 pr-12 rounded-full border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all"
-            />
-            
-            <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 p-0 rounded-full bg-[#1f4ed8] hover:bg-[#1a44c2]">
+            <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 p-0 rounded-full bg-[#1f4ed8] hover:bg-[#1a44c2] shadow-sm">
               <Search className="h-4 w-4 text-white" />
             </Button>
           </div>
