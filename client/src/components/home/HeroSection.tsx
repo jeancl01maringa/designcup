@@ -7,13 +7,13 @@ export default function HeroSection() {
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         {/* Badges - Moved above the heading */}
         <div className="flex flex-wrap justify-center gap-6 mb-6">
-          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm hover-card">
-            <Users className="h-5 w-5 text-[#AA5E2F] mr-2" />
-            <span className="text-sm font-medium text-[#1D1D1D]">+3 mil membros</span>
+          <div className="bg-white/60 backdrop-blur-sm rounded-full py-1.5 px-3 flex items-center shadow-sm">
+            <Users className="h-4 w-4 text-[#AA5E2F] mr-1.5" />
+            <span className="text-xs font-light text-[#1D1D1D]">+3 mil membros</span>
           </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm hover-card">
-            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500 mr-2" />
-            <span className="text-sm font-medium text-[#1D1D1D]">Avaliado 5 estrelas</span>
+          <div className="bg-white/60 backdrop-blur-sm rounded-full py-1.5 px-3 flex items-center shadow-sm">
+            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1.5" />
+            <span className="text-xs font-light text-[#1D1D1D]">Avaliado 5 estrelas</span>
           </div>
         </div>
         
