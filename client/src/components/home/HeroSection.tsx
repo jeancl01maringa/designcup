@@ -35,13 +35,13 @@ export default function HeroSection() {
             <input
               type="text"
               placeholder="Busque por artes, categorias, temas..."
-              className="w-full py-3 px-5 pr-32 rounded-full border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all"
+              className="w-full py-3 px-5 pr-32 rounded-lg border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all font-sans"
             />
             
             {/* Format Dropdown - Positioned to the right */}
             <div className="absolute right-12 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-3">
               <div className="relative">
-                <select className="text-sm font-medium appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 pl-1 cursor-pointer min-w-[90px]">
+                <select className="text-xs font-normal appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 pl-1 cursor-pointer min-w-[90px] text-gray-600 font-sans">
                   <option value="all">Formatos</option>
                   <option value="feed">Feed</option>
                   <option value="poster">Cartaz</option>

@@ -148,7 +148,7 @@ export default function CategorySection() {
                 Categorias
               </Badge>
             </div>
-            <h2 className="text-2xl font-bold text-[#1D1D1D] mb-2">Explore nossa biblioteca por categorias</h2>
+            <h2 className="text-2xl font-bold text-[#1D1D1D] mb-2 font-montserrat">Explore nossa biblioteca por categorias</h2>
             <p className="text-[#4B4B4B] text-base mb-4 md:mb-0 max-w-xl">
               Encontre recursos ideais para sua clínica de estética organizados por especialidade.
             </p>
@@ -185,7 +185,7 @@ export default function CategorySection() {
         <div className="relative my-6">
           {/* Category Info */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold text-[#1D1D1D] mb-1">{currentCategory.name}</h3>
+            <h3 className="text-xl font-semibold text-[#1D1D1D] mb-1 font-montserrat">{currentCategory.name}</h3>
             <p className="text-[#4B4B4B]">{currentCategory.description}</p>
           </div>
           

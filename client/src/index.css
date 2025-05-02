@@ -36,6 +36,10 @@
     font-family: 'Inter', sans-serif;
     @apply antialiased bg-background text-[#1D1D1D];
   }
+  
+  h1, h2, h3 {
+    font-family: 'Montserrat', sans-serif;
+  }
 }
 
 @layer components {
