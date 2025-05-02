@@ -143,9 +143,9 @@ export default function CategorySection() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="bg-[#FAF3EC] border-none text-[#AA5E2F] px-3 py-1 rounded-md">
-                <Layers className="h-4 w-4 mr-1" />
-                Categorias
+              <Badge variant="outline" className="bg-[#FAF3EC]/70 border-none text-[#AA5E2F] px-2.5 py-0.5 rounded-md">
+                <Layers className="h-3.5 w-3.5 mr-1" />
+                <span className="text-xs font-light">Categorias</span>
               </Badge>
             </div>
             <h2 className="text-2xl font-bold text-[#1D1D1D] mb-2 font-montserrat">Explore nossa biblioteca por categorias</h2>
@@ -167,16 +167,16 @@ export default function CategorySection() {
           {categories.map((category, index) => (
             <button
               key={category.id}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
                 index === activeCategory 
-                  ? 'bg-[#AA5E2F] text-white' 
-                  : 'bg-white text-[#1D1D1D] hover:bg-[#FAF3EC]'
+                  ? 'bg-[#AA5E2F] text-white shadow-sm' 
+                  : 'bg-white/80 text-[#1D1D1D] hover:bg-[#FAF3EC]'
               }`}
               onClick={() => setActiveCategory(index)}
             >
-              <div className="flex items-center gap-2">
-                {category.icon && <span className={index === activeCategory ? 'text-white' : 'text-[#AA5E2F]'}>{category.icon}</span>}
-                <span className="font-medium">{category.name}</span>
+              <div className="flex items-center gap-1.5">
+                {category.icon && <span className={`h-3.5 w-3.5 ${index === activeCategory ? 'text-white' : 'text-[#AA5E2F]'}`}>{category.icon}</span>}
+                <span className={`text-sm ${index === activeCategory ? 'font-normal' : 'font-light'}`}>{category.name}</span>
               </div>
             </button>
           ))}
@@ -212,9 +212,9 @@ export default function CategorySection() {
             </div>
             
             {/* Category Label */}
-            <div className={`absolute top-4 right-4 ${currentCategory.color} text-white rounded-full px-4 py-1 shadow-md`}>
-              <span className="text-sm font-medium flex items-center gap-1">
-                {currentCategory.icon}
+            <div className={`absolute top-3 right-3 ${currentCategory.color} text-white rounded-full px-3 py-0.5 shadow-sm`}>
+              <span className="text-xs font-light flex items-center gap-1">
+                {currentCategory.icon && <span className="h-3 w-3">{currentCategory.icon}</span>}
                 {currentCategory.name}
               </span>
             </div>
@@ -222,28 +222,28 @@ export default function CategorySection() {
           
           {/* Navigation Arrows */}
           <button 
-            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-5 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-md z-10 hover:bg-[#FFF4E9] transition-colors"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 bg-white/90 rounded-full w-8 h-8 flex items-center justify-center shadow-sm z-10 hover:bg-[#FFF4E9] transition-colors"
             onClick={handlePrevious}
             aria-label="Categoria anterior"
           >
-            <ArrowLeft className="h-5 w-5 text-[#AA5E2F]" />
+            <ArrowLeft className="h-4 w-4 text-[#AA5E2F]" />
           </button>
           
           <button 
-            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-5 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-md z-10 hover:bg-[#FFF4E9] transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 bg-white/90 rounded-full w-8 h-8 flex items-center justify-center shadow-sm z-10 hover:bg-[#FFF4E9] transition-colors"
             onClick={handleNext}
             aria-label="Próxima categoria"
           >
-            <ArrowRight className="h-5 w-5 text-[#AA5E2F]" />
+            <ArrowRight className="h-4 w-4 text-[#AA5E2F]" />
           </button>
         </div>
         
         {/* Category Selection Dots */}
-        <div className="flex justify-center mt-6 gap-2">
+        <div className="flex justify-center mt-4 gap-1.5">
           {categories.map((category, index) => (
             <button 
               key={category.id}
-              className={`w-2.5 h-2.5 rounded-full transition-colors ${index === activeCategory ? 'bg-[#AA5E2F]' : 'bg-gray-300'}`}
+              className={`w-2 h-2 rounded-full transition-colors ${index === activeCategory ? 'bg-[#AA5E2F]' : 'bg-gray-200'}`}
               onClick={() => setActiveCategory(index)}
               aria-label={`Selecionar categoria ${category.name}`}
             />
