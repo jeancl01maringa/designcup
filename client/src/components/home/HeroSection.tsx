@@ -1,6 +1,5 @@
-import { Star, Users, Search, ImageIcon, LayoutGrid, Settings2 } from "lucide-react";
+import { Star, Users, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function HeroSection() {
   return (
@@ -34,20 +33,22 @@ export default function HeroSection() {
         <div className="w-full max-w-xl mt-4">
           <div className="relative flex items-center">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center border-r border-gray-200 pr-2">
-              <select className="text-sm text-gray-500 bg-transparent focus:outline-none focus:ring-0 p-0 pr-5 appearance-none cursor-pointer">
-                <option value="all">Todos os formatos</option>
-                <option value="stories">Stories (9:16)</option>
-                <option value="square">Quadrado (1:1)</option>
-                <option value="landscape">Paisagem (16:9)</option>
-                <option value="custom">Personalizado</option>
-              </select>
-              <LayoutGrid className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <div className="relative">
+                <select className="text-sm font-medium appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 cursor-pointer">
+                  <option value="all">Formatos</option>
+                  <option value="feed">Feed</option>
+                  <option value="poster">Cartaz</option>
+                  <option value="stories">Stories</option>
+                  <option value="images">Imagens</option>
+                </select>
+                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA5E2F]" />
+              </div>
             </div>
             
             <input
               type="text"
               placeholder="Busque por artes, categorias, temas..."
-              className="w-full py-3 pl-36 pr-12 rounded-full border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all"
+              className="w-full py-3 pl-28 pr-12 rounded-full border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all"
             />
             
             <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 p-0 rounded-full bg-[#1f4ed8] hover:bg-[#1a44c2]">
