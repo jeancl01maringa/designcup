@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -43,28 +43,28 @@ const categories: Category[] = [
     ]
   },
   {
-    id: 'procedimentos',
+    id: 'estetica-facial',
     name: 'Estética Facial',
     items: [
       {
-        id: 'procedimento-1',
-        title: 'Botox?',
-        image: '/attached_assets/Captura de tela 2025-04-03 233140.png',
-      },
-      {
-        id: 'procedimento-2',
-        title: 'sem fazer cirurgia',
-        image: '/attached_assets/atualização estética 05 (1).png',
-      },
-      {
-        id: 'procedimento-3',
-        title: 'Tratamento facial',
+        id: 'facial-1',
+        title: 'Pele Radiante',
         image: '/attached_assets/atualização estética 09.jpg',
       },
       {
-        id: 'procedimento-4',
-        title: 'Qualidade da pele',
+        id: 'facial-2',
+        title: 'Limpeza Facial',
         image: '/attached_assets/Captura de tela 2025-04-03 23320922.png',
+      },
+      {
+        id: 'facial-3',
+        title: 'Tratamento anti-idade',
+        image: '/attached_assets/atualização estética 01.png',
+      },
+      {
+        id: 'facial-4',
+        title: 'Brilho Natural',
+        image: '/attached_assets/Story Instagram Estética Dicas de Skincare Elegante Rosa.png',
       }
     ]
   },
@@ -119,22 +119,72 @@ const categories: Category[] = [
         image: '/attached_assets/atualização estética 01.png',
       }
     ]
+  },
+  {
+    id: 'nutricao',
+    name: 'Nutrição',
+    items: [
+      {
+        id: 'nutricao-1',
+        title: 'Dieta Personalizada',
+        image: '/attached_assets/Design sem nome (1).png',
+      },
+      {
+        id: 'nutricao-2',
+        title: 'Suplementação',
+        image: '/attached_assets/Design sem nome (2).png',
+      },
+      {
+        id: 'nutricao-3',
+        title: 'Bem-estar',
+        image: '/attached_assets/Design sem nome (4).png',
+      },
+      {
+        id: 'nutricao-4',
+        title: 'Alimentação saudável',
+        image: '/attached_assets/Design sem nome.png',
+      }
+    ]
   }
 ];
 
 export default function CategorySection() {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const [visibleCategories, setVisibleCategories] = useState(1);
+  const [startIndex, setStartIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   
-  const totalSlides = categories.length;
+  // Determina quantas categorias mostrar com base no tamanho da tela
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1280) {
+        setVisibleCategories(5); // xl: 5 categorias
+      } else if (window.innerWidth >= 1024) {
+        setVisibleCategories(4); // lg: 4 categorias
+      } else if (window.innerWidth >= 768) {
+        setVisibleCategories(3); // md: 3 categorias
+      } else if (window.innerWidth >= 640) {
+        setVisibleCategories(2); // sm: 2 categorias
+      } else {
+        setVisibleCategories(1); // Mobile: 1 categoria
+      }
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const handlePrevious = () => {
-    setActiveSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
+    setStartIndex((prev) => Math.max(prev - 1, 0));
   };
   
   const handleNext = () => {
-    setActiveSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
+    setStartIndex((prev) => Math.min(prev + 1, categories.length - visibleCategories));
   };
+  
+  const visibleCategoriesArray = categories.slice(startIndex, startIndex + visibleCategories);
+  const canScrollLeft = startIndex > 0;
+  const canScrollRight = startIndex + visibleCategories < categories.length;
   
   return (
     <section className="py-8 bg-white border-b border-gray-100">
@@ -150,30 +200,30 @@ export default function CategorySection() {
           </p>
         </div>
         
-        {/* Carousel */}
-        <div className="relative mx-auto max-w-[800px]">
-          <div 
-            ref={carouselRef}
-            className="overflow-hidden"
-          >
+        {/* Categories Container */}
+        <div className="relative" ref={containerRef}>
+          <div className="overflow-hidden">
             <div 
-              className="flex transition-transform duration-300 ease-in-out"
-              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+              className="flex gap-2 transition-transform duration-300"
+              style={{
+                transform: `translateX(0)`,
+                display: "grid",
+                gridTemplateColumns: `repeat(${visibleCategories}, minmax(0, 1fr))`,
+                gap: "8px"
+              }}
             >
-              {categories.map((category, index) => (
-                <div 
-                  key={category.id} 
-                  className="w-full flex-shrink-0"
-                >
+              {visibleCategoriesArray.map((category) => (
+                <div key={category.id} className="w-full">
                   <div className="bg-white rounded-md overflow-hidden shadow-sm border border-gray-100">
                     <div className="grid grid-cols-2 gap-[2px]">
-                      {category.items.map((item, itemIndex) => (
+                      {category.items.map((item) => (
                         <Link key={item.id} href={`/categorias/${category.id}/${item.id}`}>
                           <div className="relative aspect-square">
                             <img 
                               src={item.image} 
                               alt={item.title}
                               className="w-full h-full object-cover"
+                              loading="lazy"
                             />
                           </div>
                         </Link>
@@ -190,33 +240,38 @@ export default function CategorySection() {
           
           {/* Navigation Arrows */}
           <button 
-            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 md:-ml-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors"
+            className={`absolute left-0 top-1/2 -translate-y-1/2 -ml-3 md:-ml-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollLeft ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handlePrevious}
-            aria-label="Categoria anterior"
+            disabled={!canScrollLeft}
+            aria-label="Categorias anteriores"
           >
             <ArrowLeft className="h-3.5 w-3.5 text-[#c9732b]" />
           </button>
           
           <button 
-            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 md:-mr-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors"
+            className={`absolute right-0 top-1/2 -translate-y-1/2 -mr-3 md:-mr-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollRight ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleNext}
-            aria-label="Próxima categoria"
+            disabled={!canScrollRight}
+            aria-label="Próximas categorias"
           >
             <ArrowRight className="h-3.5 w-3.5 text-[#c9732b]" />
           </button>
           
-          {/* Dots navigation */}
-          <div className="flex justify-center mt-3 gap-1">
-            {categories.map((_, index) => (
-              <button 
-                key={index}
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                  index === activeSlide ? 'bg-[#c9732b]' : 'bg-gray-200'
-                }`}
-                onClick={() => setActiveSlide(index)}
-                aria-label={`Ir para slide ${index + 1}`}
-              />
-            ))}
+          {/* Navigation Dots (mobile only) */}
+          <div className="flex justify-center mt-3 gap-1 md:hidden">
+            {Array.from({ length: Math.ceil(categories.length / visibleCategories) }).map((_, index) => {
+              const isActive = index === Math.floor(startIndex / visibleCategories);
+              return (
+                <button 
+                  key={index}
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                    isActive ? 'bg-[#c9732b]' : 'bg-gray-200'
+                  }`}
+                  onClick={() => setStartIndex(index * visibleCategories)}
+                  aria-label={`Ir para grupo ${index + 1}`}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
