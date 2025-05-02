@@ -1,0 +1,58 @@
+🛠️ Quero que você corrija e reconstrua a seção "Escolha sua categoria" com base nas boas práticas de UI/UX e no layout da imagem enviada. O resultado deve ser idêntico à referência, limpo, responsivo e profissional. A seguir, estão todas as diretrizes obrigatórias para implementar corretamente:
+
+🎯 Objetivo: Recriar a seção “Escolha sua categoria” exatamente como na imagem
+1. Cabeçalho da seção
+Título: 🗂️ Escolha sua categoria
+Fonte: Inter, cor: #1d1d1f, peso bold.
+
+Subtítulo: Encontre recursos ideais para sua clínica de estética.
+Cor: #5c3a2d, tamanho menor, estilo leve.
+
+2. Layout das categorias (cards agrupados 2x2)
+Cada categoria é exibida em um bloco contendo 4 artes (2 acima e 2 abaixo).
+
+Os cards devem estar organizados horizontalmente em carrossel deslizável, com navegação por setas.
+
+Bordas arredondadas, sombra leve, com padding interno uniforme.
+
+Texto com o nome da categoria posicionado no canto inferior esquerdo de cada bloco.
+
+Exemplo de categorias: “Depilação”, “Estética Facial”, “Massagem”, etc.
+
+3. Carrossel horizontal
+Deve ser realmente responsivo:
+
+Em telas grandes, exibir mais blocos.
+
+Em telas menores, o carrossel deve adaptar para mostrar menos blocos por vez (mantendo o agrupamento 2x2).
+
+Setas laterais para navegação com ícone simples e discreto.
+
+Centralizar verticalmente, com leve sombra e fundo branco ou neutro.
+
+Animação suave ao clicar.
+
+4. Design e Espaçamento
+O espaçamento entre os blocos deve ser de no máximo 8px.
+
+Margens e paddings devem ser coerentes e suaves.
+
+Nada deve “saltar” ou quebrar visualmente em qualquer tela.
+
+5. Fonte e Cores globais (padronizar)
+Fonte principal da plataforma: Inter.
+
+Cores:
+
+Preto elegante: #1d1d1f
+
+Laranja principal: #c9732b
+
+Bege suave para fundo (se necessário): #fff6ef
+
+Marrom escuro para legendas ou detalhes: #5c3a2d
+
+Remover todos os tons de azul usados por padrão. A plataforma não deve ter azul.
+
+✅ Resultado esperado:
+Uma seção moderna, agradável, visualmente limpa, idêntica ao print enviado. Categorias bem agrupadas, com responsividade real, efeito suave ao navegar e sem excesso de espaços.

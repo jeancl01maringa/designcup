@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
-import { ChevronRight, ArrowRight, ArrowLeft, FolderIcon, Layers } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { Link } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 interface CategoryItem {
   id: string;
@@ -13,241 +11,213 @@ interface CategoryItem {
 interface Category {
   id: string;
   name: string;
-  color: string;
-  bgColor: string;
-  icon?: React.ReactNode;
-  description: string;
   items: CategoryItem[];
 }
 
 // Dados das categorias com as imagens fornecidas
 const categories: Category[] = [
   {
-    id: 'tratamentos-faciais',
-    name: 'Tratamentos Faciais',
-    color: 'bg-[#AA5E2F]',
-    bgColor: 'bg-[#FFF4E9]',
-    icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 9a4 4 0 100-8 4 4 0 000 8z" fill="currentColor" />
-      <path d="M16 9a4 4 0 100-8 4 4 0 000 8z" fill="currentColor" />
-      <path d="M22 16.5a6 6 0 00-12 0" stroke="currentColor" strokeWidth="2" />
-      <path d="M14 16.5a6 6 0 00-12 0" stroke="currentColor" strokeWidth="2" />
-    </svg>,
-    description: 'Conteúdo para cuidados com a pele e rejuvenescimento facial',
+    id: 'botox',
+    name: 'Botox?',
     items: [
       {
-        id: 'tratamento-1',
-        title: 'Segredos de uma Pele Radiante',
-        image: '/attached_assets/atualização estética 09.jpg',
+        id: 'botox-1',
+        title: 'Botox?',
+        image: '/attached_assets/Captura de tela 2025-04-03 233140.png',
       },
       {
-        id: 'tratamento-2',
-        title: '5 mitos sobre o uso de protetor solar',
-        image: '/attached_assets/atualização estética 01.png',
+        id: 'botox-2',
+        title: 'sem fazer cirurgia',
+        image: '/attached_assets/atualização estética 05 (1).png',
       },
       {
-        id: 'tratamento-3',
-        title: 'Pele sem manchas',
+        id: 'botox-3',
+        title: 'Botox?',
         image: '/attached_assets/Captura de tela 2025-04-03 233106.png',
       },
       {
-        id: 'tratamento-4',
-        title: 'Preenchimento labial sem exageros',
-        image: '/attached_assets/Captura de tela 2025-04-03 233140.png',
+        id: 'botox-4',
+        title: 'sem fazer cirurgia',
+        image: '/attached_assets/Captura de tela 2025-04-03 232355.png',
       }
     ]
   },
   {
     id: 'procedimentos',
-    name: 'Procedimentos',
-    color: 'bg-[#AA5E2F]',
-    bgColor: 'bg-[#FFF4E9]',
-    icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 9l-7 7-7-7" stroke="currentColor" strokeWidth="2" />
-    </svg>,
-    description: 'Materiais de comunicação para procedimentos estéticos especializados',
+    name: 'Estética Facial',
     items: [
       {
         id: 'procedimento-1',
-        title: 'Seu primeiro Botox?',
-        image: '/attached_assets/atualização estética 04 (1).png',
+        title: 'Botox?',
+        image: '/attached_assets/Captura de tela 2025-04-03 233140.png',
       },
       {
         id: 'procedimento-2',
-        title: 'Beleza atemporal é um investimento',
-        image: '/attached_assets/Captura de tela 2025-04-03 232355.png',
-      },
-      {
-        id: 'procedimento-3',
-        title: 'Lábios dos sonhos sem fazer cirurgia',
+        title: 'sem fazer cirurgia',
         image: '/attached_assets/atualização estética 05 (1).png',
       },
       {
+        id: 'procedimento-3',
+        title: 'Tratamento facial',
+        image: '/attached_assets/atualização estética 09.jpg',
+      },
+      {
         id: 'procedimento-4',
-        title: 'Transforme sua pele, preserve sua essência',
+        title: 'Qualidade da pele',
         image: '/attached_assets/Captura de tela 2025-04-03 23320922.png',
       }
     ]
   },
   {
-    id: 'estética-corporal',
-    name: 'Estética Corporal',
-    color: 'bg-[#AA5E2F]',
-    bgColor: 'bg-[#FFF4E9]',
-    icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 16a4 4 0 100-8 4 4 0 000 8z" fill="currentColor" />
-    </svg>,
-    description: 'Artes voltadas para tratamentos corporais e modelagem',
+    id: 'depilacao',
+    name: 'Depilação',
     items: [
       {
-        id: 'corporal-1',
-        title: 'Drenagem linfática',
+        id: 'depilacao-1',
+        title: 'Depilação a laser',
+        image: '/attached_assets/atualização estética 01.png',
+      },
+      {
+        id: 'depilacao-2',
+        title: 'Tratamentos especiais',
         image: '/attached_assets/atualização estética 06 (1).png',
       },
       {
-        id: 'corporal-2',
-        title: 'Pele firme e viçosa',
+        id: 'depilacao-3',
+        title: 'Sem dor',
         image: '/attached_assets/atualização estética 10.jpg',
       },
       {
-        id: 'corporal-3',
-        title: 'Relaxamento e rejuvenescimento',
+        id: 'depilacao-4',
+        title: 'Resultados garantidos',
+        image: '/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png',
+      }
+    ]
+  },
+  {
+    id: 'massagem',
+    name: 'Massagem',
+    items: [
+      {
+        id: 'massagem-1',
+        title: 'Relaxante',
         image: '/attached_assets/Captura de tela 2025-04-03 231324.png',
       },
       {
-        id: 'corporal-4',
-        title: 'Segredos de uma Pele Radiante',
-        image: '/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png',
+        id: 'massagem-2',
+        title: 'Modeladora',
+        image: '/attached_assets/atualização estética 10.jpg',
+      },
+      {
+        id: 'massagem-3',
+        title: 'Anti-stress',
+        image: '/attached_assets/atualização estética 06 (1).png',
+      },
+      {
+        id: 'massagem-4',
+        title: 'Terapêutica',
+        image: '/attached_assets/atualização estética 01.png',
       }
     ]
   }
 ];
 
 export default function CategorySection() {
-  const [activeCategory, setActiveCategory] = useState(0);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  
+  const totalSlides = categories.length;
   
   const handlePrevious = () => {
-    setActiveCategory(prev => (prev === 0 ? categories.length - 1 : prev - 1));
+    setActiveSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
   };
   
   const handleNext = () => {
-    setActiveCategory(prev => (prev === categories.length - 1 ? 0 : prev + 1));
+    setActiveSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
   };
   
-  const currentCategory = categories[activeCategory];
-  
   return (
-    <section className="py-12 bg-gradient-to-b from-[#FFFBF7] to-white">
+    <section className="py-8 bg-white border-b border-gray-100">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="bg-[#FAF3EC]/70 border-none text-[#AA5E2F] px-2.5 py-0.5 rounded-md">
-                <Layers className="h-3.5 w-3.5 mr-1" />
-                <span className="text-xs font-light">Categorias</span>
-              </Badge>
-            </div>
-            <h2 className="text-2xl font-bold text-[#1D1D1D] mb-2 font-montserrat">Explore nossa biblioteca por categorias</h2>
-            <p className="text-[#4B4B4B] text-sm mb-4 md:mb-0 max-w-xl font-light">
-              Encontre recursos ideais para sua clínica de estética organizados por especialidade.
-            </p>
-          </div>
-          
-          <Link href="/categorias">
-            <Button className="bg-[#AA5E2F] hover:bg-[#95512A] text-white rounded-md py-2 px-4">
-              Ver todas as Categorias
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
+        {/* Header */}
+        <div className="mb-4">
+          <h3 className="text-[#1d1d1f] font-bold text-base font-inter mb-1 flex items-center">
+            <span className="mr-1.5">🗂️</span>
+            Escolha sua categoria
+          </h3>
+          <p className="text-[#5c3a2d] text-sm font-light">
+            Encontre recursos ideais para sua clínica de estética.
+          </p>
         </div>
         
-        {/* Category Tabs */}
-        <div className="flex overflow-x-auto pb-2 mb-6 scrollbar-hide gap-2">
-          {categories.map((category, index) => (
-            <button
-              key={category.id}
-              className={`px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
-                index === activeCategory 
-                  ? 'bg-[#AA5E2F] text-white shadow-sm' 
-                  : 'bg-white/80 text-[#1D1D1D] hover:bg-[#FAF3EC]'
-              }`}
-              onClick={() => setActiveCategory(index)}
+        {/* Carousel */}
+        <div className="relative mx-auto max-w-[800px]">
+          <div 
+            ref={carouselRef}
+            className="overflow-hidden"
+          >
+            <div 
+              className="flex transition-transform duration-300 ease-in-out"
+              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
             >
-              <div className="flex items-center gap-1.5">
-                {category.icon && <span className={`h-3.5 w-3.5 ${index === activeCategory ? 'text-white' : 'text-[#AA5E2F]'}`}>{category.icon}</span>}
-                <span className={`text-sm ${index === activeCategory ? 'font-normal' : 'font-light'}`}>{category.name}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-        
-        <div className="relative my-6">
-          {/* Category Info */}
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-[#1D1D1D] mb-1 font-montserrat">{currentCategory.name}</h3>
-            <p className="text-[#4B4B4B] text-sm font-light">{currentCategory.description}</p>
-          </div>
-          
-          {/* Category Group Container */}
-          <div className="relative rounded-xl overflow-hidden shadow-md hover-card bg-white p-1">
-            {/* 2x2 Grid Layout */}
-            <div className="grid grid-cols-2 gap-2">
-              {currentCategory.items.map((item, index) => (
-                <Link key={item.id} href={`/categorias/${currentCategory.id}/${item.id}`}>
-                  <div className="relative group overflow-hidden rounded-lg aspect-square cursor-pointer">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="absolute bottom-3 left-3 right-3">
-                        <h4 className="text-white text-sm font-medium line-clamp-2">{item.title}</h4>
-                      </div>
+              {categories.map((category, index) => (
+                <div 
+                  key={category.id} 
+                  className="w-full flex-shrink-0"
+                >
+                  <div className="bg-white rounded-md overflow-hidden shadow-sm border border-gray-100">
+                    <div className="grid grid-cols-2 gap-[2px]">
+                      {category.items.map((item, itemIndex) => (
+                        <Link key={item.id} href={`/categorias/${category.id}/${item.id}`}>
+                          <div className="relative aspect-square">
+                            <img 
+                              src={item.image} 
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="absolute bottom-3 left-3">
+                      <span className="text-xs text-white font-medium drop-shadow-md">{category.name}</span>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
-            </div>
-            
-            {/* Category Label */}
-            <div className={`absolute top-3 right-3 ${currentCategory.color} text-white rounded-full px-3 py-0.5 shadow-sm`}>
-              <span className="text-xs font-light flex items-center gap-1">
-                {currentCategory.icon && <span className="h-3 w-3">{currentCategory.icon}</span>}
-                {currentCategory.name}
-              </span>
             </div>
           </div>
           
           {/* Navigation Arrows */}
           <button 
-            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 bg-white/90 rounded-full w-8 h-8 flex items-center justify-center shadow-sm z-10 hover:bg-[#FFF4E9] transition-colors"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 md:-ml-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors"
             onClick={handlePrevious}
             aria-label="Categoria anterior"
           >
-            <ArrowLeft className="h-4 w-4 text-[#AA5E2F]" />
+            <ArrowLeft className="h-3.5 w-3.5 text-[#c9732b]" />
           </button>
           
           <button 
-            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 bg-white/90 rounded-full w-8 h-8 flex items-center justify-center shadow-sm z-10 hover:bg-[#FFF4E9] transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 md:-mr-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors"
             onClick={handleNext}
             aria-label="Próxima categoria"
           >
-            <ArrowRight className="h-4 w-4 text-[#AA5E2F]" />
+            <ArrowRight className="h-3.5 w-3.5 text-[#c9732b]" />
           </button>
-        </div>
-        
-        {/* Category Selection Dots */}
-        <div className="flex justify-center mt-4 gap-1.5">
-          {categories.map((category, index) => (
-            <button 
-              key={category.id}
-              className={`w-2 h-2 rounded-full transition-colors ${index === activeCategory ? 'bg-[#AA5E2F]' : 'bg-gray-200'}`}
-              onClick={() => setActiveCategory(index)}
-              aria-label={`Selecionar categoria ${category.name}`}
-            />
-          ))}
+          
+          {/* Dots navigation */}
+          <div className="flex justify-center mt-3 gap-1">
+            {categories.map((_, index) => (
+              <button 
+                key={index}
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                  index === activeSlide ? 'bg-[#c9732b]' : 'bg-gray-200'
+                }`}
+                onClick={() => setActiveSlide(index)}
+                aria-label={`Ir para slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
