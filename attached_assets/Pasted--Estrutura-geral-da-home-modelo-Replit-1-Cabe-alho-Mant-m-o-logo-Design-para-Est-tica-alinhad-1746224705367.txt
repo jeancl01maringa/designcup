@@ -1,0 +1,92 @@
+🧩 Estrutura geral da home (modelo Replit)
+1. Cabeçalho
+Mantém o logo "Design para Estética" alinhado à esquerda.
+
+Menu horizontal com: Início | Categorias | Designers | Formatos | Tutoriais | Suporte.
+
+Avatar do usuário com dropdown de perfil (no canto direito, como está).
+
+2. Hero section (banner inicial)
+✅ Alinhar com o primeiro print:
+
+Fundo bege suave #FFF5EB
+
+Texto grande e centralizado:
+
+arduino
+Copiar
+Editar
+A Melhor plataforma de
+Artes para Estética do Brasil
+Destaque com font-weight: 700 e font-size: 2.25rem.
+
+"Artes para Estética do Brasil" com #A85C20.
+
+Subtítulo abaixo:
+
+matlab
+Copiar
+Editar
+Artes 100% editáveis para sua clínica de estética, criadas para facilitar sua rotina com qualidade profissional.
+Usar #4B4B4B para o texto normal e #2D2D2D para destaques.
+
+Dois ícones com mini badges:
+
+👥 +3 mil membros
+
+⭐ Avaliado 5 estrelas
+
+3. Barra de busca
+Centralizada abaixo do banner.
+
+Estilo clean com bordas arredondadas.
+
+Placeholder: Busque por artes, categorias, temas…
+
+4. Título de seção
+Texto à esquerda:
+
+Copiar
+Editar
+🗂️ Escolha sua categoria
+Subtítulo abaixo: Encontre recursos ideais para sua clínica de estética
+
+Cor do texto: #262626 com destaque em #A85C20.
+
+5. Feed de artes
+➡️ Esse é o ponto principal que precisa melhorar no Replit:
+
+📌 Como está no segundo print (atualmente):
+
+Artes em cartões grandes, com proporções desalinhadas.
+
+Responsividade falha e scroll horizontal confuso.
+
+📌 Como deve ficar (primeiro print):
+
+Feed 100% responsivo com grid dinâmico usando CSS:
+
+css
+Copiar
+Editar
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+gap: 12px;
+As imagens devem manter a proporção original (1:1 ou 9:16):
+
+object-fit: cover
+
+aspect-ratio: 1/1 ou aspect-ratio: 9/16 com base no formato.
+
+Ao passar o mouse, adicionar leve efeito de elevação (box-shadow).
+
+Adicionar selos como "Premium" e botão "Editar no Canva" ao hover.
+
+🎨 Paleta de Cores (do Lovable - Print 1)
+Elemento	Cor Hex	Uso
+Fundo da hero section	#FFF5EB	Banner inicial
+Título em destaque	#A85C20	Palavras como "Estética", "Brasil"
+Texto escuro	#2D2D2D	Títulos e destaque
+Texto leve	#4B4B4B	Subtítulos
+Botões primários	#1C64F2	Botão "Editar no Canva", etc.
+Fundo geral	#FFFFFF	Background das seções

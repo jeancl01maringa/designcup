@@ -1,34 +1,52 @@
-import { User, Star } from "lucide-react";
+import { User, Star, Users } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="pt-6 pb-4">
+    <section className="bg-[#FFF5EB] py-12 md:py-16">
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
-        {/* Badges */}
-        <div className="flex w-full justify-center gap-4 mb-6">
-          <div className="bg-gray-100 rounded-full py-2 px-4 flex items-center">
-            <User className="h-5 w-5 text-[#936037] mr-2" />
-            <span className="text-sm font-medium">+3 mil membros</span>
-          </div>
-          <div className="bg-gray-100 rounded-full py-2 px-4 flex items-center">
-            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mr-2" />
-            <span className="text-sm font-medium">Avaliado 5 estrelas</span>
-          </div>
-        </div>
-
         {/* Main Heading */}
-        <h1 className="text-3xl md:text-4xl font-bold text-black leading-tight mb-4">
-          A Melhor plataforma <br />de Artes para <br />
-          <span className="text-[#936037]">Estética do Brasil</span>
+        <h1 className="text-3xl md:text-4xl font-bold text-[#2D2D2D] leading-tight mb-6">
+          A Melhor plataforma de<br />
+          <span className="text-[#A85C20]">Artes para Estética do Brasil</span>
         </h1>
         
-        {/* Divider line */}
-        <div className="w-full max-w-lg h-px bg-gray-200 my-4"></div>
-        
         {/* Description */}
-        <p className="text-base text-gray-700 mb-6 max-w-2xl">
-          <span className="font-semibold text-gray-800">Artes 100% editáveis</span> para sua <span className="font-semibold text-gray-800">clínica de estética</span>, criadas para facilitar sua rotina com <span className="font-semibold text-gray-800">qualidade profissional</span>.
+        <p className="text-[#4B4B4B] text-lg mb-8 max-w-2xl">
+          Artes 100% editáveis para sua clínica de estética, criadas para facilitar<br /> 
+          sua rotina com <span className="text-[#2D2D2D] font-medium">qualidade profissional</span>.
         </p>
+        
+        {/* Badges */}
+        <div className="flex flex-wrap justify-center gap-6 mb-6">
+          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm">
+            <Users className="h-5 w-5 text-[#A85C20] mr-2" />
+            <span className="text-sm font-medium text-[#2D2D2D]">+3 mil membros</span>
+          </div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm">
+            <div className="flex mr-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star key={star} className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+              ))}
+            </div>
+            <span className="text-sm font-medium text-[#2D2D2D]">Avaliado 5 estrelas</span>
+          </div>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="w-full max-w-lg mt-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Busque por artes, categorias, temas..."
+              className="w-full py-3 px-5 pr-12 rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A85C20]/30 focus:border-[#A85C20]"
+            />
+            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A85C20]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );

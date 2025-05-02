@@ -2,16 +2,17 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
+import { User } from "lucide-react";
 
 const Logo = () => (
   <div className="flex items-center">
     <Link href="/" className="flex items-center">
-      <svg className="h-7 w-7 text-[#936037]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg className="h-7 w-7 text-[#A85C20]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
         <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
       </svg>
       <span className="ml-2 font-bold text-lg md:text-xl">
-        <span className="text-black">Design</span><span className="text-[#936037]">paraEstética</span>
+        <span className="text-[#2D2D2D]">Design</span><span className="text-[#A85C20]">paraEstética</span>
       </span>
     </Link>
   </div>
@@ -23,8 +24,10 @@ const NavLinks = () => {
   const navItems = [
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
-    { name: "Vídeo Aulas", path: "/video-aulas" },
-    { name: "Mais", path: "/mais" }
+    { name: "Designers", path: "/designers" },
+    { name: "Formatos", path: "/formatos" },
+    { name: "Tutoriais", path: "/tutoriais" },
+    { name: "Suporte", path: "/suporte" }
   ];
   
   return (
@@ -33,7 +36,7 @@ const NavLinks = () => {
         <Link 
           key={item.path} 
           href={item.path}
-          className={`text-gray-900 hover:text-primary font-medium text-sm ${location === item.path ? 'text-primary' : ''}`}
+          className={`text-[#2D2D2D] hover:text-[#A85C20] font-medium text-sm ${location === item.path ? 'text-[#A85C20]' : ''}`}
         >
           {item.name}
         </Link>
@@ -42,13 +45,14 @@ const NavLinks = () => {
   );
 };
 
-const AuthButtons = () => (
-  <div className="hidden md:flex items-center space-x-3">
-    <Button variant="outline" className="text-primary border-primary hover:bg-primary/10">
-      Entrar
-    </Button>
-    <Button className="bg-primary text-white hover:bg-primary/90">
-      Cadastre-se
+const UserAvatar = () => (
+  <div className="hidden md:flex items-center">
+    <Button variant="ghost" size="icon" className="rounded-full overflow-hidden w-9 h-9 p-0">
+      <img 
+        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80" 
+        alt="User Profile"
+        className="w-full h-full object-cover"
+      />
     </Button>
   </div>
 );
@@ -60,8 +64,10 @@ const MobileMenu = () => {
   const navItems = [
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
-    { name: "Vídeo Aulas", path: "/video-aulas" },
-    { name: "Mais", path: "/mais" }
+    { name: "Designers", path: "/designers" },
+    { name: "Formatos", path: "/formatos" },
+    { name: "Tutoriais", path: "/tutoriais" },
+    { name: "Suporte", path: "/suporte" }
   ];
   
   if (!isOpen) return null;
@@ -73,19 +79,19 @@ const MobileMenu = () => {
           <Link 
             key={item.path} 
             href={item.path}
-            className={`block text-gray-900 hover:text-primary font-medium text-base py-2 ${location === item.path ? 'text-primary' : ''}`}
+            className={`block text-[#2D2D2D] hover:text-[#A85C20] font-medium text-base py-2 ${location === item.path ? 'text-[#A85C20]' : ''}`}
             onClick={() => setIsOpen(false)}
           >
             {item.name}
           </Link>
         ))}
-        <div className="flex flex-col pt-2 space-y-2">
-          <Button variant="outline" className="text-primary border-primary hover:bg-primary/10 w-full">
-            Entrar
-          </Button>
-          <Button className="bg-primary text-white hover:bg-primary/90 w-full">
-            Cadastre-se
-          </Button>
+        <div className="flex items-center gap-3 pt-2">
+          <img 
+            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80" 
+            alt="User Profile"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+          <span className="text-[#2D2D2D] font-medium">Meu Perfil</span>
         </div>
       </div>
     </div>
@@ -99,7 +105,7 @@ const MobileMenuButton = () => {
     <Button 
       variant="ghost" 
       size="icon"
-      className="md:hidden text-gray-900 hover:text-primary"
+      className="md:hidden text-[#2D2D2D] hover:text-[#A85C20]"
       onClick={() => setIsOpen(!isOpen)}
     >
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,8 +121,10 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
         <Logo />
         <NavLinks />
-        <AuthButtons />
-        <MobileMenuButton />
+        <div className="flex items-center space-x-3">
+          <UserAvatar />
+          <MobileMenuButton />
+        </div>
       </div>
       <MobileMenu />
     </header>

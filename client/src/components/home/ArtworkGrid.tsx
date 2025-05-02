@@ -4,7 +4,7 @@ import { Artwork } from "@shared/schema";
 import { ArtworkCard } from "./ArtworkCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Star } from "lucide-react";
+import { Star, ImageIcon } from "lucide-react";
 
 export default function ArtworkGrid() {
   const { data: artworks = [], isLoading, error } = useQuery<Artwork[]>({
@@ -18,10 +18,10 @@ export default function ArtworkGrid() {
           <Skeleton className="h-8 w-72 mb-2" />
           <Skeleton className="h-4 w-96" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
+        <div className="grid grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) gap-3">
+          {[...Array(8)].map((_, i) => (
             <div key={i} className="rounded-lg overflow-hidden">
-              <Skeleton className="w-full aspect-[4/5]" />
+              <Skeleton className="w-full aspect-square" />
             </div>
           ))}
         </div>
@@ -40,22 +40,32 @@ export default function ArtworkGrid() {
   }
 
   return (
-    <section className="py-6">
+    <section className="py-8">
       <div className="container mx-auto px-4">
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="font-semibold text-lg">Artes editáveis para sua Clínica</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="text-[#A85C20]">
+              <ImageIcon className="h-5 w-5" />
+            </div>
+            <h2 className="font-semibold text-lg text-[#262626]">Artes editáveis para sua Clínica</h2>
             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
               <Star className="h-3 w-3 fill-amber-500 text-amber-500 mr-1" />
               <span className="text-xs">Premium</span>
             </Badge>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#4B4B4B] ml-7">
             Explore artes exclusivas de altíssima qualidade premium para sua clínica.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div 
+          className="grid gap-3 mb-10"
+          style={{ 
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: '12px'
+          }}
+        >
           {artworks.map((artwork: Artwork) => (
             <ArtworkCard key={artwork.id} artwork={artwork} />
           ))}
@@ -64,13 +74,16 @@ export default function ArtworkGrid() {
         {/* Stories Section */}
         <div className="mb-6 mt-10">
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="font-semibold text-lg">Stories para Estética</h2>
+            <div className="text-[#A85C20]">
+              <ImageIcon className="h-5 w-5" />
+            </div>
+            <h2 className="font-semibold text-lg text-[#262626]">Stories para Estética</h2>
             <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
               <Star className="h-3 w-3 fill-orange-500 text-orange-500 mr-1" />
               <span className="text-xs">Novo</span>
             </Badge>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#4B4B4B] ml-7">
             Templates para Stories no formato 9:16 otimizados para Instagram.
           </p>
         </div>

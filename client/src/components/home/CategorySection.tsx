@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ChevronRight, ArrowRight, ArrowLeft, FolderIcon } from 'lucide-react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +16,7 @@ interface Category {
   items: CategoryItem[];
 }
 
-// Dados das categorias
+// Dados das categorias com imagens semelhantes ao print de referência
 const categories: Category[] = [
   {
     id: 'estetica-corporal',
@@ -26,25 +26,25 @@ const categories: Category[] = [
         id: 'drenagem-linfatica-1',
         title: 'Drenagem\nlinfática',
         image: 'https://images.unsplash.com/photo-1615148758079-574a78a2f8ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-amber-100'
+        bgColor: 'bg-[#F4E2D1]'
       },
       {
-        id: 'drenagem-linfatica-2',
+        id: 'sem-cirurgia',
         title: 'sem fazer\ncirurgia?',
-        image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-amber-50'
+        image: 'https://images.unsplash.com/photo-1596704017454-7a8b113978b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        bgColor: 'bg-[#F4E2D1]'
       },
       {
         id: 'botox',
         title: 'Seu primeiro\nBotox?',
         image: 'https://images.unsplash.com/photo-1526045612212-70caf35c14df?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-rose-50'
+        bgColor: 'bg-[#F4E2D1]'
       },
       {
         id: 'protetor-solar',
         title: '5 mitos\nsobre o\nuso do\nprotetor\nsolar',
-        image: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-stone-100'
+        image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
+        bgColor: 'bg-[#F4E2D1]'
       }
     ]
   },
@@ -56,25 +56,25 @@ const categories: Category[] = [
         id: 'facial-1',
         title: 'Limpeza de\npele',
         image: 'https://images.unsplash.com/photo-1596704017454-7a8b113978b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-amber-50'
+        bgColor: 'bg-[#F4E2D1]'
       },
       {
         id: 'facial-2',
         title: 'Hidratação\nprofunda',
         image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-amber-100'
+        bgColor: 'bg-[#F4E2D1]'
       },
       {
         id: 'facial-3',
         title: 'Rejuvenescimento\nfacial',
         image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-rose-50'
+        bgColor: 'bg-[#F4E2D1]'
       },
       {
         id: 'facial-4',
         title: 'Máscaras\nfaciais',
         image: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=500&q=80',
-        bgColor: 'bg-stone-100'
+        bgColor: 'bg-[#F4E2D1]'
       }
     ]
   }
@@ -94,28 +94,28 @@ export default function CategorySection() {
   const currentCategory = categories[activeCategory];
   
   return (
-    <section className="py-6">
+    <section className="py-8 bg-white">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <h2 className="text-base font-semibold">Escolha sua categoria</h2>
+            <div className="text-[#A85C20]">
+              <FolderIcon className="h-5 w-5" />
+            </div>
+            <h2 className="text-base font-semibold text-[#262626]">Escolha sua categoria</h2>
           </div>
           
           <Link href="/categorias">
-            <Button variant="ghost" className="text-primary flex items-center gap-1 text-sm h-8 px-3">
+            <Button variant="ghost" className="text-[#A85C20] flex items-center gap-1 text-sm h-8 px-3 hover:bg-[#FFF5EB]">
               Ver todas as Categorias
               <ChevronRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
         
-        <p className="text-gray-600 text-sm mb-4">Encontre recursos ideais para sua clínica de estética.</p>
+        <p className="text-[#4B4B4B] text-sm mb-4">Encontre recursos ideais para sua clínica de estética.</p>
         
         <div className="relative">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {currentCategory.items.map((item) => (
               <CategoryCard key={item.id} item={item} />
             ))}
@@ -126,7 +126,7 @@ export default function CategorySection() {
             onClick={handlePrevious}
             aria-label="Categoria anterior"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 text-[#A85C20]" />
           </button>
           
           <button 
@@ -134,13 +134,12 @@ export default function CategorySection() {
             onClick={handleNext}
             aria-label="Próxima categoria"
           >
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 text-[#A85C20]" />
           </button>
         </div>
         
-        <div className="flex justify-between mt-4 px-1">
-          <div className="text-base font-semibold">{currentCategory.name}</div>
-          {/* Espaço para outro texto, se necessário */}
+        <div className="flex justify-center mt-4">
+          <div className="text-base font-semibold text-[#262626]">{currentCategory.name}</div>
         </div>
       </div>
     </section>
@@ -153,19 +152,21 @@ interface CategoryCardProps {
 
 function CategoryCard({ item }: CategoryCardProps) {
   return (
-    <Link href={`/categorias/${item.id}`} className={`block relative overflow-hidden rounded-lg aspect-square cursor-pointer ${item.bgColor}`}>
-      <img 
-        src={item.image} 
-        alt={item.title}
-        className="w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent">
-        <div className="absolute bottom-0 left-0 p-3 w-full">
-          <div className="text-white text-xl font-serif leading-tight whitespace-pre-line">
-            {item.title}
+    <div className="group">
+      <Link href={`/categorias/${item.id}`} className={`block relative overflow-hidden rounded-lg aspect-square cursor-pointer`}>
+        <img 
+          src={item.image} 
+          alt={item.title}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent">
+          <div className="absolute bottom-0 left-0 p-3 w-full">
+            <div className="text-white text-xl font-serif leading-tight whitespace-pre-line">
+              {item.title}
+            </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
