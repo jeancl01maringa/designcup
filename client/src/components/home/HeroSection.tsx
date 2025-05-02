@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function HeroSection() {
   return (
-    <section className="bg-[#FFF4E9] py-12 md:py-16">
+    <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] py-8 md:py-12">
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         {/* Badges - Moved above the heading */}
         <div className="flex flex-wrap justify-center gap-6 mb-6">
@@ -24,9 +24,9 @@ export default function HeroSection() {
         </h1>
         
         {/* Description */}
-        <p className="text-[#4B4B4B] text-lg mb-8 max-w-2xl font-sans">
+        <p className="text-[#4B4B4B] text-base mb-6 max-w-2xl font-sans font-light">
           Artes 100% editáveis para sua clínica de estética, criadas para facilitar<br /> 
-          sua rotina com <span className="text-[#1D1D1D] font-medium">qualidade profissional</span>.
+          sua rotina com <span className="text-[#1D1D1D] font-normal">qualidade profissional</span>.
         </p>
         
         {/* Search Bar with Format Dropdown */}

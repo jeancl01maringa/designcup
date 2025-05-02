@@ -138,7 +138,7 @@ export default function CategorySection() {
   const currentCategory = categories[activeCategory];
   
   return (
-    <section className="py-16 bg-[#FFF4E9]/50">
+    <section className="py-12 bg-gradient-to-b from-[#FFFBF7] to-white">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
           <div>
@@ -149,7 +149,7 @@ export default function CategorySection() {
               </Badge>
             </div>
             <h2 className="text-2xl font-bold text-[#1D1D1D] mb-2 font-montserrat">Explore nossa biblioteca por categorias</h2>
-            <p className="text-[#4B4B4B] text-base mb-4 md:mb-0 max-w-xl">
+            <p className="text-[#4B4B4B] text-sm mb-4 md:mb-0 max-w-xl font-light">
               Encontre recursos ideais para sua clínica de estética organizados por especialidade.
             </p>
           </div>
@@ -186,7 +186,7 @@ export default function CategorySection() {
           {/* Category Info */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-[#1D1D1D] mb-1 font-montserrat">{currentCategory.name}</h3>
-            <p className="text-[#4B4B4B]">{currentCategory.description}</p>
+            <p className="text-[#4B4B4B] text-sm font-light">{currentCategory.description}</p>
           </div>
           
           {/* Category Group Container */}
