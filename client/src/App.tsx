@@ -21,11 +21,11 @@ function Router() {
 
   return (
     <Switch>
-      <ProtectedRoute path="/" component={Home} />
-      <ProtectedRoute path="/categorias" component={Categories} />
-      <ProtectedRoute path="/video-aulas" component={VideoClasses} />
-      <ProtectedRoute path="/mais" component={More} />
-      <ProtectedRoute path="/artwork/:id" component={ArtworkDetail} />
+      <Route path="/" component={Home} />
+      <Route path="/categorias" component={Categories} />
+      <Route path="/video-aulas" component={VideoClasses} />
+      <Route path="/mais" component={More} />
+      <Route path="/artwork/:id" component={ArtworkDetail} />
       <Route path="/auth/*" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
