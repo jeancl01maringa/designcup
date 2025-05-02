@@ -187,15 +187,15 @@ export default function CategorySection() {
   const canScrollRight = startIndex + visibleCategories < categories.length;
   
   return (
-    <section className="py-8 bg-white border-b border-gray-100">
+    <section className="py-6 bg-white border-b border-gray-100">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="mb-4">
-          <h3 className="text-[#1d1d1f] font-bold text-base font-inter mb-1 flex items-center">
-            <span className="mr-1.5">🗂️</span>
+        <div className="mb-3">
+          <h3 className="text-[#1d1d1f] font-semibold text-sm font-inter mb-0.5 flex items-center">
+            <span className="mr-1">🗂️</span>
             Escolha sua categoria
           </h3>
-          <p className="text-[#5c3a2d] text-sm font-light">
+          <p className="text-[#5c3a2d] text-xs font-light">
             Encontre recursos ideais para sua clínica de estética.
           </p>
         </div>
@@ -204,33 +204,37 @@ export default function CategorySection() {
         <div className="relative" ref={containerRef}>
           <div className="overflow-hidden">
             <div 
-              className="flex gap-2 transition-transform duration-300"
+              className="flex transition-transform duration-300"
               style={{
                 transform: `translateX(0)`,
                 display: "grid",
                 gridTemplateColumns: `repeat(${visibleCategories}, minmax(0, 1fr))`,
-                gap: "8px"
+                gap: "2px"
               }}
             >
               {visibleCategoriesArray.map((category) => (
                 <div key={category.id} className="w-full">
-                  <div className="bg-white rounded-md overflow-hidden shadow-sm border border-gray-100">
-                    <div className="grid grid-cols-2 gap-[2px]">
+                  <div className="bg-white overflow-hidden shadow-sm">
+                    <div className="grid grid-cols-2 gap-[1px]">
                       {category.items.map((item) => (
                         <Link key={item.id} href={`/categorias/${category.id}/${item.id}`}>
                           <div className="relative aspect-square">
                             <img 
-                              src={item.image} 
+                              src={item.image.replace("/attached_assets/", "/attached_assets/")} 
                               alt={item.title}
                               className="w-full h-full object-cover"
                               loading="lazy"
                             />
+                            
+                            {/* Textos sobrepostos que aparecem em algumas imagens */}
+                            {item.title === 'Botox?' && (
+                              <div className="absolute bottom-2 left-2 text-white text-sm font-medium drop-shadow-lg">
+                                Botox?
+                              </div>
+                            )}
                           </div>
                         </Link>
                       ))}
-                    </div>
-                    <div className="absolute bottom-3 left-3">
-                      <span className="text-xs text-white font-medium drop-shadow-md">{category.name}</span>
                     </div>
                   </div>
                 </div>
@@ -240,21 +244,21 @@ export default function CategorySection() {
           
           {/* Navigation Arrows */}
           <button 
-            className={`absolute left-0 top-1/2 -translate-y-1/2 -ml-3 md:-ml-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollLeft ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 -ml-2 md:-ml-4 bg-white/90 rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollLeft ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handlePrevious}
             disabled={!canScrollLeft}
             aria-label="Categorias anteriores"
           >
-            <ArrowLeft className="h-3.5 w-3.5 text-[#c9732b]" />
+            <ArrowLeft className="h-3 w-3 text-[#c9732b]" />
           </button>
           
           <button 
-            className={`absolute right-0 top-1/2 -translate-y-1/2 -mr-3 md:-mr-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollRight ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`absolute right-0 top-1/2 -translate-y-1/2 -mr-2 md:-mr-4 bg-white/90 rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollRight ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleNext}
             disabled={!canScrollRight}
             aria-label="Próximas categorias"
           >
-            <ArrowRight className="h-3.5 w-3.5 text-[#c9732b]" />
+            <ArrowRight className="h-3 w-3 text-[#c9732b]" />
           </button>
           
           {/* Navigation Dots (mobile only) */}
