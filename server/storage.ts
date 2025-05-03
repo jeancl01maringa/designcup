@@ -388,7 +388,7 @@ export class DatabaseStorage implements IStorage {
 
       // Create admin user if it doesn't exist
       const adminUsername = "admin";
-      const adminEmail = "admin@estetica.app";
+      const adminEmail = "jean.maringa@hotmail.com";
       const [existingAdmin] = await db.select().from(users).where(eq(users.username, adminUsername));
       
       if (!existingAdmin) {
@@ -407,7 +407,7 @@ export class DatabaseStorage implements IStorage {
           username: adminUsername,
           email: adminEmail,
           password: hashedPassword,
-          isAdmin: true
+          is_admin: true
         });
         
         console.log("Admin user created with username 'admin' and password 'admin123'");
