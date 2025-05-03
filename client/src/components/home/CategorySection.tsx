@@ -212,10 +212,10 @@ export default function CategorySection() {
         
         {/* Container com referência para controle de scroll */}
         <div className="relative" ref={containerRef}>
-          {/* Botões de navegação */}
+          {/* Botões de navegação - Esquerda */}
           {canScrollLeft && (
             <button 
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-gray-50 hover:shadow-lg"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-sm rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-white hover:shadow-lg border border-gray-100"
               onClick={handleScrollLeft}
               aria-label="Categorias anteriores"
             >
@@ -239,8 +239,8 @@ export default function CategorySection() {
                     href={`/categorias/${category.slug || category.id}`} 
                     className="block group cursor-pointer"
                   >
-                    {/* Grid 2x2 de imagens */}
-                    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square">
+                    {/* Grid 2x2 de imagens com overlay */}
+                    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square relative">
                       <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-full">
                         {/* Mostrar até 4 imagens ou placeholders */}
                         {Array.from({ length: 4 }).map((_, index) => {
@@ -263,12 +263,24 @@ export default function CategorySection() {
                           );
                         })}
                       </div>
+                      
+                      {/* Overlay com nome da categoria */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                        <span className="text-white text-sm font-medium">{category.posts.length} items</span>
+                      </div>
                     </div>
                     
                     {/* Nome da categoria */}
-                    <h4 className="mt-3 text-center font-semibold text-[#1d1d1f] group-hover:text-[#1f4ed8] transition-colors duration-200">
-                      {category.name}
-                    </h4>
+                    <div className="mt-3 flex flex-col items-center">
+                      <h4 className="font-semibold text-[#1d1d1f] group-hover:text-[#1f4ed8] transition-colors duration-200">
+                        {category.name}
+                      </h4>
+                      {category.description && (
+                        <p className="text-xs text-gray-500 mt-1 text-center line-clamp-1">
+                          {category.description}
+                        </p>
+                      )}
+                    </div>
                   </Link>
                 </div>
               ))}
@@ -277,7 +289,7 @@ export default function CategorySection() {
           
           {canScrollRight && (
             <button 
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-gray-50 hover:shadow-lg"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-sm rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-white hover:shadow-lg border border-gray-100"
               onClick={handleScrollRight}
               aria-label="Próximas categorias"
             >

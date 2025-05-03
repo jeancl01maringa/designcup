@@ -14,7 +14,9 @@ import {
   FolderOpen,
   LayoutTemplate,
   FileType,
-  Database
+  Database,
+  Globe,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -34,6 +36,13 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
 
   // Itens do menu da sidebar com seus respectivos ícones e caminhos
   const menuItems = [
+    {
+      id: "home",
+      label: "Ir para o Site",
+      path: "/",
+      icon: <ExternalLink className="h-4 w-4" />,
+      separator: true,
+    },
     {
       id: "dashboard",
       label: "Dashboard",
@@ -110,10 +119,19 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
           {/* Cabeçalho da sidebar */}
           <div className="p-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {/* Logo/Ícone */}
-              <div className="flex-shrink-0 text-primary font-bold">
-                {isOpen ? "Design para Estética" : "DE"}
-              </div>
+              {/* Logo/Ícone com link para home */}
+              <Link href="/">
+                <div className="flex-shrink-0 text-primary font-bold hover:text-primary/90 transition-colors cursor-pointer flex items-center">
+                  {isOpen ? (
+                    <>
+                      <span className="mr-1">Design para Estética</span>
+                      <Home className="h-3.5 w-3.5" />
+                    </>
+                  ) : (
+                    "DE"
+                  )}
+                </div>
+              </Link>
             </div>
             
             {/* Botão para recolher a sidebar */}
