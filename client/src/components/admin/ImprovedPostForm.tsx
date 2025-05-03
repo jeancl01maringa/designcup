@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -462,12 +462,10 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl p-0">
-        <DialogTitle className="sr-only">
-          {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Publicação"}
-        </DialogTitle>
-        <DialogDescription className="sr-only">
-          Formulário para {isEdit ? "editar" : "criar"} uma nova postagem
-        </DialogDescription>
+        <div className="sr-only">
+          <h2>{step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Publicação"}</h2>
+          <p>Formulário para {isEdit ? "editar" : "criar"} uma nova postagem</p>
+        </div>
         
         {/* Header com nome da etapa */}
         <div className="flex items-center justify-between border-b p-4">
@@ -881,26 +879,30 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Categoria</p>
-                    <p className="font-medium">{
-                      categories.find(cat => cat.id === formData.categoryId)?.name || "Não definida"
-                    }</p>
+                    <p className="font-medium text-blue-600">
+                      {categories.find(cat => cat.id === formData.categoryId)?.name || "Não definida"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Status</p>
-                    <p className="font-medium flex items-center gap-1">
+                    <p className={`font-medium flex items-center gap-1 ${
+                      formData.status === 'aprovado' ? 'text-green-600' : 
+                      formData.status === 'rascunho' ? 'text-orange-500' : 
+                      'text-red-500'
+                    }`}>
                       {formData.status === 'aprovado' ? (
                         <>
-                          <Check className="h-4 w-4 text-green-500" />
+                          <Check className="h-4 w-4" />
                           Aprovado
                         </>
                       ) : formData.status === 'rascunho' ? (
                         <>
-                          <Circle className="h-4 w-4 text-orange-500" />
+                          <Circle className="h-4 w-4" />
                           Rascunho
                         </>
                       ) : (
                         <>
-                          <X className="h-4 w-4 text-red-500" />
+                          <X className="h-4 w-4" />
                           Rejeitado
                         </>
                       )}
@@ -908,24 +910,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Licença</p>
-                    <p className="font-medium flex items-center gap-1">
+                    <p className="font-medium flex items-center gap-1 text-amber-600">
                       {formData.licenseType === 'premium' ? (
                         <>
-                          <Crown className="h-4 w-4 text-amber-500" />
+                          <Crown className="h-4 w-4" />
                           Premium
                         </>
                       ) : (
                         'Gratuito'
                       )}
                     </p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm text-muted-foreground">Código único</p>
-                    <p className="font-medium">{formData.uniqueCode}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm text-muted-foreground">ID do grupo</p>
-                    <p className="font-medium">{formData.groupId}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-sm text-muted-foreground">Tags</p>
