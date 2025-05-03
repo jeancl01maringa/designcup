@@ -58,11 +58,59 @@ export default function ArtDetailPage() {
       const data = await response.json();
       console.log("Dados do post recebidos:", data);
       
+      // Verificar se existem formatos ou formato_data
+      if (data.formato_data || data.format_data) {
+        console.log("Formato data encontrado:", data.formato_data || data.format_data);
+        try {
+          const formatData = JSON.parse(data.formato_data || data.format_data || '{}');
+          console.log("Formato data parseado:", formatData);
+        } catch (err) {
+          console.error("Erro ao fazer parse do formato data:", err);
+        }
+      } else {
+        console.log("Post não possui dados de formato");
+      }
+      
       return data;
     },
     retry: 1,
     enabled: !!postId
   });
+  
+  // Extrair formatos do post a partir dos dados gravados no banco
+  const availableFormats = React.useMemo(() => {
+    // Tentar extrair formatos do formato_data ou format_data (formato JSON)
+    if (post?.formato_data || post?.format_data) {
+      try {
+        const formatData = JSON.parse(post.formato_data || post.format_data || '{}');
+        
+        // Se temos formatos definidos diretamente no formato_data
+        if (formatData.formats && Array.isArray(formatData.formats)) {
+          return formatData.formats;
+        }
+        
+        // Verificar se temos opções de formatos
+        if (formatData.options && Array.isArray(formatData.options)) {
+          return formatData.options.map((opt: any) => opt.format || 'FEED');
+        }
+        
+        // Se temos apenas um formato
+        if (formatData.format) {
+          return [formatData.format];
+        }
+      } catch (err) {
+        console.error('Erro ao processar formato_data:', err);
+      }
+    }
+    
+    // Se temos o formato diretamente no post
+    if (post?.formats && Array.isArray(post.formats)) {
+      return post.formats;
+    }
+    
+    // Valor padrão
+    return ['FEED'];
+  }, [post]);
   
   // Buscar outros formatos da mesma arte - seria ideal ter um endpoint específico 
   // mas por agora vamos simplificar e desativar essa funcionalidade
@@ -87,6 +135,19 @@ export default function ArtDetailPage() {
     };
     
     return formatMap[format.toLowerCase()] || format.toUpperCase();
+  };
+  
+  // Obter dimensões do formato
+  const getFormatDimensions = (format: string): string => {
+    const dimensionsMap: Record<string, string> = {
+      'feed': '1080×1080px • Quadrado',
+      'stories': '1080×1920px • Vertical',
+      'reels': '1080×1920px • Vertical',
+      'carousel': '1080×1080px • Quadrado',
+      'post': '1080×1350px • Retrato'
+    };
+    
+    return dimensionsMap[format.toLowerCase()] || '1080×1080px';
   };
   
   // Determinar se é premium (verificar todos os possíveis campos)
@@ -205,7 +266,7 @@ export default function ArtDetailPage() {
         <div className="relative">
           {/* Label do formato */}
           <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
-            {formatLabel(post.formats?.[0] || 'FEED')}
+            {formatLabel(availableFormats[0])}
           </span>
           
           {/* Selo premium */}
@@ -247,7 +308,7 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Checklist de vantagens */}
-          <div className="bg-green-50 p-4 rounded-lg">
+          <div className="bg-gray-50 p-4 rounded-lg">
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
@@ -284,7 +345,7 @@ export default function ArtDetailPage() {
                 <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
                 <div className="flex flex-col">
                   <span className="text-gray-500 text-xs">Formato:</span>
-                  <span className="text-sm">{formatLabel(post.formats?.[0] || 'FEED')}</span>
+                  <span className="text-sm">{formatLabel(availableFormats[0])}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -328,7 +389,7 @@ export default function ArtDetailPage() {
           {/* Formatos disponíveis */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Formatos disponíveis</h3>
-            {Array.isArray(post.formats) && post.formats.length > 1 ? (
+            {availableFormats.length > 1 ? (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="border border-gray-200 rounded-md p-3 bg-white cursor-pointer">
@@ -342,12 +403,12 @@ export default function ArtDetailPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-xs font-medium">{formatLabel(post.formats[0] || 'FEED')}</div>
-                          <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+                          <div className="text-xs font-medium">{formatLabel(availableFormats[0])}</div>
+                          <div className="text-[10px] text-gray-500">{getFormatDimensions(availableFormats[0])}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-blue-600">{post.formats.length} opções</span>
+                        <span className="text-xs text-blue-600">{availableFormats.length} opções</span>
                         <ChevronDown size={14} className="text-gray-500" />
                       </div>
                     </div>
@@ -355,7 +416,7 @@ export default function ArtDetailPage() {
                 </PopoverTrigger>
                 <PopoverContent className="w-[250px] p-0">
                   <div className="p-1">
-                    {post.formats.map((format, index) => (
+                    {availableFormats.map((format, index) => (
                       <div 
                         key={index} 
                         className="p-2 hover:bg-gray-50 rounded-md cursor-pointer flex items-center gap-2"
@@ -369,11 +430,7 @@ export default function ArtDetailPage() {
                         </div>
                         <div>
                           <div className="text-xs font-medium">{formatLabel(format)}</div>
-                          <div className="text-[10px] text-gray-500">
-                            {format === 'FEED' ? '1080×1080px • Quadrado' : 
-                             format === 'STORIES' ? '1080×1920px • Vertical' : 
-                             format === 'CARTAZ' ? '1080×1350px • Retrato' : '1080×1080px'}
-                          </div>
+                          <div className="text-[10px] text-gray-500">{getFormatDimensions(format)}</div>
                         </div>
                       </div>
                     ))}
@@ -392,8 +449,8 @@ export default function ArtDetailPage() {
                       />
                     </div>
                     <div>
-                      <div className="text-xs font-medium">{formatLabel(post.formats?.[0] || 'FEED')}</div>
-                      <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+                      <div className="text-xs font-medium">{formatLabel(availableFormats[0])}</div>
+                      <div className="text-[10px] text-gray-500">{getFormatDimensions(availableFormats[0])}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
