@@ -550,11 +550,17 @@ export function PostManager() {
                       </div>
                       {post.imageUrl && (
                         <div className="flex items-center mt-1">
-                          <img 
-                            src={post.imageUrl} 
-                            alt={post.title} 
-                            className="h-6 w-6 rounded object-cover mr-2"
-                          />
+                          <div className="h-6 w-6 rounded bg-muted flex items-center justify-center mr-2 overflow-hidden">
+                            <img 
+                              src={post.imageUrl} 
+                              alt={post.title} 
+                              className="h-full w-full object-contain"
+                              onError={(e) => {
+                                e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWltYWdlIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ii8+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSIvPjwvc3ZnPg==';
+                                e.currentTarget.className = 'h-4 w-4 opacity-30';
+                              }}
+                            />
+                          </div>
                           <span className="text-xs text-muted-foreground truncate">
                             {post.uniqueCode}
                           </span>

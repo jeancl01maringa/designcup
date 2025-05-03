@@ -453,11 +453,16 @@ export default function PostagensPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {post.imageUrl && (
-                        <div className="h-10 w-10 rounded overflow-hidden bg-muted">
+                        <div className="h-10 w-10 rounded overflow-hidden bg-muted flex items-center justify-center">
                           <img 
                             src={post.imageUrl}
                             alt={post.title}
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-contain"
+                            onError={(e) => {
+                              // Substituir por um ícone de imagem caso falhe o carregamento
+                              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWltYWdlIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ii8+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSIvPjwvc3ZnPg==';
+                              e.currentTarget.className = 'h-6 w-6 opacity-30';
+                            }}
                           />
                         </div>
                       )}
