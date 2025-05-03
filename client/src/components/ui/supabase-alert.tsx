@@ -62,7 +62,7 @@ CREATE POLICY "Permitir exclusão dos próprios uploads" ON storage.objects
   }
 
   return (
-    <Alert variant="warning" className="mb-6 border-amber-300 bg-amber-50">
+    <Alert variant="default" className="mb-6 border-amber-300 bg-amber-50">
       <div className="flex-shrink-0 mr-2">
         <SiSupabase className="h-4 w-4 text-amber-600" />
       </div>

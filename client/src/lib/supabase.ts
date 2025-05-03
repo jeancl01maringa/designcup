@@ -228,6 +228,28 @@ export async function uploadFileToSupabase(file: File, customPath?: string): Pro
     const { data: { publicUrl } } = supabase.storage
       .from('images')
       .getPublicUrl(filePath);
+    
+    // 5. Atualizar o campo owner na tabela storage.objects com o ID do usuário logado
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (userData?.user) {
+        console.log('Atualizando owner do arquivo para:', userData.user.id);
+        
+        // Atualizar o campo owner para permitir UPDATE/DELETE pelo usuário posteriormente
+        await supabase
+          .from('storage.objects')
+          .update({ owner: userData.user.id })
+          .eq('name', filePath);
+          
+        console.log('Campo owner atualizado com sucesso');
+      } else {
+        console.warn('Não foi possível obter ID do usuário para atualizar owner');
+      }
+    } catch (ownerUpdateError) {
+      // Não falhar o upload se a atualização do owner falhar
+      console.warn('Erro ao atualizar campo owner:', ownerUpdateError);
+    }
       
     console.log('Upload bem-sucedido. URL pública:', publicUrl);
     return publicUrl;
