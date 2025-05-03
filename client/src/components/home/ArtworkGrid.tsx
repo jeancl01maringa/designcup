@@ -5,6 +5,7 @@ import { ArtworkCard } from "./ArtworkCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Star, ImageIcon, Crown } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 // Interface simplificada para dados de mock
 interface MockArtwork {
@@ -123,15 +124,40 @@ const mockArtworks: MockArtwork[] = [
 ];
 
 export default function ArtworkGrid() {
-  // Usando mock de dados enquanto a API não está pronta
-  const { data: apiArtworks = [], isLoading, error } = useQuery<MockArtwork[]>({
-    queryKey: ['/api/artworks'],
-    // Mockamos os dados mas mantemos a chamada API para futuro
-    initialData: mockArtworks
+  // Buscar posts aprovados do Supabase para usar no feed
+  const { data: posts = [], isLoading: isPostsLoading, error } = useQuery<any[]>({
+    queryKey: ['/api/supabase/posts'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('status', 'aprovado')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        console.error('Erro ao buscar posts:', err);
+        return [];
+      }
+    }
   });
 
-  // Usamos os dados do mock para apresentação
-  const artworks = mockArtworks;
+  // Converter posts do Supabase para o formato esperado
+  const artworks = posts.map(post => ({
+    id: post.id,
+    title: post.title,
+    description: post.description || '',
+    imageUrl: post.image_url,
+    category: post.category_id ? post.category_id.toString() : null,
+    createdAt: new Date(post.created_at),
+    isPro: post.license_type === 'premium',
+    format: post.format || "1:1"
+  }));
+  
+  // Estado de carregamento usando o isPostsLoading
+  const isLoading = isPostsLoading;
 
   if (isLoading) {
     return (

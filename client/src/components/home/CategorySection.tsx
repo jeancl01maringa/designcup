@@ -201,13 +201,20 @@ export default function CategorySection() {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-6">
-          <h3 className="text-[#1d1d1f] font-semibold text-xl font-inter mb-1 flex items-center">
+          <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
             <span className="mr-2">📁</span>
             Escolha sua categoria
           </h3>
           <p className="text-[#5c3a2d] text-sm font-light">
             Encontre recursos ideais para sua clínica de estética
           </p>
+          <div className="flex items-center mt-2">
+            <div className="flex mt-1">
+              <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
+            </div>
+          </div>
         </div>
         
         {/* Container com referência para controle de scroll */}
