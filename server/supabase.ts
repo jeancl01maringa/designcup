@@ -330,17 +330,22 @@ export async function migrateLocalDataToSupabase(db: ReturnType<typeof drizzle>)
     // Verificar se conseguimos acessar o Supabase
     const { data, error } = await supabaseAdmin.from('users').select('count').limit(1);
     
-    if (error && error.code === '42P01') {
-      console.error('Tabela "users" não existe no Supabase. Executando setup...');
-      await setupSupabaseTables();
-      return;
-    } else if (error) {
+    if (error) {
       console.error('Erro ao acessar o Supabase:', error);
       console.log('A migração de dados foi adiada devido a erros de conexão.');
       return;
     }
     
     console.log('Conexão com Supabase estabelecida. Iniciando migração de dados...');
+    
+    // Verificar se já existem dados nas tabelas
+    const { count: userCount } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true });
+    
+    if (userCount && userCount > 0) {
+      console.log(`Encontrados ${userCount} usuários no Supabase. Deseja prosseguir com a migração?`);
+      console.log('AVISO: A migração pode resultar em dados duplicados se as tabelas não estiverem vazias.');
+      console.log('Continuando com a migração...');
+    }
     
     // 1. Migrar usuários
     await migrateUsers(db);
@@ -531,7 +536,7 @@ async function migratePosts(db: ReturnType<typeof drizzle>) {
         const supabasePost = {
           title: post.title,
           description: post.description,
-          content: post.content || '', // Garantir que não seja null se não existir
+          content: '', // Campo adicionado, mas não existia no schema original
           image_url: post.imageUrl,
           status: post.status,
           unique_code: post.uniqueCode,
