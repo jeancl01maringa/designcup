@@ -66,7 +66,7 @@ export default function PlanosPage() {
   const { data: plans, isLoading } = useQuery<Plan[]>({
     queryKey: ['/api/admin/plans'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/plans');
+      const response = await apiRequest('GET', '/api/admin/plans?showInactive=true');
       return response.json();
     }
   });
