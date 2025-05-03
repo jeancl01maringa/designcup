@@ -64,6 +64,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const [step, setStep] = useState(1);
   const [activeTab, setActiveTab] = useState<string>("feed");
   const [newTag, setNewTag] = useState("");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Gerar um ID único para a postagem
   const uniquePostId = nanoid();
@@ -113,6 +114,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       });
     }
   }, [isEdit, initialData, uniquePostId]);
+  
+  // Rastrear mudanças no formulário quando esses valores específicos mudarem
+  useEffect(() => {
+    // Verifica se o formulário tem algum conteúdo preenchido
+    const hasContent = formData.title.trim() !== "" || formData.categoryId !== null;
+    // Só atualiza o estado se for diferente do valor atual
+    if (hasContent !== hasUnsavedChanges) {
+      setHasUnsavedChanges(hasContent);
+    }
+  }, [formData.title, formData.categoryId, hasUnsavedChanges]);
 
   // Buscar categorias
   const { data: categories = [] } = useQuery<Category[]>({
@@ -391,6 +402,83 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     }
   };
   
+  // Verificar o formulário para salvar como rascunho
+  const validateAndSaveAsDraft = async () => {
+    // Verificar se o título e categoria estão preenchidos
+    if (formData.title.trim() === "" || formData.categoryId === null) {
+      return false;
+    }
+
+    try {
+      // Preparar imagem principal (pode ser vazia nesse caso)
+      let mainImageUrl = "";
+      for (const format of formData.formats) {
+        if (formData.formatFiles[format].imagePreview) {
+          mainImageUrl = formData.formatFiles[format].imagePreview;
+          break;
+        }
+      }
+      
+      // Se não tem formatos, adicionar "feed" como padrão
+      const formats = formData.formats.length > 0 ? formData.formats : ["feed"];
+      
+      // Preparar dados para envio como rascunho
+      const formatDataJson = JSON.stringify(formats.map(format => {
+        // Verificar se o formato é válido antes de acessar formatFiles
+        const typedFormat = format as PostFormat;
+        return {
+          type: format,
+          imageUrl: formData.formatFiles[typedFormat].imagePreview || "",
+          links: formData.formatFiles[typedFormat].links
+        };
+      }));
+      
+      const post = {
+        title: formData.title,
+        categoryId: formData.categoryId,
+        status: "rascunho" as "aprovado" | "rascunho" | "rejeitado", // Forçar como rascunho com type assertion
+        description: formData.description,
+        licenseType: formData.licenseType,
+        tags: formData.tags,
+        formats: formats,
+        formatData: formatDataJson,
+        uniqueCode: formData.uniqueCode,
+        groupId: formData.groupId,
+        imageUrl: mainImageUrl || "/assets/placeholder.png" // Fallback para placeholder
+      };
+      
+      // Salvar no servidor como rascunho
+      if (isEdit && initialData?.id) {
+        await updatePostMutation.mutateAsync(post);
+      } else {
+        await createPostMutation.mutateAsync(post);
+      }
+      
+      toast({
+        title: "Rascunho salvo",
+        description: "Sua postagem foi salva como rascunho automaticamente.",
+        variant: "default",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao salvar rascunho:", error);
+      return false;
+    }
+  };
+
+  // Manipulador para fechar o modal
+  const handleDialogChange = async (open: boolean) => {
+    // Se estiver fechando o modal e tiver mudanças não salvas
+    if (!open && hasUnsavedChanges && formData.title.trim() !== "" && formData.categoryId !== null) {
+      // Verificar se atende aos requisitos mínimos e salvar como rascunho
+      await validateAndSaveAsDraft();
+    }
+    
+    // Chamar o manipulador original
+    onOpenChange(open);
+  };
+
   const submitForm = async () => {
     try {
       // Pegue a primeira imagem disponível para usar como imageUrl principal
@@ -413,11 +501,15 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       }
       
       // Preparar dados para envio
-      const formatDataJson = JSON.stringify(formData.formats.map(format => ({
-        type: format,
-        imageUrl: formData.formatFiles[format].imagePreview || "",
-        links: formData.formatFiles[format].links
-      })));
+      const formatDataJson = JSON.stringify(formData.formats.map(format => {
+        // Usar type assertion para o tipo PostFormat
+        const typedFormat = format as PostFormat;
+        return {
+          type: format,
+          imageUrl: formData.formatFiles[typedFormat].imagePreview || "",
+          links: formData.formatFiles[typedFormat].links
+        };
+      }));
       
       const post = {
         title: formData.title,
@@ -496,19 +588,21 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="max-w-3xl p-0">
-        <div className="sr-only">
-          <h2>{step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Publicação"}</h2>
-          <p>Formulário para {isEdit ? "editar" : "criar"} uma nova postagem</p>
-        </div>
+        <DialogTitle className="sr-only">
+          {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Publicação"}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Formulário para {isEdit ? "editar" : "criar"} uma nova postagem
+        </DialogDescription>
         
         {/* Header com nome da etapa */}
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center">
             <ChevronLeft 
               className="h-5 w-5 cursor-pointer mr-2" 
-              onClick={step === 1 ? () => onOpenChange(false) : prevStep}
+              onClick={step === 1 ? () => handleDialogChange(false) : prevStep}
             />
             <h2 className="text-xl font-semibold">
               {step === 1 ? "Nova Postagem" : 
@@ -696,7 +790,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
             <div className="border-t p-4 flex justify-between items-center">
               <Button 
                 type="button" 
-                onClick={onOpenChange.bind(null, false)}
+                onClick={handleDialogChange.bind(null, false)}
                 variant="outline"
               >
                 Cancelar
