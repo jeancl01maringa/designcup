@@ -86,6 +86,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       label: "Formatos de Arquivo",
       path: "/admin/gerenciamento/formatos",
       icon: <FileType className="h-4 w-4" />,
+    },
+    {
+      id: "formatos-post",
+      label: "Formatos de Post",
+      path: "/admin/gerenciamento/formatos-post",
+      icon: <LayoutTemplate className="h-4 w-4" />,
       separator: true,
     },
     {

@@ -22,6 +22,8 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import PostagensPage from "@/pages/admin/PostagensPage";
 import CategoriasPage from "@/pages/admin/CategoriasPage";
+import FileFormatsPage from "@/pages/admin/gerenciamento/FileFormatsPage";
+import PostFormatsPage from "@/pages/admin/gerenciamento/PostFormatsPage";
 
 function Router() {
   const [location] = useLocation();
@@ -46,6 +48,12 @@ function Router() {
       </Route>
       <Route path="/admin/categorias">
         <ProtectedRoute path="/admin/categorias" component={CategoriasPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/gerenciamento/formatos">
+        <ProtectedRoute path="/admin/gerenciamento/formatos" component={FileFormatsPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/gerenciamento/formatos-post">
+        <ProtectedRoute path="/admin/gerenciamento/formatos-post" component={PostFormatsPage} requireAdmin={true} />
       </Route>
       <Route path="/admin">
         {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
