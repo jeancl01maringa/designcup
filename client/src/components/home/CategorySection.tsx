@@ -219,7 +219,7 @@ export default function CategorySection() {
               onClick={handleScrollLeft}
               aria-label="Categorias anteriores"
             >
-              <ArrowLeft className="h-5 w-5 text-[#1f4ed8]" />
+              <ArrowLeft className="h-5 w-5 text-black" />
             </button>
           )}
           
@@ -272,7 +272,7 @@ export default function CategorySection() {
                     
                     {/* Nome da categoria */}
                     <div className="mt-3 flex flex-col items-center">
-                      <h4 className="font-semibold text-[#1d1d1f] group-hover:text-[#1f4ed8] transition-colors duration-200">
+                      <h4 className="font-semibold text-[#1d1d1f] group-hover:text-black transition-colors duration-200">
                         {category.name}
                       </h4>
                       {category.description && (
@@ -293,14 +293,14 @@ export default function CategorySection() {
               onClick={handleScrollRight}
               aria-label="Próximas categorias"
             >
-              <ArrowRight className="h-5 w-5 text-[#1f4ed8]" />
+              <ArrowRight className="h-5 w-5 text-black" />
             </button>
           )}
         </div>
         
         {/* Link para todas as categorias */}
         <div className="text-center mt-8">
-          <Link href="/categorias" className="text-[#1f4ed8] text-sm hover:underline font-medium">
+          <Link href="/categorias" className="text-black text-sm hover:underline font-medium">
             Ver todas as categorias
           </Link>
         </div>

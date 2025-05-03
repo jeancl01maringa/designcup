@@ -48,11 +48,11 @@ export default function HeroSection() {
                   <option value="stories">Stories</option>
                   <option value="images">Imagens</option>
                 </select>
-                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1f4ed8]" />
+                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-black" />
               </div>
             </div>
             
-            <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 p-0 rounded-full bg-[#1f4ed8] hover:bg-[#1a44c2] shadow-sm">
+            <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-3 rounded-md bg-black hover:bg-black/80 shadow-sm">
               <Search className="h-4 w-4 text-white" />
             </Button>
           </div>
