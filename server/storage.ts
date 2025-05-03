@@ -1227,64 +1227,24 @@ export class DatabaseStorage implements IStorage {
       
       console.log("DATABASE createPost - Dados completos a serem enviados:", dbPost);
       
+      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
+      console.log("DATABASE createPost - Usando PostgreSQL diretamente para criação de post");
+      
+      // Construir consulta SQL para inserção
+      const fields = Object.keys(dbPost);
+      const values = Object.values(dbPost);
+      const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ');
+      
+      const sql = `
+        INSERT INTO posts (${fields.join(', ')})
+        VALUES (${placeholders})
+        RETURNING *
+      `;
+      
+      console.log("DATABASE createPost - Executando SQL:", sql);
+      console.log("DATABASE createPost - Campos:", fields);
+      
       try {
-        // Primeiro, tente usar o Supabase
-        const { data, error } = await supabase
-          .from('posts')
-          .insert(dbPost)
-          .select()
-          .single();
-        
-        if (error) {
-          console.error("DATABASE createPost - Erro ao criar post via Supabase:", error.message);
-          throw new Error(`Erro ao criar post via Supabase: ${error.message}`);
-        }
-        
-        if (!data) {
-          throw new Error('Erro ao criar post via Supabase: nenhum dado retornado');
-        }
-        
-        // Mapear para o formato esperado pela aplicação
-        const result: Post = {
-          id: data.id,
-          title: data.title,
-          description: data.description || "",
-          imageUrl: data.image_url,
-          uniqueCode: data.unique_code,
-          categoryId: data.category_id,
-          status: data.status,
-          createdAt: new Date(data.created_at),
-          publishedAt: data.published_at ? new Date(data.published_at) : null,
-          formato: data.formato,
-          formatData: data.format_data,
-          groupId: data.group_id,
-          tituloBase: data.titulo_base,
-          isPro: !!data.is_pro,
-          licenseType: data.license_type || 'free',
-          canvaUrl: data.canva_url,
-          formatoData: data.formato_data,
-          isVisible: data.is_visible !== false, // se for null ou undefined, assume true
-          tags: data.tags || [],
-          formats: data.formats || []
-        };
-        
-        console.log(`DATABASE createPost - Post criado com ID: ${result.id} via Supabase`);
-        return result;
-      } catch (supabaseError) {
-        // Se falhar com Supabase, tente diretamente com PostgreSQL
-        console.log("DATABASE createPost - Tentando com PostgreSQL após falha no Supabase");
-        
-        // Construir consulta SQL para inserção
-        const fields = Object.keys(dbPost);
-        const values = Object.values(dbPost);
-        const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ');
-        
-        const sql = `
-          INSERT INTO posts (${fields.join(', ')})
-          VALUES (${placeholders})
-          RETURNING *
-        `;
-        
         const result = await pool.query(sql, values);
         
         if (result.rows.length === 0) {
@@ -1319,6 +1279,9 @@ export class DatabaseStorage implements IStorage {
         
         console.log(`DATABASE createPost - Post criado com ID: ${postResult.id} via PostgreSQL direto`);
         return postResult;
+      } catch (pgError) {
+        console.error("DATABASE createPost - Erro PostgreSQL:", pgError);
+        throw new Error(`Erro ao criar post: ${pgError.message}`);
       }
     } catch (error) {
       console.error("DATABASE createPost - Exceção:", error);
@@ -1330,100 +1293,116 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`DATABASE updatePost - Atualizando post com ID ${id}:`, JSON.stringify(post));
       
-      // Mapear do formato da aplicação para o formato do Supabase
-      const supabasePost: any = {};
+      // Mapear do formato da aplicação para o formato do PostgreSQL
+      const dbPost: any = {};
       
-      if (post.title !== undefined) supabasePost.title = post.title;
-      if (post.description !== undefined) supabasePost.description = post.description;
-      if (post.imageUrl !== undefined) supabasePost.image_url = post.imageUrl;
-      if (post.uniqueCode !== undefined) supabasePost.unique_code = post.uniqueCode;
-      if (post.categoryId !== undefined) supabasePost.category_id = post.categoryId;
-      if (post.status !== undefined) supabasePost.status = post.status;
-      if (post.publishedAt !== undefined) supabasePost.published_at = post.publishedAt.toISOString();
+      if (post.title !== undefined) dbPost.title = post.title;
+      if (post.description !== undefined) dbPost.description = post.description;
+      if (post.imageUrl !== undefined) dbPost.image_url = post.imageUrl;
+      if (post.uniqueCode !== undefined) dbPost.unique_code = post.uniqueCode;
+      if (post.categoryId !== undefined) dbPost.category_id = post.categoryId;
+      if (post.status !== undefined) dbPost.status = post.status;
       
       // Campos para suporte a múltiplos formatos
-      if (post.formato !== undefined) supabasePost.formato = post.formato;
-      if (post.groupId !== undefined) supabasePost.group_id = post.groupId;
-      if (post.tituloBase !== undefined) supabasePost.titulo_base = post.tituloBase;
-      if (post.canvaUrl !== undefined) supabasePost.canva_url = post.canvaUrl;
-      if (post.formatoData !== undefined) supabasePost.formato_data = post.formatoData;
+      if (post.formato !== undefined) dbPost.formato = post.formato;
+      if (post.formatData !== undefined) dbPost.format_data = post.formatData;
+      if (post.groupId !== undefined) dbPost.group_id = post.groupId;
+      if (post.tituloBase !== undefined) dbPost.titulo_base = post.tituloBase;
+      if (post.canvaUrl !== undefined) dbPost.canva_url = post.canvaUrl;
+      if (post.formatoData !== undefined) dbPost.formato_data = post.formatoData;
       
       // Campos de array
       if (post.tags && Array.isArray(post.tags)) {
-        supabasePost.tags = post.tags;
+        dbPost.tags = post.tags;
       }
       
       if (post.formats && Array.isArray(post.formats)) {
-        supabasePost.formats = post.formats;
+        dbPost.formats = post.formats;
       }
       
       // Verificar se há campos de licença e atualizar todos que forem necessários
       if (post.licenseType !== undefined) {
         // Armazenar o licenseType como string (premium ou free)
-        supabasePost.license_type = post.licenseType;
+        dbPost.license_type = post.licenseType;
         
-        // Se estamos usando o Supabase diretamente, também podemos atualizar o campo is_pro
-        // que é usado nas tabelas supabase para indicar conteúdo premium
+        // O campo is_pro é usado para indicar conteúdo premium
         if (post.isPro !== undefined) {
           // Se foi explicitamente fornecido, usar o valor diretamente
-          supabasePost.is_pro = post.isPro;
+          dbPost.is_pro = post.isPro;
         } else {
           // Caso contrário, considerar premium se licenseType for 'premium'
-          supabasePost.is_pro = post.licenseType === 'premium';
+          dbPost.is_pro = post.licenseType === 'premium';
         }
         
-        console.log(`DATABASE updatePost - Atualizando licença: license_type=${supabasePost.license_type}, is_pro=${supabasePost.is_pro}`);
+        console.log(`DATABASE updatePost - Atualizando licença: license_type=${dbPost.license_type}, is_pro=${dbPost.is_pro}`);
       } else if (post.isPro !== undefined) {
         // Se apenas isPro foi fornecido, atualizar apenas esse campo
-        supabasePost.is_pro = post.isPro;
-        console.log(`DATABASE updatePost - Atualizando apenas is_pro=${supabasePost.is_pro}`);
+        dbPost.is_pro = post.isPro;
+        console.log(`DATABASE updatePost - Atualizando apenas is_pro=${dbPost.is_pro}`);
       }
       
       // Visibilidade no feed
       if (post.isVisible !== undefined) {
-        supabasePost.is_visible = post.isVisible;
-        console.log(`DATABASE updatePost - Atualizando is_visible=${supabasePost.is_visible}`);
+        dbPost.is_visible = post.isVisible;
+        console.log(`DATABASE updatePost - Atualizando is_visible=${dbPost.is_visible}`);
       }
       
-      const { data, error } = await supabase
-        .from('posts')
-        .update(supabasePost)
-        .eq('id', id)
-        .select()
-        .single();
+      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
+      console.log("DATABASE updatePost - Usando PostgreSQL diretamente para atualização de post");
       
-      if (error) {
-        console.error("DATABASE updatePost - Erro ao atualizar post:", error.message);
-        throw new Error(`Erro ao atualizar post: ${error.message}`);
+      // Construir consulta SQL para atualização
+      const setClauses = Object.keys(dbPost).map((key, i) => `${key} = $${i + 1}`).join(', ');
+      const values = [...Object.values(dbPost), id];
+      
+      const sql = `
+        UPDATE posts 
+        SET ${setClauses} 
+        WHERE id = $${values.length}
+        RETURNING *
+      `;
+      
+      console.log("DATABASE updatePost - Executando SQL:", sql);
+      console.log("DATABASE updatePost - Campos para atualização:", Object.keys(dbPost));
+      
+      try {
+        const result = await pool.query(sql, values);
+        
+        if (result.rows.length === 0) {
+          throw new Error(`Post com ID ${id} não encontrado`);
+        }
+        
+        const data = result.rows[0];
+        
+        // Mapear para o formato esperado pela aplicação
+        const postResult: Post = {
+          id: data.id,
+          title: data.title,
+          description: data.description || "",
+          imageUrl: data.image_url,
+          uniqueCode: data.unique_code,
+          categoryId: data.category_id,
+          status: data.status,
+          createdAt: new Date(data.created_at),
+          publishedAt: data.published_at ? new Date(data.published_at) : null,
+          formato: data.formato,
+          formatData: data.format_data,
+          groupId: data.group_id,
+          tituloBase: data.titulo_base,
+          isPro: !!data.is_pro,
+          licenseType: data.license_type || 'free',
+          canvaUrl: data.canva_url,
+          formatoData: data.formato_data,
+          isVisible: data.is_visible !== false,
+          tags: data.tags || [],
+          formats: data.formats || []
+        };
+        
+        console.log(`DATABASE updatePost - Post atualizado: ${postResult.title} via PostgreSQL direto`);
+        return postResult;
+      } catch (pgError) {
+        console.error("DATABASE updatePost - Erro PostgreSQL:", pgError);
+        throw new Error(`Erro ao atualizar post: ${pgError.message}`);
       }
-      
-      if (!data) {
-        throw new Error(`Post com ID ${id} não encontrado`);
-      }
-      
-      // Mapear para o formato esperado pela aplicação
-      const result: Post = {
-        id: data.id,
-        title: data.title,
-        description: data.description || "",
-        imageUrl: data.image_url,
-        uniqueCode: data.unique_code,
-        categoryId: data.category_id,
-        status: data.status,
-        createdAt: new Date(data.created_at),
-        publishedAt: data.published_at ? new Date(data.published_at) : null,
-        formato: data.formato,
-        groupId: data.group_id,
-        tituloBase: data.titulo_base,
-        isPro: !!data.is_pro,
-        licenseType: data.license_type || 'free',
-        canvaUrl: data.canva_url,
-        formatoData: data.formato_data,
-        isVisible: data.is_visible !== false // se for null ou undefined, assume true
-      };
-      
-      console.log(`DATABASE updatePost - Post atualizado: ${result.title}`);
-      return result;
     } catch (error) {
       console.error("DATABASE updatePost - Exceção:", error);
       throw error;
@@ -1434,17 +1413,23 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`DATABASE deletePost - Excluindo post com ID: ${id}`);
       
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', id);
+      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
+      console.log("DATABASE deletePost - Usando PostgreSQL diretamente para exclusão de post");
       
-      if (error) {
-        console.error("DATABASE deletePost - Erro ao excluir post:", error.message);
-        throw new Error(`Erro ao excluir post: ${error.message}`);
+      const sql = `DELETE FROM posts WHERE id = $1`;
+      
+      try {
+        const result = await pool.query(sql, [id]);
+        
+        if (result.rowCount === 0) {
+          throw new Error(`Post com ID ${id} não encontrado`);
+        }
+        
+        console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso via PostgreSQL direto`);
+      } catch (pgError: any) {
+        console.error("DATABASE deletePost - Erro PostgreSQL:", pgError);
+        throw new Error(`Erro ao excluir post: ${pgError.message}`);
       }
-      
-      console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso`);
     } catch (error) {
       console.error("DATABASE deletePost - Exceção:", error);
       throw error;
@@ -1455,21 +1440,40 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`DATABASE updatePostStatus - Atualizando status para ${status} nos posts:`, ids);
       
-      // Usar operação em lote (in) para atualizar todos os posts de uma vez
-      const { error } = await supabase
-        .from('posts')
-        .update({ 
-          status,
-          updated_at: new Date().toISOString()
-        })
-        .in('id', ids);
+      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
+      console.log("DATABASE updatePostStatus - Usando PostgreSQL diretamente para atualização de status");
       
-      if (error) {
-        console.error('DATABASE updatePostStatus - Erro ao atualizar status dos posts:', error);
-        throw new Error(`Erro ao atualizar status dos posts: ${error.message}`);
+      // Criar placeholder IDs para a consulta SQL
+      const idPlaceholders = ids.map((_, i) => `$${i + 2}`).join(', ');
+      
+      // Se for para aprovar, definir a data de publicação
+      let publishedAt = null;
+      if (status === 'aprovado') {
+        publishedAt = new Date();
       }
       
-      console.log(`DATABASE updatePostStatus - Status atualizado para ${status} em ${ids.length} posts`);
+      const sql = `
+        UPDATE posts 
+        SET status = $1${publishedAt ? ', published_at = $' + (ids.length + 2) : ''}
+        WHERE id IN (${idPlaceholders})
+      `;
+      
+      // Montar array de parâmetros com status no início, seguido pelos IDs
+      const params = [status, ...ids];
+      
+      // Adicionar data de publicação se necessário
+      if (publishedAt) {
+        params.push(publishedAt);
+      }
+      
+      try {
+        const result = await pool.query(sql, params);
+        
+        console.log(`DATABASE updatePostStatus - Status atualizado para ${status} em ${result.rowCount} posts via PostgreSQL direto`);
+      } catch (pgError: any) {
+        console.error("DATABASE updatePostStatus - Erro PostgreSQL:", pgError);
+        throw new Error(`Erro ao atualizar status dos posts: ${pgError.message}`);
+      }
     } catch (error) {
       console.error("DATABASE updatePostStatus - Exceção:", error);
       throw error;
