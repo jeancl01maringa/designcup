@@ -473,107 +473,487 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createArtwork(insertArtwork: InsertArtwork): Promise<Artwork> {
-    const [artwork] = await db
-      .insert(artworks)
-      .values(insertArtwork)
-      .returning();
-    return artwork;
+    try {
+      console.log("DATABASE createArtwork - Recebendo dados:", JSON.stringify(insertArtwork));
+      
+      // Mapear campos para formato do Supabase (snake_case)
+      const dbArtwork = {
+        title: insertArtwork.title,
+        description: insertArtwork.description,
+        image_url: insertArtwork.imageUrl,
+        format: insertArtwork.format,
+        is_pro: insertArtwork.isPro,
+        category: insertArtwork.category
+      };
+      
+      console.log("DATABASE createArtwork - Enviando para o banco:", JSON.stringify(dbArtwork));
+      
+      // Usar a API do Supabase para criar a artwork
+      const { data, error } = await supabase
+        .from('artworks')
+        .insert(dbArtwork)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE createArtwork - Erro ao criar artwork:", error.message);
+        throw new Error(`Erro ao criar artwork: ${error.message}`);
+      }
+      
+      console.log("DATABASE createArtwork - Resultado do banco:", JSON.stringify(data));
+      
+      // Mapear para o formato esperado pela aplicação
+      const artwork: Artwork = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        imageUrl: data.image_url,
+        format: data.format,
+        isPro: data.is_pro,
+        category: data.category,
+        createdAt: new Date(data.created_at)
+      };
+      
+      return artwork;
+    } catch (error) {
+      console.error("DATABASE createArtwork - Exceção:", error);
+      throw error;
+    }
   }
   
   async getFavoritesByUserId(userId: number): Promise<Artwork[]> {
-    const result = await db
-      .select({
-        id: artworks.id,
-        title: artworks.title,
-        description: artworks.description,
-        imageUrl: artworks.imageUrl,
-        format: artworks.format,
-        isPro: artworks.isPro,
-        category: artworks.category,
-        createdAt: artworks.createdAt
-      })
-      .from(favorites)
-      .innerJoin(artworks, eq(favorites.artworkId, artworks.id))
-      .where(eq(favorites.userId, userId));
-    
-    return result;
+    try {
+      console.log("DATABASE getFavoritesByUserId - Buscando favoritos do usuário:", userId);
+      
+      // Usando o Supabase com uma query com join para buscar os favoritos
+      const { data, error } = await supabase
+        .from('favorites')
+        .select(`
+          artworkId,
+          artworks (
+            id,
+            title,
+            description,
+            image_url,
+            format,
+            is_pro,
+            category,
+            created_at
+          )
+        `)
+        .eq('userId', userId);
+        
+      if (error) {
+        console.error("DATABASE getFavoritesByUserId - Erro ao buscar favoritos:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log(`DATABASE getFavoritesByUserId - Nenhum favorito encontrado para o usuário ${userId}`);
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const result = data
+        .filter(item => item.artworks) // Filtrar apenas os itens que têm artworks
+        .map(item => ({
+          id: item.artworks.id,
+          title: item.artworks.title,
+          description: item.artworks.description,
+          imageUrl: item.artworks.image_url,
+          format: item.artworks.format,
+          isPro: item.artworks.is_pro,
+          category: item.artworks.category,
+          createdAt: new Date(item.artworks.created_at)
+        }));
+      
+      console.log(`DATABASE getFavoritesByUserId - Encontrados ${result.length} favoritos para o usuário ${userId}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE getFavoritesByUserId - Exceção:", error);
+      return [];
+    }
   }
   
   async addFavorite(favorite: InsertFavorite): Promise<Favorite> {
-    const [result] = await db
-      .insert(favorites)
-      .values(favorite)
-      .returning();
-    return result;
+    try {
+      console.log("DATABASE addFavorite - Adicionando favorito:", JSON.stringify(favorite));
+      
+      // Converter para o formato do Supabase (snake_case)
+      const dbFavorite = {
+        user_id: favorite.userId,
+        artwork_id: favorite.artworkId
+      };
+      
+      // Usar a API do Supabase para inserir o favorito
+      const { data, error } = await supabase
+        .from('favorites')
+        .insert(dbFavorite)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE addFavorite - Erro ao adicionar favorito:", error.message);
+        throw new Error(`Erro ao adicionar favorito: ${error.message}`);
+      }
+      
+      console.log("DATABASE addFavorite - Favorito adicionado com sucesso:", JSON.stringify(data));
+      
+      // Mapear para o formato esperado pela aplicação
+      const result: Favorite = {
+        id: data.id,
+        userId: data.user_id,
+        artworkId: data.artwork_id,
+        createdAt: new Date(data.created_at)
+      };
+      
+      return result;
+    } catch (error) {
+      console.error("DATABASE addFavorite - Exceção:", error);
+      throw error;
+    }
   }
   
   async removeFavorite(userId: number, artworkId: number): Promise<void> {
-    await db
-      .delete(favorites)
-      .where(
-        eq(favorites.userId, userId) && 
-        eq(favorites.artworkId, artworkId)
-      );
+    try {
+      console.log(`DATABASE removeFavorite - Removendo favorito do usuário ${userId}, artwork ${artworkId}`);
+      
+      // Usar a API do Supabase para remover o favorito
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', userId)
+        .eq('artwork_id', artworkId);
+      
+      if (error) {
+        console.error("DATABASE removeFavorite - Erro ao remover favorito:", error.message);
+        throw new Error(`Erro ao remover favorito: ${error.message}`);
+      }
+      
+      console.log(`DATABASE removeFavorite - Favorito removido com sucesso`);
+    } catch (error) {
+      console.error("DATABASE removeFavorite - Exceção:", error);
+      throw error;
+    }
   }
   
   async getUserArtworksByUserId(userId: number): Promise<Artwork[]> {
-    const result = await db
-      .select({
-        id: artworks.id,
-        title: artworks.title,
-        description: artworks.description,
-        imageUrl: artworks.imageUrl,
-        format: artworks.format,
-        isPro: artworks.isPro,
-        category: artworks.category,
-        createdAt: artworks.createdAt
-      })
-      .from(userArtworks)
-      .innerJoin(artworks, eq(userArtworks.artworkId, artworks.id))
-      .where(eq(userArtworks.userId, userId))
-      .orderBy(desc(userArtworks.usedAt));
-    
-    return result;
+    try {
+      console.log("DATABASE getUserArtworksByUserId - Buscando artes do usuário:", userId);
+      
+      // Usando o Supabase com uma query com join para buscar as artes do usuário
+      const { data, error } = await supabase
+        .from('user_artworks')
+        .select(`
+          artworkId,
+          artworks (
+            id,
+            title,
+            description,
+            image_url,
+            format,
+            is_pro,
+            category,
+            created_at
+          )
+        `)
+        .eq('userId', userId)
+        .order('usedAt', { ascending: false });
+        
+      if (error) {
+        console.error("DATABASE getUserArtworksByUserId - Erro ao buscar artes do usuário:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log(`DATABASE getUserArtworksByUserId - Nenhuma arte encontrada para o usuário ${userId}`);
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const result = data
+        .filter(item => item.artworks) // Filtrar apenas os itens que têm artworks
+        .map(item => ({
+          id: item.artworks.id,
+          title: item.artworks.title,
+          description: item.artworks.description,
+          imageUrl: item.artworks.image_url,
+          format: item.artworks.format,
+          isPro: item.artworks.is_pro,
+          category: item.artworks.category,
+          createdAt: new Date(item.artworks.created_at)
+        }));
+      
+      console.log(`DATABASE getUserArtworksByUserId - Encontradas ${result.length} artes para o usuário ${userId}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE getUserArtworksByUserId - Exceção:", error);
+      return [];
+    }
   }
   
   async addUserArtwork(userArtwork: InsertUserArtwork): Promise<UserArtwork> {
-    const [result] = await db
-      .insert(userArtworks)
-      .values(userArtwork)
-      .returning();
-    return result;
+    try {
+      console.log("DATABASE addUserArtwork - Adicionando arte para o usuário:", JSON.stringify(userArtwork));
+      
+      // Verificar se a entrada já existe
+      const { data: existingEntry, error: checkError } = await supabase
+        .from('user_artworks')
+        .select()
+        .eq('userId', userArtwork.userId)
+        .eq('artworkId', userArtwork.artworkId)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error("DATABASE addUserArtwork - Erro ao verificar arte existente:", checkError.message);
+        throw new Error(`Erro ao verificar arte existente: ${checkError.message}`);
+      }
+      
+      let data;
+      
+      if (existingEntry) {
+        // Atualizar a entrada existente com a nova data de uso
+        const { data: updatedData, error: updateError } = await supabase
+          .from('user_artworks')
+          .update({ usedAt: new Date() })
+          .eq('id', existingEntry.id)
+          .select()
+          .single();
+        
+        if (updateError) {
+          console.error("DATABASE addUserArtwork - Erro ao atualizar arte existente:", updateError.message);
+          throw new Error(`Erro ao atualizar arte existente: ${updateError.message}`);
+        }
+        
+        data = updatedData;
+        console.log("DATABASE addUserArtwork - Arte existente atualizada:", JSON.stringify(data));
+      } else {
+        // Criar uma nova entrada
+        const dbUserArtwork = {
+          user_id: userArtwork.userId,
+          artwork_id: userArtwork.artworkId,
+          used_at: new Date()
+        };
+        
+        const { data: newData, error: insertError } = await supabase
+          .from('user_artworks')
+          .insert(dbUserArtwork)
+          .select()
+          .single();
+        
+        if (insertError) {
+          console.error("DATABASE addUserArtwork - Erro ao adicionar nova arte:", insertError.message);
+          throw new Error(`Erro ao adicionar nova arte: ${insertError.message}`);
+        }
+        
+        data = newData;
+        console.log("DATABASE addUserArtwork - Nova arte adicionada:", JSON.stringify(data));
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      const result: UserArtwork = {
+        id: data.id,
+        userId: data.user_id,
+        artworkId: data.artwork_id,
+        usedAt: new Date(data.used_at)
+      };
+      
+      return result;
+    } catch (error) {
+      console.error("DATABASE addUserArtwork - Exceção:", error);
+      throw error;
+    }
   }
   
   // Category methods (for admin panel)
   async getCategories(): Promise<Category[]> {
-    const result = await db.select().from(categories).orderBy(categories.name);
-    return result;
+    try {
+      console.log("DATABASE getCategories - Buscando todas as categorias");
+      
+      // Usar a API do Supabase para buscar todas as categorias
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error("DATABASE getCategories - Erro ao buscar categorias:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("DATABASE getCategories - Nenhuma categoria encontrada");
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const categories: Category[] = data.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        imageUrl: item.image_url,
+        iconUrl: item.icon_url,
+        isHighlighted: item.is_highlighted,
+        createdAt: new Date(item.created_at)
+      }));
+      
+      console.log(`DATABASE getCategories - Encontradas ${categories.length} categorias`);
+      return categories;
+    } catch (error) {
+      console.error("DATABASE getCategories - Exceção:", error);
+      return [];
+    }
   }
   
   async getCategoryById(id: number): Promise<Category | undefined> {
-    const [category] = await db.select().from(categories).where(eq(categories.id, id));
-    return category;
+    try {
+      console.log("DATABASE getCategoryById - Buscando categoria com ID:", id);
+      
+      // Usar a API do Supabase para buscar a categoria pelo ID
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error("DATABASE getCategoryById - Erro ao buscar categoria:", error.message);
+        return undefined;
+      }
+      
+      if (!data) {
+        console.log(`DATABASE getCategoryById - Categoria com ID ${id} não encontrada`);
+        return undefined;
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const category: Category = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        imageUrl: data.image_url,
+        iconUrl: data.icon_url,
+        isHighlighted: data.is_highlighted,
+        createdAt: new Date(data.created_at)
+      };
+      
+      console.log(`DATABASE getCategoryById - Categoria encontrada: ${category.name}`);
+      return category;
+    } catch (error) {
+      console.error("DATABASE getCategoryById - Exceção:", error);
+      return undefined;
+    }
   }
   
   async createCategory(category: InsertCategory): Promise<Category> {
-    const [result] = await db
-      .insert(categories)
-      .values(category)
-      .returning();
-    return result;
+    try {
+      console.log("DATABASE createCategory - Criando categoria:", JSON.stringify(category));
+      
+      // Mapear campos para formato do Supabase (snake_case)
+      const dbCategory = {
+        name: category.name,
+        description: category.description,
+        image_url: category.imageUrl,
+        icon_url: category.iconUrl,
+        is_highlighted: category.isHighlighted
+      };
+      
+      // Usar a API do Supabase para criar a categoria
+      const { data, error } = await supabase
+        .from('categories')
+        .insert(dbCategory)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE createCategory - Erro ao criar categoria:", error.message);
+        throw new Error(`Erro ao criar categoria: ${error.message}`);
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      const result: Category = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        imageUrl: data.image_url,
+        iconUrl: data.icon_url,
+        isHighlighted: data.is_highlighted,
+        createdAt: new Date(data.created_at)
+      };
+      
+      console.log(`DATABASE createCategory - Categoria criada com sucesso: ${result.name}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE createCategory - Exceção:", error);
+      throw error;
+    }
   }
   
   async updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category> {
-    const [result] = await db
-      .update(categories)
-      .set(category)
-      .where(eq(categories.id, id))
-      .returning();
-    return result;
+    try {
+      console.log("DATABASE updateCategory - Atualizando categoria:", id, JSON.stringify(category));
+      
+      // Mapear campos para formato do Supabase (snake_case)
+      const dbCategory: any = {};
+      
+      if (category.name !== undefined) dbCategory.name = category.name;
+      if (category.description !== undefined) dbCategory.description = category.description;
+      if (category.imageUrl !== undefined) dbCategory.image_url = category.imageUrl;
+      if (category.iconUrl !== undefined) dbCategory.icon_url = category.iconUrl;
+      if (category.isHighlighted !== undefined) dbCategory.is_highlighted = category.isHighlighted;
+      
+      // Usar a API do Supabase para atualizar a categoria
+      const { data, error } = await supabase
+        .from('categories')
+        .update(dbCategory)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE updateCategory - Erro ao atualizar categoria:", error.message);
+        throw new Error(`Erro ao atualizar categoria: ${error.message}`);
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      const result: Category = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        imageUrl: data.image_url,
+        iconUrl: data.icon_url,
+        isHighlighted: data.is_highlighted,
+        createdAt: new Date(data.created_at)
+      };
+      
+      console.log(`DATABASE updateCategory - Categoria atualizada com sucesso: ${result.name}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE updateCategory - Exceção:", error);
+      throw error;
+    }
   }
   
   async deleteCategory(id: number): Promise<void> {
-    await db.delete(categories).where(eq(categories.id, id));
+    try {
+      console.log("DATABASE deleteCategory - Excluindo categoria com ID:", id);
+      
+      // Usar a API do Supabase para excluir a categoria
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error("DATABASE deleteCategory - Erro ao excluir categoria:", error.message);
+        throw new Error(`Erro ao excluir categoria: ${error.message}`);
+      }
+      
+      console.log(`DATABASE deleteCategory - Categoria excluída com sucesso`);
+    } catch (error) {
+      console.error("DATABASE deleteCategory - Exceção:", error);
+      throw error;
+    }
   }
   
   // Post methods (for admin panel)
