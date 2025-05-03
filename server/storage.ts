@@ -966,84 +966,288 @@ export class DatabaseStorage implements IStorage {
     startDate?: Date;
     endDate?: Date;
   }): Promise<Post[]> {
-    let query = db.select().from(posts);
-    
-    if (filters) {
-      if (filters.searchTerm) {
-        const searchTerm = `%${filters.searchTerm.toLowerCase()}%`;
-        query = query.where(
-          or(
-            like(posts.title, searchTerm),
-            like(posts.description || '', searchTerm),
-            like(posts.uniqueCode, searchTerm)
-          )
-        );
+    try {
+      console.log("DATABASE getPosts - Buscando posts com filtros:", JSON.stringify(filters || {}));
+      
+      // Construir a query base para o Supabase
+      let query = supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          description,
+          image_url,
+          unique_code,
+          category_id,
+          status,
+          created_at,
+          published_at
+        `)
+        .order('created_at', { ascending: false });
+      
+      // Aplicar filtros se existirem
+      if (filters) {
+        if (filters.searchTerm) {
+          // Usando ilike para busca case-insensitive
+          const searchTerm = `%${filters.searchTerm}%`;
+          query = query.or(
+            `title.ilike.${searchTerm},description.ilike.${searchTerm},unique_code.ilike.${searchTerm}`
+          );
+        }
+        
+        if (filters.categoryId) {
+          query = query.eq('category_id', filters.categoryId);
+        }
+        
+        if (filters.status) {
+          query = query.eq('status', filters.status);
+        }
+        
+        if (filters.month && filters.year) {
+          // Filtrar por mês e ano específicos (este filtro é mais complexo no Supabase REST API)
+          const startDate = new Date(filters.year, filters.month - 1, 1).toISOString();
+          const endDate = new Date(filters.year, filters.month, 0).toISOString();
+          query = query
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+        } else if (filters.startDate && filters.endDate) {
+          // Filtrar por intervalo de datas
+          query = query
+            .gte('created_at', filters.startDate.toISOString())
+            .lte('created_at', filters.endDate.toISOString());
+        }
       }
       
-      if (filters.categoryId) {
-        query = query.where(eq(posts.categoryId, filters.categoryId));
+      // Executar a query
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error("DATABASE getPosts - Erro ao buscar posts:", error.message);
+        return [];
       }
       
-      if (filters.status) {
-        // @ts-ignore - O TypeScript não consegue inferir corretamente que o status é válido
-        query = query.where(eq(posts.status, filters.status));
+      if (!data || data.length === 0) {
+        console.log("DATABASE getPosts - Nenhum post encontrado com os filtros especificados");
+        return [];
       }
       
-      if (filters.month && filters.year) {
-        // Filtrar por mês e ano específicos
-        const startDate = new Date(filters.year, filters.month - 1, 1);
-        const endDate = new Date(filters.year, filters.month, 0);
-        query = query.where(
-          // @ts-ignore - O TypeScript não consegue inferir corretamente as datas
-          posts.createdAt >= startDate && posts.createdAt <= endDate
-        );
-      } else if (filters.startDate && filters.endDate) {
-        // Filtrar por intervalo de datas
-        query = query.where(
-          // @ts-ignore - O TypeScript não consegue inferir corretamente as datas
-          posts.createdAt >= filters.startDate && posts.createdAt <= filters.endDate
-        );
-      }
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const result = data.map(post => ({
+        id: post.id,
+        title: post.title,
+        description: post.description || "",
+        imageUrl: post.image_url,
+        uniqueCode: post.unique_code,
+        categoryId: post.category_id,
+        status: post.status,
+        createdAt: new Date(post.created_at),
+        publishedAt: post.published_at ? new Date(post.published_at) : null
+      }));
+      
+      console.log(`DATABASE getPosts - Encontrados ${result.length} posts`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE getPosts - Exceção:", error);
+      return [];
     }
-    
-    const result = await query.orderBy(desc(posts.createdAt));
-    return result;
   }
   
   async getPostById(id: number): Promise<Post | undefined> {
-    const [post] = await db.select().from(posts).where(eq(posts.id, id));
-    return post;
+    try {
+      console.log("DATABASE getPostById - Buscando post com ID:", id);
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          description,
+          image_url,
+          unique_code,
+          category_id,
+          status,
+          created_at,
+          published_at
+        `)
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error("DATABASE getPostById - Erro ao buscar post:", error.message);
+        return undefined;
+      }
+      
+      if (!data) {
+        console.log(`DATABASE getPostById - Post com ID ${id} não encontrado`);
+        return undefined;
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      const result: Post = {
+        id: data.id,
+        title: data.title,
+        description: data.description || "",
+        imageUrl: data.image_url,
+        uniqueCode: data.unique_code,
+        categoryId: data.category_id,
+        status: data.status,
+        createdAt: new Date(data.created_at),
+        publishedAt: data.published_at ? new Date(data.published_at) : null
+      };
+      
+      console.log(`DATABASE getPostById - Post encontrado: ${result.title}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE getPostById - Exceção:", error);
+      return undefined;
+    }
   }
   
   async createPost(post: InsertPost): Promise<Post> {
-    const [result] = await db
-      .insert(posts)
-      .values(post)
-      .returning();
-    return result;
+    try {
+      console.log("DATABASE createPost - Criando novo post:", JSON.stringify(post));
+      
+      // Mapear do formato da aplicação para o formato do Supabase
+      const supabasePost = {
+        title: post.title,
+        description: post.description,
+        image_url: post.imageUrl,
+        unique_code: post.uniqueCode,
+        category_id: post.categoryId,
+        status: post.status || 'rascunho',
+        published_at: post.publishedAt ? post.publishedAt.toISOString() : null
+      };
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .insert(supabasePost)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE createPost - Erro ao criar post:", error.message);
+        throw new Error(`Erro ao criar post: ${error.message}`);
+      }
+      
+      if (!data) {
+        throw new Error('Erro ao criar post: nenhum dado retornado');
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      const result: Post = {
+        id: data.id,
+        title: data.title,
+        description: data.description || "",
+        imageUrl: data.image_url,
+        uniqueCode: data.unique_code,
+        categoryId: data.category_id,
+        status: data.status,
+        createdAt: new Date(data.created_at),
+        publishedAt: data.published_at ? new Date(data.published_at) : null
+      };
+      
+      console.log(`DATABASE createPost - Post criado com ID: ${result.id}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE createPost - Exceção:", error);
+      throw error;
+    }
   }
   
   async updatePost(id: number, post: Partial<InsertPost>): Promise<Post> {
-    const [result] = await db
-      .update(posts)
-      .set(post)
-      .where(eq(posts.id, id))
-      .returning();
-    return result;
+    try {
+      console.log(`DATABASE updatePost - Atualizando post com ID ${id}:`, JSON.stringify(post));
+      
+      // Mapear do formato da aplicação para o formato do Supabase
+      const supabasePost: any = {};
+      
+      if (post.title !== undefined) supabasePost.title = post.title;
+      if (post.description !== undefined) supabasePost.description = post.description;
+      if (post.imageUrl !== undefined) supabasePost.image_url = post.imageUrl;
+      if (post.uniqueCode !== undefined) supabasePost.unique_code = post.uniqueCode;
+      if (post.categoryId !== undefined) supabasePost.category_id = post.categoryId;
+      if (post.status !== undefined) supabasePost.status = post.status;
+      if (post.publishedAt !== undefined) supabasePost.published_at = post.publishedAt.toISOString();
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .update(supabasePost)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE updatePost - Erro ao atualizar post:", error.message);
+        throw new Error(`Erro ao atualizar post: ${error.message}`);
+      }
+      
+      if (!data) {
+        throw new Error(`Post com ID ${id} não encontrado`);
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      const result: Post = {
+        id: data.id,
+        title: data.title,
+        description: data.description || "",
+        imageUrl: data.image_url,
+        uniqueCode: data.unique_code,
+        categoryId: data.category_id,
+        status: data.status,
+        createdAt: new Date(data.created_at),
+        publishedAt: data.published_at ? new Date(data.published_at) : null
+      };
+      
+      console.log(`DATABASE updatePost - Post atualizado: ${result.title}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE updatePost - Exceção:", error);
+      throw error;
+    }
   }
   
   async deletePost(id: number): Promise<void> {
-    await db.delete(posts).where(eq(posts.id, id));
+    try {
+      console.log(`DATABASE deletePost - Excluindo post com ID: ${id}`);
+      
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error("DATABASE deletePost - Erro ao excluir post:", error.message);
+        throw new Error(`Erro ao excluir post: ${error.message}`);
+      }
+      
+      console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso`);
+    } catch (error) {
+      console.error("DATABASE deletePost - Exceção:", error);
+      throw error;
+    }
   }
   
   async updatePostStatus(ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado'): Promise<void> {
-    await db
-      .update(posts)
-      .set({ status })
-      .where(
-        // @ts-ignore - O TypeScript não consegue inferir corretamente que id está em ids
-        ids.map(id => eq(posts.id, id)).reduce((acc, curr) => or(acc, curr))
-      );
+    try {
+      console.log(`DATABASE updatePostStatus - Atualizando status para ${status} nos posts:`, ids);
+      
+      for (const id of ids) {
+        const { error } = await supabase
+          .from('posts')
+          .update({ status })
+          .eq('id', id);
+        
+        if (error) {
+          console.error(`DATABASE updatePostStatus - Erro ao atualizar status do post ${id}:`, error.message);
+          throw new Error(`Erro ao atualizar status do post ${id}: ${error.message}`);
+        }
+      }
+      
+      console.log(`DATABASE updatePostStatus - Status atualizado para ${status} em ${ids.length} posts`);
+    } catch (error) {
+      console.error("DATABASE updatePostStatus - Exceção:", error);
+      throw error;
+    }
   }
   
   // Seed the database with sample artworks

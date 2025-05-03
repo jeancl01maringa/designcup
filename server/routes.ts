@@ -7,6 +7,7 @@ import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import { db } from "./db";
+import { supabase } from "./supabase-client";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
@@ -320,19 +321,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para estatísticas do painel admin
   app.get('/api/admin/stats', async (req, res) => {
     try {
-      // Obter contagem de posts
-      const posts = await db.select({ count: sql<number>`count(*)` }).from(schema.posts);
-      const postsCount = posts[0]?.count || 0;
+      console.log("Buscando estatísticas do painel admin...");
       
-      // Obter contagem de posts aprovados
-      const approvedPosts = await db.select({ count: sql<number>`count(*)` })
-        .from(schema.posts)
-        .where(eq(schema.posts.status, 'aprovado'));
-      const approvedPostsCount = approvedPosts[0]?.count || 0;
+      // Usar a implementação com Supabase
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select('id');
       
-      // Obter contagem de categorias
-      const categories = await db.select({ count: sql<number>`count(*)` }).from(schema.categories);
-      const categoriesCount = categories[0]?.count || 0;
+      if (postsError) {
+        console.error("Erro ao buscar posts:", postsError);
+        throw postsError;
+      }
+      
+      const { data: approvedPostsData, error: approvedPostsError } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('status', 'aprovado');
+        
+      if (approvedPostsError) {
+        console.error("Erro ao buscar posts aprovados:", approvedPostsError);
+        throw approvedPostsError;
+      }
+      
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('id');
+        
+      if (categoriesError) {
+        console.error("Erro ao buscar categorias:", categoriesError);
+        throw categoriesError;
+      }
+      
+      // Contagem de itens
+      const postsCount = postsData?.length || 0;
+      const approvedPostsCount = approvedPostsData?.length || 0;
+      const categoriesCount = categoriesData?.length || 0;
       
       // Retornar estatísticas
       res.json({
@@ -344,6 +367,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching admin stats:', error);
       res.status(500).json({ message: 'Error fetching admin stats' });
+    }
+  });
+  
+  // Rota de teste para criar categoria e post (acesso sem autenticação para facilitar teste)
+  app.get('/api/admin/setup-test-data', async (req, res) => {
+    try {
+      console.log("Configurando dados de teste para o painel admin...");
+      
+      // Criar categoria de teste se não existir
+      const { data: existingCategories, error: categoryCheckError } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('slug', 'tutoriais');
+        
+      if (categoryCheckError) {
+        console.error("Erro ao verificar categorias existentes:", categoryCheckError);
+        throw categoryCheckError;
+      }
+      
+      let categoryId;
+      
+      if (!existingCategories || existingCategories.length === 0) {
+        // Criar nova categoria
+        const { data: newCategory, error: categoryCreateError } = await supabase
+          .from('categories')
+          .insert({
+            name: 'Tutoriais',
+            slug: 'tutoriais',
+            description: 'Guias passo-a-passo para procedimentos estéticos',
+            image_url: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=800&auto=format&fit=crop'
+          })
+          .select()
+          .single();
+          
+        if (categoryCreateError) {
+          console.error("Erro ao criar categoria:", categoryCreateError);
+          throw categoryCreateError;
+        }
+        
+        categoryId = newCategory.id;
+        console.log(`Categoria criada com ID: ${categoryId}`);
+      } else {
+        categoryId = existingCategories[0].id;
+        console.log(`Categoria existente com ID: ${categoryId}`);
+      }
+      
+      // Criar um post de teste
+      const uniqueCode = `post-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+      
+      const { data: newPost, error: postCreateError } = await supabase
+        .from('posts')
+        .insert({
+          title: 'Guia de Procedimentos Estéticos: O Básico',
+          description: 'Um guia abrangente para iniciantes na área de estética facial e corporal',
+          image_url: 'https://images.unsplash.com/photo-1571646750134-88aa9e7ab608?w=800&auto=format&fit=crop',
+          unique_code: uniqueCode,
+          category_id: categoryId,
+          status: 'aprovado',
+          published_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+        
+      if (postCreateError) {
+        console.error("Erro ao criar post:", postCreateError);
+        throw postCreateError;
+      }
+      
+      res.json({
+        success: true,
+        message: 'Dados de teste criados com sucesso',
+        category: {
+          id: categoryId,
+          name: existingCategories?.[0]?.name || 'Tutoriais',
+          slug: 'tutoriais'
+        },
+        post: {
+          id: newPost.id,
+          title: newPost.title,
+          uniqueCode: newPost.unique_code
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao configurar dados de teste:', error);
+      res.status(500).json({ 
+        message: 'Erro ao configurar dados de teste',
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

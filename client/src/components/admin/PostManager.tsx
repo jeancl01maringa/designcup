@@ -1,9 +1,19 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Category, Post } from "@shared/schema";
-import { PostStatus, FilterOptions } from "@/lib/admin/types";
+import { PostForm } from "./PostForm";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,28 +24,22 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
-  Loader2,
-  Plus,
-  Search,
-  Filter,
-  Calendar,
-  MoreVertical,
-  CheckCircle,
-  XCircle,
-  FileEdit,
-  ArrowUpDown,
-} from "lucide-react";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -44,88 +48,228 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  ChevronDown,
+  ChevronUp,
+  Edit,
+  Filter,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Trash2,
+  X
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
-// Usando o caminho completo para o componente
-import { PostFilters } from "@/components/admin/PostFilters";
+import { Loader2 } from "lucide-react";
 
 export function PostManager() {
   const { toast } = useToast();
-  const [filters, setFilters] = useState<FilterOptions>({
+  const queryClient = useQueryClient();
+  
+  // Estado para modais
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Estado para filtros
+  const [filters, setFilters] = useState({
     searchTerm: "",
-    status: undefined,
-    categoryId: undefined,
-    page: 1,
-    pageSize: 10,
+    categoryId: undefined as number | undefined,
+    status: undefined as string | undefined,
+    month: undefined as number | undefined,
+    year: new Date().getFullYear(),
   });
+  
+  // Estado para seleção em massa
   const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   
-  // Buscar posts com filtros
+  // Query para buscar posts com filtros
   const {
-    data: posts,
-    isLoading,
-    error,
-  } = useQuery({
+    data: posts = [],
+    isLoading: isLoadingPosts,
+    refetch: refetchPosts,
+  } = useQuery<Post[]>({
     queryKey: ['/api/admin/posts', filters],
-    queryFn: () => {
-      // Construir query string com filtros
-      const params = new URLSearchParams();
-      if (filters.searchTerm) params.append('search', filters.searchTerm);
-      if (filters.status) params.append('status', filters.status);
-      if (filters.categoryId) params.append('categoryId', filters.categoryId.toString());
-      if (filters.month) params.append('month', filters.month.toString());
-      if (filters.year) params.append('year', filters.year.toString());
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
       
-      return getQueryFn({ on401: "throw" })({
-        queryKey: [`/api/admin/posts?${params.toString()}`],
-        meta: {}
-      });
-    },
+      if (filters.searchTerm) {
+        queryParams.append('searchTerm', filters.searchTerm);
+      }
+      
+      if (filters.categoryId) {
+        queryParams.append('categoryId', filters.categoryId.toString());
+      }
+      
+      if (filters.status) {
+        queryParams.append('status', filters.status);
+      }
+      
+      if (filters.month && filters.year) {
+        queryParams.append('month', filters.month.toString());
+        queryParams.append('year', filters.year.toString());
+      }
+      
+      const endpoint = `/api/admin/posts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await apiRequest('GET', endpoint);
+      return await response.json();
+    }
   });
   
-  // Buscar categorias para filtros
-  const { data: categories } = useQuery({
+  // Query para buscar categorias (necessárias para o formulário e filtros)
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/admin/categories'],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/categories');
+      return await response.json();
+    }
   });
   
-  // Função para alternar seleção de um post
-  const togglePostSelection = (postId: number) => {
-    if (selectedPosts.includes(postId)) {
-      setSelectedPosts(selectedPosts.filter(id => id !== postId));
+  // Mutation para criar post
+  const createPostMutation = useMutation({
+    mutationFn: async (postData: any) => {
+      const response = await apiRequest('POST', '/api/admin/posts', postData);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Post criado com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao criar o post.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation para atualizar post
+  const updatePostMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      const response = await apiRequest('PUT', `/api/admin/posts/${id}`, data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Post atualizado com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao atualizar o post.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation para excluir post
+  const deletePostMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest('DELETE', `/api/admin/posts/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Post excluído com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      setSelectedPosts([]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao excluir o post.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation para atualizar status em massa
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ ids, status }: { ids: number[], status: string }) => {
+      await apiRequest('PATCH', '/api/admin/posts/status', { ids, status });
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Sucesso",
+        description: `Status atualizado para ${variables.status} em ${variables.ids.length} posts.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      setSelectedPosts([]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao atualizar o status dos posts.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handler para criar/editar post
+  const handleSubmit = async (data: any) => {
+    if (selectedPost) {
+      await updatePostMutation.mutateAsync({
+        id: selectedPost.id,
+        data
+      });
     } else {
-      setSelectedPosts([...selectedPosts, postId]);
+      await createPostMutation.mutateAsync(data);
     }
   };
   
-  // Função para alternar seleção de todos os posts
+  // Handler para excluir post
+  const confirmDelete = () => {
+    if (selectedPost) {
+      deletePostMutation.mutate(selectedPost.id);
+      setIsDeleteModalOpen(false);
+      setSelectedPost(null);
+    }
+  };
+  
+  // Handler para seleção/desseleção de todos os posts
   const toggleSelectAll = () => {
     if (selectedPosts.length === posts.length) {
       setSelectedPosts([]);
     } else {
-      setSelectedPosts(posts.map((post: Post) => post.id));
+      setSelectedPosts(posts.map(post => post.id));
     }
   };
   
-  // Atualizar filtros
-  const handleFilterChange = (newFilters: Partial<FilterOptions>) => {
-    // Reset para página 1 ao alterar filtros
-    setFilters({ ...filters, ...newFilters, page: 1 });
+  // Handler para aplicar filtros
+  const applyFilters = () => {
+    refetchPosts();
   };
   
-  // Limpar todos os filtros
+  // Handler para limpar filtros
   const clearFilters = () => {
     setFilters({
       searchTerm: "",
-      status: undefined,
       categoryId: undefined,
-      page: 1,
-      pageSize: 10,
+      status: undefined,
+      month: undefined,
+      year: new Date().getFullYear(),
     });
+    refetchPosts();
   };
   
-  // Renderizar status com cores diferentes
-  const renderStatus = (status: PostStatus) => {
+  // Função auxiliar para renderizar o status com badge colorida
+  const renderStatus = (status: string) => {
     switch (status) {
       case 'aprovado':
         return <Badge variant="success">Aprovado</Badge>;
@@ -134,211 +278,380 @@ export function PostManager() {
       case 'rejeitado':
         return <Badge variant="destructive">Rejeitado</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge>{status}</Badge>;
     }
   };
   
-  // Encontrar nome da categoria pelo ID
-  const getCategoryName = (categoryId: number) => {
-    if (!categories) return "-";
-    const category = categories.find((cat: Category) => cat.id === categoryId);
-    return category ? category.name : "-";
+  // Função para obter o nome da categoria pelo ID
+  const getCategoryName = (categoryId: number | null) => {
+    if (!categoryId) return "Sem categoria";
+    const category = categories.find(c => c.id === categoryId);
+    return category ? category.name : "Desconhecida";
   };
-
-  if (error) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-destructive">Erro ao carregar posts. Tente novamente mais tarde.</p>
-      </div>
-    );
-  }
-
+  
   return (
-    <>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Gerenciar Posts</h2>
-        <Button className="gap-1">
-          <Plus className="h-4 w-4" />
-          Novo Post
-        </Button>
-      </div>
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <CardTitle>Gerenciador de Posts</CardTitle>
+            <CardDescription>
+              Crie, edite e gerencie os posts do blog
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              variant={isFilterOpen ? "default" : "outline"}
+              size="sm"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros
+              {isFilterOpen ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+            </Button>
+            <Button onClick={() => {
+              setSelectedPost(null);
+              setIsCreateModalOpen(true);
+            }} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Post
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
       
-      {/* Filtros */}
-      <PostFilters 
-        filters={filters} 
-        onFilterChange={handleFilterChange}
-        onClearFilters={clearFilters}
-        categories={categories || []}
-      />
-      
-      {/* Ações em lote */}
-      {selectedPosts.length > 0 && (
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm font-medium">
-                {selectedPosts.length} {selectedPosts.length === 1 ? "post selecionado" : "posts selecionados"}
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setSelectedPosts([])}>
-                  Cancelar
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm">Ações</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      <span>Aprovar</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <FileEdit className="mr-2 h-4 w-4" />
-                      <span>Marcar como rascunho</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <XCircle className="mr-2 h-4 w-4" />
-                      <span>Rejeitar</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
-                      <span>Excluir</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+      {/* Seção de Filtros */}
+      {isFilterOpen && (
+        <div className="px-6 pb-4">
+          <Card className="p-4 border border-border">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Pesquisa */}
+              <div>
+                <Label htmlFor="search">Buscar</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Título, descrição..."
+                    className="pl-8"
+                    value={filters.searchTerm}
+                    onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
+                  />
+                </div>
+              </div>
+              
+              {/* Categoria */}
+              <div>
+                <Label htmlFor="category">Categoria</Label>
+                <Select
+                  value={filters.categoryId?.toString() || ""}
+                  onValueChange={(value) => setFilters({ 
+                    ...filters, 
+                    categoryId: value ? parseInt(value) : undefined 
+                  })}
+                >
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as categorias</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Status */}
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={filters.status || ""}
+                  onValueChange={(value) => setFilters({ 
+                    ...filters, 
+                    status: value || undefined 
+                  })}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Todos os status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="aprovado">Aprovado</SelectItem>
+                    <SelectItem value="rascunho">Rascunho</SelectItem>
+                    <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Mês/Ano */}
+              <div>
+                <Label htmlFor="month">Mês/Ano</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={filters.month?.toString() || ""}
+                    onValueChange={(value) => setFilters({
+                      ...filters,
+                      month: value ? parseInt(value) : undefined
+                    })}
+                  >
+                    <SelectTrigger id="month" className="w-full">
+                      <SelectValue placeholder="Mês" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="1">Janeiro</SelectItem>
+                      <SelectItem value="2">Fevereiro</SelectItem>
+                      <SelectItem value="3">Março</SelectItem>
+                      <SelectItem value="4">Abril</SelectItem>
+                      <SelectItem value="5">Maio</SelectItem>
+                      <SelectItem value="6">Junho</SelectItem>
+                      <SelectItem value="7">Julho</SelectItem>
+                      <SelectItem value="8">Agosto</SelectItem>
+                      <SelectItem value="9">Setembro</SelectItem>
+                      <SelectItem value="10">Outubro</SelectItem>
+                      <SelectItem value="11">Novembro</SelectItem>
+                      <SelectItem value="12">Dezembro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select
+                    value={filters.year?.toString()}
+                    onValueChange={(value) => setFilters({
+                      ...filters,
+                      year: parseInt(value)
+                    })}
+                  >
+                    <SelectTrigger id="year" className="w-24">
+                      <SelectValue placeholder="Ano" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({length: 3}, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+            
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <X className="h-4 w-4 mr-2" />
+                Limpar
+              </Button>
+              <Button size="sm" onClick={applyFilters}>
+                Aplicar Filtros
+              </Button>
+            </div>
+          </Card>
         </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox 
-                    id="select-all" 
-                    checked={posts?.length > 0 && selectedPosts.length === posts.length}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead>Código</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {!posts || posts.length === 0 ? (
+      )}
+      
+      {/* Barra de ações em massa */}
+      {selectedPosts.length > 0 && (
+        <div className="px-6 pb-4">
+          <div className="p-3 bg-muted rounded-md flex items-center justify-between">
+            <span className="text-sm font-medium">
+              {selectedPosts.length} post{selectedPosts.length > 1 ? 's' : ''} selecionado{selectedPosts.length > 1 ? 's' : ''}
+            </span>
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Alterar status
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={() => updateStatusMutation.mutate({ ids: selectedPosts, status: 'aprovado' })}
+                  >
+                    Aprovar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => updateStatusMutation.mutate({ ids: selectedPosts, status: 'rascunho' })}
+                  >
+                    Definir como rascunho
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => updateStatusMutation.mutate({ ids: selectedPosts, status: 'rejeitado' })}
+                  >
+                    Rejeitar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => setSelectedPosts([])}
+              >
+                Cancelar seleção
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <CardContent>
+        {isLoadingPosts ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-border" />
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Nenhum post encontrado.</p>
+            <p className="text-sm mt-1">Crie um novo post ou ajuste os filtros de busca.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                    Nenhum post encontrado. {filters.searchTerm && "Tente utilizar outros filtros."}
-                  </TableCell>
+                  <TableHead className="w-[40px]">
+                    <Checkbox 
+                      checked={selectedPosts.length === posts.length && posts.length > 0} 
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Selecionar todos os posts"
+                    />
+                  </TableHead>
+                  <TableHead className="w-[50px]">ID</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data de Criação</TableHead>
+                  <TableHead className="w-[80px]">Ações</TableHead>
                 </TableRow>
-              ) : (
-                posts.map((post: Post) => (
+              </TableHeader>
+              <TableBody>
+                {posts.map((post) => (
                   <TableRow key={post.id}>
                     <TableCell>
                       <Checkbox 
-                        id={`select-post-${post.id}`}
-                        checked={selectedPosts.includes(post.id)}
-                        onCheckedChange={() => togglePostSelection(post.id)}
+                        checked={selectedPosts.includes(post.id)} 
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedPosts([...selectedPosts, post.id]);
+                          } else {
+                            setSelectedPosts(selectedPosts.filter(id => id !== post.id));
+                          }
+                        }}
+                        aria-label={`Selecionar post ${post.title}`}
                       />
                     </TableCell>
-                    <TableCell className="font-medium truncate max-w-xs">
-                      {post.title}
+                    <TableCell className="font-medium">{post.id}</TableCell>
+                    <TableCell>
+                      <div className="font-medium truncate max-w-[200px]">
+                        {post.title}
+                      </div>
+                      {post.imageUrl && (
+                        <div className="flex items-center mt-1">
+                          <img 
+                            src={post.imageUrl} 
+                            alt={post.title} 
+                            className="h-6 w-6 rounded object-cover mr-2"
+                          />
+                          <span className="text-xs text-muted-foreground truncate">
+                            {post.uniqueCode}
+                          </span>
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       {getCategoryName(post.categoryId)}
                     </TableCell>
                     <TableCell>
-                      {renderStatus(post.status as PostStatus)}
+                      {renderStatus(post.status)}
                     </TableCell>
                     <TableCell>
-                      {formatDate(post.createdAt)}
+                      {format(new Date(post.createdAt), "dd/MM/yyyy", {locale: ptBR})}
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {post.uniqueCode}
-                    </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">Abrir menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <span>Editar</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <span>Visualizar</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            <span>Aprovar</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <FileEdit className="mr-2 h-4 w-4" />
-                            <span>Rascunho</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            <span>Rejeitar</span>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedPost(post);
+                              setIsEditModalOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            <span>Excluir</span>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => {
+                              setSelectedPost(post);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
       
-      {/* Paginação será adicionada aqui */}
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-muted-foreground">
-          {posts?.length > 0 && (
-            <span>
-              Mostrando {(filters.page - 1) * filters.pageSize + 1} a {Math.min(filters.page * filters.pageSize, posts.length)} de {posts.length} posts
-            </span>
-          )}
-        </div>
-        <div className="flex gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={filters.page <= 1}
-            onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!posts || posts.length < filters.pageSize}
-            onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
-          >
-            Próxima
-          </Button>
-        </div>
-      </div>
-    </>
+      {/* Modal de criar/editar post */}
+      <PostForm
+        isOpen={isCreateModalOpen || isEditModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setIsEditModalOpen(false);
+          setSelectedPost(null);
+        }}
+        onSubmit={handleSubmit}
+        post={selectedPost || undefined}
+        categories={categories}
+      />
+      
+      {/* Diálogo de confirmação de exclusão */}
+      <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O post será excluído permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsDeleteModalOpen(false);
+              setSelectedPost(null);
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              {deletePostMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Sim, excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 }
