@@ -1,6 +1,6 @@
 /**
  * Script para alterar o schema do Supabase e adicionar as colunas necessárias
- * para o atributo premium (is_pro e license_type) na tabela posts
+ * para o sistema de formatos e atributos premium na tabela posts
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -38,9 +38,10 @@ async function alterSchema() {
     // Tentativa usando SQL diretamente através do serviço PostgreSQL do Supabase
     const { error } = await supabase.rpc('execute_sql', {
       query: `
-        -- Adicionar coluna is_pro (boolean) se não existir
+        -- Adicionar todas as colunas necessárias se não existirem
         DO $$
         BEGIN
+          -- Colunas para o sistema premium
           BEGIN
             ALTER TABLE posts ADD COLUMN is_pro BOOLEAN DEFAULT FALSE;
             RAISE NOTICE 'Coluna is_pro adicionada com sucesso';
@@ -64,6 +65,71 @@ async function alterSchema() {
             WHEN duplicate_column THEN
               RAISE NOTICE 'Coluna is_visible já existe, ignorando...';
           END;
+          
+          -- Colunas para o sistema de formatos
+          BEGIN
+            ALTER TABLE posts ADD COLUMN titulo_base TEXT;
+            RAISE NOTICE 'Coluna titulo_base adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna titulo_base já existe, ignorando...';
+          END;
+          
+          BEGIN
+            ALTER TABLE posts ADD COLUMN formato TEXT;
+            RAISE NOTICE 'Coluna formato adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna formato já existe, ignorando...';
+          END;
+          
+          BEGIN
+            ALTER TABLE posts ADD COLUMN formats TEXT[];
+            RAISE NOTICE 'Coluna formats adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna formats já existe, ignorando...';
+          END;
+          
+          BEGIN
+            ALTER TABLE posts ADD COLUMN format_data TEXT;
+            RAISE NOTICE 'Coluna format_data adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna format_data já existe, ignorando...';
+          END;
+          
+          BEGIN
+            ALTER TABLE posts ADD COLUMN formato_data TEXT;
+            RAISE NOTICE 'Coluna formato_data adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna formato_data já existe, ignorando...';
+          END;
+          
+          BEGIN
+            ALTER TABLE posts ADD COLUMN canva_url TEXT;
+            RAISE NOTICE 'Coluna canva_url adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna canva_url já existe, ignorando...';
+          END;
+          
+          BEGIN
+            ALTER TABLE posts ADD COLUMN group_id TEXT;
+            RAISE NOTICE 'Coluna group_id adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna group_id já existe, ignorando...';
+          END;
+          
+          BEGIN
+            ALTER TABLE posts ADD COLUMN tags TEXT[];
+            RAISE NOTICE 'Coluna tags adicionada com sucesso';
+          EXCEPTION
+            WHEN duplicate_column THEN
+              RAISE NOTICE 'Coluna tags já existe, ignorando...';
+          END;
         END $$;
       `
     });
@@ -73,14 +139,20 @@ async function alterSchema() {
       console.error('Erro ao executar SQL via RPC:', error);
       console.log('\nPor favor, execute o seguinte SQL no painel do Supabase:');
       console.log(`
-        -- Adicionar coluna is_pro (boolean) se não existir 
+        -- Adicionar colunas para sistema premium
         ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_pro BOOLEAN DEFAULT FALSE;
-        
-        -- Adicionar coluna license_type (text) se não existir
         ALTER TABLE posts ADD COLUMN IF NOT EXISTS license_type TEXT DEFAULT 'free';
-        
-        -- Adicionar coluna is_visible (boolean) se não existir
         ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_visible BOOLEAN DEFAULT TRUE;
+        
+        -- Adicionar colunas para sistema de formatos
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS titulo_base TEXT;
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS formato TEXT;
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS formats TEXT[];
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS format_data TEXT;
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS formato_data TEXT;
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS canva_url TEXT;
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS group_id TEXT;
+        ALTER TABLE posts ADD COLUMN IF NOT EXISTS tags TEXT[];
       `);
       return;
     }
@@ -95,7 +167,26 @@ async function alterSchema() {
         license_type: 'free',
         is_visible: true
       })
-      .is('is_pro', null);
+      .is('titulo_base', null);
+      
+    // Tentar atualizar título_base via SQL diretamente
+    try {
+      const { error: titleUpdateError } = await supabase.rpc('execute_sql', {
+        query: `
+          UPDATE posts 
+          SET titulo_base = title 
+          WHERE titulo_base IS NULL
+        `
+      });
+      
+      if (titleUpdateError) {
+        console.error('Erro ao atualizar titulo_base:', titleUpdateError);
+      } else {
+        console.log('Campo titulo_base atualizado com sucesso para todos os posts.');
+      }
+    } catch (err) {
+      console.error('Erro ao executar SQL para atualizar titulo_base:', err);
+    }
     
     if (updateError) {
       console.error('Erro ao atualizar valores padrão:', updateError);
