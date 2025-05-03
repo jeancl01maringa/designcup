@@ -179,7 +179,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === "categoryId") {
+      // Converter para número, já que o categoryId é um número no formData
+      setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleFormatToggle = (format: PostFormat) => {
