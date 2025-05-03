@@ -1339,6 +1339,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Rota pública para listar planos ativos
+  app.get('/api/plans', async (req, res) => {
+    try {
+      console.log('Buscando planos ativos para usuários');
+      
+      // Por padrão, apenas planos ativos são mostrados para usuários
+      const showInactive = false;
+      
+      try {
+        const plans = await storage.getPlans(showInactive);
+        console.log(`Encontrados ${plans.length} planos ativos`);
+        return res.json(plans);
+      } catch (storageError: any) {
+        console.error("Erro ao buscar planos via storage:", storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar planos',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching plans:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar planos',
+        error: error.message
+      });
+    }
+  });
 
   const httpServer = createServer(app);
 
