@@ -5,6 +5,7 @@ import {
   userArtworks, type UserArtwork, type InsertUserArtwork,
   categories, type Category, type InsertCategory,
   posts, type Post, type InsertPost,
+  plans, type Plan, type InsertPlan,
   postStatusEnum
 } from "@shared/schema";
 import { db } from "./db";
@@ -57,6 +58,14 @@ export interface IStorage {
   updatePost(id: number, post: Partial<InsertPost>): Promise<Post>;
   deletePost(id: number): Promise<void>;
   updatePostStatus(ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado'): Promise<void>;
+  
+  // Plan methods (for admin panel)
+  getPlans(showInactive?: boolean): Promise<Plan[]>; 
+  getPlanById(id: number): Promise<Plan | undefined>;
+  createPlan(plan: InsertPlan): Promise<Plan>;
+  updatePlan(id: number, plan: Partial<InsertPlan>): Promise<Plan>;
+  deletePlan(id: number): Promise<void>;
+  togglePlanStatus(id: number, isActive: boolean): Promise<Plan>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1521,6 +1530,534 @@ export class DatabaseStorage implements IStorage {
         
         console.log("Admin user created with username 'admin' and password 'admin123'");
       }
+    }
+  }
+  
+  // Implementação dos métodos de gerenciamento de planos
+  async getPlans(showInactive: boolean = false): Promise<Plan[]> {
+    try {
+      console.log("DATABASE getPlans - Buscando planos", showInactive ? "incluindo inativos" : "apenas ativos");
+      
+      // Primeiro tentamos com Supabase
+      try {
+        let query = supabase.from('plans').select('*');
+        
+        if (!showInactive) {
+          query = query.eq('is_active', true);
+        }
+        
+        const { data, error } = await query.order('id');
+        
+        if (error) {
+          console.error("DATABASE getPlans - Erro ao buscar planos via Supabase:", error.message);
+          throw new Error("Falha ao buscar planos via Supabase");
+        }
+        
+        if (data) {
+          console.log(`DATABASE getPlans - Encontrados ${data.length} planos via Supabase`);
+          
+          // Mapear os dados para o formato esperado
+          return data.map((plan) => ({
+            id: plan.id,
+            name: plan.name,
+            periodo: plan.periodo,
+            valor: plan.valor,
+            isActive: plan.is_active,
+            isPrincipal: plan.is_principal,
+            isGratuito: plan.is_gratuito,
+            codigoHotmart: plan.codigo_hotmart,
+            urlHotmart: plan.url_hotmart,
+            beneficios: plan.beneficios,
+            createdAt: new Date(plan.created_at)
+          }));
+        }
+      } catch (supabaseError) {
+        console.error("DATABASE getPlans - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se falhar com Supabase, tentamos diretamente com PostgreSQL
+      console.log("DATABASE getPlans - Tentando buscar planos com PostgreSQL direto");
+      
+      try {
+        let query = `
+          SELECT * FROM plans
+        `;
+        
+        if (!showInactive) {
+          query += ` WHERE is_active = true`;
+        }
+        
+        query += ` ORDER BY id`;
+        
+        const result = await pool.query(query);
+        
+        if (result && result.rows) {
+          console.log(`DATABASE getPlans - Encontrados ${result.rows.length} planos via PostgreSQL`);
+          
+          // Mapear os dados para o formato esperado
+          return result.rows.map((plan) => ({
+            id: plan.id,
+            name: plan.name,
+            periodo: plan.periodo,
+            valor: plan.valor,
+            isActive: plan.is_active,
+            isPrincipal: plan.is_principal,
+            isGratuito: plan.is_gratuito,
+            codigoHotmart: plan.codigo_hotmart,
+            urlHotmart: plan.url_hotmart,
+            beneficios: plan.beneficios,
+            createdAt: new Date(plan.created_at)
+          }));
+        }
+      } catch (pgError) {
+        console.error("DATABASE getPlans - Erro ao buscar planos via PostgreSQL:", pgError);
+      }
+      
+      // Se chegou aqui, nenhum dos métodos funcionou
+      console.warn("DATABASE getPlans - Nenhum plano encontrado ou erro em ambas as fontes de dados");
+      return [];
+    } catch (error) {
+      console.error("DATABASE getPlans - Exceção geral:", error);
+      return [];
+    }
+  }
+  
+  async getPlanById(id: number): Promise<Plan | undefined> {
+    try {
+      console.log("DATABASE getPlanById - Buscando plano com ID:", id);
+      
+      // Primeiro tentamos com Supabase
+      try {
+        const { data, error } = await supabase
+          .from('plans')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("DATABASE getPlanById - Erro ao buscar plano via Supabase:", error.message);
+          throw new Error("Falha ao buscar plano via Supabase");
+        }
+        
+        if (data) {
+          console.log("DATABASE getPlanById - Plano encontrado via Supabase");
+          
+          // Mapear os dados para o formato esperado
+          return {
+            id: data.id,
+            name: data.name,
+            periodo: data.periodo,
+            valor: data.valor,
+            isActive: data.is_active,
+            isPrincipal: data.is_principal,
+            isGratuito: data.is_gratuito,
+            codigoHotmart: data.codigo_hotmart,
+            urlHotmart: data.url_hotmart,
+            beneficios: data.beneficios,
+            createdAt: new Date(data.created_at)
+          };
+        }
+      } catch (supabaseError) {
+        console.error("DATABASE getPlanById - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se falhar com Supabase, tentamos diretamente com PostgreSQL
+      console.log("DATABASE getPlanById - Tentando buscar plano com PostgreSQL direto");
+      
+      try {
+        const query = `
+          SELECT * FROM plans
+          WHERE id = $1
+        `;
+        
+        const result = await pool.query(query, [id]);
+        
+        if (result && result.rows && result.rows.length > 0) {
+          console.log("DATABASE getPlanById - Plano encontrado via PostgreSQL");
+          const plan = result.rows[0];
+          
+          // Mapear os dados para o formato esperado
+          return {
+            id: plan.id,
+            name: plan.name,
+            periodo: plan.periodo,
+            valor: plan.valor,
+            isActive: plan.is_active,
+            isPrincipal: plan.is_principal,
+            isGratuito: plan.is_gratuito,
+            codigoHotmart: plan.codigo_hotmart,
+            urlHotmart: plan.url_hotmart,
+            beneficios: plan.beneficios,
+            createdAt: new Date(plan.created_at)
+          };
+        }
+      } catch (pgError) {
+        console.error("DATABASE getPlanById - Erro ao buscar plano via PostgreSQL:", pgError);
+      }
+      
+      // Se chegou aqui, nenhum dos métodos funcionou
+      console.warn(`DATABASE getPlanById - Plano com ID ${id} não encontrado ou erro em ambas as fontes de dados`);
+      return undefined;
+    } catch (error) {
+      console.error("DATABASE getPlanById - Exceção geral:", error);
+      return undefined;
+    }
+  }
+  
+  async createPlan(insertPlan: InsertPlan): Promise<Plan> {
+    try {
+      console.log("DATABASE createPlan - Dados para inserção:", JSON.stringify(insertPlan));
+      
+      // Mapear para o formato do banco
+      const dbPlan = {
+        name: insertPlan.name,
+        periodo: insertPlan.periodo,
+        valor: insertPlan.valor,
+        is_active: insertPlan.isActive ?? true,
+        is_principal: insertPlan.isPrincipal ?? false,
+        is_gratuito: insertPlan.isGratuito ?? false,
+        codigo_hotmart: insertPlan.codigoHotmart,
+        url_hotmart: insertPlan.urlHotmart,
+        beneficios: insertPlan.beneficios
+      };
+      
+      // Primeiro tentamos com Supabase
+      try {
+        const { data, error } = await supabase
+          .from('plans')
+          .insert(dbPlan)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error("DATABASE createPlan - Erro ao inserir plano via Supabase:", error.message);
+          throw new Error("Falha ao inserir plano via Supabase");
+        }
+        
+        if (data) {
+          console.log("DATABASE createPlan - Plano criado via Supabase:", data.id);
+          
+          // Mapear para o formato esperado pela aplicação
+          return {
+            id: data.id,
+            name: data.name,
+            periodo: data.periodo,
+            valor: data.valor,
+            isActive: data.is_active,
+            isPrincipal: data.is_principal,
+            isGratuito: data.is_gratuito,
+            codigoHotmart: data.codigo_hotmart,
+            urlHotmart: data.url_hotmart,
+            beneficios: data.beneficios,
+            createdAt: new Date(data.created_at)
+          };
+        }
+      } catch (supabaseError) {
+        console.error("DATABASE createPlan - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se falhar com Supabase, tentamos diretamente com PostgreSQL
+      console.log("DATABASE createPlan - Tentando inserir plano com PostgreSQL direto");
+      
+      try {
+        const query = `
+          INSERT INTO plans (
+            name, periodo, valor, is_active, is_principal, is_gratuito,
+            codigo_hotmart, url_hotmart, beneficios
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9
+          ) RETURNING *
+        `;
+        
+        const values = [
+          dbPlan.name,
+          dbPlan.periodo,
+          dbPlan.valor,
+          dbPlan.is_active,
+          dbPlan.is_principal,
+          dbPlan.is_gratuito,
+          dbPlan.codigo_hotmart,
+          dbPlan.url_hotmart,
+          dbPlan.beneficios
+        ];
+        
+        const result = await pool.query(query, values);
+        
+        if (result && result.rows && result.rows.length > 0) {
+          console.log("DATABASE createPlan - Plano criado via PostgreSQL:", result.rows[0].id);
+          const plan = result.rows[0];
+          
+          // Mapear para o formato esperado pela aplicação
+          return {
+            id: plan.id,
+            name: plan.name,
+            periodo: plan.periodo,
+            valor: plan.valor,
+            isActive: plan.is_active,
+            isPrincipal: plan.is_principal,
+            isGratuito: plan.is_gratuito,
+            codigoHotmart: plan.codigo_hotmart,
+            urlHotmart: plan.url_hotmart,
+            beneficios: plan.beneficios,
+            createdAt: new Date(plan.created_at)
+          };
+        }
+      } catch (pgError) {
+        console.error("DATABASE createPlan - Erro ao inserir plano via PostgreSQL:", pgError);
+      }
+      
+      // Se chegou aqui, nenhum dos métodos funcionou
+      throw new Error("Falha ao criar plano: ambos os métodos de inserção falharam");
+    } catch (error) {
+      console.error("DATABASE createPlan - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async updatePlan(id: number, updatePlan: Partial<InsertPlan>): Promise<Plan> {
+    try {
+      console.log("DATABASE updatePlan - Atualizando plano #" + id + ":", JSON.stringify(updatePlan));
+      
+      // Mapear para o formato do banco
+      const dbPlan: Record<string, any> = {};
+      
+      if (updatePlan.name !== undefined) dbPlan.name = updatePlan.name;
+      if (updatePlan.periodo !== undefined) dbPlan.periodo = updatePlan.periodo;
+      if (updatePlan.valor !== undefined) dbPlan.valor = updatePlan.valor;
+      if (updatePlan.isActive !== undefined) dbPlan.is_active = updatePlan.isActive;
+      if (updatePlan.isPrincipal !== undefined) dbPlan.is_principal = updatePlan.isPrincipal;
+      if (updatePlan.isGratuito !== undefined) dbPlan.is_gratuito = updatePlan.isGratuito;
+      if (updatePlan.codigoHotmart !== undefined) dbPlan.codigo_hotmart = updatePlan.codigoHotmart;
+      if (updatePlan.urlHotmart !== undefined) dbPlan.url_hotmart = updatePlan.urlHotmart;
+      if (updatePlan.beneficios !== undefined) dbPlan.beneficios = updatePlan.beneficios;
+      
+      // Se não há nada para atualizar, buscar o plano atual
+      if (Object.keys(dbPlan).length === 0) {
+        console.log("DATABASE updatePlan - Nenhum campo para atualizar, buscando plano atual");
+        const currentPlan = await this.getPlanById(id);
+        if (!currentPlan) {
+          throw new Error(`Plano com ID ${id} não encontrado`);
+        }
+        return currentPlan;
+      }
+      
+      // Primeiro tentamos com Supabase
+      try {
+        const { data, error } = await supabase
+          .from('plans')
+          .update(dbPlan)
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error("DATABASE updatePlan - Erro ao atualizar plano via Supabase:", error.message);
+          throw new Error("Falha ao atualizar plano via Supabase");
+        }
+        
+        if (data) {
+          console.log("DATABASE updatePlan - Plano atualizado via Supabase");
+          
+          // Mapear para o formato esperado pela aplicação
+          return {
+            id: data.id,
+            name: data.name,
+            periodo: data.periodo,
+            valor: data.valor,
+            isActive: data.is_active,
+            isPrincipal: data.is_principal,
+            isGratuito: data.is_gratuito,
+            codigoHotmart: data.codigo_hotmart,
+            urlHotmart: data.url_hotmart,
+            beneficios: data.beneficios,
+            createdAt: new Date(data.created_at)
+          };
+        }
+      } catch (supabaseError) {
+        console.error("DATABASE updatePlan - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se falhar com Supabase, tentamos diretamente com PostgreSQL
+      console.log("DATABASE updatePlan - Tentando atualizar plano com PostgreSQL direto");
+      
+      try {
+        // Construir a query dinamicamente com base nos campos a serem atualizados
+        const setClause = Object.keys(dbPlan)
+          .map((key, index) => `${key} = $${index + 1}`)
+          .join(', ');
+        
+        const values = [...Object.values(dbPlan), id];
+        
+        const query = `
+          UPDATE plans 
+          SET ${setClause} 
+          WHERE id = $${values.length}
+          RETURNING *
+        `;
+        
+        console.log("Executando query: ", query, values);
+        
+        const result = await pool.query(query, values);
+        
+        if (result && result.rows && result.rows.length > 0) {
+          console.log("DATABASE updatePlan - Plano atualizado via PostgreSQL");
+          const plan = result.rows[0];
+          
+          // Mapear para o formato esperado pela aplicação
+          return {
+            id: plan.id,
+            name: plan.name,
+            periodo: plan.periodo,
+            valor: plan.valor,
+            isActive: plan.is_active,
+            isPrincipal: plan.is_principal,
+            isGratuito: plan.is_gratuito,
+            codigoHotmart: plan.codigo_hotmart,
+            urlHotmart: plan.url_hotmart,
+            beneficios: plan.beneficios,
+            createdAt: new Date(plan.created_at)
+          };
+        }
+      } catch (pgError) {
+        console.error("DATABASE updatePlan - Erro ao atualizar plano via PostgreSQL:", pgError);
+      }
+      
+      // Se chegou aqui, nenhum dos métodos funcionou
+      throw new Error(`Falha ao atualizar plano com ID ${id}: ambos os métodos falharam`);
+    } catch (error) {
+      console.error("DATABASE updatePlan - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async deletePlan(id: number): Promise<void> {
+    try {
+      console.log("DATABASE deletePlan - Excluindo plano #" + id);
+      
+      // Primeiro tentamos com Supabase
+      try {
+        const { error } = await supabase
+          .from('plans')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          console.error("DATABASE deletePlan - Erro ao excluir plano via Supabase:", error.message);
+          throw new Error("Falha ao excluir plano via Supabase");
+        }
+        
+        console.log("DATABASE deletePlan - Plano excluído com sucesso via Supabase");
+        return;
+      } catch (supabaseError) {
+        console.error("DATABASE deletePlan - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se falhar com Supabase, tentamos diretamente com PostgreSQL
+      console.log("DATABASE deletePlan - Tentando excluir plano com PostgreSQL direto");
+      
+      try {
+        const query = `
+          DELETE FROM plans 
+          WHERE id = $1
+        `;
+        
+        await pool.query(query, [id]);
+        
+        console.log("DATABASE deletePlan - Plano excluído com sucesso via PostgreSQL");
+        return;
+      } catch (pgError) {
+        console.error("DATABASE deletePlan - Erro ao excluir plano via PostgreSQL:", pgError);
+      }
+      
+      // Se chegou aqui, nenhum dos métodos funcionou
+      throw new Error(`Falha ao excluir plano com ID ${id}: ambos os métodos falharam`);
+    } catch (error) {
+      console.error("DATABASE deletePlan - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async togglePlanStatus(id: number, isActive: boolean): Promise<Plan> {
+    try {
+      console.log(`DATABASE togglePlanStatus - ${isActive ? 'Ativando' : 'Desativando'} plano #${id}`);
+      
+      // Primeiro tentamos com Supabase
+      try {
+        const { data, error } = await supabase
+          .from('plans')
+          .update({ is_active: isActive })
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error("DATABASE togglePlanStatus - Erro ao atualizar status via Supabase:", error.message);
+          throw new Error("Falha ao atualizar status via Supabase");
+        }
+        
+        if (data) {
+          console.log("DATABASE togglePlanStatus - Status atualizado via Supabase");
+          
+          // Mapear para o formato esperado pela aplicação
+          return {
+            id: data.id,
+            name: data.name,
+            periodo: data.periodo,
+            valor: data.valor,
+            isActive: data.is_active,
+            isPrincipal: data.is_principal,
+            isGratuito: data.is_gratuito,
+            codigoHotmart: data.codigo_hotmart,
+            urlHotmart: data.url_hotmart,
+            beneficios: data.beneficios,
+            createdAt: new Date(data.created_at)
+          };
+        }
+      } catch (supabaseError) {
+        console.error("DATABASE togglePlanStatus - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se falhar com Supabase, tentamos diretamente com PostgreSQL
+      console.log("DATABASE togglePlanStatus - Tentando atualizar status com PostgreSQL direto");
+      
+      try {
+        const query = `
+          UPDATE plans 
+          SET is_active = $1 
+          WHERE id = $2
+          RETURNING *
+        `;
+        
+        const result = await pool.query(query, [isActive, id]);
+        
+        if (result && result.rows && result.rows.length > 0) {
+          console.log("DATABASE togglePlanStatus - Status atualizado via PostgreSQL");
+          const plan = result.rows[0];
+          
+          // Mapear para o formato esperado pela aplicação
+          return {
+            id: plan.id,
+            name: plan.name,
+            periodo: plan.periodo,
+            valor: plan.valor,
+            isActive: plan.is_active,
+            isPrincipal: plan.is_principal,
+            isGratuito: plan.is_gratuito,
+            codigoHotmart: plan.codigo_hotmart,
+            urlHotmart: plan.url_hotmart,
+            beneficios: plan.beneficios,
+            createdAt: new Date(plan.created_at)
+          };
+        }
+      } catch (pgError) {
+        console.error("DATABASE togglePlanStatus - Erro ao atualizar status via PostgreSQL:", pgError);
+      }
+      
+      // Se chegou aqui, nenhum dos métodos funcionou
+      throw new Error(`Falha ao atualizar status do plano com ID ${id}: ambos os métodos falharam`);
+    } catch (error) {
+      console.error("DATABASE togglePlanStatus - Exceção geral:", error);
+      throw error;
     }
   }
 }

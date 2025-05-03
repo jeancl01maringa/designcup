@@ -177,3 +177,26 @@ export type Category = typeof categories.$inferSelect;
 
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Post = typeof posts.$inferSelect;
+
+// Planos para o painel administrativo
+export const plans = pgTable("plans", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  periodo: text("periodo").notNull(), // Mensal, Anual, etc.
+  valor: text("valor").notNull(), // Formato monetário (R$ XX,XX)
+  isActive: boolean("is_active").default(true).notNull(),
+  isPrincipal: boolean("is_principal").default(false), // Indica se é o plano principal
+  isGratuito: boolean("is_gratuito").default(false), // Indica se é o plano gratuito
+  codigoHotmart: text("codigo_hotmart"), // Código do plano na Hotmart
+  urlHotmart: text("url_hotmart"), // URL de checkout do Hotmart
+  beneficios: text("beneficios"), // Lista de benefícios, um por linha
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPlanSchema = createInsertSchema(plans).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPlan = z.infer<typeof insertPlanSchema>;
+export type Plan = typeof plans.$inferSelect;

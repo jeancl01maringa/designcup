@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertArtworkSchema, insertCategorySchema, insertPostSchema, type InsertPost } from "@shared/schema";
+import { insertArtworkSchema, insertCategorySchema, insertPostSchema, insertPlanSchema, type InsertPost, type InsertPlan } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
@@ -1127,6 +1127,215 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: 'Erro ao configurar dados de teste',
         error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // API endpoints para planos (plans)
+  app.get('/api/admin/plans', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      console.log('Buscando todos os planos');
+      
+      // Parâmetro opcional: mostrar todos ou apenas ativos
+      const showInactive = req.query.showInactive === 'true';
+      
+      try {
+        const plans = await storage.getPlans(showInactive);
+        console.log(`Encontrados ${plans.length} planos`);
+        return res.json(plans);
+      } catch (storageError: any) {
+        console.error("Erro ao buscar planos via storage:", storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar planos',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching plans:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar planos',
+        error: error.message
+      });
+    }
+  });
+  
+  app.get('/api/admin/plans/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      console.log(`Buscando plano #${id}`);
+      
+      try {
+        const plan = await storage.getPlanById(id);
+        
+        if (!plan) {
+          return res.status(404).json({ message: 'Plano não encontrado' });
+        }
+        
+        return res.json(plan);
+      } catch (storageError: any) {
+        console.error(`Erro ao buscar plano #${id} via storage:`, storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar plano',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching plan:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar plano',
+        error: error.message
+      });
+    }
+  });
+  
+  app.post('/api/admin/plans', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      console.log('Criando novo plano:', req.body);
+      
+      // Validar dados do plano com o schema de inserção
+      const parsedData = insertPlanSchema.safeParse(req.body);
+      
+      if (!parsedData.success) {
+        return res.status(400).json({
+          message: 'Dados do plano inválidos',
+          errors: parsedData.error.format()
+        });
+      }
+      
+      try {
+        // Se for plano gratuito, garantir que o valor seja 0
+        if (parsedData.data.isGratuito) {
+          parsedData.data.valor = "0,00";
+        }
+        
+        const newPlan = await storage.createPlan(parsedData.data);
+        return res.status(201).json(newPlan);
+      } catch (storageError: any) {
+        console.error("Erro ao criar plano via storage:", storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao criar plano',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error creating plan:', error);
+      res.status(500).json({ 
+        message: 'Erro ao criar plano',
+        error: error.message
+      });
+    }
+  });
+  
+  app.put('/api/admin/plans/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      console.log(`Atualizando plano #${id}:`, req.body);
+      
+      // Validar dados parciais do plano
+      const parsedData = insertPlanSchema.partial().safeParse(req.body);
+      
+      if (!parsedData.success) {
+        return res.status(400).json({
+          message: 'Dados do plano inválidos',
+          errors: parsedData.error.format()
+        });
+      }
+      
+      // Se for plano gratuito, garantir que o valor seja 0
+      if (parsedData.data.isGratuito === true) {
+        parsedData.data.valor = "0,00";
+      }
+      
+      try {
+        const updatedPlan = await storage.updatePlan(id, parsedData.data);
+        return res.json(updatedPlan);
+      } catch (storageError: any) {
+        console.error(`Erro ao atualizar plano #${id} via storage:`, storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar plano',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating plan:', error);
+      res.status(500).json({ 
+        message: 'Erro ao atualizar plano',
+        error: error.message
+      });
+    }
+  });
+  
+  app.delete('/api/admin/plans/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      console.log(`Excluindo plano #${id}`);
+      
+      try {
+        await storage.deletePlan(id);
+        return res.status(200).json({ success: true });
+      } catch (storageError: any) {
+        console.error(`Erro ao excluir plano #${id} via storage:`, storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao excluir plano',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error deleting plan:', error);
+      res.status(500).json({ 
+        message: 'Erro ao excluir plano',
+        error: error.message
+      });
+    }
+  });
+  
+  // Endpoint para ativar/desativar plano
+  app.patch('/api/admin/plans/:id/toggle', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      const isActive = req.body.isActive === true;
+      
+      console.log(`${isActive ? 'Ativando' : 'Desativando'} plano #${id}`);
+      
+      try {
+        const updatedPlan = await storage.togglePlanStatus(id, isActive);
+        return res.json(updatedPlan);
+      } catch (storageError: any) {
+        console.error(`Erro ao alterar status do plano #${id} via storage:`, storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao alterar status do plano',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error toggling plan status:', error);
+      res.status(500).json({ 
+        message: 'Erro ao alterar status do plano',
+        error: error.message
       });
     }
   });
