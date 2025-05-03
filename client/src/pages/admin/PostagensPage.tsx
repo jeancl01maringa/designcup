@@ -634,7 +634,7 @@ export default function PostagensPage() {
                   </TableCell>
                   <TableCell className="py-3 text-center">
                     <div 
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer ${post.isVisible ? 'bg-blue-500' : 'bg-muted'}`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer ${post.isVisible ? 'bg-blue-500' : 'bg-gray-300'}`}
                       role="switch"
                       aria-checked={post.isVisible}
                       data-state={post.isVisible ? 'checked' : 'unchecked'}
