@@ -46,7 +46,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import { PostFilters } from "./PostFilters";
+// Usando o caminho completo para o componente
+import { PostFilters } from "@/components/admin/PostFilters";
 
 export function PostManager() {
   const { toast } = useToast();
@@ -76,7 +77,8 @@ export function PostManager() {
       if (filters.year) params.append('year', filters.year.toString());
       
       return getQueryFn({ on401: "throw" })({
-        queryKey: [`/api/admin/posts?${params.toString()}`]
+        queryKey: [`/api/admin/posts?${params.toString()}`],
+        meta: {}
       });
     },
   });

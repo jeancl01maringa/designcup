@@ -11,6 +11,7 @@ import ArtworkDetail from "@/pages/ArtworkDetail";
 import AuthPage from "@/pages/auth-page";
 import ImageUploadDemo from "@/pages/ImageUploadDemo";
 import SocialSharingDemo from "@/pages/SocialSharingDemo";
+import AdminDashboard from "@/pages/admin/Dashboard";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/auth/*" component={AuthPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
+      <ProtectedRoute path="/admin" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -41,17 +43,19 @@ function App() {
   const { Context, value } = mobileMenuState;
   const [location] = useLocation();
   const isAuthPage = location.startsWith("/auth");
+  const isAdminPage = location.startsWith("/admin");
+  const showHeaderFooter = !isAuthPage && !isAdminPage;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Context.Provider value={value}>
           <div className="flex flex-col min-h-screen">
-            {!isAuthPage && <Header />}
-            <main className={`flex-grow ${isAuthPage ? "" : "pt-16"}`}>
+            {showHeaderFooter && <Header />}
+            <main className={`flex-grow ${showHeaderFooter ? "pt-16" : ""}`}>
               <Router />
             </main>
-            {!isAuthPage && <Footer />}
+            {showHeaderFooter && <Footer />}
           </div>
           <Toaster />
         </Context.Provider>

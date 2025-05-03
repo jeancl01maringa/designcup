@@ -14,17 +14,14 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   
   // Buscar contagens de posts/categorias do backend
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
+  const { data: stats, isLoading: isLoadingStats } = useQuery<{
+    postsCount: number;
+    approvedPostsCount: number;
+    categoriesCount: number;
+    lastUpdate: string;
+  }>({
     queryKey: ['/api/admin/stats'],
     queryFn: getQueryFn({ on401: "throw" }),
-    onSuccess: () => {},
-    onError: () => {
-      toast({
-        title: "Erro ao carregar estatísticas",
-        description: "Não foi possível carregar as estatísticas do painel.",
-        variant: "destructive",
-      });
-    }
   });
   
   // Valores padrão para estatísticas
