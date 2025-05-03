@@ -484,6 +484,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // API endpoints para gerenciamento de tags (SEO)
+  app.get('/api/admin/tags', async (req, res) => {
+    try {
+      // Verificar autenticação de administrador
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      console.log('Buscando todas as tags');
+      const tags = await storage.getTags();
+      res.json(tags);
+    } catch (error: any) {
+      console.error('Erro ao buscar tags:', error);
+      res.status(500).json({ message: 'Erro ao buscar tags', error: error.message });
+    }
+  });
+  
+  app.get('/api/admin/tags/:id', async (req, res) => {
+    try {
+      // Verificar autenticação de administrador
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+      
+      console.log(`Buscando tag com ID ${id}`);
+      const tag = await storage.getTagById(id);
+      
+      if (!tag) {
+        return res.status(404).json({ message: 'Tag não encontrada' });
+      }
+      
+      res.json(tag);
+    } catch (error: any) {
+      console.error(`Erro ao buscar tag:`, error);
+      res.status(500).json({ message: 'Erro ao buscar tag', error: error.message });
+    }
+  });
+  
+  app.post('/api/admin/tags', async (req, res) => {
+    try {
+      // Verificar autenticação de administrador
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      // Validar dados da tag
+      const validationResult = insertTagSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Dados inválidos', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      const tagData: InsertTag = validationResult.data;
+      console.log('Criando nova tag:', tagData);
+      
+      // Verificar se já existe uma tag com o mesmo slug
+      const existingTag = await storage.getTagBySlug(tagData.slug);
+      if (existingTag) {
+        return res.status(400).json({ message: 'Já existe uma tag com este slug' });
+      }
+      
+      const newTag = await storage.createTag(tagData);
+      res.status(201).json(newTag);
+    } catch (error: any) {
+      console.error('Erro ao criar tag:', error);
+      res.status(500).json({ message: 'Erro ao criar tag', error: error.message });
+    }
+  });
+  
+  app.patch('/api/admin/tags/:id', async (req, res) => {
+    try {
+      // Verificar autenticação de administrador
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+      
+      // Verificar se a tag existe
+      const existingTag = await storage.getTagById(id);
+      if (!existingTag) {
+        return res.status(404).json({ message: 'Tag não encontrada' });
+      }
+      
+      // Se estiver atualizando o slug, verificar se já existe uma tag com esse slug
+      if (req.body.slug && req.body.slug !== existingTag.slug) {
+        const tagWithSlug = await storage.getTagBySlug(req.body.slug);
+        if (tagWithSlug && tagWithSlug.id !== id) {
+          return res.status(400).json({ message: 'Já existe uma tag com este slug' });
+        }
+      }
+      
+      console.log(`Atualizando tag ${id}:`, req.body);
+      const updatedTag = await storage.updateTag(id, req.body);
+      res.json(updatedTag);
+    } catch (error: any) {
+      console.error(`Erro ao atualizar tag:`, error);
+      res.status(500).json({ message: 'Erro ao atualizar tag', error: error.message });
+    }
+  });
+  
+  app.delete('/api/admin/tags/:id', async (req, res) => {
+    try {
+      // Verificar autenticação de administrador
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+      
+      // Verificar se a tag existe
+      const existingTag = await storage.getTagById(id);
+      if (!existingTag) {
+        return res.status(404).json({ message: 'Tag não encontrada' });
+      }
+      
+      // Verificar se a tag está sendo usada em posts
+      if (existingTag.count && existingTag.count > 0) {
+        console.warn(`Atenção: A tag ${id} está sendo usada em ${existingTag.count} post(s), mas será excluída mesmo assim`);
+      }
+      
+      console.log(`Excluindo tag ${id}`);
+      await storage.deleteTag(id);
+      res.status(200).json({ message: 'Tag excluída com sucesso' });
+    } catch (error: any) {
+      console.error(`Erro ao excluir tag:`, error);
+      res.status(500).json({ message: 'Erro ao excluir tag', error: error.message });
+    }
+  });
+  
+  app.patch('/api/admin/tags/:id/toggle', async (req, res) => {
+    try {
+      // Verificar autenticação de administrador
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+      
+      // Verificar se a tag existe
+      const existingTag = await storage.getTagById(id);
+      if (!existingTag) {
+        return res.status(404).json({ message: 'Tag não encontrada' });
+      }
+      
+      // Alternar o status da tag (ativo/inativo)
+      const newStatus = !existingTag.isActive;
+      console.log(`Alternando status da tag ${id} para ${newStatus ? 'ativo' : 'inativo'}`);
+      
+      const updatedTag = await storage.toggleTagStatus(id, newStatus);
+      res.json(updatedTag);
+    } catch (error: any) {
+      console.error(`Erro ao alternar status da tag:`, error);
+      res.status(500).json({ message: 'Erro ao alternar status da tag', error: error.message });
+    }
+  });
 
   // API endpoints for artworks
   app.get('/api/artworks', async (req, res) => {
