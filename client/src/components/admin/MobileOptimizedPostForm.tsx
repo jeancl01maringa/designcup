@@ -962,20 +962,7 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                 </div>
               </div>
               
-              <div className="border-t border-b md:border-t-0 flex">
-                <div className="px-6 py-2 border-r border-b mb-4">
-                  <Button variant="ghost" className="font-medium" size="sm">
-                    Postagem
-                  </Button>
-                </div>
-                {formData.formats.map((format) => (
-                  <div key={format} className="px-6 py-2 border-r border-b mb-4">
-                    <Button variant="ghost" className="font-medium capitalize" size="sm" onClick={() => setActiveTab(format)}>
-                      {format}
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              {/* Removida a duplicação dos formatos aqui */}
               
               <TabsContent value="postagem" className="pt-4 px-6">
                 <div className="md:hidden space-y-5">
