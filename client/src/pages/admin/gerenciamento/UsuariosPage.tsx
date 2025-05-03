@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Edit2, Plus, Search, Shield, Trash2, User } from "lucide-react";
+import { Edit2, KeyRound, Plus, Search, Shield, Trash2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
@@ -144,6 +144,29 @@ export default function UsuariosPage() {
       });
     }
   });
+  
+  // Mutation para redefinir a senha do usuário
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('PATCH', `/api/admin/usuarios/${id}/reset-password`, {
+        newPassword: "estetica@123"
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Senha redefinida",
+        description: "A senha do usuário foi redefinida para 'estetica@123'.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao redefinir senha",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Função para lidar com a abertura do modal de edição
   const handleEditClick = (usuario: Usuario) => {
@@ -189,6 +212,13 @@ export default function UsuariosPage() {
       id: usuario.id,
       active: !usuario.active
     });
+  };
+  
+  // Função para redefinir a senha para o padrão
+  const handleResetPassword = (usuario: Usuario) => {
+    if (confirm(`Tem certeza que deseja redefinir a senha do usuário ${usuario.username} para 'estetica@123'?`)) {
+      resetPasswordMutation.mutate(usuario.id);
+    }
   };
 
   // Filtrar usuários com base no termo de pesquisa
@@ -320,13 +350,24 @@ export default function UsuariosPage() {
                         size="sm"
                         onClick={() => handleEditClick(usuario)}
                         className="mr-1"
+                        title="Editar usuário"
                       >
                         <Edit2 size={16} className="text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleResetPassword(usuario)}
+                        className="mr-1"
+                        title="Redefinir senha para padrão"
+                      >
+                        <KeyRound size={16} className="text-yellow-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleDeleteClick(usuario)}
+                        title="Excluir usuário"
                       >
                         <Trash2 size={16} className="text-red-600" />
                       </Button>
