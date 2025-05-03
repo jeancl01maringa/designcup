@@ -421,6 +421,7 @@ export default function CategoriasPage() {
                       size="sm" 
                       onClick={() => handleEdit(category)}
                       title="Editar"
+                      className="border-blue-200 text-blue-700 hover:bg-blue-50"
                     >
                       <Edit className="h-4 w-4" />
                       <span className="sr-only sm:not-sr-only sm:ml-2">Editar</span>
@@ -455,7 +456,7 @@ export default function CategoriasPage() {
                       size="sm"
                       onClick={() => handleDelete(category)}
                       title="Excluir"
-                      className="text-red-600"
+                      className="text-red-600 border-red-200 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only sm:not-sr-only sm:ml-2">Excluir</span>

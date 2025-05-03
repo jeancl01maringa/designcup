@@ -155,36 +155,34 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
           <nav className="flex-1 overflow-y-auto py-4 px-2">
             <ul className="space-y-1">
               {menuItems.map((item) => (
-                <React.Fragment key={item.id}>
-                  <li>
-                    <Link href={item.path}>
-                      <Button
-                        variant={isActive(item.path) ? "default" : "ghost"}
-                        className={cn(
-                          "w-full justify-start",
-                          isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
-                          !isOpen && "md:justify-center"
-                        )}
-                        size="sm"
-                      >
-                        <span className={cn(
-                          "mr-2",
-                          isActive(item.path) ? "text-primary" : "text-muted-foreground",
-                          !isOpen && "md:mr-0"
-                        )}>
-                          {item.icon}
-                        </span>
-                        {isOpen && <span>{item.label}</span>}
-                      </Button>
-                    </Link>
-                  </li>
+                <li key={item.id}>
+                  <Link href={item.path}>
+                    <Button
+                      variant={isActive(item.path) ? "default" : "ghost"}
+                      className={cn(
+                        "w-full justify-start",
+                        isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
+                        !isOpen && "md:justify-center"
+                      )}
+                      size="sm"
+                    >
+                      <span className={cn(
+                        "mr-2",
+                        isActive(item.path) ? "text-primary" : "text-muted-foreground",
+                        !isOpen && "md:mr-0"
+                      )}>
+                        {item.icon}
+                      </span>
+                      {isOpen && <span>{item.label}</span>}
+                    </Button>
+                  </Link>
                   {item.separator && (
-                    <React.Fragment>
+                    <div>
                       {isOpen && <Separator className="my-4" />}
                       {!isOpen && <div className="my-4" />}
-                    </React.Fragment>
+                    </div>
                   )}
-                </React.Fragment>
+                </li>
               ))}
             </ul>
           </nav>
