@@ -225,34 +225,41 @@ export default function ArtDetailPage() {
         <div className="space-y-6">
           {/* Título e selo premium */}
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{post.title}</h1>
-            {isPremium && (
-              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1">
+            <h1 className="text-2xl font-bold">{post.title} {isPremium && (
+              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 ml-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
                 </svg>
                 <span>Premium</span>
               </Badge>
-            )}
+            )}</h1>
           </div>
           
           {/* Checklist de vantagens */}
-          <div className="bg-green-50 rounded-lg p-4">
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2">
-                <Check size={18} className="text-green-500" />
+          <div>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={14} className="text-green-500" />
+                </div>
                 <span className="text-gray-700">Editável no Canva gratuito</span>
               </li>
-              <li className="flex items-center gap-2">
-                <Check size={18} className="text-green-500" />
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={14} className="text-green-500" />
+                </div>
                 <span className="text-gray-700">Para projetos comerciais e pessoais</span>
               </li>
-              <li className="flex items-center gap-2">
-                <Check size={18} className="text-green-500" />
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={14} className="text-green-500" />
+                </div>
                 <span className="text-gray-700">Não precisa atribuir o autor</span>
               </li>
-              <li className="flex items-center gap-2">
-                <Check size={18} className="text-green-500" />
+              <li className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={14} className="text-green-500" />
+                </div>
                 <span className="text-gray-700">Qualidade profissional</span>
               </li>
             </ul>
@@ -261,26 +268,36 @@ export default function ArtDetailPage() {
           {/* Especificações do arquivo */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Especificações do Arquivo</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">Formato:</span>
-                <span className="font-medium">{formatLabel(post.formats?.[0] || 'FEED')}</span>
+            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-5 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 border border-gray-300 rounded-full bg-white"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-sm">Formato:</span>
+                  <span className="font-medium">{formatLabel(post.formats?.[0] || 'FEED')}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">Tipo:</span>
-                <span className="font-medium">Canva</span>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 border border-gray-300 rounded-full bg-white"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-sm">Tipo:</span>
+                  <span className="font-medium">Canva</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">Visualizações:</span>
-                <div className="flex items-center gap-1">
-                  <Eye size={14} className="text-gray-400" />
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <Eye size={16} className="text-gray-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-sm">Visualizações:</span>
                   <span className="font-medium">{post.views || 3}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">Downloads:</span>
-                <div className="flex items-center gap-1">
-                  <Download size={14} className="text-gray-400" />
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <Download size={16} className="text-gray-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-sm">Downloads:</span>
                   <span className="font-medium">{post.downloads || 0}</span>
                 </div>
               </div>
@@ -290,60 +307,69 @@ export default function ArtDetailPage() {
           {/* Formatos disponíveis */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Formatos disponíveis</h3>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="py-1.5 font-normal">
-                {formatLabel(post.formats?.[0] || 'FEED')} {post.dimensions || '1080x1080'}
-              </Badge>
-              {post.formats && post.formats.length > 1 && (
-                <Badge variant="secondary" className="py-1.5 font-normal">
-                  <span className="flex items-center gap-1">
-                    {(post.formats.length - 1)} opções
-                    <ChevronsDown size={14} />
-                  </span>
-                </Badge>
-              )}
+            <div className="grid grid-cols-3 gap-3">
+              <div className={`relative rounded-md border ${post.formats?.[0] === 'FEED' || !post.formats ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-3 text-center cursor-pointer`}>
+                <div className="text-sm font-medium">FEED</div>
+                <div className="text-xs text-gray-500">1080x1080</div>
+                {(post.formats?.[0] === 'FEED' || !post.formats) && (
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-blue-600"></div>
+                )}
+              </div>
+              <div className={`relative rounded-md border ${post.formats?.includes('CARTAZ') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-3 text-center cursor-pointer`}>
+                <div className="text-sm font-medium">CARTAZ</div>
+                <div className="text-xs text-gray-500">1080x1350</div>
+                {post.formats?.includes('CARTAZ') && (
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-blue-600"></div>
+                )}
+              </div>
+              <div className={`relative rounded-md border ${post.formats?.includes('STORIES') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-3 text-center cursor-pointer`}>
+                <div className="text-sm font-medium">STORIES</div>
+                <div className="text-xs text-gray-500">1080x1920</div>
+                {post.formats?.includes('STORIES') && (
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-blue-600"></div>
+                )}
+              </div>
             </div>
           </div>
           
           {/* Botão principal de ação */}
           <Button 
             onClick={handleEditCanva} 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2"
           >
-            <div className="flex items-center justify-center gap-2">
-              <ExternalLink size={18} />
-              <span className="font-semibold">EDITAR NO CANVA</span>
-            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+            <span className="font-semibold">EDITAR NO CANVA</span>
           </Button>
           
           {/* Linha de ações */}
-          <div className="flex items-center justify-center gap-6 pt-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+          <div className="flex items-center justify-center gap-8 pt-5">
+            <button 
               onClick={handleFavorite}
-              className={isFavorite ? "text-red-500" : "text-gray-400 hover:text-red-500"}
+              className="flex flex-col items-center gap-1"
             >
-              <Heart className={isFavorite ? "fill-current" : ""} />
-            </Button>
+              <Heart size={20} className={isFavorite ? "fill-red-500 text-red-500" : "text-gray-700"} />
+              <span className="text-xs text-gray-500">Favoritar</span>
+            </button>
             
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <button 
               onClick={handleSave}
-              className={isSaved ? "text-blue-500" : "text-gray-400 hover:text-blue-500"}
+              className="flex flex-col items-center gap-1"
             >
-              <Bookmark className={isSaved ? "fill-current" : ""} />
-            </Button>
+              <Bookmark size={20} className={isSaved ? "fill-blue-500 text-blue-500" : "text-gray-700"} />
+              <span className="text-xs text-gray-500">Salvar</span>
+            </button>
             
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <button 
               onClick={handleShare}
-              className="text-gray-400 hover:text-gray-700"
+              className="flex flex-col items-center gap-1"
             >
-              <Share2 />
-            </Button>
+              <Share2 size={20} className="text-gray-700" />
+              <span className="text-xs text-gray-500">Compartilhar</span>
+            </button>
           </div>
           
           {/* Informações do criador */}
@@ -362,7 +388,10 @@ export default function ArtDetailPage() {
               variant={isFollowing ? "outline" : "default"}
               size="sm"
               onClick={handleFollow}
-              className={isFollowing ? "border-gray-300 hover:bg-gray-100" : ""}
+              className={isFollowing 
+                ? "border-gray-300 hover:bg-gray-100" 
+                : "bg-black hover:bg-black/90 text-white"
+              }
             >
               {isFollowing ? "Seguindo" : "Seguir"}
             </Button>
