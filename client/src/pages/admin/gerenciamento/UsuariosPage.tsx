@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Edit2, KeyRound, Plus, Search, Shield, Trash2, User } from "lucide-react";
+import { Edit2, KeyRound, Phone, Plus, Search, Shield, Trash2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ interface Usuario {
   id: number;
   username: string;
   email: string;
+  telefone?: string | null;
   isAdmin: boolean;
   createdAt: string;
   tipo: 'free' | 'premium';
@@ -50,6 +51,7 @@ export default function UsuariosPage() {
   const [editFormData, setEditFormData] = useState({
     username: "",
     email: "",
+    telefone: "",
     isAdmin: false,
     tipo: "free" as 'free' | 'premium',
     plano_id: "",
@@ -177,6 +179,7 @@ export default function UsuariosPage() {
     setEditFormData({
       username: usuario.username,
       email: usuario.email,
+      telefone: usuario.telefone || "",
       isAdmin: usuario.isAdmin,
       tipo: usuario.tipo,
       plano_id: usuario.plano_id || "",
@@ -427,6 +430,17 @@ export default function UsuariosPage() {
                 type="email"
                 value={editFormData.email}
                 onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="telefone">Telefone (WhatsApp)</Label>
+              <Input 
+                id="telefone"
+                type="tel"
+                placeholder="(99) 99999-9999"
+                value={editFormData.telefone}
+                onChange={(e) => setEditFormData({ ...editFormData, telefone: e.target.value })}
               />
             </div>
             
