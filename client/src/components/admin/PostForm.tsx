@@ -280,10 +280,30 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
   // Função para verificar se um formato tem pelo menos uma imagem ou link
   const hasImageOrLinks = (format: PostFormat): boolean => {
     const formatFile = formData.formatFiles[format];
-    return (
-      (formatFile.imagePreview !== null && !formatFile.imagePreview?.startsWith("blob:")) || 
-      formatFile.links.length > 0
-    );
+    
+    // Se há links, considerar como tendo conteúdo
+    if (formatFile.links.length > 0) return true;
+    
+    // Verificar imagens
+    if (formatFile.imagePreview !== null) {
+      // Considerar qualquer preview válido como conteúdo, exceto blobs temporários
+      // Aceitar URLs http/https e base64
+      const isBlobUrl = formatFile.imagePreview.startsWith("blob:");
+      const isHttpUrl = formatFile.imagePreview.startsWith("http");
+      const isBase64 = formatFile.imagePreview.startsWith("data:image/");
+      
+      // Considerar como conteúdo válido se não for blob temporário
+      if (!isBlobUrl && (isHttpUrl || isBase64)) {
+        return true;
+      }
+      
+      // Se for blob mas também tiver arquivo, ainda é válido
+      if (isBlobUrl && formatFile.imageFile !== null) {
+        return true;
+      }
+    }
+    
+    return false;
   };
 
   // Função para verificar se pelo menos um formato selecionado tem conteúdo
@@ -310,29 +330,48 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     let mainImageUrl = "";
     
     // Usar a primeira imagem disponível como capa principal
-    // Priorizar URLs permanentes do Supabase em vez de blobs
+    // Priorizar URLs permanentes (http:// ou data:image/) em vez de blobs
     for (const format of formData.formats) {
       const preview = formData.formatFiles[format].imagePreview;
       if (preview) {
-        // Filtrar URLs temporárias blob:// se possível
-        const isValidUrl = preview && !preview.startsWith("blob:");
+        // Verificar tipo de URL
+        const isBlobUrl = preview.startsWith("blob:");
+        const isHttpUrl = preview.startsWith("http");
+        const isBase64 = preview.startsWith("data:image/");
+        
+        // URL válida = HTTP ou base64, mas não blob temporário
+        const isValidUrl = isHttpUrl || isBase64;
         
         if (isValidUrl) {
-          // Se for URL permanente do Supabase, usar como capa
+          // Se for URL válida, usar como capa
           if (!mainImageUrl) mainImageUrl = preview;
           imageUrls[format] = preview;
-        } else if (!mainImageUrl && !isValidUrl) {
-          // Usar URL temporária apenas se não tiver nenhuma permanente
+        } else if (isBlobUrl && !mainImageUrl) {
+          // Usar blob temporário apenas se não tiver alternativa
+          // Nota: blobs não persistem após reload da página
           mainImageUrl = preview;
           imageUrls[format] = preview;
+          
+          console.warn(`Usando URL temporária (blob) para ${format}. Esta URL não persistirá após atualizações da página.`);
         }
       }
     }
     
-    // Compilar dados dos formatos - filtrando URLs inválidas temporárias
+    // Compilar dados dos formatos
     const formatData = formData.formats.map(format => {
       const preview = formData.formatFiles[format].imagePreview;
-      const imageUrl = (preview && !preview.startsWith("blob:")) ? preview : "";
+      
+      // Apenas usar URL se for válida (http ou base64, não blob)
+      let imageUrl = "";
+      if (preview) {
+        if (preview.startsWith("http") || preview.startsWith("data:image/")) {
+          imageUrl = preview;
+        } else if (preview.startsWith("blob:")) {
+          // Evitar salvar URLs blob que não serão válidas após recarga da página
+          imageUrl = "";
+          console.warn(`Ignorando URL temporária (blob) para ${format} no formato final`);
+        }
+      }
       
       return {
         type: format,
@@ -343,6 +382,14 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     
     // Certificar-se de que formatData seja uma string JSON
     const formatDataString = JSON.stringify(formatData);
+    
+    // Log para debug
+    console.log("Preparando dados para salvar:", {
+      title: formData.title,
+      formatos: formData.formats,
+      imagens: imageUrls,
+      mainImageUrl
+    });
     
     // Construir objeto da postagem com formato correto
     return {

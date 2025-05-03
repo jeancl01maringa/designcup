@@ -35,35 +35,27 @@ async function optimizeImage(file: File): Promise<File> {
  * @param optimize Se verdadeiro, comprime e converte para WebP
  * @returns URL público do arquivo ou null em caso de erro
  */
+/**
+ * Faz upload de uma imagem para o Supabase ou, caso falhe, 
+ * converte a imagem para base64 para armazenamento direto no banco de dados.
+ * 
+ * A função tenta primeiro fazer upload para o Supabase e, se falhar,
+ * automaticamente converte a imagem para base64 como fallback.
+ * 
+ * @param file Arquivo para upload
+ * @param path Caminho no bucket para armazenar
+ * @param optimize Se verdadeiro, comprime e converte para WebP
+ * @returns URL da imagem (do Supabase ou base64) ou null em caso de erro
+ */
 export async function uploadToSupabase(
   file: File,
   path: string,
   optimize = true
 ): Promise<string | null> {
   try {
-    console.log(`Iniciando upload para '${path}'...`);
+    console.log(`Iniciando processamento de imagem para '${path}'...`);
     
-    // Verificar conexão com Supabase
-    const isConnected = await checkSupabaseConnection();
-    if (!isConnected) {
-      console.error('Erro no upload: Não foi possível conectar ao Supabase. Verifique suas credenciais.');
-      throw new Error('Não foi possível conectar ao Supabase. Verifique suas credenciais.');
-    }
-    
-    // Verificar o tipo de arquivo
-    if (!file.type.startsWith('image/')) {
-      console.warn('Tipo de arquivo não é uma imagem:', file.type);
-    }
-    
-    try {
-      // Verificar se o bucket existe
-      await ensureImageBucket();
-    } catch (bucketError) {
-      console.error('Erro ao verificar/criar bucket:', bucketError);
-      // Continuar mesmo se falhar a verificação do bucket
-    }
-    
-    // Otimizar imagem se solicitado
+    // Otimizar imagem se solicitado (independente do destino)
     let fileToUpload = file;
     if (optimize && file.type.startsWith('image/')) {
       try {
@@ -76,65 +68,87 @@ export async function uploadToSupabase(
       }
     }
     
-    // Sanitizar caminho para garantir que não tenha caracteres problemáticos
-    const safePath = path.replace(/[^a-zA-Z0-9-_\/.]/g, '_');
-    
-    console.log(`Fazendo upload para Supabase em '${safePath}'...`);
-      
-    // Fazer upload do arquivo
-    const { data, error } = await supabase.storage
-      .from('images')
-      .upload(safePath, fileToUpload, {
-        cacheControl: '3600',
-        upsert: true, // substituir arquivo existente
-      });
-      
-    if (error) {
-      console.error('Erro no upload para Supabase:', error);
-      
-      // Verificar tipo de erro para melhor diagnóstico
-      if (error.message.includes('auth')) {
-        throw new Error('Erro de autenticação no Supabase. Verifique suas credenciais de API.');
-      } else if (error.message.includes('permission')) {
-        throw new Error('Permissão negada no bucket. Verifique as políticas de acesso do Supabase.');
-      } else if (error.message.includes('bucket')) {
-        throw new Error('Problema com o bucket. Verifique se o bucket "images" existe.');
-      } else if (error.message.includes('Invalid key')) {
-        // Tentar upload com nome de arquivo ainda mais simplificado
-        console.warn('Nome de arquivo inválido. Tentando com nome simplificado...');
-        const timestamp = Date.now();
-        const ext = fileToUpload.name.split('.').pop() || 'webp';
-        const simplePath = `${safePath.split('/').slice(0, -1).join('/')}/${timestamp}.${ext}`;
-        
-        const { data: retryData, error: retryError } = await supabase.storage
-          .from('images')
-          .upload(simplePath, fileToUpload, {
-            cacheControl: '3600',
-            upsert: true,
-          });
-          
-        if (retryError) {
-          console.error('Falha na segunda tentativa de upload:', retryError);
-          throw retryError;
-        }
-        
-        // Retornar URL do arquivo com nome simplificado
-        const publicUrl = getPublicUrl(simplePath);
-        console.log('Upload bem-sucedido com nome simplificado:', publicUrl);
-        return publicUrl;
+    // Tentar primeiro o upload para o Supabase
+    try {
+      // Verificar conexão com Supabase
+      const isConnected = await checkSupabaseConnection();
+      if (!isConnected) {
+        throw new Error('Supabase não disponível. Usando base64 como alternativa.');
       }
       
-      throw error;
+      // Verificar o tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        console.warn('Tipo de arquivo não é uma imagem:', file.type);
+      }
+      
+      try {
+        // Verificar se o bucket existe
+        await ensureImageBucket();
+      } catch (bucketError) {
+        console.error('Erro ao verificar/criar bucket:', bucketError);
+        throw new Error('Erro no bucket. Usando base64 como alternativa.');
+      }
+      
+      // Sanitizar caminho para garantir que não tenha caracteres problemáticos
+      const safePath = path.replace(/[^a-zA-Z0-9-_\/.]/g, '_');
+      
+      console.log(`Tentando upload para Supabase em '${safePath}'...`);
+        
+      // Fazer upload do arquivo
+      const { data, error } = await supabase.storage
+        .from('images')
+        .upload(safePath, fileToUpload, {
+          cacheControl: '3600',
+          upsert: true, // substituir arquivo existente
+        });
+        
+      if (error) {
+        console.warn('Erro no upload para Supabase, usando base64 como alternativa:', error);
+        throw error;
+      }
+      
+      // Retornar URL público
+      const publicUrl = getPublicUrl(safePath);
+      console.log('Upload para Supabase bem-sucedido:', publicUrl);
+      return publicUrl;
+      
+    } catch (supabaseError) {
+      // Se o upload para o Supabase falhar, converter para base64
+      console.log('Usando estratégia alternativa: conversão para base64...');
+      return convertToBase64(fileToUpload);
     }
-    
-    // Retornar URL público
-    const publicUrl = getPublicUrl(safePath);
-    console.log('Upload bem-sucedido:', publicUrl);
-    return publicUrl;
   } catch (error) {
-    console.error('Falha no upload:', error);
+    console.error('Falha no processamento da imagem:', error);
     return null;
   }
+}
+
+/**
+ * Converte um arquivo para uma string base64 data URL
+ * Usa FileReader para ler o arquivo como data URL (base64)
+ * @param file Arquivo para converter
+ * @returns Promise com a string base64 data URL
+ */
+export async function convertToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      // A propriedade result contém a string base64 quando readAsDataURL é chamado
+      const result = reader.result as string;
+      console.log('Conversão para base64 bem-sucedida. Tamanho:', 
+        Math.round(result.length / 1024), 'KB');
+      resolve(result);
+    };
+    
+    reader.onerror = (error) => {
+      console.error('Erro ao ler arquivo como base64:', error);
+      reject(error);
+    };
+    
+    // Iniciar a leitura do arquivo como base64 data URL
+    reader.readAsDataURL(file);
+  });
 }
 
 // Nota: A função ensureBucketExists foi removida pois estamos usando ensureImageBucket do cliente Supabase

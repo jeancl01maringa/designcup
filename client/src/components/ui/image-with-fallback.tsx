@@ -72,19 +72,11 @@ export function ImageWithFallback({
     );
   }
 
-  // Verifica se a URL é válida antes de tentar carregar
+  // Verifica se a URL é válida ou se é base64 antes de tentar carregar
   let imageUrl = src;
-  try {
-    if (src) {
-      // Remover aspas extras se existirem (comum em dados JSON)
-      imageUrl = src.replace(/^["'](.*)["']$/, '$1');
-      
-      // Tentar verificar se é uma URL válida
-      new URL(imageUrl);
-    }
-  } catch (error) {
-    console.warn(`URL de imagem inválida: ${src}`, error);
-    // Se a URL for inválida, mostrar o fallback
+  
+  // Se não há src, mostrar o fallback
+  if (!src) {
     return (
       <svg 
         xmlns="http://www.w3.org/2000/svg" 
@@ -103,6 +95,41 @@ export function ImageWithFallback({
         <polyline points="21 15 16 10 5 21" />
       </svg>
     );
+  }
+  
+  // Remover aspas extras se existirem (comum em dados JSON)
+  imageUrl = src.replace(/^["'](.*)["']$/, '$1');
+  
+  // Verificar se é uma string base64
+  const isBase64 = imageUrl.startsWith('data:image/');
+  
+  // Se não for base64, tentar validar como URL
+  if (!isBase64) {
+    try {
+      // Tentar verificar se é uma URL válida
+      new URL(imageUrl);
+    } catch (error) {
+      console.warn(`URL de imagem inválida (nem URL válida nem base64): ${src.substring(0, 50)}...`, error);
+      // Se a URL for inválida e não for base64, mostrar o fallback
+      return (
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24"
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className={fallbackClassName}
+        >
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <polyline points="21 15 16 10 5 21" />
+        </svg>
+      );
+    }
   }
   
   return (
