@@ -28,6 +28,7 @@ import CategoriasPage from "@/pages/admin/CategoriasPage";
 import PlanosPage from "@/pages/admin/PlanosPage";
 import FileFormatsPage from "@/pages/admin/gerenciamento/FileFormatsPage";
 import PostFormatsPage from "@/pages/admin/gerenciamento/PostFormatsPage";
+import TagsPage from "@/pages/admin/gerenciamento/TagsPage";
 
 function Router() {
   const [location] = useLocation();
@@ -62,6 +63,9 @@ function Router() {
       </Route>
       <Route path="/admin/gerenciamento/formatos-post">
         <ProtectedRoute path="/admin/gerenciamento/formatos-post" component={PostFormatsPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/gerenciamento/tags">
+        <ProtectedRoute path="/admin/gerenciamento/tags" component={TagsPage} requireAdmin={true} />
       </Route>
       <Route path="/admin">
         {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
