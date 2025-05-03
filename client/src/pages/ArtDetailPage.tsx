@@ -112,20 +112,32 @@ export default function ArtDetailPage() {
     return ['FEED'];
   }, [post]);
   
-  // Buscar outros formatos da mesma arte - seria ideal ter um endpoint específico 
-  // mas por agora vamos simplificar e desativar essa funcionalidade
+  // Buscar outros formatos da mesma arte usando o novo endpoint específico
   const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery({
-    queryKey: ['/api/admin/posts/related', post?.groupId],
+    queryKey: ['/api/posts/formats', post?.groupId],
     queryFn: async () => {
-      // Com a implementação atual, desativamos busca por formatos relacionados
-      // Quando implementarmos o endpoint group_id, reativamos essa funcionalidade
-      return [];
+      // Só buscar se temos um groupId válido
+      if (!post?.groupId) return [];
+      
+      // Usar o novo endpoint que filtra por grupo_id
+      const response = await fetch(`/api/posts/formats/${post.groupId}`);
+      if (!response.ok) {
+        throw new Error('Falha ao buscar formatos relacionados');
+      }
+      
+      const data = await response.json();
+      
+      // Filtrar para não incluir o post atual
+      return data.filter((item: any) => item.id !== post.id);
     },
-    enabled: false // !!post?.groupId
+    // Habilitar a query apenas se temos um groupId válido
+    enabled: !!post?.groupId
   });
   
   // Formatar objetos para exibição
-  const formatLabel = (format: string) => {
+  const formatLabel = (format: string | null | undefined) => {
+    if (!format) return 'FEED'; // Valor padrão se não houver formato
+
     const formatMap: Record<string, string> = {
       'feed': 'FEED',
       'stories': 'STORIES',
@@ -138,7 +150,9 @@ export default function ArtDetailPage() {
   };
   
   // Obter dimensões do formato
-  const getFormatDimensions = (format: string): string => {
+  const getFormatDimensions = (format: string | null | undefined): string => {
+    if (!format) return '1080×1080px • Quadrado'; // Valor padrão se não houver formato
+    
     const dimensionsMap: Record<string, string> = {
       'feed': '1080×1080px • Quadrado',
       'stories': '1080×1920px • Vertical',
