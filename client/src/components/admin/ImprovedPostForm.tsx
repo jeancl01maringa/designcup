@@ -119,6 +119,27 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const initialRender = useRef(true);
   
   // Resetar o formulário ou preencher com dados de edição apenas quando o modal é aberto
+  // Criar objeto formatFiles inicial com todos os formatos disponíveis
+  const createDefaultFormatFiles = () => {
+    const defaultFiles: Record<string, FormatFile> = {};
+    
+    // Adicionando formatos dinâmicos do banco
+    if (postFormats.length > 0) {
+      postFormats.forEach(format => {
+        if (format.is_active) {
+          defaultFiles[format.name] = { ...defaultFormatFile };
+        }
+      });
+    } else {
+      // Fallback para formatos básicos enquanto os dados são carregados
+      defaultFiles['feed'] = { ...defaultFormatFile };
+      defaultFiles['stories'] = { ...defaultFormatFile };
+      defaultFiles['cartaz'] = { ...defaultFormatFile };
+    }
+    
+    return defaultFiles;
+  };
+
   useEffect(() => {
     // Pular a primeira renderização
     if (initialRender.current) {
@@ -130,11 +151,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     if (open && !openRef.current) {
       // Caso 1: Edição de postagem existente
       if (isEdit && initialData) {
-        const formatFiles: Record<PostFormat, FormatFile> = {
-          feed: { ...defaultFormatFile },
-          cartaz: { ...defaultFormatFile },
-          stories: { ...defaultFormatFile }
-        };
+        const formatFiles = createDefaultFormatFiles();
 
         setFormData({
           title: initialData.title,
@@ -163,11 +180,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           licenseType: "premium",
           tags: [],
           formats: [],
-          formatFiles: {
-            feed: { ...defaultFormatFile },
-            cartaz: { ...defaultFormatFile },
-            stories: { ...defaultFormatFile }
-          },
+          formatFiles: createDefaultFormatFiles(),
           uniqueCode: newUniquePostId,
           groupId: nanoid(),
           isVisible: true
@@ -183,7 +196,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     
     // Atualizar a referência
     openRef.current = open;
-  }, [open, isEdit, initialData, defaultFormatFile]);
+  }, [open, isEdit, initialData, defaultFormatFile, postFormats]);
   
   // Rastrear mudanças no formulário quando esses valores específicos mudarem
   useEffect(() => {
@@ -1276,7 +1289,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                         <div className="flex justify-between items-center mb-1">
                           <p className="font-medium capitalize">{format}</p>
                           <Badge variant="secondary" className="capitalize py-0 px-2 text-xs">
-                            {format === 'feed' ? '1:1' : format === 'cartaz' ? '4:5' : '9:16'}
+                            {postFormats.find(fmt => fmt.name === format)?.size || 'Personalizado'}
                           </Badge>
                         </div>
                         
