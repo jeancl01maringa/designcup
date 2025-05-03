@@ -61,12 +61,25 @@ export function setupAuth(app: Express) {
       passwordField: 'password',
     }, async (email, password, done) => {
       try {
+        console.log("Tentativa de login com email:", email);
         const user = await storage.getUserByEmail(email);
-        if (!user || !(await comparePasswords(password, user.password))) {
+        
+        if (!user) {
+          console.log("Usuário não encontrado com o email:", email);
           return done(null, false, { message: "Credenciais inválidas" });
         }
+        
+        const passwordMatch = await comparePasswords(password, user.password);
+        console.log("Verificação de senha:", passwordMatch ? "Sucesso" : "Falha");
+        
+        if (!passwordMatch) {
+          return done(null, false, { message: "Credenciais inválidas" });
+        }
+        
+        console.log("Login bem-sucedido para:", email);
         return done(null, user);
       } catch (err) {
+        console.error("Erro na autenticação:", err);
         return done(err);
       }
     }),
@@ -99,6 +112,7 @@ export function setupAuth(app: Express) {
         username,
         email,
         password: await hashPassword(password),
+        isAdmin: false, // Por padrão, novos usuários não são administradores
       });
 
       req.login(user, (err) => {
