@@ -145,6 +145,58 @@ const categories: Category[] = [
         image: '/attached_assets/Design sem nome.png',
       }
     ]
+  },
+  {
+    id: 'limpeza-pele',
+    name: 'Limpeza de Pele',
+    items: [
+      {
+        id: 'limpeza-1',
+        title: 'Procedimento',
+        image: '/attached_assets/Captura de tela 2025-04-03 233106.png',
+      },
+      {
+        id: 'limpeza-2',
+        title: 'Antes e Depois',
+        image: '/attached_assets/atualização estética 09.jpg',
+      },
+      {
+        id: 'limpeza-3',
+        title: 'Técnicas',
+        image: '/attached_assets/Captura de tela 2025-04-03 232355.png',
+      },
+      {
+        id: 'limpeza-4',
+        title: 'Resultados',
+        image: '/attached_assets/Story Instagram Estética Dicas de Skincare Elegante Rosa.png',
+      }
+    ]
+  },
+  {
+    id: 'corporal',
+    name: 'Estética Corporal',
+    items: [
+      {
+        id: 'corporal-1',
+        title: 'Tratamentos',
+        image: '/attached_assets/atualização estética 04 (1).png',
+      },
+      {
+        id: 'corporal-2',
+        title: 'Criolipólise',
+        image: '/attached_assets/atualização estética 06 (1).png',
+      },
+      {
+        id: 'corporal-3',
+        title: 'Procedimentos',
+        image: '/attached_assets/atualização estética 01.png',
+      },
+      {
+        id: 'corporal-4',
+        title: 'Modeladora',
+        image: '/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png',
+      }
+    ]
   }
 ];
 
@@ -152,20 +204,25 @@ export default function CategorySection() {
   const [visibleCategories, setVisibleCategories] = useState(1);
   const [startIndex, setStartIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [pageDots, setPageDots] = useState<number[]>([]);
+  const [activeDot, setActiveDot] = useState(0);
   
   // Determina quantas categorias mostrar com base no tamanho da tela
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1280) {
-        setVisibleCategories(5); // xl: 5 categorias
-      } else if (window.innerWidth >= 1024) {
-        setVisibleCategories(4); // lg: 4 categorias
-      } else if (window.innerWidth >= 768) {
-        setVisibleCategories(3); // md: 3 categorias
-      } else if (window.innerWidth >= 640) {
-        setVisibleCategories(2); // sm: 2 categorias
+      // Priorizando mostrar 5 categorias em telas maiores conforme requisitado
+      if (window.innerWidth >= 1536) { // 2xl
+        setVisibleCategories(5);
+      } else if (window.innerWidth >= 1280) { // xl
+        setVisibleCategories(5);
+      } else if (window.innerWidth >= 1024) { // lg
+        setVisibleCategories(4);
+      } else if (window.innerWidth >= 768) { // md
+        setVisibleCategories(3);
+      } else if (window.innerWidth >= 640) { // sm
+        setVisibleCategories(2);
       } else {
-        setVisibleCategories(1); // Mobile: 1 categoria
+        setVisibleCategories(1);
       }
     };
     
@@ -174,109 +231,142 @@ export default function CategorySection() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
+  // Atualiza os indicadores de página quando o número de categorias visíveis muda
+  useEffect(() => {
+    const totalPages = Math.ceil(categories.length / visibleCategories);
+    setPageDots(Array.from({ length: totalPages }, (_, i) => i));
+  }, [visibleCategories]);
+  
+  // Atualiza o indicador de página ativa quando o índice inicial muda
+  useEffect(() => {
+    setActiveDot(Math.floor(startIndex / visibleCategories));
+  }, [startIndex, visibleCategories]);
+  
   const handlePrevious = () => {
-    setStartIndex((prev) => Math.max(prev - 1, 0));
+    setStartIndex((prev) => Math.max(prev - visibleCategories, 0));
   };
   
   const handleNext = () => {
-    setStartIndex((prev) => Math.min(prev + 1, categories.length - visibleCategories));
+    setStartIndex((prev) => {
+      const nextIndex = prev + visibleCategories;
+      return nextIndex < categories.length ? nextIndex : prev;
+    });
   };
   
+  const handlePageClick = (pageIndex: number) => {
+    setStartIndex(pageIndex * visibleCategories);
+  };
+  
+  // Calcula quais categorias estão visíveis
   const visibleCategoriesArray = categories.slice(startIndex, startIndex + visibleCategories);
   const canScrollLeft = startIndex > 0;
   const canScrollRight = startIndex + visibleCategories < categories.length;
   
   return (
-    <section className="py-6 bg-white border-b border-gray-100">
+    <section className="py-8 bg-white border-b border-gray-100">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="mb-3">
-          <h3 className="text-[#1d1d1f] font-semibold text-sm font-inter mb-0.5 flex items-center">
-            <span className="mr-1">🗂️</span>
+        <div className="mb-6">
+          <h3 className="text-[#1d1d1f] font-semibold text-xl font-inter mb-1 flex items-center">
+            <span className="mr-2">📁</span>
             Escolha sua categoria
           </h3>
-          <p className="text-[#5c3a2d] text-xs font-light">
-            Encontre recursos ideais para sua clínica de estética.
+          <p className="text-[#5c3a2d] text-sm font-light">
+            Encontre recursos ideais para sua clínica de estética
           </p>
         </div>
         
         {/* Categories Container */}
-        <div className="relative" ref={containerRef}>
-          <div className="overflow-hidden">
+        <div className="relative pb-8" ref={containerRef}>
+          {/* Navigation Arrows - Posicionadas fora do container para maior destaque */}
+          <button 
+            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all ${
+              !canScrollLeft 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-gray-50 hover:shadow-lg'
+            }`}
+            onClick={handlePrevious}
+            disabled={!canScrollLeft}
+            aria-label="Categorias anteriores"
+          >
+            <ArrowLeft className="h-5 w-5 text-[#1f4ed8]" />
+          </button>
+          
+          <div className="overflow-hidden px-12">
             <div 
-              className="flex transition-transform duration-300"
+              className="grid transition-all duration-500 ease-in-out gap-4"
               style={{
-                transform: `translateX(0)`,
-                display: "grid",
                 gridTemplateColumns: `repeat(${visibleCategories}, minmax(0, 1fr))`,
-                gap: "2px"
+                transform: `translateX(-${startIndex * (100 / visibleCategories)}%)`
               }}
             >
-              {visibleCategoriesArray.map((category) => (
+              {categories.map((category) => (
                 <div key={category.id} className="w-full">
-                  <div className="bg-white overflow-hidden shadow-sm">
-                    <div className="grid grid-cols-2 gap-[1px]">
-                      {category.items.map((item) => (
-                        <Link key={item.id} href={`/categorias/${category.id}/${item.id}`}>
-                          <div className="relative aspect-square">
+                  <Link href={`/categorias/${category.id}`} className="block group cursor-pointer">
+                    {/* Imagens em grid 2x2 */}
+                    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square">
+                      <div className="grid grid-cols-2 gap-0.5 h-full">
+                        {category.items.slice(0, 4).map((item, index) => (
+                          <div key={item.id} className="relative overflow-hidden">
                             <img 
-                              src={item.image.replace("/attached_assets/", "/attached_assets/")} 
+                              src={item.image} 
                               alt={item.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300"
                               loading="lazy"
                             />
-                            
-                            {/* Textos sobrepostos que aparecem em algumas imagens */}
-                            {item.title === 'Botox?' && (
-                              <div className="absolute bottom-2 left-2 text-white text-sm font-medium drop-shadow-lg">
-                                Botox?
-                              </div>
-                            )}
                           </div>
-                        </Link>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                    
+                    {/* Nome da categoria abaixo da imagem */}
+                    <h4 className="mt-3 text-center font-semibold text-[#1d1d1f] group-hover:text-[#1f4ed8] transition-colors duration-200">
+                      {category.name}
+                    </h4>
+                  </Link>
                 </div>
               ))}
             </div>
           </div>
           
-          {/* Navigation Arrows */}
           <button 
-            className={`absolute left-0 top-1/2 -translate-y-1/2 -ml-2 md:-ml-4 bg-white/90 rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollLeft ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={handlePrevious}
-            disabled={!canScrollLeft}
-            aria-label="Categorias anteriores"
-          >
-            <ArrowLeft className="h-3 w-3 text-[#c9732b]" />
-          </button>
-          
-          <button 
-            className={`absolute right-0 top-1/2 -translate-y-1/2 -mr-2 md:-mr-4 bg-white/90 rounded-full w-5 h-5 flex items-center justify-center shadow-sm z-10 hover:bg-[#fff6ef] transition-colors ${!canScrollRight ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all ${
+              !canScrollRight 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-gray-50 hover:shadow-lg'
+            }`}
             onClick={handleNext}
             disabled={!canScrollRight}
             aria-label="Próximas categorias"
           >
-            <ArrowRight className="h-3 w-3 text-[#c9732b]" />
+            <ArrowRight className="h-5 w-5 text-[#1f4ed8]" />
           </button>
           
-          {/* Navigation Dots (mobile only) */}
-          <div className="flex justify-center mt-3 gap-1 md:hidden">
-            {Array.from({ length: Math.ceil(categories.length / visibleCategories) }).map((_, index) => {
-              const isActive = index === Math.floor(startIndex / visibleCategories);
-              return (
+          {/* Navigation Dots */}
+          {pageDots.length > 1 && (
+            <div className="flex justify-center mt-6 gap-1.5">
+              {pageDots.map((pageIndex) => (
                 <button 
-                  key={index}
-                  className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                    isActive ? 'bg-[#c9732b]' : 'bg-gray-200'
+                  key={pageIndex}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    pageIndex === activeDot 
+                      ? 'bg-[#1f4ed8] w-4' 
+                      : 'bg-gray-300 hover:bg-gray-400'
                   }`}
-                  onClick={() => setStartIndex(index * visibleCategories)}
-                  aria-label={`Ir para grupo ${index + 1}`}
+                  onClick={() => handlePageClick(pageIndex)}
+                  aria-label={`Ir para grupo ${pageIndex + 1}`}
+                  aria-current={pageIndex === activeDot ? 'true' : 'false'}
                 />
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Link para visualizar todas as categorias */}
+        <div className="text-center mt-4">
+          <Link href="/categorias" className="text-[#1f4ed8] text-sm hover:underline font-medium">
+            Ver todas as categorias
+          </Link>
         </div>
       </div>
     </section>
