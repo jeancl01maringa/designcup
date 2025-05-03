@@ -1,266 +1,200 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ImageOff } from 'lucide-react';
 import { Link } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 
-interface CategoryItem {
-  id: string;
-  title: string;
-  image: string;
-}
-
-interface Category {
-  id: string;
+// Tipos para as categorias do banco de dados
+interface DbCategory {
+  id: number;
   name: string;
-  items: CategoryItem[];
+  description: string | null;
+  image_url: string | null;
+  icon_url: string | null;
+  slug: string | null;
+  is_highlighted: boolean;
+  created_at: string;
 }
 
-// Dados das categorias com as imagens fornecidas
-const categories: Category[] = [
-  {
-    id: 'botox',
-    name: 'Botox?',
-    items: [
-      {
-        id: 'botox-1',
-        title: 'Botox?',
-        image: '/attached_assets/Captura de tela 2025-04-03 233140.png',
-      },
-      {
-        id: 'botox-2',
-        title: 'sem fazer cirurgia',
-        image: '/attached_assets/atualização estética 05 (1).png',
-      },
-      {
-        id: 'botox-3',
-        title: 'Botox?',
-        image: '/attached_assets/Captura de tela 2025-04-03 233106.png',
-      },
-      {
-        id: 'botox-4',
-        title: 'sem fazer cirurgia',
-        image: '/attached_assets/Captura de tela 2025-04-03 232355.png',
-      }
-    ]
-  },
-  {
-    id: 'estetica-facial',
-    name: 'Estética Facial',
-    items: [
-      {
-        id: 'facial-1',
-        title: 'Pele Radiante',
-        image: '/attached_assets/atualização estética 09.jpg',
-      },
-      {
-        id: 'facial-2',
-        title: 'Limpeza Facial',
-        image: '/attached_assets/Captura de tela 2025-04-03 23320922.png',
-      },
-      {
-        id: 'facial-3',
-        title: 'Tratamento anti-idade',
-        image: '/attached_assets/atualização estética 01.png',
-      },
-      {
-        id: 'facial-4',
-        title: 'Brilho Natural',
-        image: '/attached_assets/Story Instagram Estética Dicas de Skincare Elegante Rosa.png',
-      }
-    ]
-  },
-  {
-    id: 'depilacao',
-    name: 'Depilação',
-    items: [
-      {
-        id: 'depilacao-1',
-        title: 'Depilação a laser',
-        image: '/attached_assets/atualização estética 01.png',
-      },
-      {
-        id: 'depilacao-2',
-        title: 'Tratamentos especiais',
-        image: '/attached_assets/atualização estética 06 (1).png',
-      },
-      {
-        id: 'depilacao-3',
-        title: 'Sem dor',
-        image: '/attached_assets/atualização estética 10.jpg',
-      },
-      {
-        id: 'depilacao-4',
-        title: 'Resultados garantidos',
-        image: '/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png',
-      }
-    ]
-  },
-  {
-    id: 'massagem',
-    name: 'Massagem',
-    items: [
-      {
-        id: 'massagem-1',
-        title: 'Relaxante',
-        image: '/attached_assets/Captura de tela 2025-04-03 231324.png',
-      },
-      {
-        id: 'massagem-2',
-        title: 'Modeladora',
-        image: '/attached_assets/atualização estética 10.jpg',
-      },
-      {
-        id: 'massagem-3',
-        title: 'Anti-stress',
-        image: '/attached_assets/atualização estética 06 (1).png',
-      },
-      {
-        id: 'massagem-4',
-        title: 'Terapêutica',
-        image: '/attached_assets/atualização estética 01.png',
-      }
-    ]
-  },
-  {
-    id: 'nutricao',
-    name: 'Nutrição',
-    items: [
-      {
-        id: 'nutricao-1',
-        title: 'Dieta Personalizada',
-        image: '/attached_assets/Design sem nome (1).png',
-      },
-      {
-        id: 'nutricao-2',
-        title: 'Suplementação',
-        image: '/attached_assets/Design sem nome (2).png',
-      },
-      {
-        id: 'nutricao-3',
-        title: 'Bem-estar',
-        image: '/attached_assets/Design sem nome (4).png',
-      },
-      {
-        id: 'nutricao-4',
-        title: 'Alimentação saudável',
-        image: '/attached_assets/Design sem nome.png',
-      }
-    ]
-  },
-  {
-    id: 'limpeza-pele',
-    name: 'Limpeza de Pele',
-    items: [
-      {
-        id: 'limpeza-1',
-        title: 'Procedimento',
-        image: '/attached_assets/Captura de tela 2025-04-03 233106.png',
-      },
-      {
-        id: 'limpeza-2',
-        title: 'Antes e Depois',
-        image: '/attached_assets/atualização estética 09.jpg',
-      },
-      {
-        id: 'limpeza-3',
-        title: 'Técnicas',
-        image: '/attached_assets/Captura de tela 2025-04-03 232355.png',
-      },
-      {
-        id: 'limpeza-4',
-        title: 'Resultados',
-        image: '/attached_assets/Story Instagram Estética Dicas de Skincare Elegante Rosa.png',
-      }
-    ]
-  },
-  {
-    id: 'corporal',
-    name: 'Estética Corporal',
-    items: [
-      {
-        id: 'corporal-1',
-        title: 'Tratamentos',
-        image: '/attached_assets/atualização estética 04 (1).png',
-      },
-      {
-        id: 'corporal-2',
-        title: 'Criolipólise',
-        image: '/attached_assets/atualização estética 06 (1).png',
-      },
-      {
-        id: 'corporal-3',
-        title: 'Procedimentos',
-        image: '/attached_assets/atualização estética 01.png',
-      },
-      {
-        id: 'corporal-4',
-        title: 'Modeladora',
-        image: '/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png',
-      }
-    ]
-  }
-];
+// Tipos para os posts do banco de dados
+interface DbPost {
+  id: number;
+  title: string;
+  description: string | null;
+  image_url: string;
+  category_id: number;
+  status: string;
+  unique_code: string;
+  created_at: string;
+}
+
+// Interface para categoria com suas imagens de posts associadas
+interface CategoryWithPosts {
+  id: number;
+  name: string;
+  slug: string | null;
+  description: string | null;
+  posts: {
+    id: number;
+    title: string;
+    imageUrl: string;
+  }[];
+}
 
 export default function CategorySection() {
-  const [visibleCategories, setVisibleCategories] = useState(1);
-  const [startIndex, setStartIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pageDots, setPageDots] = useState<number[]>([]);
-  const [activeDot, setActiveDot] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [maxScroll, setMaxScroll] = useState(0);
   
-  // Determina quantas categorias mostrar com base no tamanho da tela
-  useEffect(() => {
-    const handleResize = () => {
-      // Priorizando mostrar 5 categorias em telas maiores conforme requisitado
-      if (window.innerWidth >= 1536) { // 2xl
-        setVisibleCategories(5);
-      } else if (window.innerWidth >= 1280) { // xl
-        setVisibleCategories(5);
-      } else if (window.innerWidth >= 1024) { // lg
-        setVisibleCategories(4);
-      } else if (window.innerWidth >= 768) { // md
-        setVisibleCategories(3);
-      } else if (window.innerWidth >= 640) { // sm
-        setVisibleCategories(2);
-      } else {
-        setVisibleCategories(1);
+  // Buscar categorias do Supabase
+  const { data: dbCategories = [], isLoading: isCategoriesLoading } = useQuery<DbCategory[]>({
+    queryKey: ['/api/admin/categories'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        console.error('Erro ao buscar categorias:', err);
+        return [];
       }
-    };
+    }
+  });
+  
+  // Buscar posts aprovados do Supabase
+  const { data: dbPosts = [], isLoading: isPostsLoading } = useQuery<DbPost[]>({
+    queryKey: ['/api/admin/posts/approved'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('status', 'aprovado')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        console.error('Erro ao buscar posts:', err);
+        return [];
+      }
+    }
+  });
+  
+  // Constrói a estrutura de categorias com posts associados
+  const categoriesWithPosts: CategoryWithPosts[] = dbCategories.map(category => {
+    // Filtrar posts para esta categoria
+    const categoryPosts = dbPosts
+      .filter(post => post.category_id === category.id)
+      .map(post => ({
+        id: post.id,
+        title: post.title,
+        imageUrl: post.image_url
+      }));
     
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    return {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      posts: categoryPosts
+    };
+  }).filter(category => category.posts.length > 0); // Mostrar apenas categorias com posts
   
-  // Atualiza os indicadores de página quando o número de categorias visíveis muda
+  // Calcular a largura máxima de rolagem quando os dados são carregados
   useEffect(() => {
-    const totalPages = Math.ceil(categories.length / visibleCategories);
-    setPageDots(Array.from({ length: totalPages }, (_, i) => i));
-  }, [visibleCategories]);
+    if (scrollRef.current && categoriesWithPosts.length > 0) {
+      const containerWidth = containerRef.current?.clientWidth || 0;
+      const scrollWidth = scrollRef.current.scrollWidth;
+      setMaxScroll(Math.max(0, scrollWidth - containerWidth));
+    }
+  }, [categoriesWithPosts, scrollRef.current?.scrollWidth]);
   
-  // Atualiza o indicador de página ativa quando o índice inicial muda
+  // Manipular o scroll para a esquerda
+  const handleScrollLeft = () => {
+    if (scrollRef.current) {
+      const newPosition = Math.max(0, scrollPosition - 300);
+      scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+      setScrollPosition(newPosition);
+    }
+  };
+  
+  // Manipular o scroll para a direita
+  const handleScrollRight = () => {
+    if (scrollRef.current) {
+      const newPosition = Math.min(maxScroll, scrollPosition + 300);
+      scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+      setScrollPosition(newPosition);
+    }
+  };
+  
+  // Lidar com evento de scroll manual
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      setScrollPosition(scrollRef.current.scrollLeft);
+    }
+  };
+  
+  // Adicionar ouvinte de scroll
   useEffect(() => {
-    setActiveDot(Math.floor(startIndex / visibleCategories));
-  }, [startIndex, visibleCategories]);
+    const scrollElement = scrollRef.current;
+    if (scrollElement) {
+      scrollElement.addEventListener('scroll', handleScroll);
+      return () => scrollElement.removeEventListener('scroll', handleScroll);
+    }
+  }, [scrollRef.current]);
   
-  const handlePrevious = () => {
-    setStartIndex((prev) => Math.max(prev - visibleCategories, 0));
-  };
+  // Estado de carregamento ou sem dados
+  if (isCategoriesLoading || isPostsLoading) {
+    return (
+      <section className="py-8 bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="mb-6">
+            <h3 className="text-[#1d1d1f] font-semibold text-xl font-inter mb-1 flex items-center">
+              <span className="mr-2">📁</span>
+              Escolha sua categoria
+            </h3>
+          </div>
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-pulse flex space-x-4">
+              <div className="h-20 w-48 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 w-48 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 w-48 bg-gray-200 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
   
-  const handleNext = () => {
-    setStartIndex((prev) => {
-      const nextIndex = prev + visibleCategories;
-      return nextIndex < categories.length ? nextIndex : prev;
-    });
-  };
-  
-  const handlePageClick = (pageIndex: number) => {
-    setStartIndex(pageIndex * visibleCategories);
-  };
-  
-  // Calcula quais categorias estão visíveis
-  const visibleCategoriesArray = categories.slice(startIndex, startIndex + visibleCategories);
-  const canScrollLeft = startIndex > 0;
-  const canScrollRight = startIndex + visibleCategories < categories.length;
+  // Se não houver categorias com posts
+  if (categoriesWithPosts.length === 0) {
+    return (
+      <section className="py-8 bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="mb-6">
+            <h3 className="text-[#1d1d1f] font-semibold text-xl font-inter mb-1 flex items-center">
+              <span className="mr-2">📁</span>
+              Escolha sua categoria
+            </h3>
+          </div>
+          <div className="flex flex-col items-center justify-center py-6">
+            <ImageOff className="h-12 w-12 text-gray-400 mb-2" />
+            <p className="text-gray-500">Nenhuma categoria disponível no momento</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Verifica se pode rolar para esquerda ou direita
+  const canScrollLeft = scrollPosition > 0;
+  const canScrollRight = scrollPosition < maxScroll;
   
   return (
     <section className="py-8 bg-white border-b border-gray-100">
@@ -276,50 +210,62 @@ export default function CategorySection() {
           </p>
         </div>
         
-        {/* Categories Container */}
-        <div className="relative pb-8" ref={containerRef}>
-          {/* Navigation Arrows - Posicionadas fora do container para maior destaque */}
-          <button 
-            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all ${
-              !canScrollLeft 
-                ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:bg-gray-50 hover:shadow-lg'
-            }`}
-            onClick={handlePrevious}
-            disabled={!canScrollLeft}
-            aria-label="Categorias anteriores"
-          >
-            <ArrowLeft className="h-5 w-5 text-[#1f4ed8]" />
-          </button>
-          
-          <div className="overflow-hidden px-12">
-            <div 
-              className="grid transition-all duration-500 ease-in-out gap-4"
-              style={{
-                gridTemplateColumns: `repeat(${visibleCategories}, minmax(0, 1fr))`,
-                transform: `translateX(-${startIndex * (100 / visibleCategories)}%)`
-              }}
+        {/* Container com referência para controle de scroll */}
+        <div className="relative" ref={containerRef}>
+          {/* Botões de navegação */}
+          {canScrollLeft && (
+            <button 
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-gray-50 hover:shadow-lg"
+              onClick={handleScrollLeft}
+              aria-label="Categorias anteriores"
             >
-              {categories.map((category) => (
-                <div key={category.id} className="w-full">
-                  <Link href={`/categorias/${category.id}`} className="block group cursor-pointer">
-                    {/* Imagens em grid 2x2 */}
+              <ArrowLeft className="h-5 w-5 text-[#1f4ed8]" />
+            </button>
+          )}
+          
+          {/* Contêiner de rolagem horizontal */}
+          <div 
+            ref={scrollRef}
+            className="overflow-x-auto scrollbar-hide px-4 pb-4"
+            style={{ 
+              scrollbarWidth: 'none',  // Firefox
+              msOverflowStyle: 'none'  // IE/Edge
+            }}
+          >
+            <div className="flex space-x-4 w-max">
+              {categoriesWithPosts.map((category) => (
+                <div key={category.id} className="flex-none w-64">
+                  <Link 
+                    href={`/categorias/${category.slug || category.id}`} 
+                    className="block group cursor-pointer"
+                  >
+                    {/* Grid 2x2 de imagens */}
                     <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square">
-                      <div className="grid grid-cols-2 gap-0.5 h-full">
-                        {category.items.slice(0, 4).map((item, index) => (
-                          <div key={item.id} className="relative overflow-hidden">
-                            <img 
-                              src={item.image} 
-                              alt={item.title}
-                              className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300"
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
+                      <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-full">
+                        {/* Mostrar até 4 imagens ou placeholders */}
+                        {Array.from({ length: 4 }).map((_, index) => {
+                          const post = category.posts[index];
+                          return (
+                            <div key={index} className="relative overflow-hidden">
+                              {post ? (
+                                <img 
+                                  src={post.imageUrl} 
+                                  alt={post.title}
+                                  className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                  <ImageOff className="h-6 w-6 text-gray-300" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     
-                    {/* Nome da categoria abaixo da imagem */}
+                    {/* Nome da categoria */}
                     <h4 className="mt-3 text-center font-semibold text-[#1d1d1f] group-hover:text-[#1f4ed8] transition-colors duration-200">
                       {category.name}
                     </h4>
@@ -329,41 +275,19 @@ export default function CategorySection() {
             </div>
           </div>
           
-          <button 
-            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all ${
-              !canScrollRight 
-                ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:bg-gray-50 hover:shadow-lg'
-            }`}
-            onClick={handleNext}
-            disabled={!canScrollRight}
-            aria-label="Próximas categorias"
-          >
-            <ArrowRight className="h-5 w-5 text-[#1f4ed8]" />
-          </button>
-          
-          {/* Navigation Dots */}
-          {pageDots.length > 1 && (
-            <div className="flex justify-center mt-6 gap-1.5">
-              {pageDots.map((pageIndex) => (
-                <button 
-                  key={pageIndex}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    pageIndex === activeDot 
-                      ? 'bg-[#1f4ed8] w-4' 
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                  onClick={() => handlePageClick(pageIndex)}
-                  aria-label={`Ir para grupo ${pageIndex + 1}`}
-                  aria-current={pageIndex === activeDot ? 'true' : 'false'}
-                />
-              ))}
-            </div>
+          {canScrollRight && (
+            <button 
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-gray-50 hover:shadow-lg"
+              onClick={handleScrollRight}
+              aria-label="Próximas categorias"
+            >
+              <ArrowRight className="h-5 w-5 text-[#1f4ed8]" />
+            </button>
           )}
         </div>
         
-        {/* Link para visualizar todas as categorias */}
-        <div className="text-center mt-4">
+        {/* Link para todas as categorias */}
+        <div className="text-center mt-8">
           <Link href="/categorias" className="text-[#1f4ed8] text-sm hover:underline font-medium">
             Ver todas as categorias
           </Link>

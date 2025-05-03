@@ -183,6 +183,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API endpoints for admin panel - Posts
+  // Endpoint público para obter posts aprovados
+  app.get('/api/admin/posts/approved', async (req, res) => {
+    try {
+      // Usar a implementação com Supabase para maior velocidade em acesso público
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('status', 'aprovado')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("Erro ao buscar posts aprovados:", error);
+        throw error;
+      }
+      
+      res.json(data || []);
+    } catch (error) {
+      console.error('Error fetching approved posts:', error);
+      res.status(500).json({ message: 'Error fetching approved posts' });
+    }
+  });
+
   app.get('/api/admin/posts', async (req, res) => {
     try {
       const filters = {
