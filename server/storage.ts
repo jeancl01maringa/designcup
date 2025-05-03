@@ -61,20 +61,43 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     try {
-      // Usando a API do Supabase em vez do drizzle-orm
+      console.log("DATABASE getUser - Buscando usuário com ID:", id);
+      
+      // Tentar primeiro verificar quantos registros existem com esse ID
+      const { data: checkData, error: checkError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', id);
+        
+      if (checkError) {
+        console.error("DATABASE getUser - Erro ao verificar usuário:", checkError.message);
+        return undefined;
+      }
+      
+      if (!checkData || checkData.length === 0) {
+        console.log(`DATABASE getUser - Nenhum usuário encontrado com ID ${id}`);
+        return undefined;
+      }
+      
+      if (checkData.length > 1) {
+        console.warn(`DATABASE getUser - Múltiplos usuários encontrados com ID ${id}, usando o primeiro`);
+      }
+      
+      // Pegar o primeiro registro encontrado
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', id)
-        .single();
+        .limit(1)
+        .maybeSingle();
         
       if (error) {
-        console.error("DATABASE getUser - Erro ao buscar usuário:", error.message);
+        console.error("DATABASE getUser - Erro ao buscar dados do usuário:", error.message);
         return undefined;
       }
       
       if (!data) {
-        console.log("DATABASE getUser - Usuário não encontrado");
+        console.log("DATABASE getUser - Dados do usuário não encontrados");
         return undefined;
       }
       
@@ -106,20 +129,43 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      // Usando a API do Supabase em vez do drizzle-orm
+      console.log("DATABASE getUserByUsername - Buscando usuário com username:", username);
+      
+      // Tentar primeiro verificar quantos registros existem com esse username
+      const { data: checkData, error: checkError } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', username);
+        
+      if (checkError) {
+        console.error("DATABASE getUserByUsername - Erro ao verificar usuário:", checkError.message);
+        return undefined;
+      }
+      
+      if (!checkData || checkData.length === 0) {
+        console.log(`DATABASE getUserByUsername - Nenhum usuário encontrado com username ${username}`);
+        return undefined;
+      }
+      
+      if (checkData.length > 1) {
+        console.warn(`DATABASE getUserByUsername - Múltiplos usuários encontrados com username ${username}, usando o primeiro`);
+      }
+      
+      // Pegar o primeiro registro encontrado
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('username', username)
-        .single();
+        .limit(1)
+        .maybeSingle();
         
       if (error) {
-        console.error("DATABASE getUserByUsername - Erro ao buscar usuário:", error.message);
+        console.error("DATABASE getUserByUsername - Erro ao buscar dados do usuário:", error.message);
         return undefined;
       }
       
       if (!data) {
-        console.log("DATABASE getUserByUsername - Usuário não encontrado");
+        console.log("DATABASE getUserByUsername - Dados do usuário não encontrados");
         return undefined;
       }
       
@@ -151,20 +197,43 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      // Usando a API do Supabase em vez do drizzle-orm
+      console.log("DATABASE getUserByEmail - Buscando usuário com email:", email);
+      
+      // Tentar primeiro verificar quantos registros existem com esse email
+      const { data: checkData, error: checkError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email);
+        
+      if (checkError) {
+        console.error("DATABASE getUserByEmail - Erro ao verificar usuário:", checkError.message);
+        return undefined;
+      }
+      
+      if (!checkData || checkData.length === 0) {
+        console.log(`DATABASE getUserByEmail - Nenhum usuário encontrado com email ${email}`);
+        return undefined;
+      }
+      
+      if (checkData.length > 1) {
+        console.warn(`DATABASE getUserByEmail - Múltiplos usuários encontrados com email ${email}, usando o primeiro`);
+      }
+      
+      // Pegar o primeiro registro encontrado
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('email', email)
-        .single();
+        .limit(1)
+        .maybeSingle();
         
       if (error) {
-        console.error("DATABASE getUserByEmail - Erro ao buscar usuário:", error.message);
+        console.error("DATABASE getUserByEmail - Erro ao buscar dados do usuário:", error.message);
         return undefined;
       }
       
       if (!data) {
-        console.log("DATABASE getUserByEmail - Usuário não encontrado");
+        console.log("DATABASE getUserByEmail - Dados do usuário não encontrados");
         return undefined;
       }
       
@@ -244,8 +313,42 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getArtworks(): Promise<Artwork[]> {
-    const result = await db.select().from(artworks).orderBy(desc(artworks.createdAt));
-    return result;
+    try {
+      console.log("DATABASE getArtworks - Buscando todas as artes");
+      
+      const { data, error } = await supabase
+        .from('artworks')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("DATABASE getArtworks - Erro ao buscar artes:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("DATABASE getArtworks - Nenhuma arte encontrada");
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const result = data.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        imageUrl: item.image_url,
+        format: item.format,
+        isPro: item.is_pro,
+        category: item.category,
+        createdAt: new Date(item.created_at)
+      }));
+      
+      console.log(`DATABASE getArtworks - Encontradas ${result.length} artes`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE getArtworks - Exceção:", error);
+      return [];
+    }
   }
   
   async getArtworkById(id: number): Promise<Artwork | undefined> {
