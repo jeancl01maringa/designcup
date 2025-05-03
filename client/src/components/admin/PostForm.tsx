@@ -333,15 +333,24 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
     return formData.formats.filter(format => hasImageOrLinks(format));
   };
 
+  // Verifica se pelo menos um formato tem uma imagem real (não blob)
+  const hasRealImage = (): boolean => {
+    return formData.formats.some(format => {
+      const preview = formData.formatFiles[format].imagePreview;
+      return preview && !preview.startsWith("blob:");
+    });
+  };
+
   // Preparar dados para envio no formato final
   const preparePostData = () => {
     const imageUrls: Record<string, string> = {};
     let mainImageUrl = "";
     
-    // Usar a primeira imagem disponível como capa principal
+    // Usar a primeira imagem disponível como capa principal (incluindo blobs para preview)
     for (const format of formData.formats) {
       const preview = formData.formatFiles[format].imagePreview;
-      if (preview && !preview.startsWith("blob:")) {
+      if (preview) {
+        // Mesmo uma imagem blob é usada para visualização temporária
         if (!mainImageUrl) mainImageUrl = preview;
         imageUrls[format] = preview;
       }
@@ -360,7 +369,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
       categoryId: formData.categoryId,
       status: formData.status,
       description: formData.description,
-      imageUrl: mainImageUrl || "",
+      imageUrl: mainImageUrl || "",  // Usa qualquer imagem, mesmo blob temporário
       uniqueCode: formData.uniqueCode,
       licenseType: formData.licenseType,
       tags: formData.tags,
@@ -441,11 +450,15 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
       
       const postData = preparePostData();
       
-      // Validar que temos pelo menos uma imagem principal
-      if (!postData.imageUrl) {
+      // Verifica se há pelo menos uma imagem (mesmo que seja blob temporário) ou link
+      const hasAnyImageOrLink = formData.formats.some(format => 
+        formData.formatFiles[format].imagePreview || formData.formatFiles[format].links.length > 0
+      );
+      
+      if (!hasAnyImageOrLink) {
         toast({
-          title: "Imagem obrigatória",
-          description: "Pelo menos um formato precisa ter uma imagem.",
+          title: "Conteúdo necessário",
+          description: "Adicione pelo menos uma imagem ou link para continuar.",
           variant: "destructive",
         });
         return;
@@ -700,32 +713,30 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
             {/* Formatos da Postagem */}
             <div className="space-y-2">
               <Label>Formatos da Postagem</Label>
-              <div className="space-y-2 mt-4">
+              <div className="grid grid-cols-3 gap-2 mt-4">
                 {[
                   { id: "feed", label: "FEED", description: "Quadrado 1080x1080" },
                   { id: "cartaz", label: "CARTAZ", description: "Retângulo 1080x1350" },
                   { id: "stories", label: "STORIES", description: "Vertical 1080x1920" }
                 ].map((format) => (
-                  <div key={format.id} className="w-full">
+                  <div key={format.id}>
                     <Button
                       type="button"
                       variant="outline"
-                      className={`w-full flex items-center justify-between py-3 px-4 rounded-lg transition-colors ${
+                      className={`w-full h-full flex flex-col items-center justify-center p-3 rounded-lg transition-colors ${
                         formData.formats.includes(format.id as PostFormat) 
                           ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
                           : "border-gray-200 hover:bg-gray-50"
                       }`}
                       onClick={() => handleFormatToggle(format.id as PostFormat)}
                     >
-                      <div className="flex items-center gap-2">
-                        {formData.formats.includes(format.id as PostFormat) ? (
-                          <CheckCircle className="h-5 w-5 text-[#1f4ed8]" />
-                        ) : (
-                          <Circle className="h-5 w-5 text-gray-300" />
-                        )}
-                        <span className="font-medium">{format.label}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">{format.description}</span>
+                      {formData.formats.includes(format.id as PostFormat) ? (
+                        <CheckCircle className="h-5 w-5 text-[#1f4ed8] mb-1" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-gray-300 mb-1" />
+                      )}
+                      <span className="font-medium text-sm">{format.label}</span>
+                      <span className="text-xs text-muted-foreground mt-1">{format.description}</span>
                     </Button>
                   </div>
                 ))}
