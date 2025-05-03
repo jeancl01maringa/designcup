@@ -302,27 +302,40 @@ export default function PostagensPage() {
     setIsDeleteBatchModalOpen(true);
   };
   
-  // Confirmação de exclusão em lote
-  const confirmDeleteBatch = async () => {
-    try {
-      // Excluir cada postagem selecionada
-      for (const id of selectedPosts) {
-        await deletePostMutation.mutateAsync(id);
+  // Mutação para excluir postagens em lote
+  const batchDeleteMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const response = await apiRequest('DELETE', '/api/admin/posts/batch', { ids });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao excluir postagens em lote');
       }
-      
+      return await response.json();
+    },
+    onSuccess: () => {
       toast({
         title: "Postagens excluídas",
         description: `${selectedPosts.length} postagens foram excluídas com sucesso.`
       });
-      
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
       setSelectedPosts([]);
-      setIsDeleteBatchModalOpen(false);
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       toast({
         title: "Erro ao excluir",
-        description: "Ocorreu um erro ao excluir as postagens selecionadas.",
+        description: error.message,
         variant: "destructive",
       });
+    }
+  });
+
+  // Confirmação de exclusão em lote
+  const confirmDeleteBatch = async () => {
+    try {
+      await batchDeleteMutation.mutateAsync(selectedPosts);
+      setIsDeleteBatchModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao excluir postagens em lote:", error);
     }
   };
 

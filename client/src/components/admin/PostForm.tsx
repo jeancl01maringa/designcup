@@ -426,12 +426,11 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         return;
       }
       
-      // Enviar requisição
-      if (isEdit && initialData?.id) {
-        await updatePostMutation.mutateAsync(postData);
-      } else {
-        await createPostMutation.mutateAsync(postData);
-      }
+      // Usar a função onSubmit que foi passada como prop
+      await onSubmit(postData);
+      
+      // Fechar o modal após salvar com sucesso
+      onOpenChange(false);
       
     } catch (error) {
       console.error("Erro ao salvar postagem:", error);
