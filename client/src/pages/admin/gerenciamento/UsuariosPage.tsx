@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Edit2, Search, Trash2, User, UserPlus, Users } from "lucide-react";
+import { Edit2, Plus, Search, Shield, Trash2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
@@ -42,26 +42,26 @@ interface Plano {
 export default function UsuariosPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [editFormData, setEditFormData] = useState({
     username: "",
     email: "",
     isAdmin: false,
-    tipo: "free" as "free" | "premium",
+    tipo: "free" as 'free' | 'premium',
     plano_id: "",
     data_vencimento: "",
-    active: false
+    active: true
   });
 
   // Buscar todos os usuários
-  const { data: usuarios = [], isLoading: isLoadingUsers } = useQuery<Usuario[]>({
+  const { data: usuarios = [], isLoading: isLoadingUsuarios } = useQuery<Usuario[]>({
     queryKey: ['/api/admin/usuarios'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/admin/usuarios');
       return response.json();
-    }
+    },
   });
 
   // Buscar todos os planos disponíveis
@@ -70,21 +70,22 @@ export default function UsuariosPage() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/admin/planos');
       return response.json();
-    }
+    },
   });
 
   // Mutation para atualizar usuário
-  const updateUserMutation = useMutation({
+  const updateUsuarioMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: Partial<typeof editFormData> }) => {
       const response = await apiRequest('PATCH', `/api/admin/usuarios/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/assinantes'] });
       setIsEditDialogOpen(false);
       toast({
         title: "Usuário atualizado",
-        description: "Os dados do usuário foram atualizados com sucesso.",
+        description: "As informações do usuário foram atualizadas com sucesso.",
       });
     },
     onError: (error: Error) => {
@@ -96,16 +97,17 @@ export default function UsuariosPage() {
     }
   });
 
-  // Mutation para excluir usuário
-  const deleteUserMutation = useMutation({
+  // Mutation para deletar usuário
+  const deleteUsuarioMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('DELETE', `/api/admin/usuarios/${id}`);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/assinantes'] });
       setIsDeleteDialogOpen(false);
-      setSelectedUser(null);
+      setSelectedUsuario(null);
       toast({
         title: "Usuário excluído",
         description: "O usuário foi excluído com sucesso.",
@@ -128,6 +130,7 @@ export default function UsuariosPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/assinantes'] });
       toast({
         title: "Status atualizado",
         description: "O status do usuário foi atualizado com sucesso.",
@@ -144,7 +147,7 @@ export default function UsuariosPage() {
 
   // Função para lidar com a abertura do modal de edição
   const handleEditClick = (usuario: Usuario) => {
-    setSelectedUser(usuario);
+    setSelectedUsuario(usuario);
     setEditFormData({
       username: usuario.username,
       email: usuario.email,
@@ -159,25 +162,25 @@ export default function UsuariosPage() {
 
   // Função para lidar com a abertura do modal de exclusão
   const handleDeleteClick = (usuario: Usuario) => {
-    setSelectedUser(usuario);
+    setSelectedUsuario(usuario);
     setIsDeleteDialogOpen(true);
   };
 
   // Função para salvar as alterações no usuário
-  const handleSaveUser = () => {
-    if (!selectedUser) return;
+  const handleSaveUsuario = () => {
+    if (!selectedUsuario) return;
     
-    updateUserMutation.mutate({
-      id: selectedUser.id,
+    updateUsuarioMutation.mutate({
+      id: selectedUsuario.id,
       data: editFormData
     });
   };
 
   // Função para excluir o usuário
-  const handleDeleteUser = () => {
-    if (!selectedUser) return;
+  const handleConfirmDelete = () => {
+    if (!selectedUsuario) return;
     
-    deleteUserMutation.mutate(selectedUser.id);
+    deleteUsuarioMutation.mutate(selectedUsuario.id);
   };
 
   // Função para alternar o status de ativo/inativo
@@ -194,18 +197,20 @@ export default function UsuariosPage() {
     usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Função para renderizar o tipo de plano de um usuário
+  // Função para renderizar informações do plano
   const renderPlanoInfo = (usuario: Usuario) => {
-    if (usuario.tipo === 'free') {
-      return <Badge variant="outline">Gratuito</Badge>;
+    if (usuario.tipo !== 'premium' || !usuario.plano_id) {
+      return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Sem plano</Badge>;
     }
-
+    
     const plano = planos.find(p => p.codigoHotmart === usuario.plano_id);
-    return plano ? (
-      <Badge variant="secondary">
-        {plano.name} - {plano.periodo}
+    if (!plano) return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Plano desconhecido</Badge>;
+    
+    return (
+      <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
+        {plano.name} ({plano.periodo})
       </Badge>
-    ) : <Badge variant="outline">Sem plano</Badge>;
+    );
   };
 
   // Função para formatar a data
@@ -252,21 +257,20 @@ export default function UsuariosPage() {
                 <TableHead>E-mail</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Plano</TableHead>
-                <TableHead>Vencimento</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoadingUsers ? (
+              {isLoadingUsuarios ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-6">
+                  <TableCell colSpan={6} className="text-center py-6">
                     Carregando usuários...
                   </TableCell>
                 </TableRow>
               ) : filteredUsuarios.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-6">
+                  <TableCell colSpan={6} className="text-center py-6">
                     {searchTerm ? "Nenhum usuário encontrado com este termo de pesquisa." : "Nenhum usuário cadastrado."}
                   </TableCell>
                 </TableRow>
@@ -275,8 +279,12 @@ export default function UsuariosPage() {
                   <TableRow key={usuario.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="flex justify-center items-center w-8 h-8 rounded-full bg-gray-100">
-                          <User size={16} />
+                        <div className="flex justify-center items-center w-8 h-8 rounded-full bg-blue-100">
+                          {usuario.isAdmin ? (
+                            <Shield size={16} className="text-blue-600" />
+                          ) : (
+                            <User size={16} className="text-blue-600" />
+                          )}
                         </div>
                         <div>
                           <span className="font-medium">{usuario.username}</span>
@@ -288,15 +296,13 @@ export default function UsuariosPage() {
                     </TableCell>
                     <TableCell>{usuario.email}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={usuario.tipo === 'premium' ? 'default' : 'outline'}
-                        className={usuario.tipo === 'premium' ? 'bg-blue-500' : ''}
-                      >
+                      <Badge variant={usuario.tipo === 'premium' ? 'default' : 'outline'} className={usuario.tipo === 'premium' ? 'bg-blue-600' : ''}>
                         {usuario.tipo === 'premium' ? 'Premium' : 'Free'}
                       </Badge>
                     </TableCell>
-                    <TableCell>{renderPlanoInfo(usuario)}</TableCell>
-                    <TableCell>{formatDate(usuario.data_vencimento)}</TableCell>
+                    <TableCell>
+                      {renderPlanoInfo(usuario)}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <div className={`w-2 h-2 rounded-full ${usuario.active ? 'bg-green-500' : 'bg-gray-300'}`} />
@@ -339,17 +345,17 @@ export default function UsuariosPage() {
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
             <DialogDescription>
-              Atualize as informações do usuário {selectedUser?.username}.
+              Atualize as informações do usuário {selectedUsuario?.username}.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Nome de Usuário</Label>
+              <Label htmlFor="username">Nome de usuário</Label>
               <Input 
                 id="username"
+                type="text"
                 value={editFormData.username}
                 onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
-                placeholder="Nome de usuário"
               />
             </div>
             
@@ -360,12 +366,20 @@ export default function UsuariosPage() {
                 type="email"
                 value={editFormData.email}
                 onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                placeholder="E-mail"
               />
             </div>
             
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="isAdmin"
+                checked={editFormData.isAdmin}
+                onCheckedChange={(checked) => setEditFormData({ ...editFormData, isAdmin: checked })}
+              />
+              <Label htmlFor="isAdmin">Administrador</Label>
+            </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo de Usuário</Label>
+              <Label htmlFor="tipo">Tipo de usuário</Label>
               <select
                 id="tipo"
                 value={editFormData.tipo}
@@ -377,34 +391,36 @@ export default function UsuariosPage() {
               </select>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="plano_id">Plano</Label>
-              <select
-                id="plano_id"
-                value={editFormData.plano_id}
-                onChange={(e) => setEditFormData({ ...editFormData, plano_id: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                disabled={editFormData.tipo !== 'premium'}
-              >
-                <option value="">Selecione um plano</option>
-                {planos.map(plano => (
-                  <option key={plano.id} value={plano.codigoHotmart}>
-                    {plano.name} - {plano.periodo} ({plano.valor})
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="data_vencimento">Data de Vencimento</Label>
-              <Input 
-                id="data_vencimento"
-                type="date"
-                value={editFormData.data_vencimento}
-                onChange={(e) => setEditFormData({ ...editFormData, data_vencimento: e.target.value })}
-                disabled={editFormData.tipo !== 'premium'}
-              />
-            </div>
+            {editFormData.tipo === 'premium' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="plano_id">Plano</Label>
+                  <select
+                    id="plano_id"
+                    value={editFormData.plano_id}
+                    onChange={(e) => setEditFormData({ ...editFormData, plano_id: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Selecione um plano</option>
+                    {planos.map(plano => (
+                      <option key={plano.id} value={plano.codigoHotmart}>
+                        {plano.name} - {plano.periodo} ({plano.valor})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="data_vencimento">Data de Vencimento</Label>
+                  <Input 
+                    id="data_vencimento"
+                    type="date"
+                    value={editFormData.data_vencimento}
+                    onChange={(e) => setEditFormData({ ...editFormData, data_vencimento: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
             
             <div className="flex items-center space-x-2">
               <Switch 
@@ -412,16 +428,7 @@ export default function UsuariosPage() {
                 checked={editFormData.active}
                 onCheckedChange={(checked) => setEditFormData({ ...editFormData, active: checked })}
               />
-              <Label htmlFor="active">Assinatura Ativa</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="isAdmin"
-                checked={editFormData.isAdmin}
-                onCheckedChange={(checked) => setEditFormData({ ...editFormData, isAdmin: checked })}
-              />
-              <Label htmlFor="isAdmin">Administrador</Label>
+              <Label htmlFor="active">Usuário Ativo</Label>
             </div>
           </div>
           <DialogFooter>
@@ -434,11 +441,11 @@ export default function UsuariosPage() {
             </Button>
             <Button 
               type="button" 
-              onClick={handleSaveUser}
-              disabled={updateUserMutation.isPending}
+              onClick={handleSaveUsuario}
+              disabled={updateUsuarioMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {updateUserMutation.isPending ? "Salvando..." : "Salvar"}
+              {updateUsuarioMutation.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -450,16 +457,17 @@ export default function UsuariosPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o usuário "{selectedUser?.username}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o usuário "{selectedUsuario?.username}"? 
+              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleDeleteUser}
+              onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteUserMutation.isPending ? "Excluindo..." : "Excluir"}
+              {deleteUsuarioMutation.isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

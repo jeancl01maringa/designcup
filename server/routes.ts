@@ -1541,6 +1541,496 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoints para gerenciamento de usuários
+  app.get('/api/admin/usuarios', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      console.log('Buscando todos os usuários');
+      
+      try {
+        // Buscar usuários com dados completos incluindo dados de assinatura
+        const query = `
+          SELECT 
+            u.id, 
+            u.username, 
+            u.email, 
+            u.is_admin as "isAdmin",
+            u.created_at as "createdAt",
+            COALESCE(u.tipo, 'free') as tipo,
+            u.plano_id,
+            u.data_vencimento,
+            COALESCE(u.active, false) as active
+          FROM users u
+          ORDER BY u.created_at DESC
+        `;
+        
+        const result = await pool.query(query);
+        return res.json(result.rows || []);
+      } catch (dbError: any) {
+        console.error("Erro ao buscar usuários:", dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar usuários',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar usuários',
+        error: error.message
+      });
+    }
+  });
+
+  app.get('/api/admin/usuarios/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      try {
+        const query = `
+          SELECT 
+            u.id, 
+            u.username, 
+            u.email, 
+            u.is_admin as "isAdmin",
+            u.created_at as "createdAt",
+            COALESCE(u.tipo, 'free') as tipo,
+            u.plano_id,
+            u.data_vencimento,
+            COALESCE(u.active, false) as active
+          FROM users u
+          WHERE u.id = $1
+        `;
+        
+        const result = await pool.query(query, [id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao buscar usuário #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar usuário',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar usuário',
+        error: error.message
+      });
+    }
+  });
+
+  app.patch('/api/admin/usuarios/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { username, email, isAdmin, tipo, plano_id, data_vencimento, active } = req.body;
+      
+      console.log(`Atualizando usuário #${id}:`, req.body);
+      
+      // Construir a query SQL de atualização
+      let setClauses = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      
+      if (username !== undefined) {
+        setClauses.push(`username = $${paramIndex}`);
+        queryParams.push(username);
+        paramIndex++;
+      }
+      
+      if (email !== undefined) {
+        setClauses.push(`email = $${paramIndex}`);
+        queryParams.push(email);
+        paramIndex++;
+      }
+      
+      if (isAdmin !== undefined) {
+        setClauses.push(`is_admin = $${paramIndex}`);
+        queryParams.push(isAdmin);
+        paramIndex++;
+      }
+      
+      if (tipo !== undefined) {
+        setClauses.push(`tipo = $${paramIndex}`);
+        queryParams.push(tipo);
+        paramIndex++;
+      }
+      
+      if (plano_id !== undefined) {
+        if (plano_id === "") {
+          setClauses.push(`plano_id = NULL`);
+        } else {
+          setClauses.push(`plano_id = $${paramIndex}`);
+          queryParams.push(plano_id);
+          paramIndex++;
+        }
+      }
+      
+      if (data_vencimento !== undefined) {
+        if (data_vencimento === "") {
+          setClauses.push(`data_vencimento = NULL`);
+        } else {
+          setClauses.push(`data_vencimento = $${paramIndex}`);
+          queryParams.push(data_vencimento);
+          paramIndex++;
+        }
+      }
+      
+      if (active !== undefined) {
+        setClauses.push(`active = $${paramIndex}`);
+        queryParams.push(active);
+        paramIndex++;
+      }
+      
+      // Se não houver cláusulas para atualizar, retornar erro
+      if (setClauses.length === 0) {
+        return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
+      }
+      
+      // Adicionar o parâmetro id ao final
+      queryParams.push(id);
+      
+      const updateQuery = `
+        UPDATE users 
+        SET ${setClauses.join(', ')} 
+        WHERE id = $${paramIndex}
+        RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+          COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
+      `;
+      
+      try {
+        const result = await pool.query(updateQuery, queryParams);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado ou não foi atualizado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar usuário #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar usuário',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ 
+        message: 'Erro ao atualizar usuário',
+        error: error.message
+      });
+    }
+  });
+
+  app.delete('/api/admin/usuarios/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      // Não permitir excluir a si mesmo
+      if (id === req.user.id) {
+        return res.status(400).json({ message: 'Não é possível excluir seu próprio usuário' });
+      }
+      
+      try {
+        const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.status(200).json({ success: true });
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao excluir usuário #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao excluir usuário',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ 
+        message: 'Erro ao excluir usuário',
+        error: error.message
+      });
+    }
+  });
+
+  app.patch('/api/admin/usuarios/:id/toggle-active', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { active } = req.body;
+      
+      console.log(`Alterando status de ativo do usuário #${id} para ${active}`);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE users 
+          SET active = $1 
+          WHERE id = $2
+          RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+            COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
+        `, [active, id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar status de ativo do usuário #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar status de ativo do usuário',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error toggling user active status:', error);
+      res.status(500).json({ 
+        message: 'Erro ao atualizar status de ativo do usuário',
+        error: error.message
+      });
+    }
+  });
+
+  // API endpoints para gerenciamento de assinantes
+  app.get('/api/admin/assinantes', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      console.log('Buscando todos os assinantes premium');
+      
+      try {
+        // Buscar apenas usuários premium
+        const query = `
+          SELECT 
+            u.id, 
+            u.username, 
+            u.email, 
+            u.is_admin as "isAdmin",
+            u.created_at as "createdAt",
+            u.tipo,
+            u.plano_id,
+            u.data_vencimento,
+            COALESCE(u.active, false) as active
+          FROM users u
+          WHERE u.tipo = 'premium'
+          ORDER BY u.data_vencimento ASC
+        `;
+        
+        const result = await pool.query(query);
+        return res.json(result.rows || []);
+      } catch (dbError: any) {
+        console.error("Erro ao buscar assinantes:", dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar assinantes',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching subscribers:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar assinantes',
+        error: error.message
+      });
+    }
+  });
+
+  app.patch('/api/admin/assinantes/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { plano_id, data_vencimento, active } = req.body;
+      
+      console.log(`Atualizando assinante #${id}:`, req.body);
+      
+      // Construir a query SQL de atualização
+      let setClauses = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      
+      // Sempre definir tipo como premium para assinantes
+      setClauses.push(`tipo = 'premium'`);
+      
+      if (plano_id !== undefined) {
+        if (plano_id === "") {
+          setClauses.push(`plano_id = NULL`);
+        } else {
+          setClauses.push(`plano_id = $${paramIndex}`);
+          queryParams.push(plano_id);
+          paramIndex++;
+        }
+      }
+      
+      if (data_vencimento !== undefined) {
+        if (data_vencimento === "") {
+          setClauses.push(`data_vencimento = NULL`);
+        } else {
+          setClauses.push(`data_vencimento = $${paramIndex}`);
+          queryParams.push(data_vencimento);
+          paramIndex++;
+        }
+      }
+      
+      if (active !== undefined) {
+        setClauses.push(`active = $${paramIndex}`);
+        queryParams.push(active);
+        paramIndex++;
+      }
+      
+      // Se não houver cláusulas para atualizar além do tipo, retornar erro
+      if (setClauses.length <= 1) {
+        return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
+      }
+      
+      // Adicionar o parâmetro id ao final
+      queryParams.push(id);
+      
+      const updateQuery = `
+        UPDATE users 
+        SET ${setClauses.join(', ')} 
+        WHERE id = $${paramIndex}
+        RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+          tipo, plano_id, data_vencimento, active
+      `;
+      
+      try {
+        const result = await pool.query(updateQuery, queryParams);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Assinante não encontrado ou não foi atualizado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar assinante #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar assinante',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating subscriber:', error);
+      res.status(500).json({ 
+        message: 'Erro ao atualizar assinante',
+        error: error.message
+      });
+    }
+  });
+
+  app.patch('/api/admin/assinantes/:id/toggle-active', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { active } = req.body;
+      
+      console.log(`Alterando status de ativo do assinante #${id} para ${active}`);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE users 
+          SET active = $1 
+          WHERE id = $2 AND tipo = 'premium'
+          RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+            tipo, plano_id, data_vencimento, active
+        `, [active, id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Assinante não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar status do assinante #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar status do assinante',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error toggling subscriber active status:', error);
+      res.status(500).json({ 
+        message: 'Erro ao atualizar status do assinante',
+        error: error.message
+      });
+    }
+  });
+
+  app.patch('/api/admin/assinantes/:id/cancel', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      console.log(`Cancelando assinatura do usuário #${id}`);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE users 
+          SET 
+            tipo = 'free',
+            active = false,
+            plano_id = NULL,
+            data_vencimento = NULL
+          WHERE id = $1
+          RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+            tipo, plano_id, data_vencimento, active
+        `, [id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Assinante não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao cancelar assinatura do usuário #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao cancelar assinatura',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error canceling subscription:', error);
+      res.status(500).json({ 
+        message: 'Erro ao cancelar assinatura',
+        error: error.message
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

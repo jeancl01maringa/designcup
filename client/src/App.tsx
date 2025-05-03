@@ -69,6 +69,12 @@ function Router() {
       <Route path="/admin/gerenciamento/tags">
         <ProtectedRoute path="/admin/gerenciamento/tags" component={TagsPage} requireAdmin={true} />
       </Route>
+      <Route path="/admin/gerenciamento/usuarios">
+        <ProtectedRoute path="/admin/gerenciamento/usuarios" component={UsuariosPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/gerenciamento/assinantes">
+        <ProtectedRoute path="/admin/gerenciamento/assinantes" component={AssinantesPage} requireAdmin={true} />
+      </Route>
       <Route path="/admin">
         {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
       </Route>

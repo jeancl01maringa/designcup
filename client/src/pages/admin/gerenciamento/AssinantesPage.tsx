@@ -232,7 +232,7 @@ export default function AssinantesPage() {
     } else if (daysToExpire === 0) {
       return <Badge variant="destructive">Vence hoje</Badge>;
     } else if (daysToExpire <= 7) {
-      return <Badge variant="warning" className="bg-yellow-500">Vence em {daysToExpire} dias</Badge>;
+      return <Badge variant="outline" className="bg-yellow-500 border-yellow-600 text-yellow-900">Vence em {daysToExpire} dias</Badge>;
     } else {
       return <Badge variant="default" className="bg-green-600">Vence em {daysToExpire} dias</Badge>;
     }
