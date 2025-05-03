@@ -63,6 +63,16 @@ const UserMenu = () => {
   const { user, logoutMutation } = useAuth();
   const [location, navigate] = useLocation();
   
+  // Debug para verificar a propriedade isAdmin
+  console.log("[HEADER] UserMenu renderizado");
+  if (user) {
+    console.log("[HEADER] User object:", user);
+    console.log("[HEADER] isAdmin:", user.isAdmin);
+    console.log("[HEADER] Tipo do isAdmin:", typeof user.isAdmin);
+  } else {
+    console.log("[HEADER] Usuário não está logado");
+  }
+  
   if (!user) {
     return (
       <div className="hidden md:flex items-center gap-2">
@@ -96,9 +106,13 @@ const UserMenu = () => {
     );
   }
   
+  // Conversão explícita para booleano, em caso de o isAdmin ser undefined ou outro valor
+  const isAdmin = Boolean(user.isAdmin);
+  console.log("[HEADER] isAdmin após conversão:", isAdmin);
+  
   return (
     <div className="hidden md:flex items-center gap-2">
-      {user.isAdmin && (
+      {isAdmin && (
         <Button
           variant="outline"
           size="sm"
@@ -144,7 +158,7 @@ const UserMenu = () => {
             <span>Meu Perfil</span>
           </DropdownMenuItem>
           
-          {user.isAdmin && (
+          {Boolean(user.isAdmin) && (
             <DropdownMenuItem onClick={() => navigate("/admin")}>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -221,7 +235,7 @@ const MobileMenu = () => {
               <span className="text-[#1D1D1D] font-medium">{user.username}</span>
             </div>
             
-            {user.isAdmin && (
+            {Boolean(user.isAdmin) && (
               <Link 
                 href="/admin"
                 className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium text-base py-3 transition-colors border border-primary/50 rounded-md px-3 mt-3 mb-1"

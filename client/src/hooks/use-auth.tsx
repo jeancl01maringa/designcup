@@ -42,12 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const res = await fetch("/api/user");
         if (res.status === 401) {
+          console.log("[AUTH] Usuário não autenticado (401)");
           return null;
         }
         if (!res.ok) {
           throw new Error("Erro ao obter dados do usuário");
         }
-        return await res.json();
+        const userData = await res.json();
+        console.log("[AUTH] Dados do usuário recebidos:", userData);
+        console.log("[AUTH] isAdmin:", userData.isAdmin);
+        return userData;
       } catch (error) {
         console.error("Erro na autenticação:", error);
         return null;
@@ -65,6 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onSuccess: (user: SelectUser) => {
+      console.log("[AUTH] Login bem sucedido, dados do usuário:", user);
+      console.log("[AUTH] isAdmin após login:", user.isAdmin);
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Login realizado com sucesso",
