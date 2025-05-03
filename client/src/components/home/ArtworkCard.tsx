@@ -102,58 +102,69 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             </Badge>
           </div>
           
-          {/* Pro badge */}
+          {/* Pro badge - sempre visível */}
           {artwork.isPro && (
             <div className="absolute top-3 right-3 z-10">
-              <Badge className="bg-white/90 hover:bg-white text-[#AA5E2F] border-0 shadow-md font-medium px-2 py-1">
-                <Crown className="h-3.5 w-3.5 mr-1 fill-[#AA5E2F] text-[#AA5E2F]" />
+              <Badge className="bg-white/90 hover:bg-white text-black border-0 shadow-md font-medium px-2 py-1">
+                <Crown className="h-3.5 w-3.5 mr-1 fill-yellow-500 text-yellow-500" />
                 <span className="text-xs">Premium</span>
               </Badge>
             </div>
           )}
           
-          {/* Hover overlay */}
-          {hovered && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col items-end justify-between p-4 transition-all duration-300 ease-in-out">
-              {/* Action Buttons at Bottom */}
-              <div className="mt-auto w-full flex justify-between items-center">
-                <div className="flex space-x-2">
-                  <button 
-                    className={`p-2 rounded-full shadow-md transition-colors ${liked ? 'bg-[#AA5E2F] text-white' : 'bg-white text-[#1D1D1D] hover:bg-[#FFF4E9]'}`}
-                    onClick={handleLike}
-                    aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                  >
-                    <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
-                  </button>
-                  
-                  <button 
-                    className={`p-2 rounded-full shadow-md transition-colors ${saved ? 'bg-[#AA5E2F] text-white' : 'bg-white text-[#1D1D1D] hover:bg-[#FFF4E9]'}`}
-                    onClick={handleSave}
-                    aria-label={saved ? "Remover dos salvos" : "Salvar item"}
-                  >
-                    <Bookmark className="h-4 w-4" fill={saved ? "currentColor" : "none"} />
-                  </button>
-                </div>
-                
-                <Button 
-                  className="bg-[#AA5E2F] hover:bg-[#95512A] text-white rounded-full px-4 py-1 h-8 text-xs shadow-md"
-                  onClick={handleEditClick}
-                >
-                  {artwork.isPro ? (
-                    <>
-                      <Lock className="h-3.5 w-3.5 mr-1.5" />
-                      Desbloquear
-                    </>
-                  ) : (
-                    <>
-                      <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                      Editar
-                    </>
-                  )}
-                </Button>
-              </div>
+          {/* Hover actions - só aparecem quando passa o mouse */}
+          <div 
+            className={`absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent 
+              flex flex-col items-end justify-between p-4 transition-all duration-300 ease-in-out
+              ${hovered ? 'opacity-100' : 'opacity-0'}`}
+          >
+            {/* Action Buttons no canto superior */}
+            <div className="w-full flex justify-end items-center gap-2 mb-auto">
+              <button 
+                className={`p-2 rounded-full shadow-md transition-colors ${
+                  liked 
+                    ? 'bg-[#AA5E2F] text-white' 
+                    : 'bg-white/90 text-black hover:bg-white'
+                }`}
+                onClick={handleLike}
+                aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+              >
+                <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
+              </button>
+              
+              <button 
+                className={`p-2 rounded-full shadow-md transition-colors ${
+                  saved 
+                    ? 'bg-[#AA5E2F] text-white' 
+                    : 'bg-white/90 text-black hover:bg-white'
+                }`}
+                onClick={handleSave}
+                aria-label={saved ? "Remover dos salvos" : "Salvar item"}
+              >
+                <Bookmark className="h-4 w-4" fill={saved ? "currentColor" : "none"} />
+              </button>
             </div>
-          )}
+            
+            {/* Botão de ação principal no final */}
+            <div className="w-full flex justify-center items-center mt-auto">
+              <Button 
+                className="bg-black hover:bg-black/80 text-white rounded-full px-6 py-1 h-8 text-xs shadow-md w-full max-w-[200px]"
+                onClick={handleEditClick}
+              >
+                {artwork.isPro ? (
+                  <>
+                    <Lock className="h-3.5 w-3.5 mr-1.5" />
+                    Desbloquear
+                  </>
+                ) : (
+                  <>
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                    Editar
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
         
         {/* Info Section */}

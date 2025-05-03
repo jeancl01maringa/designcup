@@ -195,19 +195,24 @@ export default function ArtworkGrid() {
     <section className="py-8 bg-white">
       <div className="container mx-auto px-4">
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="text-[#AA5E2F]">
-              <ImageIcon className="h-5 w-5" />
-            </div>
-            <h2 className="font-semibold text-lg text-[#1D1D1D]">Artes editáveis para sua Clínica</h2>
-            <Badge variant="outline" className="bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
+          <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
+            <span className="mr-2">🎨</span>
+            Artes editáveis para sua Clínica
+            <Badge variant="outline" className="ml-2 bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
               <Crown className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
               <span className="text-xs">Premium</span>
             </Badge>
-          </div>
-          <p className="text-sm text-[#4B4B4B] ml-7">
+          </h3>
+          <p className="text-[#5c3a2d] text-sm font-light">
             Explore artes exclusivas de altíssima qualidade premium para sua clínica.
           </p>
+          <div className="flex items-center mt-2">
+            <div className="flex mt-1">
+              <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
+            </div>
+          </div>
         </div>
 
         {/* Grid no estilo Pinterest - responsivo para diferentes formatos */}
@@ -221,19 +226,24 @@ export default function ArtworkGrid() {
         
         {/* Stories Section */}
         <div className="mb-6 mt-10">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="text-[#AA5E2F]">
-              <ImageIcon className="h-5 w-5" />
-            </div>
-            <h2 className="font-semibold text-lg text-[#1D1D1D]">Stories para Estética</h2>
-            <Badge variant="outline" className="bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
+          <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
+            <span className="mr-2">📱</span>
+            Stories para Estética
+            <Badge variant="outline" className="ml-2 bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
               <Star className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
               <span className="text-xs">Novo</span>
             </Badge>
-          </div>
-          <p className="text-sm text-[#4B4B4B] ml-7">
+          </h3>
+          <p className="text-[#5c3a2d] text-sm font-light">
             Templates para Stories no formato 9:16 otimizados para Instagram.
           </p>
+          <div className="flex items-center mt-2">
+            <div className="flex mt-1">
+              <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
+            </div>
+          </div>
         </div>
 
         {/* Grid para stories */}
