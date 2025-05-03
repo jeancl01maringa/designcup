@@ -693,7 +693,10 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                   <TabsTrigger 
                     value="postagem" 
                     className="py-2 px-4 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none"
-                    onClick={() => setStep(1)}
+                    onClick={() => {
+                      setStep(1);
+                      setActiveTab("postagem");
+                    }}
                   >
                     Postagem
                   </TabsTrigger>
