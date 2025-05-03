@@ -1183,8 +1183,8 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE createPost - Criando novo post:", JSON.stringify(post));
       
-      // Mapear do formato da aplicação para o formato do Supabase
-      const supabasePost: any = {
+      // Mapear do formato da aplicação para o formato do PostgreSQL
+      const dbPost: any = {
         title: post.title,
         description: post.description,
         image_url: post.imageUrl,
@@ -1195,75 +1195,131 @@ export class DatabaseStorage implements IStorage {
       };
       
       // Adicionar os novos campos para suporte a múltiplos formatos
-      if (post.formato) supabasePost.formato = post.formato;
-      if (post.groupId) supabasePost.group_id = post.groupId;
-      if (post.tituloBase) supabasePost.titulo_base = post.tituloBase;
-      if (post.canvaUrl) supabasePost.canva_url = post.canvaUrl;
-      if (post.formatoData) supabasePost.formato_data = post.formatoData;
+      if (post.formato) dbPost.formato = post.formato;
+      if (post.groupId) dbPost.group_id = post.groupId;
+      if (post.tituloBase) dbPost.titulo_base = post.tituloBase;
+      if (post.canvaUrl) dbPost.canva_url = post.canvaUrl;
+      if (post.formatoData) dbPost.formato_data = post.formatoData;
+      if (post.formatData) dbPost.format_data = post.formatData;
       
       // Definir licenseType e isPro (garantir consistência)
       if (post.licenseType) {
-        supabasePost.license_type = post.licenseType;
-        supabasePost.is_pro = post.licenseType === 'premium';
+        dbPost.license_type = post.licenseType;
+        dbPost.is_pro = post.licenseType === 'premium';
       } else if (post.isPro !== undefined) {
-        supabasePost.is_pro = post.isPro;
-        supabasePost.license_type = post.isPro ? 'premium' : 'free';
+        dbPost.is_pro = post.isPro;
+        dbPost.license_type = post.isPro ? 'premium' : 'free';
       }
       
       // Visibilidade no feed
       if (post.isVisible !== undefined) {
-        supabasePost.is_visible = post.isVisible;
+        dbPost.is_visible = post.isVisible;
       }
       
       // Campos de array
       if (post.tags && Array.isArray(post.tags)) {
-        supabasePost.tags = post.tags;
+        dbPost.tags = post.tags;
       }
       
       if (post.formats && Array.isArray(post.formats)) {
-        supabasePost.formats = post.formats;
+        dbPost.formats = post.formats;
       }
       
-      console.log("DATABASE createPost - Dados completos a serem enviados:", supabasePost);
+      console.log("DATABASE createPost - Dados completos a serem enviados:", dbPost);
       
-      const { data, error } = await supabase
-        .from('posts')
-        .insert(supabasePost)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error("DATABASE createPost - Erro ao criar post:", error.message);
-        throw new Error(`Erro ao criar post: ${error.message}`);
+      try {
+        // Primeiro, tente usar o Supabase
+        const { data, error } = await supabase
+          .from('posts')
+          .insert(dbPost)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error("DATABASE createPost - Erro ao criar post via Supabase:", error.message);
+          throw new Error(`Erro ao criar post via Supabase: ${error.message}`);
+        }
+        
+        if (!data) {
+          throw new Error('Erro ao criar post via Supabase: nenhum dado retornado');
+        }
+        
+        // Mapear para o formato esperado pela aplicação
+        const result: Post = {
+          id: data.id,
+          title: data.title,
+          description: data.description || "",
+          imageUrl: data.image_url,
+          uniqueCode: data.unique_code,
+          categoryId: data.category_id,
+          status: data.status,
+          createdAt: new Date(data.created_at),
+          publishedAt: data.published_at ? new Date(data.published_at) : null,
+          formato: data.formato,
+          formatData: data.format_data,
+          groupId: data.group_id,
+          tituloBase: data.titulo_base,
+          isPro: !!data.is_pro,
+          licenseType: data.license_type || 'free',
+          canvaUrl: data.canva_url,
+          formatoData: data.formato_data,
+          isVisible: data.is_visible !== false, // se for null ou undefined, assume true
+          tags: data.tags || [],
+          formats: data.formats || []
+        };
+        
+        console.log(`DATABASE createPost - Post criado com ID: ${result.id} via Supabase`);
+        return result;
+      } catch (supabaseError) {
+        // Se falhar com Supabase, tente diretamente com PostgreSQL
+        console.log("DATABASE createPost - Tentando com PostgreSQL após falha no Supabase");
+        
+        // Construir consulta SQL para inserção
+        const fields = Object.keys(dbPost);
+        const values = Object.values(dbPost);
+        const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ');
+        
+        const sql = `
+          INSERT INTO posts (${fields.join(', ')})
+          VALUES (${placeholders})
+          RETURNING *
+        `;
+        
+        const result = await pool.query(sql, values);
+        
+        if (result.rows.length === 0) {
+          throw new Error('Erro ao criar post via PostgreSQL: nenhum dado retornado');
+        }
+        
+        const data = result.rows[0];
+        
+        // Mapear para o formato esperado pela aplicação
+        const postResult: Post = {
+          id: data.id,
+          title: data.title,
+          description: data.description || "",
+          imageUrl: data.image_url,
+          uniqueCode: data.unique_code,
+          categoryId: data.category_id,
+          status: data.status,
+          createdAt: new Date(data.created_at),
+          publishedAt: data.published_at ? new Date(data.published_at) : null,
+          formato: data.formato,
+          formatData: data.format_data,
+          groupId: data.group_id,
+          tituloBase: data.titulo_base,
+          isPro: !!data.is_pro,
+          licenseType: data.license_type || 'free',
+          canvaUrl: data.canva_url,
+          formatoData: data.formato_data,
+          isVisible: data.is_visible !== false,
+          tags: data.tags || [],
+          formats: data.formats || []
+        };
+        
+        console.log(`DATABASE createPost - Post criado com ID: ${postResult.id} via PostgreSQL direto`);
+        return postResult;
       }
-      
-      if (!data) {
-        throw new Error('Erro ao criar post: nenhum dado retornado');
-      }
-      
-      // Mapear para o formato esperado pela aplicação
-      const result: Post = {
-        id: data.id,
-        title: data.title,
-        description: data.description || "",
-        imageUrl: data.image_url,
-        uniqueCode: data.unique_code,
-        categoryId: data.category_id,
-        status: data.status,
-        createdAt: new Date(data.created_at),
-        publishedAt: data.published_at ? new Date(data.published_at) : null,
-        formato: data.formato,
-        groupId: data.group_id,
-        tituloBase: data.titulo_base,
-        isPro: !!data.is_pro,
-        licenseType: data.license_type || 'free',
-        canvaUrl: data.canva_url,
-        formatoData: data.formato_data,
-        isVisible: data.is_visible !== false // se for null ou undefined, assume true
-      };
-      
-      console.log(`DATABASE createPost - Post criado com ID: ${result.id}`);
-      return result;
     } catch (error) {
       console.error("DATABASE createPost - Exceção:", error);
       throw error;
