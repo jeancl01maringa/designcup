@@ -87,7 +87,8 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
       cartaz: { ...defaultFormatFile },
       stories: { ...defaultFormatFile }
     },
-    uniqueCode: uniquePostId
+    uniqueCode: uniquePostId,
+    groupId: nanoid() // ID para agrupar artes relacionadas
   });
 
   // Preencher dados caso seja edição
@@ -312,87 +313,142 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
     }));
   };
 
-  const nextStep = () => {
-    // Validação básica antes de avançar
-    if (!formData.title.trim()) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Por favor, insira um nome para a postagem.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.categoryId) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Por favor, selecione uma categoria.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (formData.formats.length === 0) {
-      toast({
-        title: "Selecione pelo menos um formato",
-        description: "A postagem precisa ter ao menos um formato selecionado.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setStep(2);
-    setActiveTab(formData.formats[0] || "postagem");
+  // Função para verificar se um formato tem pelo menos uma imagem ou link
+  const hasImageOrLinks = (format: PostFormat): boolean => {
+    const formatFile = formData.formatFiles[format];
+    return (
+      (formatFile.imagePreview !== null && !formatFile.imagePreview?.startsWith("blob:")) || 
+      formatFile.links.length > 0
+    );
   };
 
-  const prevStep = () => {
-    setStep(1);
+  // Função para verificar se pelo menos um formato selecionado tem conteúdo
+  const hasAnyContent = (): boolean => {
+    return formData.formats.some(format => hasImageOrLinks(format));
   };
 
-  const submitForm = async () => {
-    try {
-      // Preparar imagens e links
-      const imageUrls: Record<string, string> = {};
-      let mainImageUrl = "";
-      
-      // Usar a primeira imagem disponível como capa principal
-      for (const format of formData.formats) {
-        const preview = formData.formatFiles[format].imagePreview;
-        if (preview && !preview.startsWith("blob:")) {
-          if (!mainImageUrl) mainImageUrl = preview;
-          imageUrls[format] = preview;
-        }
+  // Obter os formatos com conteúdo válido
+  const getFormatsWithContent = (): PostFormat[] => {
+    return formData.formats.filter(format => hasImageOrLinks(format));
+  };
+
+  // Preparar dados para envio no formato final
+  const preparePostData = () => {
+    const imageUrls: Record<string, string> = {};
+    let mainImageUrl = "";
+    
+    // Usar a primeira imagem disponível como capa principal
+    for (const format of formData.formats) {
+      const preview = formData.formatFiles[format].imagePreview;
+      if (preview && !preview.startsWith("blob:")) {
+        if (!mainImageUrl) mainImageUrl = preview;
+        imageUrls[format] = preview;
       }
-      
-      if (!mainImageUrl) {
+    }
+    
+    // Compilar dados dos formatos
+    const formatData = formData.formats.map(format => ({
+      type: format,
+      imageUrl: imageUrls[format] || "",
+      links: formData.formatFiles[format].links
+    }));
+    
+    // Construir objeto da postagem
+    return {
+      title: formData.title,
+      categoryId: formData.categoryId,
+      status: formData.status,
+      description: formData.description,
+      imageUrl: mainImageUrl || "",
+      uniqueCode: formData.uniqueCode,
+      licenseType: formData.licenseType,
+      tags: formData.tags,
+      formats: formData.formats,
+      formatData: JSON.stringify(formatData),
+      groupId: formData.groupId
+    };
+  };
+
+  const nextStep = () => {
+    // Estamos na primeira etapa, validar antes de avançar para uploads
+    if (step === 1) {
+      // Validação básica antes de avançar
+      if (!formData.title.trim()) {
         toast({
-          title: "Imagem obrigatória",
-          description: "Por favor, adicione pelo menos uma imagem.",
+          title: "Campo obrigatório",
+          description: "Por favor, insira um nome para a postagem.",
           variant: "destructive",
         });
         return;
       }
       
-      // Compilar dados dos formatos
-      const formatData = formData.formats.map(format => ({
-        type: format,
-        imageUrl: imageUrls[format] || "",
-        links: formData.formatFiles[format].links
-      }));
+      if (!formData.categoryId) {
+        toast({
+          title: "Campo obrigatório",
+          description: "Por favor, selecione uma categoria.",
+          variant: "destructive",
+        });
+        return;
+      }
       
-      // Construir objeto da postagem
-      const postData = {
-        title: formData.title,
-        categoryId: formData.categoryId,
-        status: formData.status,
-        description: formData.description,
-        imageUrl: mainImageUrl,
-        uniqueCode: formData.uniqueCode,
-        licenseType: formData.licenseType,
-        tags: formData.tags,
-        formats: formData.formats,
-        formatData: JSON.stringify(formatData)
-      };
+      if (formData.formats.length === 0) {
+        toast({
+          title: "Selecione pelo menos um formato",
+          description: "A postagem precisa ter ao menos um formato selecionado.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setStep(2);
+      setActiveTab(formData.formats[0] || "postagem");
+    } 
+    // Estamos na segunda etapa, validar conteúdo antes de avançar para revisão
+    else if (step === 2) {
+      if (!hasAnyContent()) {
+        toast({
+          title: "Conteúdo obrigatório",
+          description: "Adicione pelo menos uma imagem ou link para cada formato selecionado.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setStep(3);
+    }
+  };
+
+  const prevStep = () => {
+    if (step === 2) {
+      setStep(1);
+    } else if (step === 3) {
+      setStep(2);
+      setActiveTab(formData.formats[0] || "postagem");
+    }
+  };
+
+  const submitForm = async () => {
+    try {
+      if (!hasAnyContent()) {
+        toast({
+          title: "Conteúdo obrigatório",
+          description: "Adicione pelo menos uma imagem ou link para cada formato selecionado.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const postData = preparePostData();
+      
+      // Validar que temos pelo menos uma imagem principal
+      if (!postData.imageUrl) {
+        toast({
+          title: "Imagem obrigatória",
+          description: "Pelo menos um formato precisa ter uma imagem.",
+          variant: "destructive",
+        });
+        return;
+      }
       
       // Enviar requisição
       if (isEdit && initialData?.id) {
@@ -455,7 +511,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
           </p>
         </div>
         
-        {step === 1 ? (
+        {step === 1 && (
           <div className="space-y-6">
             {/* Nome da Postagem */}
             <div className="space-y-2">
@@ -678,7 +734,9 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
               </Button>
             </div>
           </div>
-        ) : (
+        )}
+        
+        {step === 2 && (
           <div className="space-y-6">
             {/* Tabs de Navegação entre Formatos */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -883,10 +941,162 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
             
             {/* Botões de Navegação */}
             <div className="flex justify-between mt-8">
-              <Button type="button" variant="outline" onClick={prevStep}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={prevStep}
+                className="flex items-center gap-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
                 Voltar
               </Button>
-              <Button type="button" onClick={submitForm}>
+              <Button 
+                type="button" 
+                onClick={nextStep}
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+              >
+                Avançar para Revisão
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {step === 3 && (
+          // ETAPA 3: Revisão final e confirmação
+          <div className="space-y-6">
+            <div className="bg-slate-50 p-4 rounded-md border">
+              <div className="flex items-center gap-2 mb-4 text-[#1f4ed8]">
+                <FileCheck className="h-5 w-5" />
+                <h3 className="font-medium text-lg">Revise os dados antes de publicar</h3>
+              </div>
+              
+              <Card className="mb-6">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Dados da Postagem</CardTitle>
+                  <CardDescription>Informações básicas da postagem</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-0">
+                  <div>
+                    <p className="text-sm mb-2"><strong>Título:</strong> {formData.title}</p>
+                    <p className="text-sm mb-2">
+                      <strong>Categoria:</strong> {
+                        categories.find(cat => cat.id === formData.categoryId)?.name || "Não definida"
+                      }
+                    </p>
+                    <p className="text-sm mb-2">
+                      <strong>Status:</strong> <span className={`py-1 px-2 rounded-full text-xs ${
+                        formData.status === 'aprovado' 
+                          ? 'bg-green-100 text-green-800' 
+                          : formData.status === 'rascunho' 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-red-100 text-red-800'
+                      }`}>{formData.status}</span>
+                    </p>
+                    <p className="text-sm mb-2">
+                      <strong>Licença:</strong> {
+                        formData.licenseType === 'premium' 
+                          ? <span className="inline-flex items-center gap-1">
+                              <Crown className="h-3 w-3 text-amber-500" />
+                              Premium
+                            </span>
+                          : 'Gratuito'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm mb-2"><strong>ID único:</strong> {formData.uniqueCode}</p>
+                    <p className="text-sm mb-2"><strong>Grupo de artes:</strong> {formData.groupId}</p>
+                    <p className="text-sm mb-2"><strong>Tags:</strong></p>
+                    <div className="flex flex-wrap gap-1">
+                      {formData.tags.length > 0 ? (
+                        formData.tags.map((tag) => (
+                          <Badge key={tag} variant="outline" className="py-0 px-2 text-xs">
+                            #{tag}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Nenhuma tag</span>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Resumo dos formatos com conteúdo */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-md">Formatos e Conteúdos</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {formData.formats.map(format => (
+                    <Card key={format} className={cn(
+                      "overflow-hidden transition-all",
+                      hasImageOrLinks(format) 
+                        ? "border-[#1f4ed8]/30" 
+                        : "border-gray-200 opacity-60"
+                    )}>
+                      <CardHeader className="pb-2 pt-4 px-4">
+                        <CardTitle className="text-md capitalize">{format}</CardTitle>
+                        <CardDescription>{
+                          hasImageOrLinks(format) 
+                            ? "Conteúdo adicionado" 
+                            : "Nenhum conteúdo"
+                        }</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        {formData.formatFiles[format].imagePreview ? (
+                          <div className="relative border-t border-b">
+                            <img 
+                              src={formData.formatFiles[format].imagePreview} 
+                              alt={`Preview da ${format}`} 
+                              className="w-full h-32 object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-16 border-t border-b bg-slate-50">
+                            <FileImage className="h-6 w-6 text-slate-300" />
+                          </div>
+                        )}
+                        <div className="p-4 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium">Links:</span>
+                            <span className="text-xs">
+                              {formData.formatFiles[format].links.length}
+                            </span>
+                          </div>
+                          {formData.formatFiles[format].links.length > 0 && (
+                            <div className="pt-1">
+                              {formData.formatFiles[format].links.map(link => (
+                                <div key={link.id} className="flex items-center text-xs text-muted-foreground gap-1 mb-1">
+                                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">{link.provider}: {link.url}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Botões de Navegação */}
+            <div className="flex justify-between mt-8">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={prevStep}
+                className="flex items-center gap-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar para Editar
+              </Button>
+              <Button 
+                type="button" 
+                onClick={submitForm}
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+              >
                 Publicar Postagem
               </Button>
             </div>

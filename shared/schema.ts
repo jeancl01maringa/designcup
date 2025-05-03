@@ -124,6 +124,11 @@ export const posts = pgTable("posts", {
   status: postStatusEnum("status").default('rascunho').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   publishedAt: timestamp("published_at"),
+  licenseType: text("license_type").default('free'), // premium ou free
+  tags: text("tags").array(), // array de tags
+  formats: text("formats").array(), // array de formatos (feed, stories, cartaz)
+  formatData: text("format_data"), // dados de formato em JSON
+  groupId: text("group_id"), // ID para agrupar artes relacionadas
 });
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
