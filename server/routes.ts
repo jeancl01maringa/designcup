@@ -24,6 +24,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
+      console.log('Buscando todos os formatos de arquivo');
+      
       const { data, error } = await supabase
         .from('file_formats')
         .select('*')
@@ -31,18 +33,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
       if (error) {
         console.error("Erro ao buscar formatos de arquivo:", error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao buscar formatos de arquivo',
+          error: error.message
+        });
       }
       
-      res.json(data || []);
-    } catch (error) {
+      console.log(`Encontrados ${data?.length || 0} formatos de arquivo`);
+      return res.json(data || []);
+    } catch (error: any) {
       console.error('Error fetching file formats:', error);
-      res.status(500).json({ message: 'Erro ao buscar formatos de arquivo' });
+      res.status(500).json({ 
+        message: 'Erro ao buscar formatos de arquivo',
+        error: error.message
+      });
     }
   });
 
   app.post('/api/admin/file-formats', async (req, res) => {
     try {
+      // Verifique se o usuário está autenticado e é admin
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
@@ -53,6 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Nome e tipo são obrigatórios' });
       }
       
+      console.log('Criando formato de arquivo:', { name, type, icon, is_active });
+      
+      // Tente inserir no Supabase
       const { data, error } = await supabase
         .from('file_formats')
         .insert([{ 
@@ -62,18 +75,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           is_active: is_active !== false,
           created_at: new Date().toISOString()
         }])
-        .select()
-        .single();
+        .select();
         
       if (error) {
         console.error("Erro ao criar formato de arquivo:", error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao criar formato de arquivo', 
+          error: error.message 
+        });
       }
       
-      res.status(201).json(data);
-    } catch (error) {
+      // Verifique se data existe antes de tentar acessar [0]
+      if (!data || data.length === 0) {
+        return res.status(500).json({ 
+          message: 'Formato criado, mas nenhum dado retornado' 
+        });
+      }
+      
+      // Retorne o primeiro item do array data
+      res.status(201).json(data[0]);
+    } catch (error: any) {
       console.error('Error creating file format:', error);
-      res.status(500).json({ message: 'Erro ao criar formato de arquivo' });
+      res.status(500).json({ 
+        message: 'Erro ao criar formato de arquivo',
+        error: error.message 
+      });
     }
   });
 
@@ -92,22 +118,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (icon !== undefined) updateData.icon = icon;
       if (is_active !== undefined) updateData.is_active = is_active;
       
+      console.log(`Atualizando formato de arquivo #${id}:`, updateData);
+      
       const { data, error } = await supabase
         .from('file_formats')
         .update(updateData)
         .eq('id', id)
-        .select()
-        .single();
+        .select();
         
       if (error) {
         console.error(`Erro ao atualizar formato de arquivo #${id}:`, error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar formato de arquivo',
+          error: error.message
+        });
       }
       
-      res.json(data);
-    } catch (error) {
+      if (!data || data.length === 0) {
+        return res.status(404).json({ message: 'Formato não encontrado ou não foi atualizado' });
+      }
+      
+      res.json(data[0]);
+    } catch (error: any) {
       console.error('Error updating file format:', error);
-      res.status(500).json({ message: 'Erro ao atualizar formato de arquivo' });
+      res.status(500).json({ 
+        message: 'Erro ao atualizar formato de arquivo',
+        error: error.message
+      });
     }
   });
 
@@ -119,6 +156,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       
+      console.log(`Excluindo formato de arquivo #${id}`);
+      
       const { error } = await supabase
         .from('file_formats')
         .delete()
@@ -126,13 +165,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
       if (error) {
         console.error(`Erro ao excluir formato de arquivo #${id}:`, error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao excluir formato de arquivo',
+          error: error.message
+        });
       }
       
       res.status(200).json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting file format:', error);
-      res.status(500).json({ message: 'Erro ao excluir formato de arquivo' });
+      res.status(500).json({ 
+        message: 'Erro ao excluir formato de arquivo',
+        error: error.message
+      });
     }
   });
 
@@ -143,6 +188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
+      console.log('Buscando todos os formatos de post');
+      
       const { data, error } = await supabase
         .from('post_formats')
         .select('*')
@@ -150,18 +197,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
       if (error) {
         console.error("Erro ao buscar formatos de post:", error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao buscar formatos de post',
+          error: error.message
+        });
       }
       
-      res.json(data || []);
-    } catch (error) {
+      console.log(`Encontrados ${data?.length || 0} formatos de post`);
+      return res.json(data || []);
+    } catch (error: any) {
       console.error('Error fetching post formats:', error);
-      res.status(500).json({ message: 'Erro ao buscar formatos de post' });
+      res.status(500).json({ 
+        message: 'Erro ao buscar formatos de post',
+        error: error.message
+      });
     }
   });
 
   app.post('/api/admin/post-formats', async (req, res) => {
     try {
+      // Verifique se o usuário está autenticado e é admin
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
@@ -172,6 +227,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Nome, tamanho e orientação são obrigatórios' });
       }
       
+      console.log('Criando formato de post:', { name, size, orientation, is_active });
+      
+      // Tente inserir no Supabase
       const { data, error } = await supabase
         .from('post_formats')
         .insert([{ 
@@ -181,18 +239,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           is_active: is_active !== false,
           created_at: new Date().toISOString()
         }])
-        .select()
-        .single();
+        .select();
         
       if (error) {
         console.error("Erro ao criar formato de post:", error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao criar formato de post', 
+          error: error.message 
+        });
       }
       
-      res.status(201).json(data);
-    } catch (error) {
+      // Verifique se data existe antes de tentar acessar [0]
+      if (!data || data.length === 0) {
+        return res.status(500).json({ 
+          message: 'Formato criado, mas nenhum dado retornado' 
+        });
+      }
+      
+      // Retorne o primeiro item do array data
+      res.status(201).json(data[0]);
+    } catch (error: any) {
       console.error('Error creating post format:', error);
-      res.status(500).json({ message: 'Erro ao criar formato de post' });
+      res.status(500).json({ 
+        message: 'Erro ao criar formato de post',
+        error: error.message 
+      });
     }
   });
 
@@ -211,22 +282,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (orientation !== undefined) updateData.orientation = orientation;
       if (is_active !== undefined) updateData.is_active = is_active;
       
+      console.log(`Atualizando formato de post #${id}:`, updateData);
+      
       const { data, error } = await supabase
         .from('post_formats')
         .update(updateData)
         .eq('id', id)
-        .select()
-        .single();
+        .select();
         
       if (error) {
         console.error(`Erro ao atualizar formato de post #${id}:`, error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar formato de post',
+          error: error.message
+        });
       }
       
-      res.json(data);
-    } catch (error) {
+      if (!data || data.length === 0) {
+        return res.status(404).json({ message: 'Formato não encontrado ou não foi atualizado' });
+      }
+      
+      res.json(data[0]);
+    } catch (error: any) {
       console.error('Error updating post format:', error);
-      res.status(500).json({ message: 'Erro ao atualizar formato de post' });
+      res.status(500).json({ 
+        message: 'Erro ao atualizar formato de post',
+        error: error.message
+      });
     }
   });
 
@@ -238,6 +320,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       
+      console.log(`Excluindo formato de post #${id}`);
+      
       const { error } = await supabase
         .from('post_formats')
         .delete()
@@ -245,13 +329,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
       if (error) {
         console.error(`Erro ao excluir formato de post #${id}:`, error);
-        throw error;
+        return res.status(500).json({ 
+          message: 'Erro ao excluir formato de post',
+          error: error.message
+        });
       }
       
       res.status(200).json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting post format:', error);
-      res.status(500).json({ message: 'Erro ao excluir formato de post' });
+      res.status(500).json({ 
+        message: 'Erro ao excluir formato de post',
+        error: error.message
+      });
     }
   });
 
