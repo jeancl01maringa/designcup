@@ -10,11 +10,17 @@ import {
   Check, 
   ChevronsDown,
   Eye,
-  ExternalLink
+  ExternalLink,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -224,16 +230,20 @@ export default function ArtDetailPage() {
         {/* Coluna da direita - Informações */}
         <div className="space-y-5 border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
           {/* Título e selo premium */}
-          <div className="flex items-start gap-2">
-            <h1 className="text-xl font-bold">{post.title}</h1>
-            {isPremium && (
-              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 h-6 py-0 px-2 mt-0.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
-                </svg>
-                <span className="text-xs">Premium</span>
-              </Badge>
-            )}
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                {post.title}
+                {isPremium && (
+                  <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 h-6 py-0 px-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
+                    </svg>
+                    <span className="text-xs">Premium</span>
+                  </Badge>
+                )}
+              </h1>
+            </div>
           </div>
           
           {/* Checklist de vantagens */}
@@ -267,9 +277,9 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Especificações do arquivo */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Especificações do Arquivo</h3>
-            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Especificações do Arquivo</h3>
+            <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
                 <div className="flex flex-col">
@@ -303,7 +313,7 @@ export default function ArtDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="flex justify-center mt-2">
+            <div className="flex justify-center mt-3">
               <button className="text-xs text-gray-500 flex items-center gap-1">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"></circle>
@@ -316,31 +326,82 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Formatos disponíveis */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Formatos disponíveis</h3>
-            <div className="border border-gray-200 rounded-md p-3 bg-white">
-              <div className="flex items-center justify-between cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
-                    <img 
-                      src={post.imageUrl || post.image_url} 
-                      alt={post.title} 
-                      className="w-full h-full object-cover"
-                    />
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Formatos disponíveis</h3>
+            {Array.isArray(post.formats) && post.formats.length > 1 ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="border border-gray-200 rounded-md p-3 bg-white cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
+                          <img 
+                            src={post.imageUrl || post.image_url} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium">{formatLabel(post.formats[0] || 'FEED')}</div>
+                          <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-blue-600">{post.formats.length} opções</span>
+                        <ChevronDown size={14} className="text-gray-500" />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs font-medium">FEED</div>
-                    <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[250px] p-0">
+                  <div className="p-1">
+                    {post.formats.map((format, index) => (
+                      <div 
+                        key={index} 
+                        className="p-2 hover:bg-gray-50 rounded-md cursor-pointer flex items-center gap-2"
+                      >
+                        <div className="w-8 h-8 rounded overflow-hidden border border-gray-100">
+                          <img 
+                            src={post.imageUrl || post.image_url} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium">{formatLabel(format)}</div>
+                          <div className="text-[10px] text-gray-500">
+                            {format === 'FEED' ? '1080×1080px • Quadrado' : 
+                             format === 'STORIES' ? '1080×1920px • Vertical' : 
+                             format === 'CARTAZ' ? '1080×1350px • Retrato' : '1080×1080px'}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-blue-600">3 opções</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <div className="border border-gray-200 rounded-md p-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
+                      <img 
+                        src={post.imageUrl || post.image_url} 
+                        alt={post.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium">{formatLabel(post.formats?.[0] || 'FEED')}</div>
+                      <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-gray-500">1 opção</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
           
           {/* Botão principal de ação */}
