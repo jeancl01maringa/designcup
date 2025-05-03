@@ -41,6 +41,7 @@ const NavLinks = () => {
     { name: "Categorias", path: "/categorias" },
     { name: "Designers", path: "/designers" },
     { name: "Formatos", path: "/formatos" },
+    { name: "Planos", path: "/planos" },
     { name: "Tutoriais", path: "/tutoriais" },
     { name: "Suporte", path: "/suporte" }
   ];
@@ -176,6 +177,7 @@ const MobileMenu = () => {
     { name: "Categorias", path: "/categorias" },
     { name: "Designers", path: "/designers" },
     { name: "Formatos", path: "/formatos" },
+    { name: "Planos", path: "/planos" },
     { name: "Tutoriais", path: "/tutoriais" },
     { name: "Suporte", path: "/suporte" }
   ];
