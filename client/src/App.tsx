@@ -9,6 +9,8 @@ import VideoClasses from "@/pages/VideoClasses";
 import More from "@/pages/More";
 import ArtworkDetail from "@/pages/ArtworkDetail";
 import AuthPage from "@/pages/auth-page";
+import ImageUploadDemo from "@/pages/ImageUploadDemo";
+import SocialSharingDemo from "@/pages/SocialSharingDemo";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
@@ -27,6 +29,8 @@ function Router() {
       <Route path="/mais" component={More} />
       <Route path="/artwork/:id" component={ArtworkDetail} />
       <Route path="/auth/*" component={AuthPage} />
+      <Route path="/demo/upload" component={ImageUploadDemo} />
+      <Route path="/demo/sharing" component={SocialSharingDemo} />
       <Route component={NotFound} />
     </Switch>
   );

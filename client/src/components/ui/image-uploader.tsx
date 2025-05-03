@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect } from "react";
-import imageCompression from "browser-image-compression";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Loader2, Upload, X, Check, Image as ImageIcon } from "lucide-react";
-import { supabase, ensureImageBucket, generateUniqueFileName, getPublicImageUrl } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useRef, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { supabase, ensureImageBucket, generateUniqueFileName, getPublicImageUrl } from '@/lib/supabase';
+import { cn } from '@/lib/utils';
+import { Upload, ImageOff, X, RefreshCw } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 
 interface ImageUploaderProps {
   onImageUploaded: (imageUrl: string) => void;
@@ -20,250 +21,209 @@ export function ImageUploader({
   defaultImageUrl,
   maxSizeMB = 1,
   maxWidthOrHeight = 1080,
-  className = "",
-  buttonText = "Carregar imagem"
+  className,
+  buttonText = 'Escolher imagem'
 }: ImageUploaderProps) {
-  const { toast } = useToast();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(defaultImageUrl || null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [compressProgress, setCompressProgress] = useState(0);
-  const [fileError, setFileError] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(defaultImageUrl);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Inicializa o bucket de armazenamento quando o componente é montado
-  useEffect(() => {
-    ensureImageBucket();
-  }, []);
-
-  // Reset status da UI quando um novo arquivo é selecionado
-  useEffect(() => {
-    if (selectedFile) {
-      setFileError(null);
-      setUploadSuccess(false);
-      setCompressProgress(0);
-      setUploadProgress(0);
-
-      // Criar preview da imagem selecionada
-      const objectUrl = URL.createObjectURL(selectedFile);
-      setPreview(objectUrl);
-
-      return () => URL.revokeObjectURL(objectUrl);
-    }
-  }, [selectedFile]);
-
-  // Manipula mudanças no input de arquivo
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) {
-      setSelectedFile(null);
-      return;
-    }
-
-    const file = e.target.files[0];
-    
-    // Verifica se o arquivo é uma imagem
-    if (!file.type.startsWith("image/")) {
-      setFileError("Por favor, selecione um arquivo de imagem válido.");
-      setSelectedFile(null);
-      return;
-    }
-
-    setSelectedFile(file);
-  };
-
-  // Manipula o clique no botão de upload
-  const handleUpload = useCallback(async () => {
-    if (!selectedFile) {
-      setFileError("Nenhum arquivo selecionado.");
-      return;
-    }
-
+  const handleFileSelect = useCallback(async (file: File) => {
     try {
+      setError(null);
       setIsUploading(true);
-      setFileError(null);
-      setUploadSuccess(false);
+      setUploadProgress(10);
 
-      // Comprimir a imagem
-      setCompressProgress(10);
-      console.log("Comprimindo imagem...");
+      // Verificar se é uma imagem
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Por favor, selecione um arquivo de imagem válido');
+      }
+
+      setUploadProgress(20);
       
-      const options = {
+      // Comprimir imagem
+      console.log(`Comprimindo imagem... (tamanho original: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      const compressedFile = await imageCompression(file, {
         maxSizeMB,
         maxWidthOrHeight,
         useWebWorker: true,
-        onProgress: (progress: number) => {
-          setCompressProgress(Math.round(progress * 50)); // Compressão vai até 50% do progresso
-        }
-      };
+        fileType: 'image/webp',
+      });
+      console.log(`Imagem comprimida! (novo tamanho: ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB)`);
+      
+      setUploadProgress(50);
 
-      const compressedFile = await imageCompression(selectedFile, options);
-      setCompressProgress(50);
+      // Garantir que o bucket existe
+      await ensureImageBucket();
       
-      // Converter para WebP se o navegador suportar
-      let finalFile = compressedFile;
-      
-      // Gerar nome único para o arquivo
-      const fileName = generateUniqueFileName(selectedFile.name);
-      
-      // Upload para o Supabase
-      console.log("Enviando para o Supabase...");
       setUploadProgress(60);
+
+      // Gerar nome único para o arquivo
+      const fileName = generateUniqueFileName(file.name);
       
-      const { data, error } = await supabase.storage
-        .from("images")
-        .upload(fileName, finalFile, {
-          cacheControl: "3600",
+      // Enviar para o Supabase
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(fileName, compressedFile, {
+          cacheControl: '3600',
           upsert: false,
-          contentType: "image/webp"
         });
 
-      if (error) {
-        throw new Error(`Erro ao fazer upload: ${error.message}`);
+      if (uploadError) {
+        throw uploadError;
       }
-
+      
       setUploadProgress(90);
       
-      // Obter a URL pública da imagem
-      const imageUrl = getPublicImageUrl(data.path);
-      console.log("Upload concluído:", imageUrl);
+      // Obter URL pública
+      const publicUrl = getPublicImageUrl(fileName);
+      
+      setImageUrl(publicUrl);
+      onImageUploaded(publicUrl);
       
       setUploadProgress(100);
-      setUploadSuccess(true);
-      onImageUploaded(imageUrl);
-      
-      toast({
-        title: "Upload concluído",
-        description: "Sua imagem foi enviada com sucesso.",
-      });
-    } catch (error) {
-      console.error("Erro no processo de upload:", error);
-      setFileError(error instanceof Error ? error.message : "Erro desconhecido no upload.");
-      
-      toast({
-        title: "Erro no upload",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao processar sua imagem.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      console.error('Erro ao fazer upload da imagem:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao enviar imagem');
     } finally {
       setIsUploading(false);
     }
-  }, [selectedFile, maxSizeMB, maxWidthOrHeight, onImageUploaded, toast]);
+  }, [maxSizeMB, maxWidthOrHeight, onImageUploaded]);
 
-  // Limpa a seleção de arquivo
-  const handleClearSelection = () => {
-    setSelectedFile(null);
-    setPreview(defaultImageUrl || null);
-    setFileError(null);
-    setUploadSuccess(false);
-    setCompressProgress(0);
-    setUploadProgress(0);
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  }, [handleFileSelect]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileSelect(e.target.files[0]);
+    }
+  }, [handleFileSelect]);
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
-  return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Área de preview da imagem */}
-      {preview ? (
-        <div className="relative w-full h-48 border rounded-md overflow-hidden">
-          <img 
-            src={preview} 
-            alt="Preview" 
-            className="w-full h-full object-cover"
-          />
-          <button 
-            onClick={handleClearSelection}
-            className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-black transition-colors"
-            type="button"
-            disabled={isUploading}
-          >
-            <X className="h-4 w-4" />
-          </button>
-          {uploadSuccess && (
-            <div className="absolute bottom-2 right-2 bg-green-500/80 text-white px-2 py-1 rounded-full text-xs flex items-center">
-              <Check className="h-3 w-3 mr-1" />
-              Enviado
-            </div>
-          )}
-        </div>
-      ) : (
-        <div 
-          className="w-full h-48 border-2 border-dashed rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => document.getElementById("file-upload")?.click()}
-        >
-          <ImageIcon className="h-10 w-10 text-gray-300 mb-2" />
-          <p className="text-sm text-gray-500">Clique para selecionar uma imagem</p>
-          <p className="text-xs text-gray-400 mt-1">PNG, JPG ou WEBP (máx. {maxSizeMB}MB)</p>
-        </div>
-      )}
+  const clearImage = useCallback(() => {
+    setImageUrl(undefined);
+    onImageUploaded('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [onImageUploaded]);
 
-      {/* Input para seleção de arquivo (escondido) */}
-      <input
-        id="file-upload"
+  return (
+    <div 
+      className={cn(
+        "relative flex flex-col items-center justify-center w-full min-h-[200px] border-2 border-dashed rounded-lg transition-all",
+        isDragging 
+          ? "border-primary bg-primary/5" 
+          : "border-gray-300 hover:border-primary/50 hover:bg-gray-50/50",
+        className
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <Input
+        ref={fileInputRef}
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={handleFileChange}
-        disabled={isUploading}
+        onChange={handleInputChange}
       />
-
-      {/* Mensagem de erro */}
-      {fileError && (
-        <div className="text-red-500 text-sm">
-          {fileError}
-        </div>
-      )}
-
-      {/* Barra de progresso */}
-      {(isUploading || uploadProgress > 0) && (
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>{isUploading ? "Enviando..." : uploadProgress === 100 ? "Concluído" : "Progresso"}</span>
-            <span>{Math.max(compressProgress, uploadProgress)}%</span>
+      
+      {isUploading ? (
+        <div className="flex flex-col items-center justify-center p-6 w-full h-full">
+          <RefreshCw size={30} className="text-primary/70 mb-4 animate-spin" />
+          <p className="text-sm text-gray-500 mb-3">Processando imagem...</p>
+          <div className="w-full max-w-xs">
+            <Progress value={uploadProgress} className="h-2" />
           </div>
-          <Progress value={Math.max(compressProgress, uploadProgress)} className="h-2" />
+        </div>
+      ) : imageUrl ? (
+        <div className="relative w-full h-full">
+          <img 
+            src={imageUrl} 
+            alt="Imagem carregada" 
+            className="w-full h-full object-contain rounded-lg" 
+          />
+          <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity bg-black/50 rounded-lg flex flex-col items-center justify-center">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white hover:bg-gray-100"
+                onClick={triggerFileInput}
+              >
+                Trocar
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={clearImage}
+              >
+                <X size={16} className="mr-1" />
+                Remover
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center p-6 w-full h-full">
+          {error ? (
+            <>
+              <ImageOff size={30} className="text-destructive mb-3" />
+              <p className="text-sm text-destructive font-medium">{error}</p>
+              <Button 
+                variant="ghost"
+                size="sm"
+                className="mt-3"
+                onClick={() => setError(null)}
+              >
+                Tentar novamente
+              </Button>
+            </>
+          ) : (
+            <>
+              <Upload size={30} className="text-gray-400 mb-3" />
+              <p className="text-sm text-gray-500 mb-1">
+                Arraste e solte uma imagem aqui ou
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2"
+                onClick={triggerFileInput}
+              >
+                {buttonText}
+              </Button>
+              <p className="text-xs text-gray-400 mt-4">
+                Formatos aceitos: JPG, PNG • Tamanho máx: {maxSizeMB}MB
+              </p>
+            </>
+          )}
         </div>
       )}
-
-      {/* Botões */}
-      <div className="flex space-x-2">
-        {!preview ? (
-          <Button 
-            type="button" 
-            variant="outline"
-            className="w-full"
-            onClick={() => document.getElementById("file-upload")?.click()}
-            disabled={isUploading}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {buttonText}
-          </Button>
-        ) : (
-          <Button 
-            type="button" 
-            variant="default"
-            className="w-full"
-            onClick={handleUpload}
-            disabled={isUploading || uploadSuccess}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Enviando...
-              </>
-            ) : uploadSuccess ? (
-              <>
-                <Check className="h-4 w-4 mr-2" />
-                Enviado
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 mr-2" />
-                Enviar imagem
-              </>
-            )}
-          </Button>
-        )}
-      </div>
     </div>
   );
 }

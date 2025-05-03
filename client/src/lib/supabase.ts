@@ -1,43 +1,84 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || process.env.SUPABASE_KEY;
+// Verificar se as variáveis de ambiente estão disponíveis
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || '';
 
+// Mostrar alerta se as chaves não estiverem definidas
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Supabase URL ou Key está faltando. Verifique as variáveis de ambiente.');
+  console.warn('Variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_KEY não definidas. O armazenamento de imagens não funcionará corretamente.');
 }
 
-export const supabase = createClient(supabaseUrl as string, supabaseKey as string);
+// Criar uma função que retorna um cliente mock se as credenciais não estiverem disponíveis
+function createSupabaseClient() {
+  if (!supabaseUrl || !supabaseKey) {
+    // Retornar um cliente mock que não faz nada
+    // @ts-ignore - permitindo um mock rudimentar para evitar erros
+    return {
+      storage: {
+        listBuckets: () => ({ data: [], error: new Error('Credenciais Supabase não fornecidas') }),
+        createBucket: () => ({ error: new Error('Credenciais Supabase não fornecidas') }),
+        from: () => ({
+          upload: () => ({ error: new Error('Credenciais Supabase não fornecidas') }),
+          getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        }),
+      },
+    };
+  }
+  
+  // Criar um cliente real se tivermos credenciais
+  try {
+    return createClient(supabaseUrl, supabaseKey);
+  } catch (error) {
+    console.error('Erro ao criar cliente Supabase:', error);
+    // @ts-ignore - permitindo um mock rudimentar para evitar erros
+    return {
+      storage: {
+        listBuckets: () => ({ data: [], error: new Error('Erro ao criar cliente Supabase') }),
+        createBucket: () => ({ error: new Error('Erro ao criar cliente Supabase') }),
+        from: () => ({
+          upload: () => ({ error: new Error('Erro ao criar cliente Supabase') }),
+          getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        }),
+      },
+    };
+  }
+}
+
+// Exportar o cliente
+export const supabase = createSupabaseClient();
 
 /**
  * Verifica se o bucket de imagens existe e o cria se necessário
  */
 export async function ensureImageBucket() {
   try {
-    // Verifica se o bucket 'images' existe
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(bucket => bucket.name === 'images');
+    // Verificar se o bucket já existe
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
-    // Se não existir, cria o bucket
-    if (!bucketExists) {
-      const { error } = await supabase.storage.createBucket('images', {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-      });
-      
-      if (error) {
-        console.error('Erro ao criar bucket images:', error);
-        return false;
-      }
-      
-      console.log('Bucket images criado com sucesso!');
+    if (listError) {
+      throw listError;
     }
     
-    return true;
+    const imagesBucketExists = buckets?.some(bucket => bucket.name === 'images');
+    
+    if (!imagesBucketExists) {
+      // Criar bucket se não existir
+      const { error: createError } = await supabase.storage.createBucket('images', {
+        public: true,
+        fileSizeLimit: 5242880, // 5MB
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp']
+      });
+      
+      if (createError) {
+        throw createError;
+      }
+      
+      console.log('Bucket de imagens criado com sucesso!');
+    }
   } catch (error) {
-    console.error('Erro ao verificar/criar bucket de imagens:', error);
-    return false;
+    console.error('Erro ao configurar bucket de imagens:', error);
+    throw new Error('Não foi possível configurar o armazenamento de imagens.');
   }
 }
 
@@ -46,8 +87,14 @@ export async function ensureImageBucket() {
  */
 export function generateUniqueFileName(originalFileName: string, extension = 'webp') {
   const timestamp = new Date().getTime();
-  const randomString = Math.random().toString(36).substring(2, 8);
-  return `${timestamp}-${randomString}.${extension}`;
+  const randomString = Math.random().toString(36).substring(2, 10);
+  const cleanFileName = originalFileName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  
+  return `${cleanFileName.substring(0, 20)}-${timestamp}-${randomString}.${extension}`;
 }
 
 /**
