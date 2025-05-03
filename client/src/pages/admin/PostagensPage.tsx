@@ -477,15 +477,16 @@ export default function PostagensPage() {
                 Nova postagem
               </Button>
             </DialogTrigger>
-            
-            {/* Renderiza o formulário de postagem otimizado para mobile */}
-            <MobileOptimizedPostForm 
-              open={isFormOpen}
-              onOpenChange={setIsFormOpen}
-              initialData={editingPost || undefined}
-              isEdit={!!editingPost}
-            />
           </Dialog>
+          
+          {/* Renderiza o formulário de postagem otimizado para mobile */}
+          <MobileOptimizedPostForm 
+            open={isFormOpen}
+            onOpenChange={setIsFormOpen}
+            initialData={editingPost || undefined}
+            isEdit={!!editingPost}
+            key={editingPost ? `edit-${editingPost.id}` : 'new-post'} // Forçar recriação do componente
+          />
         </div>
       </div>
 

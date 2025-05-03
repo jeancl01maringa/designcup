@@ -57,6 +57,7 @@ interface PostFormData {
   formatFiles: Record<PostFormat, FormatFile>;
   uniqueCode: string;
   groupId?: string;
+  isVisible: boolean; // Controla a visibilidade da postagem no feed
 }
 
 export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = false }: PostFormProps) {
@@ -89,7 +90,8 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       stories: { ...defaultFormatFile }
     },
     uniqueCode: uniquePostId,
-    groupId: nanoid()
+    groupId: nanoid(),
+    isVisible: true // Por padrão a postagem é visível
   });
 
   // Preencher dados caso seja edição
@@ -110,7 +112,9 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         tags: initialData.tags || [],
         formats: (initialData.formats as PostFormat[]) || [],
         formatFiles: formatFiles,
-        uniqueCode: initialData.uniqueCode || uniquePostId
+        uniqueCode: initialData.uniqueCode || uniquePostId,
+        groupId: initialData.groupId || nanoid(),
+        isVisible: initialData.isVisible !== undefined ? initialData.isVisible : true
       });
     }
   }, [isEdit, initialData, uniquePostId]);
@@ -444,7 +448,8 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         formatData: formatDataJson,
         uniqueCode: formData.uniqueCode,
         groupId: formData.groupId,
-        imageUrl: mainImageUrl || "/assets/placeholder.png" // Fallback para placeholder
+        imageUrl: mainImageUrl || "/assets/placeholder.png", // Fallback para placeholder
+        isVisible: formData.isVisible // Controle de visibilidade no feed
       };
       
       // Salvar no servidor como rascunho
@@ -522,7 +527,8 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         formatData: formatDataJson, // Enviar como string JSON
         uniqueCode: formData.uniqueCode,
         groupId: formData.groupId,
-        imageUrl: mainImageUrl // Adicionar imageUrl que é obrigatório
+        imageUrl: mainImageUrl, // Adicionar imageUrl que é obrigatório
+        isVisible: formData.isVisible // Controle de visibilidade no feed
       };
       
       // Enviar para o servidor
@@ -672,10 +678,15 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                   >
                     <SelectTrigger id="licenseType">
                       <SelectValue>
-                        {formData.licenseType === 'premium' && (
+                        {formData.licenseType === 'premium' ? (
                           <div className="flex items-center">
-                            <Crown className="h-4 w-4 mr-2 text-amber-500" />
+                            <Crown className="h-4 w-4 mr-2 text-amber-500 fill-amber-500" />
                             <span>Premium</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center">
+                            <Crown className="h-4 w-4 mr-2 text-gray-400" />
+                            <span>Gratuito</span>
                           </div>
                         )}
                       </SelectValue>
@@ -683,11 +694,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                     <SelectContent>
                       <SelectItem value="premium">
                         <div className="flex items-center">
-                          <Crown className="h-4 w-4 mr-2 text-amber-500" />
+                          <Crown className="h-4 w-4 mr-2 text-amber-500 fill-amber-500" />
                           Premium
                         </div>
                       </SelectItem>
-                      <SelectItem value="free">Gratuito</SelectItem>
+                      <SelectItem value="free">
+                        <div className="flex items-center">
+                          <Crown className="h-4 w-4 mr-2 text-gray-400" />
+                          Gratuito
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">Determine como sua arte pode ser usada.</p>
@@ -708,6 +724,18 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                             <span>Aprovado</span>
                           </div>
                         )}
+                        {formData.status === 'rascunho' && (
+                          <div className="flex items-center">
+                            <Clock className="h-4 w-4 mr-2 text-amber-500" />
+                            <span>Rascunho</span>
+                          </div>
+                        )}
+                        {formData.status === 'rejeitado' && (
+                          <div className="flex items-center">
+                            <XCircle className="h-4 w-4 mr-2 text-red-500" />
+                            <span>Rejeitado</span>
+                          </div>
+                        )}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -717,11 +745,44 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                           Aprovado
                         </div>
                       </SelectItem>
-                      <SelectItem value="rascunho">Rascunho</SelectItem>
-                      <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                      <SelectItem value="rascunho">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2 text-amber-500" />
+                          Rascunho
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="rejeitado">
+                        <div className="flex items-center">
+                          <XCircle className="h-4 w-4 mr-2 text-red-500" />
+                          Rejeitado
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              
+              {/* Visibilidade no Feed */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isVisible">Visibilidade no Feed</Label>
+                  <div className="flex items-center space-x-2">
+                    <div 
+                      className={`w-10 h-5 rounded-full transition-colors relative ${formData.isVisible ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      onClick={() => setFormData(prev => ({ ...prev, isVisible: !prev.isVisible }))}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div 
+                        className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${formData.isVisible ? 'translate-x-5' : 'translate-x-0.5'}`}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {formData.isVisible 
+                    ? "A postagem será exibida no feed principal do site."
+                    : "A postagem não será exibida no feed, mas ainda estará acessível por link direto."}
+                </p>
               </div>
               
               {/* Tags */}
