@@ -207,27 +207,50 @@ export function sanitizeFileName(name: string): string {
 }
 
 /**
+ * Dimensões máximas para cada tipo de conteúdo
+ * Estes valores definem o tamanho máximo em pixels para cada tipo de imagem
+ * mantendo sempre a proporção original (aspect ratio)
+ */
+const MAX_DIMENSIONS = {
+  perfil: 300,   // Fotos de perfil: máximo 300px
+  curso: 1080,   // Capas de cursos: máximo 1080px
+  post: 1920,    // Postagens/artes: máximo 1920px
+  default: 1920  // Tamanho padrão para outros tipos
+};
+
+/**
  * Comprime e converte uma imagem para WebP antes do upload
  * Melhora significativamente o desempenho e tamanho do arquivo
+ * Redimensiona a imagem para o tamanho máximo adequado ao tipo de conteúdo
  * 
  * @param file Arquivo de imagem original
+ * @param contentType Tipo de conteúdo para determinar dimensão máxima
+ * @param customMaxSize Tamanho máximo personalizado (substitui o valor padrão para o tipo)
  * @returns Promise que resolve com o arquivo comprimido em formato WebP
  */
-async function compressAndConvertToWebP(file: File): Promise<File> {
+async function compressAndConvertToWebP(
+  file: File, 
+  contentType: keyof typeof MAX_DIMENSIONS = 'default',
+  customMaxSize?: number
+): Promise<File> {
   try {
     // Importação dinâmica da biblioteca de compressão
     const imageCompression = await import('browser-image-compression');
     
+    // Determinar a dimensão máxima com base no tipo de conteúdo
+    const maxDimension = customMaxSize || MAX_DIMENSIONS[contentType] || MAX_DIMENSIONS.default;
+    
     // Opções de compressão otimizadas para web
     const options = {
-      maxSizeMB: 1,             // Tamanho máximo em MB
-      maxWidthOrHeight: 1920,   // Dimensão máxima (mantém proporção)
-      useWebWorker: true,       // Usa worker para não bloquear UI
-      fileType: 'image/webp',   // Converte para WebP
-      initialQuality: 0.8,      // Qualidade inicial (0-1)
+      maxSizeMB: 2,              // Tamanho máximo em MB
+      maxWidthOrHeight: maxDimension,  // Dimensão máxima específica por tipo
+      useWebWorker: true,        // Usa worker para não bloquear UI
+      fileType: 'image/webp',    // Converte para WebP
+      initialQuality: 0.85,      // Qualidade inicial (0-1)
     };
     
     console.log(`Comprimindo imagem: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);
+    console.log(`Tipo de conteúdo: ${contentType}, dimensão máxima: ${maxDimension}px`);
     
     // Comprimir a imagem
     const compressedFile = await imageCompression.default(file, options);
@@ -340,7 +363,12 @@ export async function uploadFileToSupabase(
     // 2. Comprimir e converter para WebP se for uma imagem e a opção estiver ativada
     let fileToUpload = file;
     if (shouldConvertToWebP && file.type.startsWith('image/')) {
-      fileToUpload = await compressAndConvertToWebP(file);
+      // Determinar o tipo de conteúdo para definir a dimensão máxima
+      const contentType = uploadType as keyof typeof MAX_DIMENSIONS;
+      fileToUpload = await compressAndConvertToWebP(file, contentType);
+      
+      // Logar o tipo de conteúdo e tamanho máximo usado
+      console.log(`Imagem redimensionada para tipo: ${contentType}, tamanho máximo: ${MAX_DIMENSIONS[contentType] || MAX_DIMENSIONS.default}px`);
     }
     
     // 3. Preparar o caminho do arquivo de acordo com o tipo de conteúdo
