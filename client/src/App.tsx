@@ -8,6 +8,7 @@ import Categories from "@/pages/Categories";
 import VideoClasses from "@/pages/VideoClasses";
 import More from "@/pages/More";
 import ArtworkDetail from "@/pages/ArtworkDetail";
+import ArtDetailPage from "@/pages/ArtDetailPage";
 import AuthPage from "@/pages/auth-page";
 import ImageUploadDemo from "@/pages/ImageUploadDemo";
 import SocialSharingDemo from "@/pages/SocialSharingDemo";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/video-aulas" component={VideoClasses} />
       <Route path="/mais" component={More} />
       <Route path="/artwork/:id" component={ArtworkDetail} />
+      <Route path="/artes/:slug" component={ArtDetailPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />

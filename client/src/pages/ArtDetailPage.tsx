@@ -1,0 +1,415 @@
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { 
+  ArrowLeft, 
+  Download, 
+  Heart, 
+  Bookmark, 
+  Share2, 
+  Check, 
+  ChevronsDown,
+  Eye,
+  ExternalLink
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/lib/supabase";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+export default function ArtDetailPage() {
+  const [location, setLocation] = useLocation();
+  const params = useParams<{ slug: string }>();
+  const { slug } = params;
+  
+  // Extrair o ID numérico do slug (por exemplo, "pele-12" => 12)
+  const postId = slug ? parseInt(slug.split('-').pop() || '0', 10) : 0;
+  
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  
+  // Buscar os dados da arte
+  const { data: post, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/posts', postId],
+    queryFn: async () => {
+      if (!postId) throw new Error('ID inválido');
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*, categories(*)')
+        .eq('id', postId)
+        .single();
+        
+      if (error) throw error;
+      if (!data) throw new Error('Arte não encontrada');
+      
+      // Incrementar contador de visualizações (opcional)
+      try {
+        await supabase.rpc('increment_view_count', { post_id: postId });
+      } catch (err) {
+        console.error('Erro ao incrementar visualizações:', err);
+      }
+      
+      return data;
+    },
+    retry: 1
+  });
+  
+  // Buscar outros formatos da mesma arte (mesmo group_id)
+  const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery({
+    queryKey: ['/api/admin/posts/related', post?.group_id],
+    queryFn: async () => {
+      if (!post?.group_id) return [];
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('group_id', post.group_id)
+        .neq('id', post.id);
+        
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!post?.group_id
+  });
+  
+  // Formatar objetos para exibição
+  const formatLabel = (format: string) => {
+    const formatMap: Record<string, string> = {
+      'feed': 'FEED',
+      'stories': 'STORIES',
+      'post': 'POST',
+      'reels': 'REELS',
+      'carousel': 'CARROSSEL'
+    };
+    
+    return formatMap[format.toLowerCase()] || format.toUpperCase();
+  };
+  
+  // Determinar se é premium
+  const isPremium = post?.license_type === 'premium' || post?.is_pro;
+  
+  // Handlers para ações
+  const handleFavorite = () => setIsFavorite(!isFavorite);
+  const handleSave = () => setIsSaved(!isSaved);
+  const handleFollow = () => setIsFollowing(!isFollowing);
+  const handleShare = () => {
+    // Implementar compartilhamento
+    navigator.share?.({
+      title: post?.title || 'Arte para Estética',
+      text: post?.description || 'Confira esta arte para seus conteúdos de estética',
+      url: window.location.href
+    }).catch(err => console.error('Erro ao compartilhar:', err));
+  };
+  
+  const handleEditCanva = () => {
+    // Implementar link para o Canva
+    // A URL canva deve vir dos dados do post em: post.formatData
+    // Format data é armazenado como string JSON, então precisamos fazer o parse
+    
+    try {
+      let formatData;
+      if (post?.format_data) {
+        formatData = JSON.parse(post.format_data);
+      }
+      
+      const canvaUrl = formatData?.canvaUrl || 'https://www.canva.com/design/new';
+      window.open(canvaUrl, '_blank');
+    } catch (err) {
+      console.error('Erro ao abrir link do Canva:', err);
+      window.open('https://www.canva.com/design/new', '_blank');
+    }
+  };
+  
+  // Skeletons para loading
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Button 
+          variant="ghost" 
+          className="mb-6"
+          onClick={() => setLocation('/')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Skeleton className="w-full h-[500px] rounded-lg" />
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <div className="space-y-2 mt-4">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-2/3" />
+            </div>
+            <Skeleton className="h-12 w-full mt-4" />
+            <div className="flex gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Mensagem de erro
+  if (error || !post) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Button 
+          variant="ghost" 
+          className="mb-6"
+          onClick={() => setLocation('/')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        
+        <div className="text-center p-12 bg-white rounded-lg shadow-sm">
+          <h2 className="text-2xl font-bold text-red-500 mb-4">Arte não encontrada</h2>
+          <p className="text-gray-600 mb-4">
+            Não foi possível encontrar a arte solicitada. Ela pode ter sido removida ou o link está incorreto.
+          </p>
+          <Button onClick={() => setLocation('/')}>
+            Voltar para a galeria
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <Button 
+        variant="ghost" 
+        className="mb-6"
+        onClick={() => setLocation('/')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Button>
+      
+      {/* Layout principal em duas colunas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Coluna da esquerda - Imagem da arte */}
+        <div className="relative">
+          {/* Label do formato */}
+          <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
+            {formatLabel(post.formats?.[0] || 'FEED')}
+          </span>
+          
+          {/* Selo premium */}
+          {isPremium && (
+            <div className="absolute top-4 right-4 bg-amber-400 text-white rounded-full p-2 z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
+              </svg>
+            </div>
+          )}
+          
+          {/* Imagem principal */}
+          <div className="overflow-hidden rounded-lg shadow-md">
+            <img 
+              src={post.image_url} 
+              alt={post.title} 
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        </div>
+        
+        {/* Coluna da direita - Informações */}
+        <div className="space-y-6">
+          {/* Título e selo premium */}
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{post.title}</h1>
+            {isPremium && (
+              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
+                </svg>
+                <span>Premium</span>
+              </Badge>
+            )}
+          </div>
+          
+          {/* Checklist de vantagens */}
+          <div className="bg-green-50 rounded-lg p-4">
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2">
+                <Check size={18} className="text-green-500" />
+                <span className="text-gray-700">Editável no Canva gratuito</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check size={18} className="text-green-500" />
+                <span className="text-gray-700">Para projetos comerciais e pessoais</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check size={18} className="text-green-500" />
+                <span className="text-gray-700">Não precisa atribuir o autor</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check size={18} className="text-green-500" />
+                <span className="text-gray-700">Qualidade profissional</span>
+              </li>
+            </ul>
+          </div>
+          
+          {/* Especificações do arquivo */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Especificações do Arquivo</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Formato:</span>
+                <span className="font-medium">{formatLabel(post.formats?.[0] || 'FEED')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Tipo:</span>
+                <span className="font-medium">Canva</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Visualizações:</span>
+                <div className="flex items-center gap-1">
+                  <Eye size={14} className="text-gray-400" />
+                  <span className="font-medium">{post.views || 3}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Downloads:</span>
+                <div className="flex items-center gap-1">
+                  <Download size={14} className="text-gray-400" />
+                  <span className="font-medium">{post.downloads || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Formatos disponíveis */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Formatos disponíveis</h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="py-1.5 font-normal">
+                {formatLabel(post.formats?.[0] || 'FEED')} {post.dimensions || '1080x1080'}
+              </Badge>
+              {post.formats && post.formats.length > 1 && (
+                <Badge variant="secondary" className="py-1.5 font-normal">
+                  <span className="flex items-center gap-1">
+                    {(post.formats.length - 1)} opções
+                    <ChevronsDown size={14} />
+                  </span>
+                </Badge>
+              )}
+            </div>
+          </div>
+          
+          {/* Botão principal de ação */}
+          <Button 
+            onClick={handleEditCanva} 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto"
+          >
+            <div className="flex items-center justify-center gap-2">
+              <ExternalLink size={18} />
+              <span className="font-semibold">EDITAR NO CANVA</span>
+            </div>
+          </Button>
+          
+          {/* Linha de ações */}
+          <div className="flex items-center justify-center gap-6 pt-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleFavorite}
+              className={isFavorite ? "text-red-500" : "text-gray-400 hover:text-red-500"}
+            >
+              <Heart className={isFavorite ? "fill-current" : ""} />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleSave}
+              className={isSaved ? "text-blue-500" : "text-gray-400 hover:text-blue-500"}
+            >
+              <Bookmark className={isSaved ? "fill-current" : ""} />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleShare}
+              className="text-gray-400 hover:text-gray-700"
+            >
+              <Share2 />
+            </Button>
+          </div>
+          
+          {/* Informações do criador */}
+          <div className="flex items-center justify-between border-t pt-4 mt-2">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src="/assets/designer-avatar.png" />
+                <AvatarFallback className="bg-gray-100 text-gray-500">DE</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium">Design para Estética</p>
+                <p className="text-sm text-gray-500">100+ artes postadas</p>
+              </div>
+            </div>
+            <Button
+              variant={isFollowing ? "outline" : "default"}
+              size="sm"
+              onClick={handleFollow}
+              className={isFollowing ? "border-gray-300 hover:bg-gray-100" : ""}
+            >
+              {isFollowing ? "Seguindo" : "Seguir"}
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Seção de outros formatos */}
+      {relatedFormats && relatedFormats.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-xl font-bold mb-4">Outros formatos</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {relatedFormats.map((format) => (
+              <div key={format.id} className="relative rounded-lg overflow-hidden shadow-sm">
+                <a 
+                  href={`/artes/${format.unique_code || format.id}`}
+                  className="block"
+                >
+                  <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
+                    {formatLabel(format.formats?.[0] || 'FEED')}
+                  </div>
+                  
+                  {/* Selo premium nos relacionados */}
+                  {(format.license_type === 'premium' || format.is_pro) && (
+                    <div className="absolute top-2 right-2 bg-amber-400 text-white rounded-full p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <img 
+                    src={format.image_url} 
+                    alt={format.title} 
+                    className="w-full h-auto object-cover"
+                  />
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

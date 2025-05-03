@@ -58,7 +58,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Link href={`/artwork/${artwork.id}`} className="block">
+      <Link href={`/artes/${artwork.id}-${encodeURIComponent(artwork.title.toLowerCase().replace(/\s+/g, '-'))}`} className="block">
         <div className="relative overflow-hidden w-full">
           {/* 
             Esta imagem mantém sua proporção original e natural sem qualquer transformação
