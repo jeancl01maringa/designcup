@@ -524,18 +524,18 @@ export default function PostagensPage() {
               </TableRow>
             ) : (
               posts?.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell>
+                <TableRow key={post.id} className="hover:bg-muted/30">
+                  <TableCell className="py-3">
                     <Checkbox 
                       checked={selectedPosts.includes(post.id)}
                       onCheckedChange={(checked) => handleSelectPost(post.id, checked === true)}
                       aria-label={`Selecionar postagem ${post.title}`}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">#{post.id}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium py-3">#{post.id}</TableCell>
+                  <TableCell className="py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded bg-muted flex items-center justify-center overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                      <div className="h-14 w-14 rounded bg-muted flex items-center justify-center overflow-hidden shadow-sm" style={{ aspectRatio: '1/1' }}>
                         {post.imageUrl ? (
                           <ImageWithFallback 
                             src={post.imageUrl}
@@ -544,7 +544,7 @@ export default function PostagensPage() {
                             fallbackClassName="h-6 w-6 opacity-30"
                           />
                         ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 opacity-30">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 opacity-30">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                             <circle cx="8.5" cy="8.5" r="1.5" />
                             <polyline points="21 15 16 10 5 21" />
@@ -554,16 +554,16 @@ export default function PostagensPage() {
                       <div className="font-medium">{post.title}</div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden md:table-cell py-3">
                     {post.categoryId || '-'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3">
                     {getStatusBadge(post.status)}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">
+                  <TableCell className="hidden md:table-cell text-muted-foreground py-3">
                     {formatDate(post.createdAt)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3">
                     <div className="flex space-x-2">
                       <Button 
                         variant="ghost" 
