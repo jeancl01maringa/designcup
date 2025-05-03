@@ -182,11 +182,17 @@ export function setupAuth(app: Express) {
     
     // Remover a senha e garantir que isAdmin esteja presente
     const user = req.user;
+    
+    // Debug para verificar o que está vindo nos objetos
+    console.log("USER OBJECT ORIGINAL:", JSON.stringify(user));
+    
     const safeUser = {
       ...user,
       isAdmin: user.isAdmin ?? user.is_admin, // Fallback para garantir que isAdmin esteja disponível
       password: undefined // Remover a senha por segurança
     };
+    
+    console.log("USER OBJECT FINAL:", JSON.stringify(safeUser));
     
     res.json(safeUser);
   });
