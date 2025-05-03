@@ -184,6 +184,29 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Sanitiza um nome de arquivo removendo caracteres especiais, acentos e espaços
+ * Importante para compatibilidade com sistemas de arquivos e URLs
+ * 
+ * @param name Nome do arquivo original
+ * @returns Nome do arquivo limpo, seguro para uso em caminhos
+ */
+export function sanitizeFileName(name: string): string {
+  // Remover a extensão para processamento
+  const lastDotIndex = name.lastIndexOf('.');
+  const extension = lastDotIndex !== -1 ? name.substring(lastDotIndex) : '';
+  const baseName = lastDotIndex !== -1 ? name.substring(0, lastDotIndex) : name;
+  
+  // Remover acentos
+  const withoutAccents = baseName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  // Substituir caracteres não alfanuméricos por underscore e converter para minúsculas
+  const cleaned = withoutAccents.replace(/[^a-zA-Z0-9-_.]/g, '_').toLowerCase();
+  
+  // Limitar tamanho e retornar com extensão
+  return (cleaned.substring(0, 50) + extension).toLowerCase();
+}
+
+/**
  * Comprime e converte uma imagem para WebP antes do upload
  * Melhora significativamente o desempenho e tamanho do arquivo
  * 
@@ -272,8 +295,29 @@ export async function uploadFileToSupabase(
     
     // 3. Preparar o caminho do arquivo com timestamp para evitar conflitos
     const timestamp = Date.now();
-    const cleanFileName = fileToUpload.name.replace(/[^a-zA-Z0-9-.]/g, '_').toLowerCase();
-    const filePath = customPath || `posts/${timestamp}-${cleanFileName}`;
+    
+    const cleanFileName = sanitizeFileName(fileToUpload.name);
+    
+    // Se um caminho personalizado foi fornecido, sanitize também esse caminho
+    let finalPath;
+    if (customPath) {
+      // Separar o diretório do nome do arquivo no caminho personalizado
+      const lastSlashIndex = customPath.lastIndexOf('/');
+      if (lastSlashIndex === -1) {
+        // Não há diretório no caminho, usa apenas o nome limpo
+        finalPath = cleanFileName;
+      } else {
+        // Limpar o diretório e combinar com o nome limpo
+        const dir = customPath.substring(0, lastSlashIndex);
+        const cleanDir = dir.replace(/[^a-zA-Z0-9-_/]/g, '_').toLowerCase();
+        finalPath = `${cleanDir}/${cleanFileName}`;
+      }
+    } else {
+      // Usar o caminho padrão com timestamp
+      finalPath = `posts/${timestamp}-${cleanFileName}`;
+    }
+    
+    const filePath = finalPath;
     
     console.log(`Fazendo upload para Supabase em '${filePath}'...`);
     
