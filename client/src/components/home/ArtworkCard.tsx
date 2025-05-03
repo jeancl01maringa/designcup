@@ -54,7 +54,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
 
   return (
     <div 
-      className="image-card relative rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md hover:scale-[1.02] w-full"
+      className="image-card relative rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md hover:scale-[1.02] w-full mb-3"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -71,9 +71,9 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             loading="lazy"
           />
           
-          {/* Pro badge - coroa premium no canto superior direito */}
+          {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
           {artwork.isPro && (
-            <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-8 h-8 flex items-center justify-center">
+            <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-8 h-8 flex items-center justify-center shadow-md">
               <Crown className="h-4 w-4 fill-[#FFC107]" />
             </div>
           )}

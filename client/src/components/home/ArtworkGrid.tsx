@@ -215,8 +215,8 @@ export default function ArtworkGrid() {
           </div>
         </div>
 
-        {/* Grid estilo Pinterest (Masonry) com imagens de proporções originais */}
-        <div className="columns-1 xs:columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-5 mb-10 space-y-5">
+        {/* Grid estilo Pinterest (Masonry) com imagens de proporções originais e menor espaçamento */}
+        <div className="columns-1 xs:columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-3 mb-8 space-y-3">
           {otherArtworks.map((artwork: MockArtwork) => (
             <div key={artwork.id} className="break-inside-avoid">
               <ArtworkCard artwork={artwork as any} />
@@ -246,8 +246,8 @@ export default function ArtworkGrid() {
           </div>
         </div>
 
-        {/* Grid para stories no estilo Pinterest */}
-        <div className="columns-2 xs:columns-3 sm:columns-4 md:columns-5 lg:columns-6 gap-5 space-y-5">
+        {/* Grid para stories no estilo Pinterest com menor espaçamento */}
+        <div className="columns-2 xs:columns-3 sm:columns-4 md:columns-5 lg:columns-6 gap-3 space-y-3">
           {storiesArtworks.map((artwork: MockArtwork) => (
             <div key={artwork.id} className="break-inside-avoid">
               <ArtworkCard artwork={artwork as any} />
