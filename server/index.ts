@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
+import { setupSupabaseTables, migrateLocalDataToSupabase } from "./supabase";
+import { db } from "./db";
 
 const app = express();
 app.use(express.json());
@@ -46,6 +48,14 @@ app.use((req, res, next) => {
       await (storage as any).seedDatabase();
       log('Database initialized successfully');
     }
+    
+    // Configurar tabelas no Supabase
+    log('Configurando tabelas no Supabase...');
+    await setupSupabaseTables();
+    
+    // Migrar dados locais para o Supabase
+    log('Migrando dados para o Supabase...');
+    await migrateLocalDataToSupabase(db);
   } catch (error) {
     log(`Error initializing database: ${error}`);
   }
