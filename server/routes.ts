@@ -8,6 +8,7 @@ import { eq, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import { db } from "./db";
 import { supabase } from "./supabase-client";
+import * as crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication

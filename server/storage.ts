@@ -52,6 +52,7 @@ export interface IStorage {
     endDate?: Date;
   }): Promise<Post[]>;
   getPostById(id: number): Promise<Post | undefined>;
+  getPostsByGroupId(groupId: string): Promise<Post[]>;
   createPost(post: InsertPost): Promise<Post>;
   updatePost(id: number, post: Partial<InsertPost>): Promise<Post>;
   deletePost(id: number): Promise<void>;
@@ -1067,7 +1068,15 @@ export class DatabaseStorage implements IStorage {
           category_id,
           status,
           created_at,
-          published_at
+          published_at,
+          formato,
+          group_id,
+          titulo_base,
+          is_pro,
+          license_type,
+          canva_url,
+          formato_data,
+          is_visible
         `)
         .eq('id', id)
         .single();
@@ -1092,7 +1101,15 @@ export class DatabaseStorage implements IStorage {
         categoryId: data.category_id,
         status: data.status,
         createdAt: new Date(data.created_at),
-        publishedAt: data.published_at ? new Date(data.published_at) : null
+        publishedAt: data.published_at ? new Date(data.published_at) : null,
+        formato: data.formato,
+        groupId: data.group_id,
+        tituloBase: data.titulo_base,
+        isPro: !!data.is_pro,
+        licenseType: data.license_type || 'free',
+        canvaUrl: data.canva_url,
+        formatoData: data.formato_data,
+        isVisible: data.is_visible !== false // se for null ou undefined, assume true
       };
       
       console.log(`DATABASE getPostById - Post encontrado: ${result.title}`);
@@ -1100,6 +1117,78 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("DATABASE getPostById - Exceção:", error);
       return undefined;
+    }
+  }
+  
+  async getPostsByGroupId(groupId: string): Promise<Post[]> {
+    try {
+      console.log("DATABASE getPostsByGroupId - Buscando posts do grupo:", groupId);
+      
+      if (!groupId) {
+        console.warn("DATABASE getPostsByGroupId - ID do grupo não fornecido");
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          description,
+          image_url,
+          unique_code,
+          category_id,
+          status,
+          created_at,
+          published_at,
+          formato,
+          group_id,
+          titulo_base,
+          is_pro,
+          license_type,
+          canva_url,
+          formato_data,
+          is_visible
+        `)
+        .eq('group_id', groupId)
+        .order('id', { ascending: true });
+      
+      if (error) {
+        console.error("DATABASE getPostsByGroupId - Erro ao buscar posts do grupo:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log(`DATABASE getPostsByGroupId - Nenhum post encontrado no grupo ${groupId}`);
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const result = data.map(post => ({
+        id: post.id,
+        title: post.title,
+        description: post.description || "",
+        imageUrl: post.image_url,
+        uniqueCode: post.unique_code,
+        categoryId: post.category_id,
+        status: post.status,
+        createdAt: new Date(post.created_at),
+        publishedAt: post.published_at ? new Date(post.published_at) : null,
+        formato: post.formato,
+        groupId: post.group_id,
+        tituloBase: post.titulo_base,
+        isPro: !!post.is_pro,
+        licenseType: post.license_type || 'free',
+        canvaUrl: post.canva_url,
+        formatoData: post.formato_data,
+        isVisible: post.is_visible !== false // se for null ou undefined, assume true
+      }));
+      
+      console.log(`DATABASE getPostsByGroupId - Encontrados ${result.length} posts no grupo ${groupId}`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE getPostsByGroupId - Exceção:", error);
+      return [];
     }
   }
   
