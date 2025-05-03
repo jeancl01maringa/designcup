@@ -37,6 +37,7 @@ interface Plano {
   periodo: string;
   valor: string;
   codigoHotmart: string;
+  codigo_hotmart?: string; // Campo no banco de dados
 }
 
 export default function UsuariosPage() {
@@ -240,7 +241,18 @@ export default function UsuariosPage() {
       return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Sem plano</Badge>;
     }
     
-    const plano = planos.find(p => p.codigoHotmart === usuario.plano_id);
+    // Tenta encontrar o plano primeiro pelo ID, depois pelo código Hotmart (para compatibilidade)
+    const planoId = parseInt(usuario.plano_id);
+    let plano = planos.find(p => p.id === planoId);
+    
+    // Se não encontrar pelo ID, tenta pelo código Hotmart para compatibilidade
+    if (!plano) {
+      plano = planos.find(p => 
+        p.codigoHotmart === usuario.plano_id || 
+        (p.codigo_hotmart && p.codigo_hotmart === usuario.plano_id)
+      );
+    }
+    
     if (!plano) return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Plano desconhecido</Badge>;
     
     return (
@@ -451,7 +463,7 @@ export default function UsuariosPage() {
                   >
                     <option value="">Selecione um plano</option>
                     {planos.map(plano => (
-                      <option key={plano.id} value={plano.codigoHotmart}>
+                      <option key={plano.id} value={plano.id.toString()}>
                         {plano.name} - {plano.periodo} ({plano.valor})
                       </option>
                     ))}
