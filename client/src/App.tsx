@@ -18,10 +18,14 @@ import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 
+// Página pública de planos
+import PlansPage from "@/pages/PlansPage";
+
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
 import PostagensPage from "@/pages/admin/PostagensPage";
 import CategoriasPage from "@/pages/admin/CategoriasPage";
+import PlanosPage from "@/pages/admin/PlanosPage";
 import FileFormatsPage from "@/pages/admin/gerenciamento/FileFormatsPage";
 import PostFormatsPage from "@/pages/admin/gerenciamento/PostFormatsPage";
 
@@ -39,6 +43,7 @@ function Router() {
       <Route path="/artwork/:id" component={ArtworkDetail} />
       <Route path="/artes/:slug" component={ArtDetailPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/planos" component={PlansPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
       
@@ -48,6 +53,9 @@ function Router() {
       </Route>
       <Route path="/admin/categorias">
         <ProtectedRoute path="/admin/categorias" component={CategoriasPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/planos">
+        <ProtectedRoute path="/admin/planos" component={PlanosPage} requireAdmin={true} />
       </Route>
       <Route path="/admin/gerenciamento/formatos">
         <ProtectedRoute path="/admin/gerenciamento/formatos" component={FileFormatsPage} requireAdmin={true} />
