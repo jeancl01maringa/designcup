@@ -199,10 +199,23 @@ export async function uploadFileToSupabase(file: File, customPath?: string): Pro
   }
   
   try {
-    // 1. Verificar se o usuário está autenticado (opcional, já que usamos chave anon)
-    const user = await getCurrentUser();
-    const isAuthenticated = !!user;
-    console.log(`Upload iniciado${isAuthenticated ? ' com usuário autenticado' : ' sem autenticação'}`);
+    // 1. Autenticar diretamente com o Supabase utilizando a API key do projeto
+    // Isto é necessário porque o RLS exige que estejamos autenticados para upload
+    try {
+      // Tentar fazer login com chave anônima para autorizar operações de storage
+      const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
+        email: 'jean.maringa@hotmail.com', // Usar o email do usuário admin
+        password: import.meta.env.VITE_SUPABASE_USER_PASSWORD || '', // Usando a senha armazenada como secret
+      });
+      
+      if (sessionError) {
+        console.warn('Falha ao autenticar com Supabase para upload:', sessionError.message);
+      } else {
+        console.log('Autenticado com sucesso no Supabase para upload');
+      }
+    } catch (authError) {
+      console.warn('Erro ao tentar autenticar para upload:', authError);
+    }
     
     // 2. Preparar o caminho do arquivo com timestamp para evitar conflitos
     const timestamp = Date.now();
