@@ -39,7 +39,27 @@ interface PostFormProps {
   isEdit?: boolean;
 }
 
-type PostFormat = 'feed' | 'cartaz' | 'stories';
+// Tipo para formato de postagem que vem do banco de dados
+interface DbPostFormat {
+  id: number;
+  name: string;
+  size: string;
+  orientation: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
+// Tipo para formato de arquivo que vem do banco de dados
+interface DbFileFormat {
+  id: number;
+  name: string;
+  type: string;
+  icon: string | null;
+  is_active: boolean;
+  created_at?: string;
+}
+
+type PostFormat = string;
 
 interface FormatFile {
   imageFile: File | null;
@@ -184,6 +204,26 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       return res.json();
     }
   });
+  
+  // Buscar formatos de post
+  const { data: postFormats = [] } = useQuery<DbPostFormat[]>({
+    queryKey: ["/api/admin/post-formats"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/post-formats");
+      if (!res.ok) throw new Error("Falha ao buscar formatos de post");
+      return res.json();
+    }
+  });
+  
+  // Buscar formatos de arquivo
+  const { data: fileFormats = [] } = useQuery<DbFileFormat[]>({
+    queryKey: ["/api/admin/file-formats"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/file-formats");
+      if (!res.ok) throw new Error("Falha ao buscar formatos de arquivo");
+      return res.json();
+    }
+  });
 
   // Criar nova postagem
   const createPostMutation = useMutation({
@@ -251,10 +291,28 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
   const handleFormatToggle = (format: PostFormat) => {
     setFormData(prev => {
-      const formats = prev.formats.includes(format)
-        ? prev.formats.filter(f => f !== format)
-        : [...prev.formats, format];
-      return { ...prev, formats };
+      // Verificar se o formato já está selecionado
+      const isSelected = prev.formats.includes(format);
+      
+      // Se o formato está sendo adicionado, garantir que ele tenha uma entrada em formatFiles
+      if (!isSelected) {
+        // Adicionar o formato aos selecionados
+        const formats = [...prev.formats, format];
+        
+        // Garantir que o formato tenha uma entrada em formatFiles
+        return { 
+          ...prev, 
+          formats,
+          formatFiles: {
+            ...prev.formatFiles,
+            [format]: prev.formatFiles[format] || { ...defaultFormatFile }
+          }
+        };
+      } else {
+        // Remover o formato dos selecionados
+        const formats = prev.formats.filter(f => f !== format);
+        return { ...prev, formats };
+      }
     });
   };
 
@@ -871,26 +929,38 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
               {/* Formatos */}
               <div className="space-y-2">
                 <Label>Formatos da Postagem</Label>
-                <div className="flex flex-wrap gap-2">
-                  {(['feed', 'cartaz', 'stories'] as PostFormat[]).map((format) => (
-                    <Button
-                      key={format}
-                      type="button"
-                      variant={formData.formats.includes(format) ? "default" : "outline"}
-                      className={cn(
-                        "h-10 capitalize flex items-center gap-2",
-                        formData.formats.includes(format) && "bg-blue-50 text-blue-800 hover:bg-blue-100"
-                      )}
-                      onClick={() => handleFormatToggle(format)}
-                    >
-                      {formData.formats.includes(format) && (
-                        <Check className="h-4 w-4 text-blue-600" />
-                      )}
-                      <span className="capitalize">{format}</span>
-                      <Badge variant="secondary" className="ml-1">Essencial</Badge>
-                    </Button>
-                  ))}
-                </div>
+                {postFormats.length === 0 ? (
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Carregando formatos...
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {postFormats.filter(format => format.is_active).map((format) => (
+                      <Button
+                        key={format.id}
+                        type="button"
+                        variant={formData.formats.includes(format.name) ? "default" : "outline"}
+                        className={cn(
+                          "h-10 capitalize flex items-center gap-2",
+                          formData.formats.includes(format.name) && "bg-blue-50 text-blue-800 hover:bg-blue-100"
+                        )}
+                        onClick={() => handleFormatToggle(format.name)}
+                      >
+                        {formData.formats.includes(format.name) && (
+                          <Check className="h-4 w-4 text-blue-600" />
+                        )}
+                        <span className="capitalize">{format.name}</span>
+                        <Badge 
+                          variant="secondary" 
+                          className="ml-1 text-xs"
+                          title={`${format.size} - ${format.orientation}`}
+                        >
+                          {format.size}
+                        </Badge>
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             
@@ -1017,12 +1087,18 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                             <Label>Extensão do Arquivo</Label>
                             <Select defaultValue="canva">
                               <SelectTrigger id={`provider-${format}`}>
-                                <SelectValue placeholder="Canva" />
+                                <SelectValue placeholder="Selecione um formato" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="canva">Canva</SelectItem>
-                                <SelectItem value="photoshop">Adobe Photoshop</SelectItem>
-                                <SelectItem value="figma">Figma</SelectItem>
+                                {fileFormats.length === 0 ? (
+                                  <SelectItem value="canva">Carregando...</SelectItem>
+                                ) : (
+                                  fileFormats.filter(format => format.is_active).map(fileFormat => (
+                                    <SelectItem key={fileFormat.id} value={fileFormat.name.toLowerCase()}>
+                                      {fileFormat.name}
+                                    </SelectItem>
+                                  ))
+                                )}
                               </SelectContent>
                             </Select>
                           </div>
