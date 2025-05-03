@@ -113,7 +113,22 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      
+      // Se o usuário existe, garante que a propriedade isAdmin seja um booleano
+      if (user) {
+        // Explicitamente converte isAdmin para um valor booleano
+        const userWithAdmin = {
+          ...user,
+          isAdmin: Boolean(user.isAdmin)
+        };
+        
+        // Log para depuração
+        console.log("PASSPORT deserializeUser - Objeto do usuário:", JSON.stringify(userWithAdmin));
+        
+        done(null, userWithAdmin);
+      } else {
+        done(null, user);
+      }
     } catch (err) {
       done(err);
     }
@@ -161,9 +176,12 @@ export function setupAuth(app: Express) {
         // Garantir que isAdmin esteja presente no objeto de resposta e remover a senha
         const responseUser = {
           ...user,
-          isAdmin: user.isAdmin ?? user.is_admin, // Fallback para garantir que isAdmin esteja disponível
+          isAdmin: Boolean(user.isAdmin ?? user.is_admin), // Converter para booleano
           password: undefined // Remover a senha do objeto de resposta por segurança
         };
+        
+        // Debug para verificar o que está sendo retornado no login
+        console.log("LOGIN responseUser:", JSON.stringify(responseUser));
         
         res.status(200).json(responseUser);
       });
@@ -188,7 +206,7 @@ export function setupAuth(app: Express) {
     
     const safeUser = {
       ...user,
-      isAdmin: user.isAdmin ?? user.is_admin, // Fallback para garantir que isAdmin esteja disponível
+      isAdmin: Boolean(user.isAdmin ?? user.is_admin), // Garantir que isAdmin seja um booleano
       password: undefined // Remover a senha por segurança
     };
     
