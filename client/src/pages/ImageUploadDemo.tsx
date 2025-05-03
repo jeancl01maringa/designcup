@@ -1,131 +1,222 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { uploadToSupabase, getPublicUrl } from '@/lib/admin/uploadToSupabase';
-import { nanoid } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { uploadFileToSupabase } from '@/lib/supabase';
+import { SupabaseRLSAlert } from '@/components/ui/supabase-alert';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ImageWithFallback } from '@/components/ui/image-with-fallback';
+import { ArrowUp, Loader2, Image, Upload, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { nanoid } from '@/lib/utils';
 
 export default function ImageUploadDemo() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      // Criar uma URL para preview
-      const previewUrl = URL.createObjectURL(file);
-      setPreview(previewUrl);
-      // Limpar URL após upload
-      setUploadedUrl(null);
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      
+      // Gerar preview temporário
+      const objectUrl = URL.createObjectURL(selectedFile);
+      setPreviewUrl(objectUrl);
+      
+      // Limpar URL do Supabase (se houver) e erros
+      setUploadedImageUrl(null);
+      setError(null);
+      
+      toast({
+        title: 'Arquivo selecionado',
+        description: `${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)}KB)`,
+      });
     }
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
+    if (!file) {
       toast({
-        title: "Nenhum arquivo selecionado",
-        description: "Por favor, selecione uma imagem para fazer upload",
-        variant: "destructive",
+        title: 'Nenhum arquivo selecionado',
+        description: 'Selecione uma imagem para fazer upload.',
+        variant: 'destructive',
       });
       return;
     }
 
-    setIsUploading(true);
+    setUploading(true);
+    setError(null);
+    
     try {
-      // Criar ID único para o teste
+      // Gerar um ID único para o arquivo
       const uniqueId = nanoid();
-      const filePath = `test/${uniqueId}/${selectedFile.name}`;
+      const customPath = `demo/${uniqueId}/${file.name}`;
       
-      // Fazer upload com otimização
-      const imageUrl = await uploadToSupabase(selectedFile, filePath, true);
+      toast({
+        title: 'Enviando imagem...',
+        description: 'Aguarde enquanto processamos sua imagem.',
+      });
+      
+      // Fazer upload usando nossa função aprimorada
+      const imageUrl = await uploadFileToSupabase(file, customPath);
       
       if (imageUrl) {
-        setUploadedUrl(imageUrl);
+        setUploadedImageUrl(imageUrl);
         toast({
-          title: "Upload concluído!",
-          description: "Imagem otimizada e enviada com sucesso.",
-          variant: "default",
+          title: 'Upload concluído!',
+          description: 'Sua imagem foi salva com sucesso no Supabase.',
         });
       } else {
-        throw new Error("Falha ao fazer upload da imagem");
+        setError('Não foi possível concluir o upload. Verifique as políticas de acesso do Supabase.');
+        toast({
+          title: 'Falha no upload',
+          description: 'Não foi possível salvar a imagem no Supabase.',
+          variant: 'destructive',
+        });
       }
-    } catch (error) {
-      console.error('Erro no upload:', error);
+    } catch (err) {
+      console.error('Erro no upload:', err);
+      setError(`Erro: ${err instanceof Error ? err.message : 'Falha desconhecida'}`);
       toast({
-        title: "Erro no upload",
-        description: "Não foi possível enviar a imagem. Verifique as credenciais do Supabase.",
-        variant: "destructive",
+        title: 'Erro no upload',
+        description: 'Ocorreu um erro durante o upload da imagem.',
+        variant: 'destructive',
       });
     } finally {
-      setIsUploading(false);
+      setUploading(false);
     }
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Teste de Upload de Imagem para Supabase</h1>
+    <div className="container mx-auto py-10 px-4">
+      <h1 className="text-3xl font-bold mb-6">Teste de Upload para Supabase</h1>
+      <p className="text-muted-foreground mb-6">
+        Esta página demonstra como fazer upload de imagens para o bucket do Supabase
+        usando as práticas recomendadas.
+      </p>
       
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="mb-4">
-          <label 
-            htmlFor="file-upload" 
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Selecione uma imagem
-          </label>
-          <input
-            id="file-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-md file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-primary file:text-white
-                      hover:file:bg-primary/80"
-          />
-        </div>
-        
-        {preview && (
-          <div className="mb-4">
-            <h2 className="text-sm font-medium text-gray-700 mb-2">Preview:</h2>
-            <div className="relative w-full h-60 border rounded-md overflow-hidden">
-              <img 
-                src={preview} 
-                alt="Preview" 
-                className="absolute w-full h-full object-contain"
-              />
+      {/* Alerta com instruções sobre RLS */}
+      <SupabaseRLSAlert supabaseUrl={import.meta.env.VITE_SUPABASE_URL as string} />
+      
+      <div className="grid md:grid-cols-2 gap-8 mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>1. Selecione uma imagem</CardTitle>
+            <CardDescription>
+              Escolha um arquivo de imagem do seu dispositivo para upload.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid w-full items-center gap-4">
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="image">Arquivo de imagem</Label>
+                <Input 
+                  id="image" 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="cursor-pointer"
+                />
+              </div>
             </div>
-          </div>
-        )}
+            
+            {previewUrl && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground mb-2">Preview:</p>
+                <div className="border rounded-md overflow-hidden w-full max-h-[300px] bg-slate-50 flex items-center justify-center">
+                  <ImageWithFallback
+                    src={previewUrl}
+                    alt="Preview"
+                    className="max-h-[300px] w-auto object-contain"
+                  />
+                </div>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button 
+              onClick={handleUpload}
+              disabled={!file || uploading}
+              className="w-full"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Fazer Upload
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
         
-        <Button 
-          onClick={handleUpload} 
-          disabled={!selectedFile || isUploading}
-          className="w-full"
-        >
-          {isUploading ? 'Enviando...' : 'Fazer Upload'}
-        </Button>
-        
-        {uploadedUrl && (
-          <div className="mt-6">
-            <h2 className="text-sm font-medium text-gray-700 mb-2">Imagem Otimizada (WebP):</h2>
-            <div className="relative w-full h-60 border rounded-md overflow-hidden">
-              <img 
-                src={uploadedUrl} 
-                alt="Imagem Otimizada" 
-                className="absolute w-full h-full object-contain"
-              />
-            </div>
-            <p className="mt-2 text-xs text-gray-500 break-all">
-              <strong>URL:</strong> {uploadedUrl}
+        <Card>
+          <CardHeader>
+            <CardTitle>2. Resultado do Upload</CardTitle>
+            <CardDescription>
+              O resultado do upload para o Supabase Storage será exibido aqui.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {uploadedImageUrl ? (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-green-600 bg-green-50 p-3 rounded-md">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <p className="text-sm font-medium">Upload concluído com sucesso!</p>
+                </div>
+                
+                <div className="border rounded-md overflow-hidden max-h-[250px] bg-slate-50 flex items-center justify-center">
+                  <ImageWithFallback
+                    src={uploadedImageUrl}
+                    alt="Imagem enviada"
+                    className="max-h-[250px] w-auto object-contain"
+                  />
+                </div>
+                
+                <div className="mt-2">
+                  <p className="text-sm text-muted-foreground mb-1">URL da imagem:</p>
+                  <div className="bg-slate-50 p-2 rounded text-xs font-mono break-all border">
+                    {uploadedImageUrl}
+                  </div>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="h-full flex flex-col items-center justify-center py-8">
+                <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-md mb-4 w-full">
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                  <p className="text-sm">{error}</p>
+                </div>
+                
+                <p className="text-center text-muted-foreground text-sm mt-4">
+                  Verifique se você configurou corretamente as políticas RLS no Supabase, 
+                  conforme as instruções acima.
+                </p>
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <Image className="h-12 w-12 mb-4 opacity-20" />
+                <p className="text-center">
+                  Selecione uma imagem e faça upload para ver o resultado aqui.
+                </p>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter>
+            <p className="text-xs text-muted-foreground w-full">
+              As imagens são armazenadas no bucket "images" do Supabase. 
+              Verifique se o bucket existe e tem as permissões corretas configuradas.
             </p>
-          </div>
-        )}
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
