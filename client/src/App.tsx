@@ -32,7 +32,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
-      <ProtectedRoute path="/admin" component={AdminDashboard} />
+      <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />
       <Route component={NotFound} />
     </Switch>
   );
