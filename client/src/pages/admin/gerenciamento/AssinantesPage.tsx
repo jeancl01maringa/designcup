@@ -83,7 +83,9 @@ export default function AssinantesPage() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidar cache de assinantes e usuários para manter consistência entre as telas
       queryClient.invalidateQueries({ queryKey: ['/api/admin/assinantes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
       setIsEditDialogOpen(false);
       toast({
         title: "Assinante atualizado",
@@ -132,6 +134,7 @@ export default function AssinantesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/assinantes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
       toast({
         title: "Status atualizado",
         description: "O status da assinatura foi atualizado com sucesso.",
@@ -155,6 +158,8 @@ export default function AssinantesPage() {
       return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/assinantes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
       setIsResetPasswordDialogOpen(false);
       toast({
         title: "Senha redefinida",
