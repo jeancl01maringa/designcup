@@ -348,6 +348,15 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     }
   };
 
+  const handleSelectTag = (tagName: string) => {
+    if (!formData.tags.includes(tagName)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagName]
+      }));
+    }
+  };
+
   const handleRemoveTag = (tag: string) => {
     setFormData(prev => ({
       ...prev,
@@ -915,14 +924,38 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <Label htmlFor="tags">Tags</Label>
-                  <Button 
-                    variant="ghost" 
-                    className="h-auto py-0 px-2 text-blue-600 text-sm"
-                    onClick={handleAddTag}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Nova Tag
-                  </Button>
+                  <div className="flex items-center">
+                    <Tag className="h-4 w-4 mr-1 text-blue-600" />
+                    <span className="text-sm text-muted-foreground">
+                      {formData.tags.length} tag{formData.tags.length !== 1 ? 's' : ''} selecionada{formData.tags.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 mb-2">
+                  <Select onValueChange={(value) => handleSelectTag(value)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecionar tag existente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tagsData
+                        .filter(tag => tag.isActive && !formData.tags.includes(tag.name))
+                        .map(tag => (
+                          <SelectItem key={tag.id} value={tag.name}>
+                            <div className="flex items-center">
+                              <Tag className="mr-2 h-4 w-4" />
+                              <span>{tag.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      }
+                      {tagsData.filter(tag => tag.isActive && !formData.tags.includes(tag.name)).length === 0 && (
+                        <SelectItem value="none" disabled>
+                          Nenhuma tag disponível
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="flex gap-2">
@@ -930,9 +963,17 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                     id="newTag"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="Adicionar tag"
+                    placeholder="Ou criar nova tag"
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                   />
+                  <Button 
+                    size="sm"
+                    type="button"
+                    onClick={handleAddTag}
+                    disabled={!newTag.trim()}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
                 
                 <div className="flex flex-wrap gap-1 mt-2">
