@@ -249,19 +249,69 @@ async function compressAndConvertToWebP(file: File): Promise<File> {
 }
 
 /**
+ * Tipos de uploads suportados para organização das pastas no Supabase
+ */
+export type UploadType = 
+  | 'post'        // Imagens de postagens: posts/[categoria]/[postId]-[nome].webp
+  | 'perfil'      // Fotos de perfil: perfis/[userId]-perfil.webp
+  | 'curso'       // Capas de cursos: posts/capas/cursos/[cursoId]-capa.webp
+  | 'personalizado'; // Caminho personalizado
+
+/**
+ * Opções para upload no Supabase com organização por tipo
+ */
+export interface UploadOptions {
+  // Tipo de upload para determinar a estrutura de pastas
+  type: UploadType;
+  
+  // Dados específicos para cada tipo de upload
+  data?: {
+    // Para uploads do tipo 'post'
+    categoria?: string;   // Slug da categoria (estetica-facial, massagem, etc)
+    postId?: string | number;  // ID do post
+    
+    // Para uploads do tipo 'perfil'
+    userId?: string | number;  // ID do usuário
+    
+    // Para uploads do tipo 'curso'
+    cursoId?: string | number; // ID do curso
+    
+    // Para todos os tipos
+    customPath?: string;  // Caminho personalizado (substitui a estrutura padrão)
+  };
+  
+  // Se deve converter para WebP antes do upload (padrão: true)
+  convertToWebP?: boolean;
+}
+
+/**
  * Faz o upload de um arquivo para o bucket 'images' do Supabase
- * Implementação seguindo as práticas recomendadas
+ * com estrutura organizada de diretórios baseada no tipo de conteúdo
  * 
  * @param file Arquivo para upload
- * @param customPath Caminho personalizado (opcional)
- * @param convertToWebP Se true, converte a imagem para WebP antes do upload (default: true)
+ * @param options Opções de upload com tipo e dados associados
  * @returns Promise com a URL pública do arquivo ou null em caso de erro
  */
 export async function uploadFileToSupabase(
   file: File, 
-  customPath?: string, 
+  options: UploadOptions | string, // Aceita string para retrocompatibilidade
   convertToWebP = true
 ): Promise<string | null> {
+  // Para manter compatibilidade com código existente
+  let uploadType: UploadType = 'personalizado';
+  let uploadData: UploadOptions['data'] = {};
+  let shouldConvertToWebP = convertToWebP;
+  
+  // Processar opções
+  if (typeof options === 'string') {
+    // Formato antigo: apenas customPath como string
+    uploadData.customPath = options;
+  } else {
+    // Novo formato: objeto de opções
+    uploadType = options.type;
+    uploadData = options.data || {};
+    shouldConvertToWebP = options.convertToWebP ?? convertToWebP;
+  }
   // Verificar se temos credenciais válidas
   if (!hasValidCredentials) {
     console.error('Upload falhou: credenciais do Supabase inválidas.');
@@ -289,19 +339,22 @@ export async function uploadFileToSupabase(
     
     // 2. Comprimir e converter para WebP se for uma imagem e a opção estiver ativada
     let fileToUpload = file;
-    if (convertToWebP && file.type.startsWith('image/')) {
+    if (shouldConvertToWebP && file.type.startsWith('image/')) {
       fileToUpload = await compressAndConvertToWebP(file);
     }
     
-    // 3. Preparar o caminho do arquivo com timestamp para evitar conflitos
+    // 3. Preparar o caminho do arquivo de acordo com o tipo de conteúdo
     const timestamp = Date.now();
-    
     const cleanFileName = sanitizeFileName(fileToUpload.name);
     
-    // Se um caminho personalizado foi fornecido, sanitize também esse caminho
-    let finalPath;
+    // Determinar o caminho final baseado no tipo de upload
+    let finalPath: string;
+    
+    // Se for formato antigo com caminho personalizado em uploadData
+    const customPath = uploadData.customPath;
+    
     if (customPath) {
-      // Separar o diretório do nome do arquivo no caminho personalizado
+      // Sanitizar caminho personalizado
       const lastSlashIndex = customPath.lastIndexOf('/');
       if (lastSlashIndex === -1) {
         // Não há diretório no caminho, usa apenas o nome limpo
@@ -313,11 +366,50 @@ export async function uploadFileToSupabase(
         finalPath = `${cleanDir}/${cleanFileName}`;
       }
     } else {
-      // Usar o caminho padrão com timestamp
-      finalPath = `posts/${timestamp}-${cleanFileName}`;
+      // Gerar caminho baseado no tipo de upload
+      switch (uploadType) {
+        case 'post': {
+          // Obter categoria e postId dos dados
+          const categoria = uploadData.categoria ? 
+            sanitizeFileName(uploadData.categoria.toLowerCase()) : 'sem-categoria';
+          const postId = uploadData.postId || timestamp;
+          
+          // Formato: posts/[categoria]/[postId]-[nome].webp
+          finalPath = `posts/${categoria}/${postId}-${cleanFileName}`;
+          break;
+        }
+        
+        case 'perfil': {
+          // Obter userId dos dados
+          const userId = uploadData.userId || 'user';
+          
+          // Formato: perfis/[userId]-perfil.webp
+          // Extrair extensão do arquivo limpo
+          const extensao = cleanFileName.substring(cleanFileName.lastIndexOf('.'));
+          finalPath = `perfis/${userId}-perfil${extensao}`;
+          break;
+        }
+        
+        case 'curso': {
+          // Obter cursoId dos dados
+          const cursoId = uploadData.cursoId || timestamp;
+          
+          // Formato: posts/capas/cursos/[cursoId]-capa.webp
+          // Extrair extensão do arquivo limpo
+          const extensao = cleanFileName.substring(cleanFileName.lastIndexOf('.'));
+          finalPath = `posts/capas/cursos/${cursoId}-capa${extensao}`;
+          break;
+        }
+        
+        case 'personalizado':
+        default:
+          // Caminho genérico para compatibilidade retroativa
+          finalPath = `posts/${timestamp}-${cleanFileName}`;
+      }
     }
     
     const filePath = finalPath;
+    console.log(`Tipo de upload: ${uploadType}, caminho do arquivo: ${filePath}`);
     
     console.log(`Fazendo upload para Supabase em '${filePath}'...`);
     

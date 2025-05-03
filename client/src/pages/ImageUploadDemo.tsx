@@ -52,17 +52,56 @@ export default function ImageUploadDemo() {
     setError(null);
     
     try {
-      // Gerar um ID único para o arquivo
-      const uniqueId = nanoid();
-      const customPath = `demo/${uniqueId}/${file.name}`;
+      // Gerar IDs únicos para simulação
+      const userId = 123;
+      const postId = Date.now();
+      const cursoId = nanoid().substring(0, 8);
+      
+      // Seletor de tipo para demonstração
+      const demoSelector = document.getElementById('demoUploadType') as HTMLSelectElement;
+      const uploadType = demoSelector?.value as 'post' | 'perfil' | 'curso' | 'personalizado' || 'post';
       
       toast({
         title: 'Enviando imagem...',
-        description: 'Aguarde enquanto processamos sua imagem.',
+        description: `Tipo de upload: ${uploadType}. Aguarde enquanto processamos sua imagem.`,
       });
       
+      let uploadOptions = {
+        type: uploadType,
+        data: {},
+        convertToWebP: true
+      } as any;
+      
+      // Configurar dados específicos para cada tipo
+      switch (uploadType) {
+        case 'post':
+          uploadOptions.data = {
+            categoria: 'estetica-facial',
+            postId: postId
+          };
+          break;
+        
+        case 'perfil':
+          uploadOptions.data = {
+            userId: userId
+          };
+          break;
+        
+        case 'curso':
+          uploadOptions.data = {
+            cursoId: cursoId
+          };
+          break;
+        
+        case 'personalizado':
+        default:
+          uploadOptions.data = {
+            customPath: `demo/${nanoid().substring(0, 8)}/${file.name}`
+          };
+      }
+      
       // Fazer upload usando nossa função aprimorada
-      const imageUrl = await uploadFileToSupabase(file, customPath);
+      const imageUrl = await uploadFileToSupabase(file, uploadOptions);
       
       if (imageUrl) {
         setUploadedImageUrl(imageUrl);
@@ -122,6 +161,23 @@ export default function ImageUploadDemo() {
                   disabled={uploading}
                   className="cursor-pointer"
                 />
+              </div>
+              
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="demoUploadType">Tipo de upload</Label>
+                <select 
+                  id="demoUploadType" 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={uploading}
+                >
+                  <option value="post">Postagem (posts/[categoria]/[postId]-arquivo.webp)</option>
+                  <option value="perfil">Perfil (perfis/[userId]-perfil.webp)</option>
+                  <option value="curso">Curso (posts/capas/cursos/[cursoId]-capa.webp)</option>
+                  <option value="personalizado">Personalizado (caminho customizado)</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Selecione a categoria de upload para organizar automaticamente os arquivos
+                </p>
               </div>
             </div>
             
