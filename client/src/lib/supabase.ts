@@ -1,33 +1,54 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Verificar se as variáveis de ambiente estão disponíveis
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || '';
-
-// Mostrar alerta se as chaves não estiverem definidas
-if (!supabaseUrl || !supabaseKey) {
-  console.warn('Variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_KEY não definidas. O armazenamento de imagens não funcionará corretamente.');
+// Função para validar URL
+function isValidUrl(urlString: string): boolean {
+  try {
+    // Tentar criar um objeto URL (lança exceção se inválido)
+    new URL(urlString);
+    // Verificar se é um URL do tipo https
+    return urlString.startsWith('https://');
+  } catch (e) {
+    return false;
+  }
 }
 
-// Criar uma função que retorna um cliente mock se as credenciais não estiverem disponíveis
+// Verificar se as variáveis de ambiente estão disponíveis e válidas
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string || '';
+let supabaseKey = import.meta.env.VITE_SUPABASE_KEY as string || '';
+
+// Verificar a validade da URL
+if (!isValidUrl(supabaseUrl)) {
+  console.warn(`VITE_SUPABASE_URL inválida: "${supabaseUrl}". O armazenamento de imagens não funcionará corretamente.`);
+  supabaseUrl = 'https://example.supabase.co'; // URL placeholder para evitar erros de construção
+}
+
+// Verificar se a chave está presente
+if (!supabaseKey) {
+  console.warn('VITE_SUPABASE_KEY não definida. O armazenamento de imagens não funcionará corretamente.');
+}
+
+// Criar uma função que retorna um cliente mock se as credenciais não forem válidas
 function createSupabaseClient() {
-  if (!supabaseUrl || !supabaseKey) {
-    // Retornar um cliente mock que não faz nada
+  const hasValidCredentials = isValidUrl(supabaseUrl) && supabaseKey.length > 0;
+  
+  if (!hasValidCredentials) {
+    console.warn('Usando cliente Supabase simulado devido a credenciais inválidas.');
     // @ts-ignore - permitindo um mock rudimentar para evitar erros
     return {
       storage: {
-        listBuckets: () => ({ data: [], error: new Error('Credenciais Supabase não fornecidas') }),
-        createBucket: () => ({ error: new Error('Credenciais Supabase não fornecidas') }),
+        listBuckets: () => ({ data: [], error: new Error('Credenciais Supabase inválidas') }),
+        createBucket: () => ({ error: new Error('Credenciais Supabase inválidas') }),
         from: () => ({
-          upload: () => ({ error: new Error('Credenciais Supabase não fornecidas') }),
+          upload: () => ({ error: new Error('Credenciais Supabase inválidas') }),
           getPublicUrl: () => ({ data: { publicUrl: '' } }),
         }),
       },
     };
   }
   
-  // Criar um cliente real se tivermos credenciais
+  // Criar um cliente real se tivermos credenciais válidas
   try {
+    console.log('Inicializando cliente Supabase com URL:', supabaseUrl);
     return createClient(supabaseUrl, supabaseKey);
   } catch (error) {
     console.error('Erro ao criar cliente Supabase:', error);
