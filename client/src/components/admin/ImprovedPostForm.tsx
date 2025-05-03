@@ -420,32 +420,36 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
   // Componente para indicador de etapas
   const StepIndicator = () => (
-    <div className="flex items-center justify-center space-x-1 py-4 px-6 border-b">
-      <div className="flex items-center justify-center">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+    <div className="flex items-center justify-center py-6 mx-auto max-w-md">
+      <div className="flex flex-col items-center mx-4">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
           step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
         }`}>
           1
         </div>
-        <div className="text-xs text-center mt-1">Informações</div>
+        <div className="text-sm">Informações</div>
       </div>
-      <div className={`flex-1 h-0.5 ${step >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`}></div>
-      <div className="flex items-center justify-center">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+      
+      <div className={`flex-1 h-0.5 mt-[-15px] ${step >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`}></div>
+      
+      <div className="flex flex-col items-center mx-4">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
           step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
         }`}>
           2
         </div>
-        <div className="text-xs text-center mt-1">Uploads</div>
+        <div className="text-sm">Uploads</div>
       </div>
-      <div className={`flex-1 h-0.5 ${step >= 3 ? 'bg-blue-500' : 'bg-gray-200'}`}></div>
-      <div className="flex items-center justify-center">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+      
+      <div className={`flex-1 h-0.5 mt-[-15px] ${step >= 3 ? 'bg-blue-500' : 'bg-gray-200'}`}></div>
+      
+      <div className="flex flex-col items-center mx-4">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
           step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
         }`}>
           3
         </div>
-        <div className="text-xs text-center mt-1">Revisão</div>
+        <div className="text-sm">Revisão</div>
       </div>
     </div>
   );
@@ -472,7 +476,9 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         </div>
         
         {/* Indicador de etapas */}
-        <StepIndicator />
+        <div className="border-b">
+          <StepIndicator />
+        </div>
         
         {/* Conteúdo da etapa 1: Informações básicas */}
         {step === 1 && (
