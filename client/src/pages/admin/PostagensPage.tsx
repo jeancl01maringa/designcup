@@ -625,27 +625,27 @@ export default function PostagensPage() {
                       })}
                       title={post.licenseType === 'premium' ? 'Conteúdo Premium (clique para tornar gratuito)' : 'Conteúdo Gratuito (clique para tornar premium)'}
                     >
-                      <Crown 
-                        className={`h-4 w-4 ${post.licenseType === 'premium' 
-                          ? 'text-amber-500 fill-amber-500' 
-                          : 'text-muted-foreground'}`} 
-                      />
+                      {post.licenseType === 'premium' ? (
+                        <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
+                      ) : (
+                        <Crown className="h-4 w-4 text-muted-foreground" />
+                      )}
                     </Button>
                   </TableCell>
                   <TableCell className="py-3 text-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
+                    <div 
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer ${post.isVisible ? 'bg-blue-500' : 'bg-muted'}`}
+                      role="switch"
+                      aria-checked={post.isVisible}
+                      data-state={post.isVisible ? 'checked' : 'unchecked'}
                       onClick={() => toggleVisibilityMutation.mutate({ id: post.id, isVisible: !post.isVisible })}
                       title={post.isVisible ? 'Visível no feed (clique para ocultar)' : 'Oculto no feed (clique para tornar visível)'}
                     >
-                      {post.isVisible ? (
-                        <Eye className="h-4 w-4 text-blue-500" />
-                      ) : (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </Button>
+                      <span 
+                        className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${post.isVisible ? 'translate-x-6' : 'translate-x-1'}`} 
+                        data-state={post.isVisible ? 'checked' : 'unchecked'} 
+                      />
+                    </div>
                   </TableCell>
                   <TableCell className="py-3">
                     {getStatusBadge(post.status)}
