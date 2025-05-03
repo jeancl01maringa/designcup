@@ -157,7 +157,15 @@ export function setupAuth(app: Express) {
       }
       req.login(user, (err) => {
         if (err) return next(err);
-        res.status(200).json(user);
+        
+        // Garantir que isAdmin esteja presente no objeto de resposta e remover a senha
+        const responseUser = {
+          ...user,
+          isAdmin: user.isAdmin ?? user.is_admin, // Fallback para garantir que isAdmin esteja disponível
+          password: undefined // Remover a senha do objeto de resposta por segurança
+        };
+        
+        res.status(200).json(responseUser);
       });
     })(req, res, next);
   });
@@ -171,6 +179,15 @@ export function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Não autenticado" });
-    res.json(req.user);
+    
+    // Remover a senha e garantir que isAdmin esteja presente
+    const user = req.user;
+    const safeUser = {
+      ...user,
+      isAdmin: user.isAdmin ?? user.is_admin, // Fallback para garantir que isAdmin esteja disponível
+      password: undefined // Remover a senha por segurança
+    };
+    
+    res.json(safeUser);
   });
 }
