@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { CreditCard, Edit2, Search, Shield, Trash2, User } from "lucide-react";
+import { CreditCard, Edit2, MessageSquare, Search, Shield, Trash2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
@@ -147,7 +147,8 @@ export default function AssinantesPage() {
     setEditFormData({
       plano_id: assinante.plano_id || "",
       data_vencimento: assinante.data_vencimento ? new Date(assinante.data_vencimento).toISOString().substring(0, 10) : "",
-      active: assinante.active
+      active: assinante.active,
+      telefone: assinante.telefone || ""
     });
     setIsEditDialogOpen(true);
   };
@@ -183,6 +184,24 @@ export default function AssinantesPage() {
     });
   };
 
+  // Função para abrir WhatsApp
+  const handleWhatsAppClick = (telefone: string) => {
+    if (!telefone) {
+      toast({
+        title: "Telefone não cadastrado",
+        description: "Este assinante não possui um número de telefone cadastrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Remover caracteres não-numéricos
+    const numeroLimpo = telefone.replace(/\D/g, '');
+    
+    // Abrir o WhatsApp com o número
+    window.open(`https://wa.me/55${numeroLimpo}`, '_blank');
+  };
+
   // Filtrar assinantes com base no termo de pesquisa
   const filteredAssinantes = assinantes.filter(assinante => 
     assinante.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -191,7 +210,8 @@ export default function AssinantesPage() {
 
   // Função para obter informações do plano
   const getPlanoInfo = (planoId: string) => {
-    const plano = planos.find(p => p.codigoHotmart === planoId);
+    if (!planoId) return "Plano não definido";
+    const plano = planos.find(p => p.id.toString() === planoId);
     return plano ? `${plano.name} (${plano.periodo} - ${plano.valor})` : "Plano desconhecido";
   };
 
@@ -336,13 +356,28 @@ export default function AssinantesPage() {
                         size="sm"
                         onClick={() => handleEditClick(assinante)}
                         className="mr-1"
+                        title="Editar assinante"
                       >
                         <Edit2 size={16} className="text-blue-600" />
                       </Button>
+                      
+                      {assinante.telefone && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleWhatsAppClick(assinante.telefone || "")}
+                          className="mr-1"
+                          title="Abrir WhatsApp"
+                        >
+                          <MessageSquare size={16} className="text-green-600" />
+                        </Button>
+                      )}
+                      
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCancelClick(assinante)}
+                        title="Cancelar assinatura"
                       >
                         <Trash2 size={16} className="text-red-600" />
                       </Button>
@@ -375,7 +410,7 @@ export default function AssinantesPage() {
               >
                 <option value="">Selecione um plano</option>
                 {planos.map(plano => (
-                  <option key={plano.id} value={plano.codigoHotmart}>
+                  <option key={plano.id} value={plano.id}>
                     {plano.name} - {plano.periodo} ({plano.valor})
                   </option>
                 ))}
@@ -389,6 +424,17 @@ export default function AssinantesPage() {
                 type="date"
                 value={editFormData.data_vencimento}
                 onChange={(e) => setEditFormData({ ...editFormData, data_vencimento: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="telefone">Telefone (com DDD)</Label>
+              <Input 
+                id="telefone"
+                type="tel"
+                value={editFormData.telefone}
+                onChange={(e) => setEditFormData({ ...editFormData, telefone: e.target.value })}
+                placeholder="(00) 00000-0000"
               />
             </div>
             
