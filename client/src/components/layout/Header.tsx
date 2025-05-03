@@ -138,7 +138,8 @@ const UserMenu = () => {
 };
 
 const MobileMenu = () => {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+  const { user, logoutMutation } = useAuth();
   const { isOpen, setIsOpen } = useMobileMenu();
   
   const navItems = [
@@ -165,14 +166,68 @@ const MobileMenu = () => {
             {item.name}
           </Link>
         ))}
-        <div className="flex items-center gap-3 pt-2">
-          <img 
-            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80" 
-            alt="User Profile"
-            className="w-8 h-8 rounded-full object-cover"
-          />
-          <span className="text-[#1D1D1D] font-medium">Meu Perfil</span>
-        </div>
+        
+        {user ? (
+          <>
+            <div className="flex items-center gap-3 border-t border-muted pt-4 mt-2">
+              <div className="rounded-full overflow-hidden w-8 h-8 bg-primary/20 flex items-center justify-center text-primary">
+                <User className="h-4 w-4" />
+              </div>
+              <span className="text-[#1D1D1D] font-medium">{user.username}</span>
+            </div>
+            
+            {user.isAdmin && (
+              <Link 
+                href="/admin"
+                className="block text-primary hover:text-primary/80 font-medium text-base py-2 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Painel Admin
+              </Link>
+            )}
+            
+            <button
+              className="flex items-center gap-2 text-destructive hover:text-destructive/80 font-medium text-base py-2 transition-colors w-full text-left"
+              onClick={() => {
+                logoutMutation.mutate();
+                setIsOpen(false);
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </button>
+          </>
+        ) : (
+          <div className="flex flex-col gap-2 border-t border-muted pt-4 mt-2">
+            <button
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium text-base py-2 transition-colors"
+              onClick={() => {
+                navigate("/auth");
+                setIsOpen(false);
+              }}
+            >
+              <LogIn className="h-4 w-4" />
+              <span>Entrar</span>
+            </button>
+            
+            <button
+              className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium text-base py-2 transition-colors"
+              onClick={() => {
+                navigate("/auth");
+                setIsOpen(false);
+                // Ativar a tab de registro
+                setTimeout(() => {
+                  document.querySelector('[value="register"]')?.dispatchEvent(
+                    new MouseEvent('click', { bubbles: true })
+                  );
+                }, 100);
+              }}
+            >
+              <UserPlus className="h-4 w-4" />
+              <span>Cadastre-se</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
