@@ -18,12 +18,12 @@ import {
   ChevronLeft, Crown, Plus,
   ImageIcon, Trash, Circle, 
   ExternalLink, FileImage,
-  Clock, XCircle
+  Clock, XCircle, Tag
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { uploadToSupabase } from "@/lib/admin/uploadToSupabase";
-import { Post, Category } from "@shared/schema";
+import { Post, Category, Tag as TagType } from "@shared/schema";
 import { nanoid, cn } from "@/lib/utils";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { useToast } from "@/hooks/use-toast";
@@ -233,6 +233,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     queryFn: async () => {
       const res = await fetch("/api/admin/categories");
       if (!res.ok) throw new Error("Falha ao buscar categorias");
+      return res.json();
+    }
+  });
+  
+  // Buscar tags
+  const { data: tagsData = [] } = useQuery<TagType[]>({
+    queryKey: ["/api/admin/tags"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/tags");
+      if (!res.ok) throw new Error("Falha ao buscar tags");
       return res.json();
     }
   });
