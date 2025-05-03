@@ -51,16 +51,74 @@ export function ImageUploader({
     checkConnection();
   }, []);
 
+  // Função para validar os limites de arquivo antes de começar o upload
+  const validateFileSize = useCallback((file: File): Promise<{valid: boolean, message?: string}> => {
+    return new Promise((resolve) => {
+      // Verificar o tamanho do arquivo (limite absoluto)
+      const maxFileSizeMB = 2; // Limite global absoluto: 2MB
+      const fileSizeMB = file.size / (1024 * 1024);
+      
+      if (fileSizeMB > maxFileSizeMB) {
+        resolve({
+          valid: false,
+          message: `Arquivo muito grande (${fileSizeMB.toFixed(1)}MB). Limite máximo permitido é ${maxFileSizeMB}MB.`
+        });
+        return;
+      }
+      
+      // Para imagens, verificar também as dimensões
+      if (file.type.startsWith('image/')) {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        
+        img.onload = () => {
+          // Liberar a URL temporária
+          URL.revokeObjectURL(objectUrl);
+          
+          // O limite absoluto global é 1920px
+          const absoluteMaxDimension = 1920;
+          
+          if (img.width > absoluteMaxDimension || img.height > absoluteMaxDimension) {
+            resolve({
+              valid: false,
+              message: `Imagem muito grande (${img.width}x${img.height}px). Dimensão máxima permitida é ${absoluteMaxDimension}px.`
+            });
+          } else {
+            resolve({ valid: true });
+          }
+        };
+        
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve({ valid: true }); // Em caso de erro na leitura da imagem, permite prosseguir
+        };
+        
+        img.src = objectUrl;
+      } else {
+        // Se não for imagem, apenas passa pela validação de tamanho
+        resolve({ valid: true });
+      }
+    });
+  }, []);
+
   const handleFileSelect = useCallback(async (file: File) => {
     try {
       setError(null);
       setIsUploading(true);
-      setUploadProgress(10);
+      setUploadProgress(5);
 
       // Verificar se é uma imagem
       if (!file.type.startsWith('image/')) {
         throw new Error('Por favor, selecione um arquivo de imagem válido');
       }
+      
+      // Validar tamanho e dimensões do arquivo
+      const { valid, message } = await validateFileSize(file);
+      if (!valid) {
+        throw new Error(message);
+      }
+      
+      setUploadProgress(10);
 
       // Verificar conexão com Supabase
       const isConnected = await checkSupabaseConnection();
@@ -303,9 +361,11 @@ export function ImageUploader({
               >
                 {buttonText}
               </Button>
-              <p className="text-xs text-gray-400 mt-4">
-                Formatos aceitos: JPG, PNG • Tamanho máx: {maxSizeMB}MB
-              </p>
+              <div className="text-xs text-gray-400 mt-4 space-y-1 text-center">
+                <p>Formatos aceitos: JPG, PNG, WebP</p>
+                <p>Limites: <strong>2MB máximo</strong> • <strong>1920px máximo</strong> de largura ou altura</p>
+                <p>Imagens maiores serão automaticamente redimensionadas</p>
+              </div>
             </>
           )}
         </div>
