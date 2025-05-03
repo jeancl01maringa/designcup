@@ -844,7 +844,7 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                     Nova Tag
                   </Button>
                 </div>
-                <div className="hidden">
+                <div className="flex items-center gap-2 mb-2">
                   <Input
                     id="newTag-desktop"
                     value={newTag}
@@ -852,6 +852,14 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                     placeholder="Adicionar tag"
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                   />
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className="text-primary hover:bg-primary/5"
+                    onClick={handleAddTag}
+                  >
+                    Nova tag
+                  </Button>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {formData.tags.length > 0 ? (
@@ -937,7 +945,11 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
             {/* Tabs de Navegação entre Formatos */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full overflow-x-auto flex-nowrap sticky top-[84px] bg-white z-10 border-b rounded-none h-14">
-                <TabsTrigger value="postagem" className="rounded-none text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none flex-shrink-0">
+                <TabsTrigger 
+                  value="postagem" 
+                  className="rounded-none text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none flex-shrink-0"
+                  onClick={() => setStep(1)}
+                >
                   Postagem
                 </TabsTrigger>
                 {formData.formats.map((format) => (
