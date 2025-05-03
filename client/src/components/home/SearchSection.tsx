@@ -64,7 +64,7 @@ export default function SearchSection() {
                         <button
                           key={format.id}
                           type="button"
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${format.id === 'feed' ? 'text-[#dc2626] font-medium' : ''}`}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${format.name === selectedFormat ? 'bg-black text-white font-medium' : ''}`}
                           onClick={() => selectFormat(format.name)}
                         >
                           {format.name}
