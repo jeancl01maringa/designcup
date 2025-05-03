@@ -224,10 +224,10 @@ export default function ArtDetailPage() {
         {/* Coluna da direita - Informações */}
         <div className="space-y-5 border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
           {/* Título e selo premium */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <h1 className="text-xl font-bold">{post.title}</h1>
             {isPremium && (
-              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 h-6 py-0 px-2">
+              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 h-6 py-0 px-2 mt-0.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
                 </svg>
@@ -237,29 +237,29 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Checklist de vantagens */}
-          <div>
-            <ul className="space-y-2">
+          <div className="bg-green-50 p-4 rounded-lg">
+            <ul className="space-y-3">
               <li className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={10} className="text-green-500" />
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
                 </div>
                 <span className="text-gray-700 text-sm">Editável no Canva gratuito</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={10} className="text-green-500" />
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
                 </div>
                 <span className="text-gray-700 text-sm">Para projetos comerciais e pessoais</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={10} className="text-green-500" />
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
                 </div>
                 <span className="text-gray-700 text-sm">Não precisa atribuir o autor</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={10} className="text-green-500" />
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
                 </div>
                 <span className="text-gray-700 text-sm">Qualidade profissional</span>
               </li>
@@ -318,13 +318,27 @@ export default function ArtDetailPage() {
           {/* Formatos disponíveis */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-gray-700">Formatos disponíveis</h3>
-            <div className="border border-gray-200 rounded-md p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="text-xs font-medium">FEED</div>
-                  <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+            <div className="border border-gray-200 rounded-md p-3 bg-white">
+              <div className="flex items-center justify-between cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
+                    <img 
+                      src={post.imageUrl || post.image_url} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium">FEED</div>
+                    <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+                  </div>
                 </div>
-                <div className="text-xs text-blue-600">3 opções</div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-blue-600">3 opções</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -332,7 +346,7 @@ export default function ArtDetailPage() {
           {/* Botão principal de ação */}
           <Button 
             onClick={handleEditCanva} 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 h-auto flex items-center justify-center gap-2 rounded-md"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -343,30 +357,36 @@ export default function ArtDetailPage() {
           </Button>
           
           {/* Linha de ações */}
-          <div className="flex items-center justify-center gap-8 pt-5">
-            <button 
+          <div className="flex items-center justify-center gap-3 pt-5">
+            <Button 
               onClick={handleFavorite}
-              className="flex flex-col items-center gap-1"
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
             >
-              <Heart size={20} className={isFavorite ? "fill-red-500 text-red-500" : "text-gray-700"} />
-              <span className="text-xs text-gray-500">Favoritar</span>
-            </button>
+              <Heart size={16} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
+              <span>Favoritar</span>
+            </Button>
             
-            <button 
+            <Button 
               onClick={handleSave}
-              className="flex flex-col items-center gap-1"
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
             >
-              <Bookmark size={20} className={isSaved ? "fill-blue-500 text-blue-500" : "text-gray-700"} />
-              <span className="text-xs text-gray-500">Salvar</span>
-            </button>
+              <Bookmark size={16} className={isSaved ? "fill-blue-500 text-blue-500" : ""} />
+              <span>Salvar</span>
+            </Button>
             
-            <button 
+            <Button 
               onClick={handleShare}
-              className="flex flex-col items-center gap-1"
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
             >
-              <Share2 size={20} className="text-gray-700" />
-              <span className="text-xs text-gray-500">Compartilhar</span>
-            </button>
+              <Share2 size={16} />
+              <span>Compartilhar</span>
+            </Button>
           </div>
           
           {/* Informações do criador */}
