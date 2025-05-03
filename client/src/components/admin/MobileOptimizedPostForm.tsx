@@ -812,9 +812,24 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                       )}
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="aprovado">Aprovado</SelectItem>
-                      <SelectItem value="rascunho">Rascunho</SelectItem>
-                      <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                      <SelectItem value="aprovado">
+                        <div className="flex items-center">
+                          <Check className="h-4 w-4 text-green-500 mr-2" />
+                          <span>Aprovado</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="rascunho">
+                        <div className="flex items-center">
+                          <Circle className="h-4 w-4 text-orange-500 mr-2" />
+                          <span>Rascunho</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="rejeitado">
+                        <div className="flex items-center">
+                          <X className="h-4 w-4 text-red-500 mr-2" />
+                          <span>Reprovado</span>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -865,26 +880,25 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </div>
               
               {/* Quarta linha: Formatos */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <Label className="mb-2 block">Formatos da Postagem</Label>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-4">
                   {(['feed', 'cartaz', 'stories'] as PostFormat[]).map((format) => (
-                    <div key={format} className="flex-1 min-w-0">
+                    <div key={format} className="w-auto">
                       <Button
                         type="button"
                         variant={formData.formats.includes(format) ? "default" : "outline"}
                         className={cn(
-                          "w-full flex justify-between items-center h-10 capitalize",
-                          formData.formats.includes(format) && "bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                          "h-10 capitalize flex items-center gap-2 px-3",
+                          formData.formats.includes(format) && "bg-blue-50 text-blue-800 hover:bg-blue-100 border-blue-300 hover:border-blue-400"
                         )}
                         onClick={() => handleFormatToggle(format)}
                       >
-                        <CheckCircle className={cn(
-                          "h-4 w-4 mr-2",
-                          formData.formats.includes(format) ? "text-white" : "text-transparent"
-                        )} />
+                        {formData.formats.includes(format) && (
+                          <Check className="h-4 w-4 text-blue-600" />
+                        )}
                         <span className="font-medium capitalize">{format}</span>
-                        <Badge variant="secondary" className="ml-2">Essencial</Badge>
+                        <Badge variant="secondary" className="ml-1">Essencial</Badge>
                       </Button>
                     </div>
                   ))}
@@ -911,15 +925,21 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </Button>
             </div>
             
-            {/* Versão Desktop - Botões originais */}
-            <div className="hidden md:flex justify-end bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
+            {/* Versão Desktop - Botões conforme a referência */}
+            <div className="hidden md:flex justify-between bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
+              <Button 
+                type="button" 
+                onClick={onOpenChange.bind(null, false)}
+                variant="outline"
+              >
+                Cancelar
+              </Button>
               <Button 
                 type="button" 
                 onClick={nextStep}
                 className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
               >
                 Próximo
-                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
