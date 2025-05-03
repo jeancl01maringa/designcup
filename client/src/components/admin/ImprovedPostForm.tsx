@@ -757,10 +757,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                         >
                           {formData.formatFiles[format].imagePreview ? (
                             <div className="relative w-full h-full">
-                              <img 
+                              <ImageWithFallback 
                                 src={formData.formatFiles[format].imagePreview}
                                 alt="Preview"
                                 className="object-contain max-h-full max-w-full"
+                                fallbackClassName="h-12 w-12 text-gray-300"
                               />
                               <Button
                                 type="button"
