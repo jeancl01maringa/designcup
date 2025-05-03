@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
   PlusCircle, XCircle, Image, Upload, Check, Crown, X, 
-  Link as LinkIcon, FileCheck, ArrowLeft, ExternalLink, FileImage
+  Link as LinkIcon, FileCheck, ArrowLeft, ExternalLink, FileImage, 
+  CheckCircle, Circle
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -473,6 +474,11 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
         <DialogTitle className="text-xl font-bold">
           {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Postagem"}
         </DialogTitle>
+        <DialogDescription>
+          {step === 1 ? "Preencha os dados básicos da postagem" : 
+           step === 2 ? "Adicione imagens e links para cada formato" : 
+           "Revise todos os dados antes de publicar"}
+        </DialogDescription>
         
         {/* Indicador de progresso */}
         <div className="flex items-center justify-center mb-4 pt-2">
@@ -694,30 +700,33 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
             {/* Formatos da Postagem */}
             <div className="space-y-2">
               <Label>Formatos da Postagem</Label>
-              <div className="flex flex-wrap gap-4 mt-4">
+              <div className="space-y-2 mt-4">
                 {[
-                  { id: "feed", label: "FEED", icon: <Image className="h-5 w-5 mb-1" />, description: "Quadrado 1080x1080" },
-                  { id: "cartaz", label: "CARTAZ", icon: <Image className="h-5 w-5 mb-1" />, description: "Retângulo 1080x1350" },
-                  { id: "stories", label: "STORIES", icon: <Image className="h-5 w-5 mb-1" />, description: "Vertical 1080x1920" }
+                  { id: "feed", label: "FEED", description: "Quadrado 1080x1080" },
+                  { id: "cartaz", label: "CARTAZ", description: "Retângulo 1080x1350" },
+                  { id: "stories", label: "STORIES", description: "Vertical 1080x1920" }
                 ].map((format) => (
-                  <div key={format.id} className="flex flex-col items-center">
+                  <div key={format.id} className="w-full">
                     <Button
                       type="button"
                       variant="outline"
-                      className={`w-28 h-20 flex flex-col rounded-lg transition-colors ${
+                      className={`w-full flex items-center justify-between py-3 px-4 rounded-lg transition-colors ${
                         formData.formats.includes(format.id as PostFormat) 
-                          ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border-[#1f4ed8]/50 shadow-sm hover:bg-[#1f4ed8]/20" 
-                          : "border-gray-200 hover:bg-gray-100"
+                          ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
+                          : "border-gray-200 hover:bg-gray-50"
                       }`}
                       onClick={() => handleFormatToggle(format.id as PostFormat)}
                     >
-                      {format.icon}
-                      <span className="font-medium">{format.label}</span>
-                      {formData.formats.includes(format.id as PostFormat) && (
-                        <Check className="h-4 w-4 mt-1 text-[#1f4ed8]" />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {formData.formats.includes(format.id as PostFormat) ? (
+                          <CheckCircle className="h-5 w-5 text-[#1f4ed8]" />
+                        ) : (
+                          <Circle className="h-5 w-5 text-gray-300" />
+                        )}
+                        <span className="font-medium">{format.label}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{format.description}</span>
                     </Button>
-                    <span className="text-xs text-muted-foreground mt-1">{format.description}</span>
                   </div>
                 ))}
               </div>
@@ -909,11 +918,13 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                       <div 
                         className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center ${
                           formData.formatFiles[format].imagePreview ? "border-primary" : "border-border"
-                        } ${
-                          format === 'feed' ? 'h-64 aspect-square' : 
-                          format === 'cartaz' ? 'h-64 aspect-[4/5]' : 
-                          'h-72 aspect-[9/16]'
                         }`}
+                        style={{
+                          height: "320px",
+                          margin: "0 auto",
+                          width: format === 'feed' ? "320px" : format === 'cartaz' ? "260px" : "180px",
+                          maxWidth: "100%"
+                        }}
                       >
                         {formData.formatFiles[format].imagePreview ? (
                           <div className="relative w-full h-full">
@@ -1167,20 +1178,18 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                       </CardHeader>
                       <CardContent className="p-0">
                         {formData.formatFiles[format].imagePreview ? (
-                          <div className="relative border-t border-b">
-                            <div className={`${
-                              format === 'feed' ? 'aspect-square' : 
-                              format === 'cartaz' ? 'aspect-[4/5]' : 
-                              'aspect-[9/16]'
-                            } max-h-48 overflow-hidden flex items-center justify-center`}>
+                          <div className="relative border-t border-b py-3 flex items-center justify-center">
+                            <div 
+                              className="overflow-hidden flex items-center justify-center bg-slate-50"
+                              style={{
+                                width: format === 'feed' ? "150px" : format === 'cartaz' ? "120px" : "85px",
+                                height: format === 'feed' ? "150px" : format === 'cartaz' ? "150px" : "150px"
+                              }}
+                            >
                               <img 
                                 src={formData.formatFiles[format].imagePreview} 
                                 alt={`Preview da ${format}`} 
-                                className={`${
-                                  format === 'feed' ? 'aspect-square' : 
-                                  format === 'cartaz' ? 'aspect-[4/5]' : 
-                                  'aspect-[9/16] max-h-full'
-                                } object-cover`}
+                                className="w-full h-full object-contain"
                               />
                             </div>
                           </div>
