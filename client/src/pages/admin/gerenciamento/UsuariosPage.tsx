@@ -68,9 +68,10 @@ export default function UsuariosPage() {
 
   // Buscar todos os planos disponíveis
   const { data: planos = [], isLoading: isLoadingPlanos } = useQuery<Plano[]>({
-    queryKey: ['/api/admin/planos'],
+    queryKey: ['/api/admin/plans'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/planos');
+      const response = await apiRequest('GET', '/api/admin/plans');
+      console.log('Planos recebidos:', response);
       return response.json();
     },
   });
