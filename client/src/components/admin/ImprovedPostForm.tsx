@@ -392,6 +392,25 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   
   const submitForm = async () => {
     try {
+      // Pegue a primeira imagem disponível para usar como imageUrl principal
+      let mainImageUrl = "";
+      for (const format of formData.formats) {
+        if (formData.formatFiles[format].imagePreview) {
+          mainImageUrl = formData.formatFiles[format].imagePreview;
+          break;
+        }
+      }
+      
+      // Caso não encontre nenhuma imagem, use uma imagem padrão ou mostre erro
+      if (!mainImageUrl) {
+        toast({
+          title: "Erro",
+          description: "É necessário fazer upload de pelo menos uma imagem",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Preparar dados para envio
       const formatDataJson = JSON.stringify(formData.formats.map(format => ({
         type: format,
@@ -409,7 +428,8 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         formats: formData.formats,
         formatData: formatDataJson, // Enviar como string JSON
         uniqueCode: formData.uniqueCode,
-        groupId: formData.groupId
+        groupId: formData.groupId,
+        imageUrl: mainImageUrl // Adicionar imageUrl que é obrigatório
       };
       
       // Enviar para o servidor
@@ -418,6 +438,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       } else {
         await createPostMutation.mutateAsync(post);
       }
+      
+      // Fechar modal em caso de sucesso
+      onClose?.();
+      
+      // Feedback de sucesso
+      toast({
+        title: "Sucesso!",
+        description: isEdit ? "Postagem atualizada com sucesso" : "Postagem criada com sucesso",
+      });
+      
     } catch (error) {
       console.error("Erro ao enviar o formulário:", error);
       toast({
