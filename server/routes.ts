@@ -1899,7 +1899,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             u.tipo,
             u.plano_id,
             u.data_vencimento,
-            COALESCE(u.active, false) as active
+            COALESCE(u.active, false) as active,
+            u.telefone
           FROM users u
           WHERE u.tipo = 'premium'
           ORDER BY u.data_vencimento ASC
