@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertArtworkSchema, insertCategorySchema, insertPostSchema, insertPlanSchema, insertTagSchema, type InsertPost, type InsertPlan, type InsertTag } from "@shared/schema";
-import { setupAuth } from "./auth";
+import { setupAuth, hashPassword } from "./auth";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
