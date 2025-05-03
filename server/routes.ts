@@ -6,7 +6,7 @@ import { setupAuth } from "./auth";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { supabase } from "./supabase-client";
 import * as crypto from "crypto";
 
@@ -40,9 +40,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Se falhar no Supabase, tentar diretamente com PostgreSQL
         console.log("Tentando buscar formatos com PostgreSQL direto");
-        const { rows } = await db.execute(`SELECT * FROM file_formats ORDER BY id ASC`);
-        console.log(`Encontrados ${rows?.length || 0} formatos de arquivo via PostgreSQL`);
-        return res.json(rows || []);
+        const result = await pool.query(`SELECT * FROM file_formats ORDER BY id ASC`);
+        console.log(`Encontrados ${result.rows?.length || 0} formatos de arquivo via PostgreSQL`);
+        return res.json(result.rows || []);
       } catch (dbError: any) {
         console.error("Erro ao buscar formatos de arquivo via PostgreSQL:", dbError);
         return res.status(500).json({ 
@@ -74,35 +74,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Criando formato de arquivo:', { name, type, icon, is_active });
       
-      // Tente inserir no Supabase
-      const { data, error } = await supabase
-        .from('file_formats')
-        .insert([{ 
+      try {
+        // Tente inserir no Supabase primeiro
+        const { data, error } = await supabase
+          .from('file_formats')
+          .insert([{ 
+            name, 
+            type, 
+            icon: icon || null, 
+            is_active: is_active !== false,
+            created_at: new Date().toISOString()
+          }])
+          .select();
+          
+        if (!error && data && data.length > 0) {
+          console.log("Formato de arquivo criado com sucesso via Supabase");
+          return res.status(201).json(data[0]);
+        }
+        
+        // Se falhar no Supabase, tentar com PostgreSQL diretamente
+        console.log("Tentando criar formato de arquivo via PostgreSQL direto");
+        const result = await pool.query(`
+          INSERT INTO file_formats (name, type, icon, is_active, created_at) 
+          VALUES ($1, $2, $3, $4, $5) 
+          RETURNING *
+        `, [
           name, 
           type, 
-          icon: icon || null, 
-          is_active: is_active !== false,
-          created_at: new Date().toISOString()
-        }])
-        .select();
+          icon || null, 
+          is_active !== false, 
+          new Date()
+        ]);
         
-      if (error) {
-        console.error("Erro ao criar formato de arquivo:", error);
+        if (result.rows && result.rows.length > 0) {
+          console.log("Formato de arquivo criado com sucesso via PostgreSQL");
+          return res.status(201).json(result.rows[0]);
+        } else {
+          return res.status(500).json({ 
+            message: 'Formato criado, mas nenhum dado retornado' 
+          });
+        }
+      } catch (dbError: any) {
+        console.error("Erro ao criar formato de arquivo via PostgreSQL:", dbError);
         return res.status(500).json({ 
           message: 'Erro ao criar formato de arquivo', 
-          error: error.message 
+          error: dbError.message 
         });
       }
-      
-      // Verifique se data existe antes de tentar acessar [0]
-      if (!data || data.length === 0) {
-        return res.status(500).json({ 
-          message: 'Formato criado, mas nenhum dado retornado' 
-        });
-      }
-      
-      // Retorne o primeiro item do array data
-      res.status(201).json(data[0]);
     } catch (error: any) {
       console.error('Error creating file format:', error);
       res.status(500).json({ 
@@ -213,9 +231,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Se falhar no Supabase, tentar diretamente com PostgreSQL
         console.log("Tentando buscar formatos de post com PostgreSQL direto");
-        const { rows } = await db.execute(`SELECT * FROM post_formats ORDER BY id ASC`);
-        console.log(`Encontrados ${rows?.length || 0} formatos de post via PostgreSQL`);
-        return res.json(rows || []);
+        const result = await pool.query(`SELECT * FROM post_formats ORDER BY id ASC`);
+        console.log(`Encontrados ${result.rows?.length || 0} formatos de post via PostgreSQL`);
+        return res.json(result.rows || []);
       } catch (dbError: any) {
         console.error("Erro ao buscar formatos de post via PostgreSQL:", dbError);
         return res.status(500).json({ 
@@ -247,35 +265,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Criando formato de post:', { name, size, orientation, is_active });
       
-      // Tente inserir no Supabase
-      const { data, error } = await supabase
-        .from('post_formats')
-        .insert([{ 
+      try {
+        // Tente inserir no Supabase primeiro
+        const { data, error } = await supabase
+          .from('post_formats')
+          .insert([{ 
+            name, 
+            size, 
+            orientation, 
+            is_active: is_active !== false,
+            created_at: new Date().toISOString()
+          }])
+          .select();
+          
+        if (!error && data && data.length > 0) {
+          console.log("Formato de post criado com sucesso via Supabase");
+          return res.status(201).json(data[0]);
+        }
+        
+        // Se falhar no Supabase, tentar com PostgreSQL diretamente
+        console.log("Tentando criar formato de post via PostgreSQL direto");
+        const result = await pool.query(`
+          INSERT INTO post_formats (name, size, orientation, is_active, created_at) 
+          VALUES ($1, $2, $3, $4, $5) 
+          RETURNING *
+        `, [
           name, 
           size, 
           orientation, 
-          is_active: is_active !== false,
-          created_at: new Date().toISOString()
-        }])
-        .select();
+          is_active !== false, 
+          new Date()
+        ]);
         
-      if (error) {
-        console.error("Erro ao criar formato de post:", error);
+        if (result.rows && result.rows.length > 0) {
+          console.log("Formato de post criado com sucesso via PostgreSQL");
+          return res.status(201).json(result.rows[0]);
+        } else {
+          return res.status(500).json({ 
+            message: 'Formato criado, mas nenhum dado retornado' 
+          });
+        }
+      } catch (dbError: any) {
+        console.error("Erro ao criar formato de post via PostgreSQL:", dbError);
         return res.status(500).json({ 
           message: 'Erro ao criar formato de post', 
-          error: error.message 
+          error: dbError.message 
         });
       }
-      
-      // Verifique se data existe antes de tentar acessar [0]
-      if (!data || data.length === 0) {
-        return res.status(500).json({ 
-          message: 'Formato criado, mas nenhum dado retornado' 
-        });
-      }
-      
-      // Retorne o primeiro item do array data
-      res.status(201).json(data[0]);
     } catch (error: any) {
       console.error('Error creating post format:', error);
       res.status(500).json({ 
