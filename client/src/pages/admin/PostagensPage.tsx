@@ -46,11 +46,13 @@ import {
   Edit, 
   Trash2, 
   Eye, 
+  EyeOff,
   CheckCircle, 
   Clock, 
   XCircle,
   RefreshCcw,
-  Loader2
+  Loader2,
+  Crown
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -89,6 +91,58 @@ export default function PostagensPage() {
         return [];
       }
     }
+  });
+  
+  // Mutação para atualizar a visibilidade da postagem
+  const toggleVisibilityMutation = useMutation({
+    mutationFn: async ({ id, isVisible }: { id: number, isVisible: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/admin/posts/${id}`, { isVisible });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar visibilidade');
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
+      toast({
+        title: "Visibilidade atualizada",
+        description: "A visibilidade da postagem foi atualizada com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar visibilidade",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutação para atualizar o tipo de licença da postagem
+  const toggleLicenseTypeMutation = useMutation({
+    mutationFn: async ({ id, licenseType }: { id: number, licenseType: 'premium' | 'free' }) => {
+      const response = await apiRequest('PATCH', `/api/admin/posts/${id}`, { licenseType });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar tipo de licença');
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
+      toast({
+        title: "Tipo de licença atualizado",
+        description: "O tipo de licença da postagem foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar tipo de licença",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   // Buscar postagens com filtros
@@ -505,6 +559,8 @@ export default function PostagensPage() {
               <TableHead className="w-14">ID</TableHead>
               <TableHead className="min-w-[250px]">Título</TableHead>
               <TableHead className="hidden md:table-cell">Categoria</TableHead>
+              <TableHead className="w-20 text-center">Premium</TableHead>
+              <TableHead className="w-20 text-center">Visível</TableHead>
               <TableHead className="w-24">Status</TableHead>
               <TableHead className="hidden md:table-cell">Data</TableHead>
               <TableHead className="w-16"></TableHead>
@@ -557,6 +613,39 @@ export default function PostagensPage() {
                   </TableCell>
                   <TableCell className="hidden md:table-cell py-3">
                     {categories.find(c => c.id === post.categoryId)?.name || '-'}
+                  </TableCell>
+                  <TableCell className="py-3 text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => toggleLicenseTypeMutation.mutate({ 
+                        id: post.id, 
+                        licenseType: post.licenseType === 'premium' ? 'free' : 'premium'
+                      })}
+                      title={post.licenseType === 'premium' ? 'Conteúdo Premium (clique para tornar gratuito)' : 'Conteúdo Gratuito (clique para tornar premium)'}
+                    >
+                      <Crown 
+                        className={`h-4 w-4 ${post.licenseType === 'premium' 
+                          ? 'text-amber-500 fill-amber-500' 
+                          : 'text-muted-foreground'}`} 
+                      />
+                    </Button>
+                  </TableCell>
+                  <TableCell className="py-3 text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => toggleVisibilityMutation.mutate({ id: post.id, isVisible: !post.isVisible })}
+                      title={post.isVisible ? 'Visível no feed (clique para ocultar)' : 'Oculto no feed (clique para tornar visível)'}
+                    >
+                      {post.isVisible ? (
+                        <Eye className="h-4 w-4 text-blue-500" />
+                      ) : (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
                   </TableCell>
                   <TableCell className="py-3">
                     {getStatusBadge(post.status)}
