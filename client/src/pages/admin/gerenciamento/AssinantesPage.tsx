@@ -176,6 +176,7 @@ export default function AssinantesPage() {
     setEditFormData({
       username: assinante.username,
       email: assinante.email,
+      tipo: assinante.tipo || "premium",
       plano_id: assinante.plano_id || "",
       data_vencimento: assinante.data_vencimento ? new Date(assinante.data_vencimento).toISOString().substring(0, 10) : "",
       active: assinante.active,
@@ -480,12 +481,35 @@ export default function AssinantesPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="plano_id">Plano</Label>
+              <Label htmlFor="tipo">Tipo de usuário</Label>
+              <div className="flex flex-col space-y-2">
+                <select
+                  id="tipo"
+                  value={editFormData.tipo}
+                  onChange={(e) => setEditFormData({ ...editFormData, tipo: e.target.value as 'free' | 'premium' })}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="free">Free</option>
+                  <option value="premium">Premium</option>
+                </select>
+                {editFormData.tipo === 'free' && (
+                  <div className="text-sm text-yellow-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                    <strong>Atenção:</strong> Alterar para "Free" removerá o acesso premium e a assinatura.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="plano_id" className={editFormData.tipo === 'free' ? 'text-gray-400' : ''}>
+                Plano {editFormData.tipo === 'free' && <span className="text-xs italic">(indisponível para usuários Free)</span>}
+              </Label>
               <select
                 id="plano_id"
-                value={editFormData.plano_id}
+                value={editFormData.tipo === 'free' ? '' : editFormData.plano_id}
                 onChange={(e) => setEditFormData({ ...editFormData, plano_id: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className={`w-full p-2 border ${editFormData.tipo === 'free' ? 'bg-gray-100 text-gray-400 border-gray-200' : 'border-gray-300'} rounded-md`}
+                disabled={editFormData.tipo === 'free'}
               >
                 <option value="">Selecione um plano</option>
                 {planos.map(plano => (
@@ -497,12 +521,16 @@ export default function AssinantesPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="data_vencimento">Data de Vencimento</Label>
+              <Label htmlFor="data_vencimento" className={editFormData.tipo === 'free' ? 'text-gray-400' : ''}>
+                Data de Vencimento {editFormData.tipo === 'free' && <span className="text-xs italic">(indisponível para usuários Free)</span>}
+              </Label>
               <Input 
                 id="data_vencimento"
                 type="date"
-                value={editFormData.data_vencimento}
+                value={editFormData.tipo === 'free' ? '' : editFormData.data_vencimento}
                 onChange={(e) => setEditFormData({ ...editFormData, data_vencimento: e.target.value })}
+                className={editFormData.tipo === 'free' ? 'bg-gray-100 text-gray-400 border-gray-200' : ''}
+                disabled={editFormData.tipo === 'free'}
               />
             </div>
             
@@ -517,14 +545,21 @@ export default function AssinantesPage() {
               />
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="active"
-                checked={editFormData.active}
-                onCheckedChange={(checked) => setEditFormData({ ...editFormData, active: checked })}
-              />
-              <Label htmlFor="active">Assinatura Ativa</Label>
-            </div>
+            {editFormData.tipo === 'premium' && (
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="active"
+                  checked={editFormData.active}
+                  onCheckedChange={(checked) => setEditFormData({ ...editFormData, active: checked })}
+                />
+                <Label htmlFor="active">Assinatura Ativa</Label>
+              </div>
+            )}
+            {editFormData.tipo === 'free' && (
+              <div className="p-2 bg-gray-50 rounded border border-gray-200 text-gray-500 text-sm">
+                Status de assinatura não aplicável para usuários Free
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button 

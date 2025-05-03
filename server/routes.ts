@@ -1933,7 +1933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const { username, email, plano_id, data_vencimento, active, telefone } = req.body;
+      const { username, email, tipo, plano_id, data_vencimento, active, telefone } = req.body;
       
       console.log(`Atualizando assinante #${id}:`, req.body);
       
@@ -1942,8 +1942,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const queryParams = [];
       let paramIndex = 1;
       
-      // Sempre definir tipo como premium para assinantes
-      setClauses.push(`tipo = 'premium'`);
+      // Permitir alterar o tipo do usuário (premium ou free)
+      if (tipo !== undefined) {
+        if (tipo === 'free' || tipo === 'premium') {
+          setClauses.push(`tipo = $${paramIndex}`);
+          queryParams.push(tipo);
+          paramIndex++;
+        } else {
+          return res.status(400).json({ message: 'Tipo de usuário inválido. Use "free" ou "premium".' });
+        }
+      }
       
       if (username !== undefined) {
         setClauses.push(`username = $${paramIndex}`);
