@@ -81,7 +81,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
     description: null,
     licenseType: "premium",
     tags: [],
-    formats: ["feed", "cartaz", "stories"],
+    formats: [], // Não selecionar nenhum formato inicialmente
     formatFiles: {
       feed: { ...defaultFormatFile },
       cartaz: { ...defaultFormatFile },
@@ -107,7 +107,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
         description: initialData.description,
         licenseType: initialData.licenseType || "premium",
         tags: initialData.tags || [],
-        formats: initialData.formats || ["feed", "cartaz", "stories"],
+        formats: (initialData.formats as PostFormat[]) || [],
         formatFiles: formatFiles,
         uniqueCode: initialData.uniqueCode || uniquePostId
       });
@@ -694,32 +694,34 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
             {/* Formatos da Postagem */}
             <div className="space-y-2">
               <Label>Formatos da Postagem</Label>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 mt-4">
                 {[
-                  { id: "feed", label: "FEED", essential: true },
-                  { id: "cartaz", label: "CARTAZ", essential: true },
-                  { id: "stories", label: "STORIES", essential: true }
+                  { id: "feed", label: "FEED", icon: <Image className="h-5 w-5 mb-1" />, description: "Quadrado 1080x1080" },
+                  { id: "cartaz", label: "CARTAZ", icon: <Image className="h-5 w-5 mb-1" />, description: "Retângulo 1080x1350" },
+                  { id: "stories", label: "STORIES", icon: <Image className="h-5 w-5 mb-1" />, description: "Vertical 1080x1920" }
                 ].map((format) => (
                   <div key={format.id} className="flex flex-col items-center">
                     <Button
                       type="button"
                       variant="outline"
-                      className={`w-24 relative ${
+                      className={`w-28 h-20 flex flex-col rounded-lg transition-colors ${
                         formData.formats.includes(format.id as PostFormat) 
-                          ? "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200" 
+                          ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border-[#1f4ed8]/50 shadow-sm hover:bg-[#1f4ed8]/20" 
                           : "border-gray-200 hover:bg-gray-100"
                       }`}
                       onClick={() => handleFormatToggle(format.id as PostFormat)}
                     >
-                      {format.label}
+                      {format.icon}
+                      <span className="font-medium">{format.label}</span>
+                      {formData.formats.includes(format.id as PostFormat) && (
+                        <Check className="h-4 w-4 mt-1 text-[#1f4ed8]" />
+                      )}
                     </Button>
-                    {format.essential && (
-                      <span className="text-xs text-primary mt-1">Essencial</span>
-                    )}
+                    <span className="text-xs text-muted-foreground mt-1">{format.description}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">Selecione os formatos para esta postagem.</p>
+              <p className="text-xs text-muted-foreground mt-2">Selecione ao menos um formato para esta postagem.</p>
             </div>
             
             {/* Botões de Navegação */}
@@ -729,7 +731,11 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="button" onClick={nextStep}>
+              <Button 
+                type="button" 
+                onClick={nextStep}
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+              >
                 Próximo
               </Button>
             </div>
@@ -750,43 +756,145 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
               </TabsList>
               
               <TabsContent value="postagem" className="pt-4">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <h3 className="font-medium">Informações da Postagem</h3>
-                      <p><strong>Título:</strong> {formData.title}</p>
-                      <p>
-                        <strong>Categoria:</strong> {
-                          categories.find(c => c.id === formData.categoryId)?.name || "Não definida"
-                        }
-                      </p>
-                      <p><strong>Status:</strong> {formData.status}</p>
-                      <p><strong>Licença:</strong> {formData.licenseType}</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <h3 className="font-medium">Formatos</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {formData.formats.map((format) => (
-                          <Badge key={format} className="capitalize">
-                            {format}
-                          </Badge>
-                        ))}
+                <div className="space-y-5">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Editar Informações da Postagem</CardTitle>
+                      <CardDescription>Modifique os detalhes básicos se necessário</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Título */}
+                      <div className="space-y-2">
+                        <Label htmlFor="step2-title">Título</Label>
+                        <Input
+                          id="step2-title"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                        />
                       </div>
                       
-                      <h3 className="font-medium mt-4">Tags</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {formData.tags.map((tag) => (
-                          <Badge key={tag} variant="outline">#{tag}</Badge>
-                        ))}
+                      {/* Categoria */}
+                      <div className="space-y-2">
+                        <Label htmlFor="step2-category">Categoria</Label>
+                        <Select
+                          value={formData.categoryId?.toString() || ""}
+                          onValueChange={(value) => handleSelectChange("categoryId", value)}
+                        >
+                          <SelectTrigger id="step2-category">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Status & Licença */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="step2-status">Status</Label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
+                          >
+                            <SelectTrigger id="step2-status">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="aprovado">Aprovado</SelectItem>
+                              <SelectItem value="rascunho">Rascunho</SelectItem>
+                              <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="step2-license">Licença</Label>
+                          <Select
+                            value={formData.licenseType}
+                            onValueChange={(value) => handleSelectChange("licenseType", value)}
+                          >
+                            <SelectTrigger id="step2-license">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="premium">Premium</SelectItem>
+                              <SelectItem value="free">Gratuito</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      {/* Tags */}
+                      <div className="space-y-2">
+                        <Label>Tags</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="newTagStep2"
+                            value={newTag}
+                            onChange={(e) => setNewTag(e.target.value)}
+                            placeholder="Adicionar tag"
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                          />
+                          <Button 
+                            type="button" 
+                            onClick={handleAddTag} 
+                            size="sm" 
+                            className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 shrink-0"
+                          >
+                            <PlusCircle className="h-4 w-4 mr-1" />
+                            Adicionar
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {formData.tags.length > 0 ? (
+                            formData.tags.map((tag) => (
+                              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                                #{tag}
+                                <X
+                                  className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-foreground"
+                                  onClick={() => handleRemoveTag(tag)}
+                                />
+                              </Badge>
+                            ))
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Nenhuma tag adicionada</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Formatos */}
+                      <div className="space-y-2">
+                        <Label>Formatos Selecionados</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.formats.map((format) => (
+                            <Badge key={format} className="capitalize bg-[#1f4ed8]">
+                              {format}
+                            </Badge>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <strong>Nota:</strong> Para adicionar ou remover formatos, retorne à etapa anterior.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <div className="bg-slate-50 p-3 rounded-md border">
+                    <div className="flex items-center">
+                      <div className="mr-3 bg-[#1f4ed8]/10 rounded-md p-2">
+                        <FileCheck className="h-5 w-5 text-[#1f4ed8]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">ID único da postagem</p>
+                        <p className="text-xs text-muted-foreground">{formData.uniqueCode}</p>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <p className="text-sm text-muted-foreground">
-                      ID único da postagem: <strong>{formData.uniqueCode}</strong>
-                    </p>
                   </div>
                 </div>
               </TabsContent>
@@ -918,7 +1026,14 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                                   <Badge variant="outline" className="capitalize mb-1">
                                     {link.provider}
                                   </Badge>
-                                  <p className="text-xs max-w-[200px] truncate">{link.url}</p>
+                                  <a 
+                                    href={link.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-xs max-w-[200px] truncate text-blue-600 hover:underline block"
+                                  >
+                                    {link.url}
+                                  </a>
                                 </div>
                                 <Button
                                   variant="ghost"
