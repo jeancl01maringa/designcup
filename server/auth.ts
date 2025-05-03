@@ -61,7 +61,7 @@ export function setupAuth(app: Express) {
       passwordField: 'password',
     }, async (email, password, done) => {
       try {
-        const user = await storage.getUserByUsername(email);
+        const user = await storage.getUserByEmail(email);
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false, { message: "Credenciais inválidas" });
         }
@@ -90,13 +90,14 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Todos os campos são obrigatórios" });
       }
 
-      const existingUser = await storage.getUserByUsername(email);
+      const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
-        return res.status(400).json({ message: "Usuário já existe" });
+        return res.status(400).json({ message: "Email já cadastrado" });
       }
 
       const user = await storage.createUser({
         username,
+        email,
         password: await hashPassword(password),
       });
 
