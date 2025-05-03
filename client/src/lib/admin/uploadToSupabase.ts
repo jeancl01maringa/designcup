@@ -181,9 +181,23 @@ export async function removeFromSupabase(path: string): Promise<boolean> {
 export function getPublicUrl(path: string): string {
   const { data } = supabase.storage
     .from('images')
-    .getPublicUrl(path);
-    
-  return data.publicUrl;
+    .getPublicUrl(path, {
+      download: true, // Adicionar parâmetro download=true para garantir que a URL seja acessível
+    });
+  
+  // Verificar se a URL foi gerada corretamente
+  if (!data.publicUrl || data.publicUrl === '') {
+    console.error('Erro ao gerar URL pública para:', path);
+    throw new Error('Não foi possível gerar URL pública para o arquivo');
+  }
+  
+  // Garantir que a URL tenha parâmetro de cache invalidation ou timestamp
+  const separator = data.publicUrl.includes('?') ? '&' : '?';
+  const timestamp = Date.now();
+  const publicUrl = `${data.publicUrl}${separator}t=${timestamp}`;
+  
+  console.log('URL pública gerada com sucesso:', publicUrl);
+  return publicUrl;
 }
 
 /**

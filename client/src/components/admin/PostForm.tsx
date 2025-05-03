@@ -31,6 +31,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 
 interface PostFormProps {
   open: boolean;
@@ -163,6 +164,9 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       // Criar preview para exibição imediata
       const previewUrl = URL.createObjectURL(file);
       
+      // Criar um ID para referenciar esta imagem específica
+      const imageId = `${format}_${Date.now()}`;
+      
       setFormData(prev => ({
         ...prev,
         formatFiles: {
@@ -188,22 +192,52 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       // Upload e otimização (para WebP) no Supabase
       const imageUrl = await uploadToSupabase(file, filePath, true);
       
-      if (imageUrl) {
-        setFormData(prev => ({
-          ...prev,
-          formatFiles: {
-            ...prev.formatFiles,
-            [format]: {
-              ...prev.formatFiles[format],
-              imagePreview: imageUrl
-            }
+      // Verificar se a URL retornada é válida
+      if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+        // Garantir que ainda estamos trabalhando com o mesmo arquivo
+        // verificando se o formato ainda está sendo renderizado
+        setFormData(prev => {
+          // Se o formato não está mais nos formatos selecionados, não atualizamos
+          if (!prev.formats.includes(format)) {
+            return prev;
           }
-        }));
+          
+          // Verificar se ainda estamos lidando com o mesmo arquivo
+          // Se já tiver outro arquivo, não sobreescrevemos
+          const currentFile = prev.formatFiles[format].imageFile;
+          
+          // Se não tiver mais arquivo ou tiver sido removido, não atualizamos
+          if (!currentFile) {
+            return prev;
+          }
+          
+          // Atualizar a URL para a permanente do Supabase
+          return {
+            ...prev,
+            formatFiles: {
+              ...prev.formatFiles,
+              [format]: {
+                ...prev.formatFiles[format],
+                imagePreview: imageUrl
+              }
+            }
+          };
+        });
         
         toast({
           title: "Imagem carregada!",
           description: "Imagem otimizada e armazenada com sucesso.",
           variant: "default",
+        });
+        
+        // Registrar o sucesso no console para debug
+        console.log(`Imagem ${format} carregada com sucesso:`, imageUrl);
+      } else {
+        console.error("URL inválida retornada pelo upload:", imageUrl);
+        toast({
+          title: "Aviso",
+          description: "A imagem foi carregada, mas pode haver problemas com a URL.",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -1224,7 +1258,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                       >
                         {formData.formatFiles[format].imagePreview ? (
                           <div className="relative w-full h-full">
-                            <img 
+                            <ImageWithFallback 
                               src={formData.formatFiles[format].imagePreview}
                               alt="Preview"
                               className={`rounded w-full h-full ${
@@ -1482,7 +1516,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                                 height: format === 'feed' ? "150px" : format === 'cartaz' ? "150px" : "150px"
                               }}
                             >
-                              <img 
+                              <ImageWithFallback 
                                 src={formData.formatFiles[format].imagePreview} 
                                 alt={`Preview da ${format}`} 
                                 className="w-full h-full object-contain"
