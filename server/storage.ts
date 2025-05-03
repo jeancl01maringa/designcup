@@ -8,7 +8,7 @@ import {
   plans, type Plan, type InsertPlan,
   postStatusEnum
 } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
 import { supabase } from "./supabase-client";
 
