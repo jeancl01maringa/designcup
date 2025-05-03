@@ -45,7 +45,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Post, Category } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { PostForm } from "@/components/admin/PostForm";
+import { MobileOptimizedPostForm } from "@/components/admin/MobileOptimizedPostForm";
 
 interface PostFilter {
   searchTerm?: string;
@@ -395,8 +395,8 @@ export default function PostagensPage() {
               </Button>
             </DialogTrigger>
             
-            {/* Renderiza o PostForm no seu próprio Dialog para controle completo */}
-            <PostForm 
+            {/* Renderiza o formulário de postagem otimizado para mobile */}
+            <MobileOptimizedPostForm 
               open={isFormOpen}
               onOpenChange={setIsFormOpen}
               initialData={editingPost || undefined}
