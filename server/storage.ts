@@ -61,12 +61,21 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     if (user) {
+      // Log para depuração
+      console.log("DATABASE getUser - Dados brutos do usuário:", JSON.stringify(user));
+      
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
       // Cria um novo objeto sem as propriedades específicas do banco de dados
       const { is_admin, ...rest } = user;
+      
+      // Convertendo explicitamente para boolean com !! para garantir que o valor booleano seja preserved
+      const isAdmin = is_admin === true || is_admin === 't';
+      console.log("DATABASE getUser - is_admin raw value:", is_admin, "tipo:", typeof is_admin); 
+      console.log("DATABASE getUser - isAdmin convertido:", isAdmin);
+      
       return {
         ...rest,
-        isAdmin: is_admin
+        isAdmin: isAdmin
       };
     }
     return undefined;
@@ -75,11 +84,20 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     if (user) {
+      // Log para depuração
+      console.log("DATABASE getUserByUsername - Dados brutos do usuário:", JSON.stringify(user));
+      
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
       const { is_admin, ...rest } = user;
+      
+      // Convertendo explicitamente para boolean com !! para garantir que o valor booleano seja preserved
+      const isAdmin = is_admin === true || is_admin === 't';
+      console.log("DATABASE getUserByUsername - is_admin raw value:", is_admin, "tipo:", typeof is_admin); 
+      console.log("DATABASE getUserByUsername - isAdmin convertido:", isAdmin);
+      
       return {
         ...rest,
-        isAdmin: is_admin
+        isAdmin: isAdmin
       };
     }
     return undefined;
@@ -88,17 +106,28 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user) {
+      // Log para depuração
+      console.log("DATABASE getUserByEmail - Dados brutos do usuário:", JSON.stringify(user));
+      
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
       const { is_admin, ...rest } = user;
+      
+      // Convertendo explicitamente para boolean com !! para garantir que o valor booleano seja preserved
+      const isAdmin = is_admin === true || is_admin === 't';
+      console.log("DATABASE getUserByEmail - is_admin raw value:", is_admin, "tipo:", typeof is_admin); 
+      console.log("DATABASE getUserByEmail - isAdmin convertido:", isAdmin);
+      
       return {
         ...rest,
-        isAdmin: is_admin
+        isAdmin: isAdmin
       };
     }
     return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    console.log("DATABASE createUser - Recebendo dados:", JSON.stringify(insertUser));
+    
     // Mapear isAdmin para is_admin no banco de dados (se existir)
     const dbUser = {
       ...insertUser,
@@ -108,15 +137,23 @@ export class DatabaseStorage implements IStorage {
     // Remover isAdmin para evitar erro "property does not exist"
     delete (dbUser as any).isAdmin;
     
+    console.log("DATABASE createUser - Enviando para o banco:", JSON.stringify(dbUser));
+    
     const [user] = await db
       .insert(users)
       .values(dbUser)
       .returning();
-      
+    
+    console.log("DATABASE createUser - Resultado do banco:", JSON.stringify(user));
+    
+    // Converter is_admin para boolean usando o mesmo método
+    const isAdmin = user.is_admin === true || user.is_admin === 't';
+    console.log("DATABASE createUser - isAdmin convertido:", isAdmin);
+    
     // Mapear is_admin para isAdmin na resposta
     return {
       ...user,
-      isAdmin: user.is_admin
+      isAdmin: isAdmin
     };
   }
   
