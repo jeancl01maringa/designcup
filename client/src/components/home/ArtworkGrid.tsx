@@ -145,17 +145,21 @@ export default function ArtworkGrid() {
   });
 
   // Converter posts do Supabase para o formato esperado
-  const artworks = posts.map(post => ({
-    id: post.id,
-    title: post.title,
-    description: post.description || '',
-    imageUrl: post.image_url,
-    category: post.category_id ? post.category_id.toString() : null,
-    createdAt: new Date(post.created_at),
-    // Verificar várias formas possíveis do campo premium
-    isPro: post.is_pro === true || post.license_type === 'premium' || post.license === 'premium',
-    format: post.format || "1:1"
-  }));
+  const artworks = posts.map(post => {
+    console.log("Processando post:", post.id, "isPro:", post.is_pro, "licenseType:", post.license_type);
+    
+    return {
+      id: post.id,
+      title: post.title,
+      description: post.description || '',
+      imageUrl: post.image_url,
+      category: post.category_id ? post.category_id.toString() : null,
+      createdAt: new Date(post.created_at),
+      // Verificar várias formas possíveis do campo premium - com logging detalhado
+      isPro: Boolean(post.is_pro === true || post.license_type === 'premium' || post.license === 'premium'),
+      format: post.format || "1:1"
+    };
+  });
   
   // Estado de carregamento usando o isPostsLoading
   const isLoading = isPostsLoading;
