@@ -1370,8 +1370,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rota de compatibilidade em português
   app.get('/api/admin/planos/:id', async (req, res) => {
-    req.url = `/api/admin/plans/${req.params.id}`;
-    app.handle(req, res);
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      console.log(`Buscando plano #${id} (via compatibilidade)`);
+      
+      try {
+        const plan = await storage.getPlanById(id);
+        
+        if (!plan) {
+          return res.status(404).json({ message: 'Plano não encontrado' });
+        }
+        
+        return res.json(plan);
+      } catch (storageError: any) {
+        console.error(`Erro ao buscar plano #${id} via storage:`, storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar plano',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching plan:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar plano',
+        error: error.message
+      });
+    }
   });
   
   app.get('/api/admin/plans/:id', async (req, res) => {

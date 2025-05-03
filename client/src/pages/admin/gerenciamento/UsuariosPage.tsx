@@ -68,14 +68,24 @@ export default function UsuariosPage() {
     },
   });
 
-  // Buscar todos os planos disponíveis
+  // Buscar todos os planos disponíveis (agora compatível com as duas rotas)
   const { data: planos = [], isLoading: isLoadingPlanos } = useQuery<Plano[]>({
-    queryKey: ['/api/admin/planos'],
+    queryKey: ['/api/admin/plans'], // Chave da rota em inglês para consistência
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/planos');
-      const data = await response.json();
-      console.log('Planos recebidos:', data);
-      return data;
+      try {
+        // Tentar primeiramente com a rota em português para compatibilidade
+        const response = await apiRequest('GET', '/api/admin/planos');
+        const data = await response.json();
+        console.log('Planos recebidos (via /planos):', data);
+        return data;
+      } catch (error) {
+        // Se falhar, tentar com a rota em inglês
+        console.log('Tentando buscar planos via /plans após falha em /planos');
+        const response = await apiRequest('GET', '/api/admin/plans');
+        const data = await response.json();
+        console.log('Planos recebidos (via /plans):', data);
+        return data;
+      }
     },
   });
 
