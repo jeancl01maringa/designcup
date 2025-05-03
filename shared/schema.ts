@@ -116,7 +116,8 @@ export const postStatusEnum = pgEnum('post_status', ['aprovado', 'rascunho', 're
 // Posts/Postagens para o painel administrativo
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: text("title").notNull(), // título completo com formato para SEO
+  tituloBase: text("titulo_base"), // título original sem formato
   description: text("description"),
   imageUrl: text("image_url").notNull(),
   uniqueCode: text("unique_code").notNull().unique(), // código hash único
@@ -126,10 +127,14 @@ export const posts = pgTable("posts", {
   publishedAt: timestamp("published_at"),
   licenseType: text("license_type").default('free'), // premium ou free
   tags: text("tags").array(), // array de tags
-  formats: text("formats").array(), // array de formatos (feed, stories, cartaz)
+  formato: text("formato"), // formato específico (feed, stories, cartaz)
+  formats: text("formats").array(), // array de formatos (feed, stories, cartaz) - legado
   formatData: text("format_data"), // dados de formato em JSON
-  groupId: text("group_id"), // ID para agrupar artes relacionadas
+  formatoData: text("formato_data"), // novo campo em português para dados de formato em JSON
+  canvaUrl: text("canva_url"), // URL do Canva específica para este formato
+  groupId: text("group_id"), // ID para agrupar artes relacionadas (UUID)
   isVisible: boolean("is_visible").default(true).notNull(), // controle de visibilidade no feed
+  isPro: boolean("is_pro").default(false), // campo is_pro para manter compatibilidade
 });
 
 export const categoriesRelations = relations(categories, ({ many }) => ({

@@ -240,6 +240,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Novo endpoint para buscar posts relacionados pelo grupo_id
+  app.get('/api/admin/posts/related/:groupId', async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      
+      if (!groupId) {
+        return res.status(400).json({ message: 'Group ID is required' });
+      }
+      
+      const relatedPosts = await storage.getPostsByGroupId(groupId);
+      res.json(relatedPosts);
+    } catch (error) {
+      console.error('Error fetching related posts:', error);
+      res.status(500).json({ message: 'Error fetching related posts' });
+    }
+  });
+
   app.post('/api/admin/posts', async (req, res) => {
     try {
       // Esquema com validações personalizadas
@@ -256,8 +273,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const post = await storage.createPost(parsedData.data);
-      res.status(201).json(post);
+      // Verificar se estamos criando múltiplos formatos
+      const { formatos } = req.body;
+      
+      if (formatos && Array.isArray(formatos) && formatos.length > 0) {
+        // Múltiplos formatos - cria uma arte para cada formato com o mesmo grupo_id
+        console.log(`Criando post com ${formatos.length} formatos diferentes`);
+        
+        // Gerando um UUID para o grupo
+        const groupId = crypto.randomUUID();
+        console.log(`ID do grupo gerado: ${groupId}`);
+        
+        // Extraindo o título base
+        const tituloBase = parsedData.data.title;
+        console.log(`Título base: ${tituloBase}`);
+        
+        const createdPosts = [];
+        
+        // Para cada formato, criar um post específico
+        for (const formato of formatos) {
+          const formatoData = typeof formato === 'string' 
+            ? { formato } 
+            : formato;
+          
+          // Título completo com o formato para SEO
+          const title = `${tituloBase} - Editável no Canva - ${formatoData.formato.toUpperCase()}`;
+          
+          // Gerando um uniqueCode para cada formato
+          const uniqueCode = parsedData.data.uniqueCode 
+            ? `${parsedData.data.uniqueCode}-${formatoData.formato}` 
+            : crypto.randomUUID().substring(0, 8);
+          
+          // Preparando os dados para este formato específico
+          const postData = {
+            ...parsedData.data,
+            title,
+            tituloBase,
+            uniqueCode,
+            groupId,
+            formato: formatoData.formato,
+            formatoData: JSON.stringify(formatoData),
+            canvaUrl: formatoData.canvaUrl || '',
+          };
+          
+          // Criando o post para este formato
+          const post = await storage.createPost(postData);
+          createdPosts.push(post);
+        }
+        
+        res.status(201).json({
+          success: true,
+          message: `${createdPosts.length} posts criados com sucesso no grupo ${groupId}`,
+          posts: createdPosts,
+          groupId
+        });
+      } else {
+        // Apenas um formato - fluxo tradicional
+        const post = await storage.createPost(parsedData.data);
+        res.status(201).json(post);
+      }
     } catch (error) {
       console.error('Error creating post:', error);
       res.status(500).json({ message: 'Error creating post' });
