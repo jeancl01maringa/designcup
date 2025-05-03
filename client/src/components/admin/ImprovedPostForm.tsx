@@ -534,7 +534,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="PELE 12"
+                  placeholder="Digite o nome da postagem"
                 />
               </div>
               
