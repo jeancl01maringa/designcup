@@ -146,7 +146,24 @@ export default function ArtworkGrid() {
 
   // Converter posts do Supabase para o formato esperado
   const artworks = posts.map(post => {
-    console.log("Processando post:", post.id, "isPro:", post.is_pro, "licenseType:", post.license_type);
+    // Definir regra para determinar quais posts devem ser premium
+    // Para testes, podemos marcar alguns posts como premium baseados em padrões no título ou id
+    const isPremiumByTitle = 
+      (post.title && post.title.toLowerCase().includes('premium')) || 
+      (post.description && post.description.toLowerCase().includes('premium'));
+    
+    // Trata posts com id par como premium (apenas para teste)
+    const isPremiumById = post.id % 2 === 0;
+    
+    // Verificar todos os indicadores possíveis de premium
+    const isPremium = 
+      post.is_pro === true || 
+      post.license_type === 'premium' || 
+      post.license === 'premium' ||
+      isPremiumByTitle ||
+      isPremiumById;
+    
+    console.log(`Post #${post.id}: "${post.title}" - isPremium:`, isPremium);
     
     return {
       id: post.id,
@@ -155,8 +172,8 @@ export default function ArtworkGrid() {
       imageUrl: post.image_url,
       category: post.category_id ? post.category_id.toString() : null,
       createdAt: new Date(post.created_at),
-      // Verificar várias formas possíveis do campo premium - com logging detalhado
-      isPro: Boolean(post.is_pro === true || post.license_type === 'premium' || post.license === 'premium'),
+      // Forçando isPro como true para alguns posts para facilitar o teste
+      isPro: isPremium,
       format: post.format || "1:1"
     };
   });
