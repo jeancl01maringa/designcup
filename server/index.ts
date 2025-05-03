@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { storage } from "./storage";
+import { storage, ensureTagTablesExist } from "./storage";
 import { setupSupabaseTables, migrateLocalDataToSupabase } from "./supabase";
 import { db } from "./db";
 
@@ -48,6 +48,10 @@ app.use((req, res, next) => {
       await (storage as any).seedDatabase();
       log('Database initialized successfully');
     }
+    
+    // Verificar e criar tabelas de tags
+    log('Verificando e criando tabelas de tags...');
+    await ensureTagTablesExist();
     
     // Configurar tabelas no Supabase
     log('Configurando tabelas no Supabase...');
