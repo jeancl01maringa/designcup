@@ -1930,7 +1930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const { plano_id, data_vencimento, active } = req.body;
+      const { username, email, plano_id, data_vencimento, active, telefone } = req.body;
       
       console.log(`Atualizando assinante #${id}:`, req.body);
       
@@ -1941,6 +1941,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sempre definir tipo como premium para assinantes
       setClauses.push(`tipo = 'premium'`);
+      
+      if (username !== undefined) {
+        setClauses.push(`username = $${paramIndex}`);
+        queryParams.push(username);
+        paramIndex++;
+      }
+      
+      if (email !== undefined) {
+        setClauses.push(`email = $${paramIndex}`);
+        queryParams.push(email);
+        paramIndex++;
+      }
+      
+      if (telefone !== undefined) {
+        if (telefone === "") {
+          setClauses.push(`telefone = NULL`);
+        } else {
+          setClauses.push(`telefone = $${paramIndex}`);
+          queryParams.push(telefone);
+          paramIndex++;
+        }
+      }
       
       if (plano_id !== undefined) {
         if (plano_id === "") {
@@ -1981,7 +2003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SET ${setClauses.join(', ')} 
         WHERE id = $${paramIndex}
         RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
-          tipo, plano_id, data_vencimento, active
+          tipo, plano_id, data_vencimento, active, telefone
       `;
       
       try {
@@ -2025,7 +2047,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SET active = $1 
           WHERE id = $2 AND tipo = 'premium'
           RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
-            tipo, plano_id, data_vencimento, active
+            tipo, plano_id, data_vencimento, active, telefone
         `, [active, id]);
         
         if (result.rows && result.rows.length > 0) {
@@ -2069,7 +2091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             data_vencimento = NULL
           WHERE id = $1
           RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
-            tipo, plano_id, data_vencimento, active
+            tipo, plano_id, data_vencimento, active, telefone
         `, [id]);
         
         if (result.rows && result.rows.length > 0) {
@@ -2088,6 +2110,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error canceling subscription:', error);
       res.status(500).json({ 
         message: 'Erro ao cancelar assinatura',
+        error: error.message
+      });
+    }
+  });
+  
+  // Rota para redefinir a senha de um assinante para o padrão
+  app.patch('/api/admin/assinantes/:id/reset-password', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { newPassword } = req.body;
+      
+      if (!newPassword) {
+        return res.status(400).json({ message: 'Nova senha é obrigatória' });
+      }
+
+      console.log(`Redefinindo senha do assinante #${id}`);
+      
+      // Gerar o hash da nova senha
+      const hashedPassword = await hashPassword(newPassword);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE users 
+          SET password = $1 
+          WHERE id = $2 AND tipo = 'premium'
+          RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+            tipo, plano_id, data_vencimento, active, telefone
+        `, [hashedPassword, id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json({ 
+            message: 'Senha redefinida com sucesso',
+            user: result.rows[0]
+          });
+        } else {
+          return res.status(404).json({ message: 'Assinante não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao redefinir senha do assinante #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao redefinir senha do assinante',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error resetting subscriber password:', error);
+      res.status(500).json({ 
+        message: 'Erro ao redefinir senha do assinante',
         error: error.message
       });
     }

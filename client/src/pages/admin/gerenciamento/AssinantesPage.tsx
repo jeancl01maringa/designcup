@@ -47,11 +47,15 @@ export default function AssinantesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAssinante, setSelectedAssinante] = useState<Assinante | null>(null);
   const [editFormData, setEditFormData] = useState({
+    username: "",
+    email: "",
     plano_id: "",
     data_vencimento: "",
     active: true,
     telefone: ""
   });
+  
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
 
   // Buscar todos os assinantes (usuários premium ativos)
   const { data: assinantes = [], isLoading: isLoadingAssinantes } = useQuery<Assinante[]>({
@@ -141,16 +145,48 @@ export default function AssinantesPage() {
     }
   });
 
+  // Mutation para redefinir a senha do assinante
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('PATCH', `/api/admin/assinantes/${id}/reset-password`, {
+        newPassword: "estetica@123"
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      setIsResetPasswordDialogOpen(false);
+      toast({
+        title: "Senha redefinida",
+        description: "A senha do assinante foi redefinida para 'estetica@123'.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao redefinir senha",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Função para lidar com a abertura do modal de edição
   const handleEditClick = (assinante: Assinante) => {
     setSelectedAssinante(assinante);
     setEditFormData({
+      username: assinante.username,
+      email: assinante.email,
       plano_id: assinante.plano_id || "",
       data_vencimento: assinante.data_vencimento ? new Date(assinante.data_vencimento).toISOString().substring(0, 10) : "",
       active: assinante.active,
       telefone: assinante.telefone || ""
     });
     setIsEditDialogOpen(true);
+  };
+  
+  // Função para lidar com a abertura do modal de redefinição de senha
+  const handleResetPasswordClick = (assinante: Assinante) => {
+    setSelectedAssinante(assinante);
+    setIsResetPasswordDialogOpen(true);
   };
 
   // Função para lidar com a abertura do modal de cancelamento
@@ -372,6 +408,16 @@ export default function AssinantesPage() {
                           <MessageSquare size={16} className="text-green-600" />
                         </Button>
                       )}
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleResetPasswordClick(assinante)}
+                        className="mr-1"
+                        title="Redefinir senha"
+                      >
+                        <Key size={16} className="text-yellow-600" />
+                      </Button>
                       
                       <Button
                         variant="ghost"
