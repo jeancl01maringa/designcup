@@ -55,14 +55,15 @@ import {
   ChevronUp,
   Edit,
   Filter,
+  Eye,
   MoreHorizontal,
   Plus,
   Search,
   Trash2,
-  X
+  X,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
 
 export function PostManager() {
   const { toast } = useToast();
@@ -548,24 +549,32 @@ export function PostManager() {
                       <div className="font-medium truncate max-w-[200px]">
                         {post.title}
                       </div>
-                      {post.imageUrl && (
-                        <div className="flex items-center mt-1">
-                          <div className="h-6 w-6 rounded bg-muted flex items-center justify-center mr-2 overflow-hidden">
+                      <div className="flex items-center mt-1">
+                        {post.imageUrl ? (
+                          <div className="h-9 w-9 rounded bg-muted flex items-center justify-center mr-2 overflow-hidden" style={{ aspectRatio: '1/1' }}>
                             <img 
                               src={post.imageUrl} 
                               alt={post.title} 
-                              className="h-full w-full object-contain"
+                              className="h-full w-full object-cover"
                               onError={(e) => {
                                 e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWltYWdlIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ii8+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSIvPjwvc3ZnPg==';
                                 e.currentTarget.className = 'h-4 w-4 opacity-30';
                               }}
                             />
                           </div>
-                          <span className="text-xs text-muted-foreground truncate">
-                            {post.uniqueCode}
-                          </span>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="h-9 w-9 rounded bg-muted flex items-center justify-center mr-2 overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 opacity-30">
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                          </div>
+                        )}
+                        <span className="text-xs text-muted-foreground truncate">
+                          {post.uniqueCode}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {getCategoryName(post.categoryId)}
@@ -577,36 +586,38 @@ export function PostManager() {
                       {format(new Date(post.createdAt), "dd/MM/yyyy", {locale: ptBR})}
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Abrir menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedPost(post);
-                              setIsEditModalOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => {
-                              setSelectedPost(post);
-                              setIsDeleteModalOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => window.open(`/preview/${post.id}`, '_blank')}
+                        >
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => {
+                            setSelectedPost(post);
+                            setIsEditModalOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => {
+                            setSelectedPost(post);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
