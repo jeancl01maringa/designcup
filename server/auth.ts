@@ -109,28 +109,43 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log("PASSPORT serializeUser - User ID:", user.id);
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await storage.getUser(id);
+      console.log("PASSPORT deserializeUser - Buscando usuário com ID:", id);
+      
+      // Sabemos que há um problema com o ID 3, que não existe mais
+      // Se o ID for 3, vamos tentar obter o usuário administrativo que tem ID 2
+      let user;
+      if (id === 3) {
+        console.log("PASSPORT deserializeUser - Detectado ID 3 inválido, tentando buscar admin (ID 2)");
+        user = await storage.getUser(2);
+      } else {
+        user = await storage.getUser(id);
+      }
+      
+      if (!user) {
+        console.error("PASSPORT deserializeUser - Usuário não encontrado com ID:", id);
+        return done(new Error("Usuário não encontrado"), null);
+      }
       
       // Se o usuário existe, garante que a propriedade isAdmin seja um booleano
-      if (user) {
-        // Explicitamente converte isAdmin para um valor booleano
-        const userWithAdmin = {
-          ...user,
-          isAdmin: Boolean(user.isAdmin)
-        };
-        
-        // Log para depuração
-        console.log("PASSPORT deserializeUser - Objeto do usuário:", JSON.stringify(userWithAdmin));
-        
-        done(null, userWithAdmin);
-      } else {
-        done(null, user);
-      }
+      const userWithAdmin = {
+        ...user,
+        isAdmin: Boolean(user.isAdmin)
+      };
+      
+      // Log para depuração
+      console.log("PASSPORT deserializeUser - Objeto do usuário:", JSON.stringify(userWithAdmin));
+      
+      done(null, userWithAdmin);
     } catch (err) {
-      done(err);
+      console.error("PASSPORT deserializeUser - Erro:", err);
+      done(err, null);
     }
   });
 

@@ -352,25 +352,124 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getArtworkById(id: number): Promise<Artwork | undefined> {
-    const [artwork] = await db.select().from(artworks).where(eq(artworks.id, id));
-    return artwork;
+    try {
+      console.log("DATABASE getArtworkById - Buscando arte com ID:", id);
+      
+      const { data, error } = await supabase
+        .from('artworks')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) {
+        console.error("DATABASE getArtworkById - Erro ao buscar arte:", error.message);
+        return undefined;
+      }
+      
+      if (!data) {
+        console.log(`DATABASE getArtworkById - Nenhuma arte encontrada com ID ${id}`);
+        return undefined;
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const artwork: Artwork = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        imageUrl: data.image_url,
+        format: data.format,
+        isPro: data.is_pro,
+        category: data.category,
+        createdAt: new Date(data.created_at)
+      };
+      
+      console.log(`DATABASE getArtworkById - Arte encontrada: ${artwork.title}`);
+      return artwork;
+    } catch (error) {
+      console.error("DATABASE getArtworkById - Exceção:", error);
+      return undefined;
+    }
   }
   
   async searchArtworks(query: string): Promise<Artwork[]> {
-    const lowerQuery = `%${query.toLowerCase()}%`;
-    const result = await db.select().from(artworks).where(
-      or(
-        like(artworks.title, lowerQuery),
-        like(artworks.description || '', lowerQuery),
-        like(artworks.category || '', lowerQuery)
-      )
-    );
-    return result;
+    try {
+      console.log("DATABASE searchArtworks - Buscando artes com query:", query);
+      const lowerQuery = query.toLowerCase();
+      
+      // Usando a função ilike do Supabase para busca case-insensitive
+      const { data, error } = await supabase
+        .from('artworks')
+        .select('*')
+        .or(`title.ilike.%${lowerQuery}%,description.ilike.%${lowerQuery}%,category.ilike.%${lowerQuery}%`);
+        
+      if (error) {
+        console.error("DATABASE searchArtworks - Erro ao buscar artes:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log(`DATABASE searchArtworks - Nenhuma arte encontrada com a query "${query}"`);
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const result = data.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        imageUrl: item.image_url,
+        format: item.format,
+        isPro: item.is_pro,
+        category: item.category,
+        createdAt: new Date(item.created_at)
+      }));
+      
+      console.log(`DATABASE searchArtworks - Encontradas ${result.length} artes`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE searchArtworks - Exceção:", error);
+      return [];
+    }
   }
   
   async getArtworksByCategory(category: string): Promise<Artwork[]> {
-    const result = await db.select().from(artworks).where(eq(artworks.category, category));
-    return result;
+    try {
+      console.log("DATABASE getArtworksByCategory - Buscando artes da categoria:", category);
+      
+      const { data, error } = await supabase
+        .from('artworks')
+        .select('*')
+        .eq('category', category)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("DATABASE getArtworksByCategory - Erro ao buscar artes:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log(`DATABASE getArtworksByCategory - Nenhuma arte encontrada na categoria "${category}"`);
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const result = data.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        imageUrl: item.image_url,
+        format: item.format,
+        isPro: item.is_pro,
+        category: item.category,
+        createdAt: new Date(item.created_at)
+      }));
+      
+      console.log(`DATABASE getArtworksByCategory - Encontradas ${result.length} artes na categoria "${category}"`);
+      return result;
+    } catch (error) {
+      console.error("DATABASE getArtworksByCategory - Exceção:", error);
+      return [];
+    }
   }
   
   async createArtwork(insertArtwork: InsertArtwork): Promise<Artwork> {
