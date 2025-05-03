@@ -432,7 +432,7 @@ export default function CategoriasPage() {
                         size="sm"
                         onClick={() => handleToggleStatus(category)}
                         title="Desativar"
-                        className="text-amber-600"
+                        className="text-amber-600 border-amber-200 hover:bg-amber-50"
                       >
                         <AlertCircle className="h-4 w-4" />
                         <span className="sr-only sm:not-sr-only sm:ml-2">Desativar</span>
@@ -443,7 +443,7 @@ export default function CategoriasPage() {
                         size="sm"
                         onClick={() => handleToggleStatus(category)}
                         title="Ativar"
-                        className="text-green-600"
+                        className="text-green-600 border-green-200 hover:bg-green-50"
                       >
                         <CheckCircle className="h-4 w-4" />
                         <span className="sr-only sm:not-sr-only sm:ml-2">Ativar</span>

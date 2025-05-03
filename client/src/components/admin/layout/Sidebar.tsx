@@ -178,8 +178,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                       </Button>
                     </Link>
                   </li>
-                  {item.separator && isOpen && <Separator className="my-4" />}
-                  {item.separator && !isOpen && <div className="my-4" />}
+                  {item.separator && (
+                    <React.Fragment>
+                      {isOpen && <Separator className="my-4" />}
+                      {!isOpen && <div className="my-4" />}
+                    </React.Fragment>
+                  )}
                 </React.Fragment>
               ))}
             </ul>

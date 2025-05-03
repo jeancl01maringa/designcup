@@ -354,7 +354,7 @@ export default function PostagensPage() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => handleBatchStatusUpdate('aprovado')}
-                className="text-green-600"
+                className="text-green-600 border-green-200 hover:bg-green-50"
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Aprovar
@@ -363,7 +363,7 @@ export default function PostagensPage() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => handleBatchStatusUpdate('rascunho')}
-                className="text-amber-600"
+                className="text-amber-600 border-amber-200 hover:bg-amber-50"
               >
                 <Clock className="h-4 w-4 mr-1" />
                 Rascunho
@@ -372,7 +372,7 @@ export default function PostagensPage() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => handleBatchStatusUpdate('rejeitado')}
-                className="text-red-600"
+                className="text-red-600 border-red-200 hover:bg-red-50"
               >
                 <XCircle className="h-4 w-4 mr-1" />
                 Rejeitar
@@ -383,10 +383,13 @@ export default function PostagensPage() {
           
           <Dialog>
             <DialogTrigger asChild>
-              <Button onClick={() => {
-                setEditingPost(null);
-                setIsFormOpen(true);
-              }}>
+              <Button 
+                onClick={() => {
+                  setEditingPost(null);
+                  setIsFormOpen(true);
+                }}
+                style={{ backgroundColor: "#1f4ed8" }}
+              >
                 <Plus className="h-4 w-4 mr-1" />
                 Nova postagem
               </Button>
@@ -488,7 +491,7 @@ export default function PostagensPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeletePost(post.id)}
-                          className="text-red-600 focus:text-red-600"
+                          className="text-red-600 focus:bg-red-50 hover:bg-red-50 hover:text-red-600 focus:text-red-600"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Excluir
