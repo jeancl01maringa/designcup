@@ -118,7 +118,26 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const openRef = useRef(open);
   const initialRender = useRef(true);
   
-  // Resetar o formulário ou preencher com dados de edição apenas quando o modal é aberto
+  // Buscar formatos de post
+  const { data: postFormats = [] } = useQuery<DbPostFormat[]>({
+    queryKey: ["/api/admin/post-formats"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/post-formats");
+      if (!res.ok) throw new Error("Falha ao buscar formatos de post");
+      return res.json();
+    }
+  });
+  
+  // Buscar formatos de arquivo
+  const { data: fileFormats = [] } = useQuery<DbFileFormat[]>({
+    queryKey: ["/api/admin/file-formats"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/file-formats");
+      if (!res.ok) throw new Error("Falha ao buscar formatos de arquivo");
+      return res.json();
+    }
+  });
+  
   // Criar objeto formatFiles inicial com todos os formatos disponíveis
   const createDefaultFormatFiles = () => {
     const defaultFiles: Record<string, FormatFile> = {};
@@ -214,26 +233,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     queryFn: async () => {
       const res = await fetch("/api/admin/categories");
       if (!res.ok) throw new Error("Falha ao buscar categorias");
-      return res.json();
-    }
-  });
-  
-  // Buscar formatos de post
-  const { data: postFormats = [] } = useQuery<DbPostFormat[]>({
-    queryKey: ["/api/admin/post-formats"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/post-formats");
-      if (!res.ok) throw new Error("Falha ao buscar formatos de post");
-      return res.json();
-    }
-  });
-  
-  // Buscar formatos de arquivo
-  const { data: fileFormats = [] } = useQuery<DbFileFormat[]>({
-    queryKey: ["/api/admin/file-formats"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/file-formats");
-      if (!res.ok) throw new Error("Falha ao buscar formatos de arquivo");
       return res.json();
     }
   });
