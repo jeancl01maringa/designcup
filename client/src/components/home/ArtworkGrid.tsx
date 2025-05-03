@@ -152,7 +152,8 @@ export default function ArtworkGrid() {
     imageUrl: post.image_url,
     category: post.category_id ? post.category_id.toString() : null,
     createdAt: new Date(post.created_at),
-    isPro: post.license_type === 'premium',
+    // Verificar várias formas possíveis do campo premium
+    isPro: post.is_pro === true || post.license_type === 'premium' || post.license === 'premium',
     format: post.format || "1:1"
   }));
   
