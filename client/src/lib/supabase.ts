@@ -184,14 +184,61 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Comprime e converte uma imagem para WebP antes do upload
+ * Melhora significativamente o desempenho e tamanho do arquivo
+ * 
+ * @param file Arquivo de imagem original
+ * @returns Promise que resolve com o arquivo comprimido em formato WebP
+ */
+async function compressAndConvertToWebP(file: File): Promise<File> {
+  try {
+    // Importação dinâmica da biblioteca de compressão
+    const imageCompression = await import('browser-image-compression');
+    
+    // Opções de compressão otimizadas para web
+    const options = {
+      maxSizeMB: 1,             // Tamanho máximo em MB
+      maxWidthOrHeight: 1920,   // Dimensão máxima (mantém proporção)
+      useWebWorker: true,       // Usa worker para não bloquear UI
+      fileType: 'image/webp',   // Converte para WebP
+      initialQuality: 0.8,      // Qualidade inicial (0-1)
+    };
+    
+    console.log(`Comprimindo imagem: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);
+    
+    // Comprimir a imagem
+    const compressedFile = await imageCompression.default(file, options);
+    
+    // Gerar um novo nome com extensão .webp
+    const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+    const webpFile = new File([compressedFile], `${originalName}.webp`, {
+      type: 'image/webp',
+    });
+    
+    console.log(`Imagem convertida para WebP: ${webpFile.name} (${(webpFile.size / 1024).toFixed(1)}KB)`);
+    console.log(`Taxa de compressão: ${((1 - webpFile.size / file.size) * 100).toFixed(1)}%`);
+    
+    return webpFile;
+  } catch (error) {
+    console.warn('Erro na compressão da imagem, usando original:', error);
+    return file; // Em caso de erro, retorna o arquivo original
+  }
+}
+
+/**
  * Faz o upload de um arquivo para o bucket 'images' do Supabase
  * Implementação seguindo as práticas recomendadas
  * 
  * @param file Arquivo para upload
  * @param customPath Caminho personalizado (opcional)
+ * @param convertToWebP Se true, converte a imagem para WebP antes do upload (default: true)
  * @returns Promise com a URL pública do arquivo ou null em caso de erro
  */
-export async function uploadFileToSupabase(file: File, customPath?: string): Promise<string | null> {
+export async function uploadFileToSupabase(
+  file: File, 
+  customPath?: string, 
+  convertToWebP = true
+): Promise<string | null> {
   // Verificar se temos credenciais válidas
   if (!hasValidCredentials) {
     console.error('Upload falhou: credenciais do Supabase inválidas.');
@@ -217,9 +264,15 @@ export async function uploadFileToSupabase(file: File, customPath?: string): Pro
       console.warn('Erro ao tentar autenticar para upload:', authError);
     }
     
-    // 2. Preparar o caminho do arquivo com timestamp para evitar conflitos
+    // 2. Comprimir e converter para WebP se for uma imagem e a opção estiver ativada
+    let fileToUpload = file;
+    if (convertToWebP && file.type.startsWith('image/')) {
+      fileToUpload = await compressAndConvertToWebP(file);
+    }
+    
+    // 3. Preparar o caminho do arquivo com timestamp para evitar conflitos
     const timestamp = Date.now();
-    const cleanFileName = file.name.replace(/[^a-zA-Z0-9-.]/g, '_').toLowerCase();
+    const cleanFileName = fileToUpload.name.replace(/[^a-zA-Z0-9-.]/g, '_').toLowerCase();
     const filePath = customPath || `posts/${timestamp}-${cleanFileName}`;
     
     console.log(`Fazendo upload para Supabase em '${filePath}'...`);
@@ -227,7 +280,7 @@ export async function uploadFileToSupabase(file: File, customPath?: string): Pro
     // 3. Fazer upload com opção upsert para sobrescrever arquivos existentes
     const { data, error } = await supabase.storage
       .from('images')
-      .upload(filePath, file, {
+      .upload(filePath, fileToUpload, {
         upsert: true,  // Permite sobrescrever arquivos existentes
         cacheControl: '3600',
       });
