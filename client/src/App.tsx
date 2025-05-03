@@ -20,6 +20,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
 import PostagensPage from "@/pages/admin/PostagensPage";
+import CategoriasPage from "@/pages/admin/CategoriasPage";
 
 function Router() {
   const [location] = useLocation();
@@ -40,6 +41,9 @@ function Router() {
       {/* Rotas Administrativas */}
       <Route path="/admin/postagens">
         <ProtectedRoute path="/admin/postagens" component={PostagensPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/categorias">
+        <ProtectedRoute path="/admin/categorias" component={CategoriasPage} requireAdmin={true} />
       </Route>
       <Route path="/admin">
         {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
