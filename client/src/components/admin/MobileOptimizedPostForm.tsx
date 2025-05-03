@@ -497,51 +497,32 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0 md:p-6 md:pb-8">
-        <div className="sticky top-0 bg-white z-20 pt-6 px-6 pb-3 border-b">
-          <DialogTitle className="text-xl font-bold">
-            {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Postagem"}
-          </DialogTitle>
-          <DialogDescription>
-            {step === 1 ? "Preencha os dados básicos da postagem" : 
-             step === 2 ? "Adicione imagens e links para cada formato" : 
-             "Revise todos os dados antes de publicar"}
-          </DialogDescription>
-          
-          {/* Indicador de progresso */}
-          <div className="flex items-center justify-center mb-4 pt-2">
-            <div className="flex items-center w-full max-w-md">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 1 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
-              }`}>
-                1
-              </div>
-              <div className={`flex-1 h-1 mx-2 ${
-                step > 1 ? "bg-[#1f4ed8]" : "bg-gray-200"
-              }`}></div>
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 2 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
-              }`}>
-                2
-              </div>
-              <div className={`flex-1 h-1 mx-2 ${
-                step > 2 ? "bg-[#1f4ed8]" : "bg-gray-200"
-              }`}></div>
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 3 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
-              }`}>
-                3
-              </div>
-            </div>
+        <div className="sticky top-0 bg-white z-20 px-4 py-3 border-b flex flex-col">
+          <div className="flex items-center justify-between">
+            <button 
+              className="p-2 -ml-2" 
+              onClick={step > 1 ? prevStep : () => onOpenChange(false)}
+              type="button"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h2 className="text-lg font-medium text-center">
+              {step === 1 ? "Nova postagem" : step === 2 ? "Adicionar arquivos" : "Revisar"}
+            </h2>
+            <div className="w-8"></div> {/* Espaçador para manter o título centralizado */}
           </div>
           
-          <div className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              Etapa {step} de 3: {
-                step === 1 ? "Informações da postagem" : 
-                step === 2 ? "Upload de arquivos" : 
-                "Revisão e confirmação"
-              }
-            </p>
+          {/* Indicador de progresso minimalista */}
+          <div className="flex items-center justify-center w-full gap-2 mt-2">
+            {[1, 2, 3].map((s) => (
+              <div 
+                key={s}
+                className={`h-1 rounded-full transition-all ${
+                  s === step ? "w-8 bg-[#1f4ed8]" : 
+                  s < step ? "w-6 bg-[#1f4ed8]/60" : "w-6 bg-gray-200"
+                }`}
+              />
+            ))}
           </div>
         </div>
         
@@ -550,10 +531,16 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
           <div className="relative h-full">
             <div className="md:hidden">
               <Tabs className="w-full" defaultValue="info">
-                <TabsList className="w-full grid grid-cols-3 sticky top-[129px] bg-white z-10 border-b rounded-none shadow-sm">
-                  <TabsTrigger value="info" className="rounded-none">Básico</TabsTrigger>
-                  <TabsTrigger value="details" className="rounded-none">Detalhes</TabsTrigger>
-                  <TabsTrigger value="formats" className="rounded-none">Formatos</TabsTrigger>
+                <TabsList className="w-full grid grid-cols-3 sticky top-[84px] bg-white z-10 border-b rounded-none h-14">
+                  <TabsTrigger value="info" className="rounded-none text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none">
+                    Básico
+                  </TabsTrigger>
+                  <TabsTrigger value="details" className="rounded-none text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none">
+                    Detalhes
+                  </TabsTrigger>
+                  <TabsTrigger value="formats" className="rounded-none text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none">
+                    Formatos
+                  </TabsTrigger>
                 </TabsList>
                 
                 <div className="max-h-[calc(100vh-330px)] overflow-y-auto pb-20 px-6">
@@ -562,36 +549,39 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                     <div className="space-y-4">
                       {/* Nome da Postagem */}
                       <div className="space-y-2">
-                        <Label htmlFor="title-mobile">Nome da Postagem</Label>
+                        <Label htmlFor="title-mobile" className="text-base font-medium">
+                          Nome da Postagem
+                        </Label>
                         <Input
                           id="title-mobile"
                           name="title"
                           placeholder="Ex: Cartaz de Promoção Primavera"
                           value={formData.title}
                           onChange={handleInputChange}
+                          className="h-12 text-base"
                         />
                       </div>
                       
                       {/* Categoria */}
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 space-y-2">
-                          <Label htmlFor="category-mobile">Categoria</Label>
-                          <Select
-                            value={formData.categoryId?.toString() || ""}
-                            onValueChange={(value) => handleSelectChange("categoryId", value)}
-                          >
-                            <SelectTrigger id="category-mobile">
-                              <SelectValue placeholder="Selecione uma categoria" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map((category) => (
-                                <SelectItem key={category.id} value={category.id.toString()}>
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="category-mobile" className="text-base font-medium">
+                          Categoria
+                        </Label>
+                        <Select
+                          value={formData.categoryId?.toString() || ""}
+                          onValueChange={(value) => handleSelectChange("categoryId", value)}
+                        >
+                          <SelectTrigger id="category-mobile" className="h-12 text-base">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       
                       {/* ID único */}
@@ -614,12 +604,12 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                     <div className="space-y-4">
                       {/* Status */}
                       <div className="space-y-2">
-                        <Label htmlFor="status-mobile">Status</Label>
+                        <Label htmlFor="status-mobile" className="text-base font-medium">Status</Label>
                         <Select
                           value={formData.status}
                           onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
                         >
-                          <SelectTrigger id="status-mobile">
+                          <SelectTrigger id="status-mobile" className="h-12 text-base">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -632,12 +622,12 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                       
                       {/* Licença */}
                       <div className="space-y-2">
-                        <Label htmlFor="license-mobile">Licença</Label>
+                        <Label htmlFor="license-mobile" className="text-base font-medium">Licença</Label>
                         <Select
                           value={formData.licenseType}
                           onValueChange={(value) => handleSelectChange("licenseType", value)}
                         >
-                          <SelectTrigger id="license-mobile">
+                          <SelectTrigger id="license-mobile" className="h-12 text-base">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -901,15 +891,14 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </div>
             </div>
             
-            {/* Botões de Navegação - Sempre visíveis no bottom */}
-            <div className="flex justify-end bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
+            {/* Botão de ação principal estilo Instagram */}
+            <div className="bg-white px-4 py-3 border-t sticky bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
                 onClick={nextStep}
-                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 text-white w-full h-12 text-base font-medium"
               >
-                Próximo
-                <ArrowRight className="h-4 w-4 ml-2" />
+                Avançar
               </Button>
             </div>
           </div>
@@ -920,10 +909,16 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
           <div className="relative h-full">
             {/* Tabs de Navegação entre Formatos */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start sticky top-[129px] bg-white z-10 border-b rounded-none shadow-sm">
-                <TabsTrigger value="postagem" className="rounded-none">Postagem</TabsTrigger>
+              <TabsList className="w-full overflow-x-auto flex-nowrap sticky top-[84px] bg-white z-10 border-b rounded-none h-14">
+                <TabsTrigger value="postagem" className="rounded-none text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none flex-shrink-0">
+                  Postagem
+                </TabsTrigger>
                 {formData.formats.map((format) => (
-                  <TabsTrigger key={format} value={format} className="capitalize rounded-none">
+                  <TabsTrigger 
+                    key={format} 
+                    value={format} 
+                    className="capitalize rounded-none text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none flex-shrink-0"
+                  >
                     {format}
                   </TabsTrigger>
                 ))}
@@ -1284,23 +1279,14 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </div>
             </Tabs>
             
-            {/* Botões de Navegação - Sempre visíveis */}
-            <div className="flex justify-between bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
-              <Button 
-                type="button" 
-                onClick={prevStep}
-                variant="outline"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Button>
+            {/* Botões de Navegação estilo Instagram */}
+            <div className="bg-white px-4 py-3 border-t sticky bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
                 onClick={nextStep}
-                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 text-white w-full h-12 text-base font-medium"
               >
                 Revisar
-                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
@@ -1435,35 +1421,24 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </div>
             </div>
             
-            {/* Botões de Navegação */}
-            <div className="flex justify-between bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
-              <Button 
-                type="button" 
-                onClick={prevStep}
-                variant="outline"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Button>
+            {/* Botão de publicação estilo Instagram */}
+            <div className="bg-white px-4 py-3 border-t sticky bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
                 onClick={submitForm}
-                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 text-white w-full h-12 text-base font-medium"
                 disabled={createPostMutation.isPending || updatePostMutation.isPending}
               >
                 {createPostMutation.isPending || updatePostMutation.isPending ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Salvando...
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    {isEdit ? "Atualizar" : "Publicar"}
-                    <Check className="h-4 w-4 ml-2" />
-                  </>
+                  isEdit ? "Atualizar postagem" : "Publicar postagem"
                 )}
               </Button>
             </div>
