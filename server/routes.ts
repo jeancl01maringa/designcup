@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { insertArtworkSchema, insertCategorySchema, insertPostSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { z } from "zod";
+import { eq, sql } from "drizzle-orm";
+import * as schema from "@shared/schema";
+import { db } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
@@ -311,6 +314,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: 'Error processing upload' });
+    }
+  });
+
+  // Endpoint para estatísticas do painel admin
+  app.get('/api/admin/stats', async (req, res) => {
+    try {
+      // Obter contagem de posts
+      const posts = await db.select({ count: sql<number>`count(*)` }).from(schema.posts);
+      const postsCount = posts[0]?.count || 0;
+      
+      // Obter contagem de posts aprovados
+      const approvedPosts = await db.select({ count: sql<number>`count(*)` })
+        .from(schema.posts)
+        .where(eq(schema.posts.status, 'aprovado'));
+      const approvedPostsCount = approvedPosts[0]?.count || 0;
+      
+      // Obter contagem de categorias
+      const categories = await db.select({ count: sql<number>`count(*)` }).from(schema.categories);
+      const categoriesCount = categories[0]?.count || 0;
+      
+      // Retornar estatísticas
+      res.json({
+        postsCount,
+        approvedPostsCount,
+        categoriesCount,
+        lastUpdate: new Date()
+      });
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      res.status(500).json({ message: 'Error fetching admin stats' });
     }
   });
 

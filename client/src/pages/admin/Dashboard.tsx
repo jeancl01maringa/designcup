@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, PlusCircle, ImagePlus, Tag, FileText } from "lucide-react";
 import { getQueryFn } from "@/lib/queryClient";
+import { CategoryManager } from "@/components/admin/CategoryManager";
+import { PostManager } from "@/components/admin/PostManager";
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -15,14 +17,22 @@ export default function AdminDashboard() {
   const { data: stats, isLoading: isLoadingStats } = useQuery({
     queryKey: ['/api/admin/stats'],
     queryFn: getQueryFn({ on401: "throw" }),
-    onError: (error) => {
+    onSuccess: () => {},
+    onError: () => {
       toast({
         title: "Erro ao carregar estatísticas",
-        description: error.message,
+        description: "Não foi possível carregar as estatísticas do painel.",
         variant: "destructive",
       });
     }
   });
+  
+  // Valores padrão para estatísticas
+  const statsData = {
+    postsCount: stats?.postsCount || 0,
+    approvedPostsCount: stats?.approvedPostsCount || 0,
+    categoriesCount: stats?.categoriesCount || 0
+  };
   
   return (
     <div className="container py-10">
@@ -47,19 +57,19 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatsCard 
             title="Total de Posts" 
-            value={stats?.postsCount || 0}
+            value={statsData.postsCount}
             icon={<FileText className="h-5 w-5 text-primary/80" />}
             loading={isLoadingStats}
           />
           <StatsCard 
             title="Posts Aprovados" 
-            value={stats?.approvedPostsCount || 0} 
+            value={statsData.approvedPostsCount}
             icon={<FileText className="h-5 w-5 text-green-500" />}
             loading={isLoadingStats}
           />
           <StatsCard 
             title="Categorias" 
-            value={stats?.categoriesCount || 0} 
+            value={statsData.categoriesCount}
             icon={<Tag className="h-5 w-5 text-blue-500" />}
             loading={isLoadingStats}
           />
@@ -83,7 +93,6 @@ export default function AdminDashboard() {
           </TabsList>
           
           <TabsContent value="posts" className="space-y-4">
-            {/* Conteúdo será adicionado posteriormente */}
             <Card>
               <CardHeader>
                 <CardTitle>Gerenciamento de Posts</CardTitle>
@@ -92,15 +101,12 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Em desenvolvimento - A lista de posts será exibida aqui.
-                </p>
+                <PostManager />
               </CardContent>
             </Card>
           </TabsContent>
           
           <TabsContent value="categories" className="space-y-4">
-            {/* Conteúdo será adicionado posteriormente */}
             <Card>
               <CardHeader>
                 <CardTitle>Gerenciamento de Categorias</CardTitle>
@@ -109,15 +115,12 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Em desenvolvimento - A lista de categorias será exibida aqui.
-                </p>
+                <CategoryManager />
               </CardContent>
             </Card>
           </TabsContent>
           
           <TabsContent value="media" className="space-y-4">
-            {/* Conteúdo será adicionado posteriormente */}
             <Card>
               <CardHeader>
                 <CardTitle>Gerenciamento de Mídia</CardTitle>
@@ -126,9 +129,16 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Em desenvolvimento - A biblioteca de mídia será exibida aqui.
-                </p>
+                <div className="p-8 text-center">
+                  <p className="text-muted-foreground">
+                    Gerenciamento de mídia em desenvolvimento. Em breve você poderá visualizar,
+                    organizar e gerenciar todos os seus arquivos de mídia aqui.
+                  </p>
+                  <Button className="mt-4 gap-2">
+                    <ImagePlus className="h-4 w-4" />
+                    Carregar Nova Imagem
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

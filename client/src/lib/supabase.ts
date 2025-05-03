@@ -16,6 +16,11 @@ function isValidUrl(urlString: string): boolean {
 let supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string || '';
 let supabaseKey = import.meta.env.VITE_SUPABASE_KEY as string || '';
 
+// Remover aspas extras se presentes (erro comum ao copiar de documentação)
+if (supabaseUrl.startsWith('"') && supabaseUrl.endsWith('"')) {
+  supabaseUrl = supabaseUrl.slice(1, -1);
+}
+
 // Verificar a validade da URL
 if (!isValidUrl(supabaseUrl)) {
   console.warn(`VITE_SUPABASE_URL inválida: "${supabaseUrl}". O armazenamento de imagens não funcionará corretamente.`);
