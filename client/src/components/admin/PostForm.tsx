@@ -406,6 +406,31 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
           {step === 1 ? "Nova Postagem" : "Adicionar Arquivos"}
         </DialogTitle>
         
+        {/* Indicador de progresso */}
+        <div className="flex items-center justify-center mb-6 pt-2">
+          <div className="flex items-center w-full max-w-xs">
+            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+              step >= 1 ? "bg-blue-100 text-blue-700 border border-blue-300" : "bg-gray-100 text-gray-400 border border-gray-300"
+            }`}>
+              1
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${
+              step > 1 ? "bg-blue-500" : "bg-gray-200"
+            }`}></div>
+            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+              step >= 2 ? "bg-blue-100 text-blue-700 border border-blue-300" : "bg-gray-100 text-gray-400 border border-gray-300"
+            }`}>
+              2
+            </div>
+          </div>
+        </div>
+        
+        <div className="mb-4 flex justify-center">
+          <p className="text-sm text-muted-foreground">
+            Etapa {step} de 2: {step === 1 ? "Informações da postagem" : "Upload de arquivos"}
+          </p>
+        </div>
+        
         {step === 1 ? (
           <div className="space-y-6">
             {/* Nome da Postagem */}
@@ -598,8 +623,12 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                   <div key={format.id} className="flex flex-col items-center">
                     <Button
                       type="button"
-                      variant={formData.formats.includes(format.id as PostFormat) ? "default" : "outline"}
-                      className="w-24 relative"
+                      variant="outline"
+                      className={`w-24 relative ${
+                        formData.formats.includes(format.id as PostFormat) 
+                          ? "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200" 
+                          : "border-gray-200 hover:bg-gray-100"
+                      }`}
                       onClick={() => handleFormatToggle(format.id as PostFormat)}
                     >
                       {format.label}
