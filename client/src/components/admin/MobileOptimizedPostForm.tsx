@@ -688,23 +688,23 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                             type="button"
                             variant={formData.formats.includes(format) ? "default" : "outline"}
                             className={cn(
-                              "w-full flex justify-between items-center h-auto py-3 px-4 capitalize",
+                              "w-full flex justify-between items-center h-12 px-4 capitalize",
                               formData.formats.includes(format) && "bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
                             )}
                             onClick={() => handleFormatToggle(format)}
                           >
                             <div className="flex items-center">
                               {format === 'feed' ? (
-                                <div className="w-8 h-8 bg-gray-100 rounded mr-3 flex-shrink-0 flex items-center justify-center">
-                                  <div className="w-5 h-5 bg-gray-300 rounded" />
+                                <div className="w-6 h-6 bg-gray-100 rounded mr-3 flex-shrink-0 flex items-center justify-center">
+                                  <div className="w-4 h-4 bg-gray-300 rounded" />
                                 </div>
                               ) : format === 'cartaz' ? (
-                                <div className="w-8 h-8 bg-gray-100 rounded mr-3 flex-shrink-0 flex items-center justify-center">
-                                  <div className="w-4 h-5 bg-gray-300 rounded" />
+                                <div className="w-6 h-6 bg-gray-100 rounded mr-3 flex-shrink-0 flex items-center justify-center">
+                                  <div className="w-3 h-4 bg-gray-300 rounded" />
                                 </div>
                               ) : (
-                                <div className="w-8 h-8 bg-gray-100 rounded mr-3 flex-shrink-0 flex items-center justify-center">
-                                  <div className="w-3 h-5 bg-gray-300 rounded" />
+                                <div className="w-6 h-6 bg-gray-100 rounded mr-3 flex-shrink-0 flex items-center justify-center">
+                                  <div className="w-2.5 h-4 bg-gray-300 rounded" />
                                 </div>
                               )}
                               <span className="font-medium">{format}</span>
@@ -892,13 +892,25 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
             </div>
             
             {/* Botão de ação principal estilo Instagram */}
-            <div className="bg-white px-4 py-3 border-t sticky bottom-0 left-0 right-0 z-30">
+            <div className="md:hidden bg-white px-4 py-3 border-t fixed bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
                 onClick={nextStep}
                 className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 text-white w-full h-12 text-base font-medium"
               >
                 Avançar
+              </Button>
+            </div>
+            
+            {/* Versão Desktop - Botões originais */}
+            <div className="hidden md:flex justify-end bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
+              <Button 
+                type="button" 
+                onClick={nextStep}
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+              >
+                Próximo
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
@@ -1280,13 +1292,33 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
             </Tabs>
             
             {/* Botões de Navegação estilo Instagram */}
-            <div className="bg-white px-4 py-3 border-t sticky bottom-0 left-0 right-0 z-30">
+            <div className="md:hidden bg-white px-4 py-3 border-t fixed bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
                 onClick={nextStep}
                 className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 text-white w-full h-12 text-base font-medium"
               >
                 Revisar
+              </Button>
+            </div>
+            
+            {/* Versão Desktop - Botões originais */}
+            <div className="hidden md:flex justify-between bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
+              <Button 
+                type="button" 
+                onClick={prevStep}
+                variant="outline"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+              <Button 
+                type="button" 
+                onClick={nextStep}
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+              >
+                Revisar
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
@@ -1421,8 +1453,8 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </div>
             </div>
             
-            {/* Botão de publicação estilo Instagram */}
-            <div className="bg-white px-4 py-3 border-t sticky bottom-0 left-0 right-0 z-30">
+            {/* Botão de publicação estilo Instagram - Mobile */}
+            <div className="md:hidden bg-white px-4 py-3 border-t fixed bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
                 onClick={submitForm}
@@ -1439,6 +1471,39 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                   </div>
                 ) : (
                   isEdit ? "Atualizar postagem" : "Publicar postagem"
+                )}
+              </Button>
+            </div>
+            
+            {/* Botões de Navegação - Desktop */}
+            <div className="hidden md:flex justify-between bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
+              <Button 
+                type="button" 
+                onClick={prevStep}
+                variant="outline"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+              <Button 
+                type="button" 
+                onClick={submitForm}
+                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                disabled={createPostMutation.isPending || updatePostMutation.isPending}
+              >
+                {createPostMutation.isPending || updatePostMutation.isPending ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    {isEdit ? "Atualizar" : "Publicar"}
+                    <Check className="h-4 w-4 ml-2" />
+                  </>
                 )}
               </Button>
             </div>
