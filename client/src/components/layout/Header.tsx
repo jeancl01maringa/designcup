@@ -2,7 +2,21 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
-import { User } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { 
+  User, 
+  LogOut, 
+  LogIn, 
+  UserPlus,
+  ChevronDown
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Logo = () => (
   <div className="flex items-center">
@@ -45,17 +59,83 @@ const NavLinks = () => {
   );
 };
 
-const UserAvatar = () => (
-  <div className="hidden md:flex items-center">
-    <Button variant="ghost" size="icon" className="rounded-full overflow-hidden w-9 h-9 p-0 hover-card">
-      <img 
-        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=120&q=80" 
-        alt="User Profile"
-        className="w-full h-full object-cover"
-      />
-    </Button>
-  </div>
-);
+const UserMenu = () => {
+  const { user, logoutMutation } = useAuth();
+  const [location, navigate] = useLocation();
+  
+  if (!user) {
+    return (
+      <div className="hidden md:flex items-center gap-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={() => navigate("/auth")}
+        >
+          <LogIn className="h-4 w-4" />
+          <span>Entrar</span>
+        </Button>
+        <Button 
+          variant="default" 
+          size="sm"
+          className="flex items-center gap-1"
+          onClick={() => {
+            navigate("/auth");
+            // Ativar a tab de registro
+            setTimeout(() => {
+              document.querySelector('[value="register"]')?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true })
+              );
+            }, 100);
+          }}
+        >
+          <UserPlus className="h-4 w-4" />
+          <span>Cadastre-se</span>
+        </Button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="hidden md:flex items-center">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="flex items-center gap-2 font-normal hover:bg-muted/60">
+            <div className="rounded-full overflow-hidden w-8 h-8 p-0">
+              <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
+                <User className="h-4 w-4" />
+              </div>
+            </div>
+            <span className="max-w-[100px] truncate">{user.username}</span>
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => navigate("/perfil")}>
+            <User className="mr-2 h-4 w-4" />
+            <span>Meu Perfil</span>
+          </DropdownMenuItem>
+          
+          {user.isAdmin && (
+            <DropdownMenuItem onClick={() => navigate("/admin")}>
+              <span>Painel Admin</span>
+            </DropdownMenuItem>
+          )}
+          
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive"
+            onClick={() => logoutMutation.mutate()}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Sair</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
 
 const MobileMenu = () => {
   const [location] = useLocation();
@@ -122,7 +202,7 @@ export default function Header() {
         <Logo />
         <NavLinks />
         <div className="flex items-center space-x-3">
-          <UserAvatar />
+          <UserMenu />
           <MobileMenuButton />
         </div>
       </div>

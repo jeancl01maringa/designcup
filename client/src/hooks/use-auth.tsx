@@ -17,12 +17,12 @@ type AuthContextType = {
   registerMutation: UseMutationResult<SelectUser, Error, RegisterData>;
 };
 
-type LoginData = {
+export type LoginData = {
   email: string;
   password: string;
 };
 
-type RegisterData = {
+export type RegisterData = {
   username: string;
   email: string;
   password: string;
