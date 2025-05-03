@@ -27,6 +27,16 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { 
   Plus, 
@@ -61,6 +71,9 @@ export default function PostagensPage() {
   const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<number | null>(null);
+  const [isDeleteBatchModalOpen, setIsDeleteBatchModalOpen] = useState(false);
 
   // Buscar categorias (necessário para o formulário)
   const { data: categories = [] } = useQuery<Category[]>({
@@ -260,8 +273,54 @@ export default function PostagensPage() {
 
   // Manipulador para exclusão de postagem
   const handleDeletePost = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir esta postagem?')) {
-      deletePostMutation.mutate(id);
+    setPostToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+  
+  // Confirmação de exclusão
+  const confirmDelete = () => {
+    if (postToDelete) {
+      deletePostMutation.mutate(postToDelete);
+      setIsDeleteModalOpen(false);
+      setPostToDelete(null);
+    }
+  };
+  
+  // Manipulador para exclusão em lote
+  const handleDeleteBatch = () => {
+    if (selectedPosts.length === 0) {
+      toast({
+        title: "Nenhuma postagem selecionada",
+        description: "Selecione pelo menos uma postagem para excluir.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsDeleteBatchModalOpen(true);
+  };
+  
+  // Confirmação de exclusão em lote
+  const confirmDeleteBatch = async () => {
+    try {
+      // Excluir cada postagem selecionada
+      for (const id of selectedPosts) {
+        await deletePostMutation.mutateAsync(id);
+      }
+      
+      toast({
+        title: "Postagens excluídas",
+        description: `${selectedPosts.length} postagens foram excluídas com sucesso.`
+      });
+      
+      setSelectedPosts([]);
+      setIsDeleteBatchModalOpen(false);
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: "Ocorreu um erro ao excluir as postagens selecionadas.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -376,6 +435,15 @@ export default function PostagensPage() {
               >
                 <XCircle className="h-4 w-4 mr-1" />
                 Rejeitar
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDeleteBatch}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Excluir
               </Button>
               <Separator orientation="vertical" className="h-8" />
             </>
