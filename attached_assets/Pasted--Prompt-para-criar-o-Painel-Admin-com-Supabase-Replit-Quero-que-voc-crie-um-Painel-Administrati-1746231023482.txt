@@ -1,0 +1,87 @@
+🟫 Prompt para criar o Painel Admin com Supabase (Replit)
+Quero que você crie um Painel Administrativo funcional, conectado ao Supabase, para gerenciar artes da plataforma "Design para Estética", seguindo exatamente o modelo visual e estrutural que já desenvolvemos. A interface deve conter os seguintes elementos e funcionalidades:
+
+✅ Estrutura do Painel:
+Um painel lateral fixo à esquerda com os seguintes menus:
+
+Dashboard
+
+Categorias
+
+Planos
+
+Formatos de Arquivo
+
+Formatos de Post
+
+Postagens (aba atual que estamos modelando)
+
+Gerenciamento
+
+Monetização
+
+Cursos
+
+Integrações
+
+Webhooks & APIs
+
+Dev
+
+📂 Tela: Postagens
+A tela principal de Postagens deve conter:
+
+Barra de filtros no topo:
+
+Campo de busca por nome ou ID
+
+Filtro de mês
+
+Filtro de ano
+
+Filtro por período
+
+Filtro por categoria
+
+Botão azul no canto direito: + Nova Postagem
+
+Lista das postagens:
+
+Checkbox de seleção (permitir ações em massa)
+
+Imagem em miniatura da arte
+
+Nome/título da arte
+
+Código de identificação (hash)
+
+Data de publicação
+
+Categoria
+
+Status do post (Aprovado, Rascunho, Rejeitado)
+
+Ações: visualizar (ícone de olho), editar (ícone de lápis), excluir (ícone de lixeira)
+
+Barra de ação em massa (acima da lista):
+
+Ações: Aprovar, Rascunho, Rejeitar, Excluir
+
+📦 Integração com Supabase:
+As imagens devem ser enviadas e armazenadas no Supabase Storage dentro do bucket uploads, e os dados das postagens (nome, categoria, ID, data, status) salvos na tabela postagens.
+
+Já temos uma função utilitária uploadImageToSupabase para envio das imagens. Use-a e padronize o caminho da imagem como:
+uploads/postagens/{id_único}.jpg
+
+🟠 Estilo visual:
+Use a mesma paleta de cores e fontes da plataforma "Design para Estética".
+
+Layout minimalista e organizado, com ícones leves e botões com padding adequado.
+
+Componentes com bordas suaves e boa hierarquia visual.
+
+Utilize React com TailwindCSS ou Shadcn/UI para compor os elementos.
+
+Depois que essa tela de Postagens estiver pronta e funcional, vamos criar a tela de "Nova Postagem" com upload de imagem, seleção de categoria, e publicação com status.
+
+Me avise quando a tela de postagens estiver pronta e conectada ao Supabase corretamente, para avançarmos para a próxima etapa.

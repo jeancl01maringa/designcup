@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, foreignKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, foreignKey, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -91,6 +91,54 @@ export const insertUserArtworkSchema = createInsertSchema(userArtworks).omit({
   usedAt: true,
 });
 
+// Categorias para o painel administrativo
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Enum para status de posts
+export const postStatusEnum = pgEnum('post_status', ['aprovado', 'rascunho', 'rejeitado']);
+
+// Posts/Postagens para o painel administrativo
+export const posts = pgTable("posts", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  uniqueCode: text("unique_code").notNull().unique(), // código hash único
+  categoryId: integer("category_id").references(() => categories.id),
+  status: postStatusEnum("status").default('rascunho').notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  publishedAt: timestamp("published_at"),
+});
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  posts: many(posts)
+}));
+
+export const postsRelations = relations(posts, ({ one }) => ({
+  category: one(categories, {
+    fields: [posts.categoryId],
+    references: [categories.id],
+  })
+}));
+
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPostSchema = createInsertSchema(posts).omit({
+  id: true,
+  createdAt: true,
+  publishedAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -103,3 +151,9 @@ export type Favorite = typeof favorites.$inferSelect;
 
 export type InsertUserArtwork = z.infer<typeof insertUserArtworkSchema>;
 export type UserArtwork = typeof userArtworks.$inferSelect;
+
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Category = typeof categories.$inferSelect;
+
+export type InsertPost = z.infer<typeof insertPostSchema>;
+export type Post = typeof posts.$inferSelect;

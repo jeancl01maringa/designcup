@@ -2,7 +2,10 @@ import {
   users, type User, type InsertUser,
   artworks, type Artwork, type InsertArtwork,
   favorites, type Favorite, type InsertFavorite,
-  userArtworks, type UserArtwork, type InsertUserArtwork
+  userArtworks, type UserArtwork, type InsertUserArtwork,
+  categories, type Category, type InsertCategory,
+  posts, type Post, type InsertPost,
+  postStatusEnum
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
@@ -28,6 +31,29 @@ export interface IStorage {
   // UserArtwork methods
   getUserArtworksByUserId(userId: number): Promise<Artwork[]>;
   addUserArtwork(userArtwork: InsertUserArtwork): Promise<UserArtwork>;
+  
+  // Category methods (for admin panel)
+  getCategories(): Promise<Category[]>;
+  getCategoryById(id: number): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category>;
+  deleteCategory(id: number): Promise<void>;
+  
+  // Post methods (for admin panel)
+  getPosts(filters?: {
+    searchTerm?: string;
+    categoryId?: number;
+    status?: string;
+    month?: number;
+    year?: number;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<Post[]>;
+  getPostById(id: number): Promise<Post | undefined>;
+  createPost(post: InsertPost): Promise<Post>;
+  updatePost(id: number, post: Partial<InsertPost>): Promise<Post>;
+  deletePost(id: number): Promise<void>;
+  updatePostStatus(ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado'): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -146,6 +172,128 @@ export class DatabaseStorage implements IStorage {
       .values(userArtwork)
       .returning();
     return result;
+  }
+  
+  // Category methods (for admin panel)
+  async getCategories(): Promise<Category[]> {
+    const result = await db.select().from(categories).orderBy(categories.name);
+    return result;
+  }
+  
+  async getCategoryById(id: number): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category;
+  }
+  
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const [result] = await db
+      .insert(categories)
+      .values(category)
+      .returning();
+    return result;
+  }
+  
+  async updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category> {
+    const [result] = await db
+      .update(categories)
+      .set(category)
+      .where(eq(categories.id, id))
+      .returning();
+    return result;
+  }
+  
+  async deleteCategory(id: number): Promise<void> {
+    await db.delete(categories).where(eq(categories.id, id));
+  }
+  
+  // Post methods (for admin panel)
+  async getPosts(filters?: {
+    searchTerm?: string;
+    categoryId?: number;
+    status?: string;
+    month?: number;
+    year?: number;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<Post[]> {
+    let query = db.select().from(posts);
+    
+    if (filters) {
+      if (filters.searchTerm) {
+        const searchTerm = `%${filters.searchTerm.toLowerCase()}%`;
+        query = query.where(
+          or(
+            like(posts.title, searchTerm),
+            like(posts.description || '', searchTerm),
+            like(posts.uniqueCode, searchTerm)
+          )
+        );
+      }
+      
+      if (filters.categoryId) {
+        query = query.where(eq(posts.categoryId, filters.categoryId));
+      }
+      
+      if (filters.status) {
+        // @ts-ignore - O TypeScript não consegue inferir corretamente que o status é válido
+        query = query.where(eq(posts.status, filters.status));
+      }
+      
+      if (filters.month && filters.year) {
+        // Filtrar por mês e ano específicos
+        const startDate = new Date(filters.year, filters.month - 1, 1);
+        const endDate = new Date(filters.year, filters.month, 0);
+        query = query.where(
+          // @ts-ignore - O TypeScript não consegue inferir corretamente as datas
+          posts.createdAt >= startDate && posts.createdAt <= endDate
+        );
+      } else if (filters.startDate && filters.endDate) {
+        // Filtrar por intervalo de datas
+        query = query.where(
+          // @ts-ignore - O TypeScript não consegue inferir corretamente as datas
+          posts.createdAt >= filters.startDate && posts.createdAt <= filters.endDate
+        );
+      }
+    }
+    
+    const result = await query.orderBy(desc(posts.createdAt));
+    return result;
+  }
+  
+  async getPostById(id: number): Promise<Post | undefined> {
+    const [post] = await db.select().from(posts).where(eq(posts.id, id));
+    return post;
+  }
+  
+  async createPost(post: InsertPost): Promise<Post> {
+    const [result] = await db
+      .insert(posts)
+      .values(post)
+      .returning();
+    return result;
+  }
+  
+  async updatePost(id: number, post: Partial<InsertPost>): Promise<Post> {
+    const [result] = await db
+      .update(posts)
+      .set(post)
+      .where(eq(posts.id, id))
+      .returning();
+    return result;
+  }
+  
+  async deletePost(id: number): Promise<void> {
+    await db.delete(posts).where(eq(posts.id, id));
+  }
+  
+  async updatePostStatus(ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado'): Promise<void> {
+    await db
+      .update(posts)
+      .set({ status })
+      .where(
+        // @ts-ignore - O TypeScript não consegue inferir corretamente que id está em ids
+        ids.map(id => eq(posts.id, id)).reduce((acc, curr) => or(acc, curr))
+      );
   }
   
   // Seed the database with sample artworks
