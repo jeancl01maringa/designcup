@@ -314,6 +314,20 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
     }));
   };
 
+  const handleRemoveImage = (format: PostFormat) => {
+    setFormData(prev => ({
+      ...prev,
+      formatFiles: {
+        ...prev.formatFiles,
+        [format]: {
+          ...prev.formatFiles[format],
+          imageFile: null,
+          imagePreview: null
+        }
+      }
+    }));
+  };
+
   // Função para verificar se um formato tem pelo menos uma imagem ou link
   const hasImageOrLinks = (format: PostFormat): boolean => {
     const formatFile = formData.formatFiles[format];
