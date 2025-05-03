@@ -515,9 +515,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                "Revisar Publicação"}
             </h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-            <X className="h-4 w-4" />
-          </Button>
         </div>
         
         {/* Indicador de etapas */}
@@ -701,7 +698,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                 onClick={onOpenChange.bind(null, false)}
                 variant="outline"
               >
-                Voltar
+                Cancelar
               </Button>
               <Button 
                 type="button" 
