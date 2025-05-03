@@ -744,26 +744,56 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                 {/* Categoria */}
                 <div className="space-y-2">
                   <Label htmlFor="category-desktop">Categoria</Label>
-                  <Select
-                    value={formData.categoryId?.toString() || ""}
-                    onValueChange={(value) => handleSelectChange("categoryId", value)}
-                  >
-                    <SelectTrigger id="category-desktop">
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={formData.categoryId?.toString() || ""}
+                      onValueChange={(value) => handleSelectChange("categoryId", value)}
+                    >
+                      <SelectTrigger id="category-desktop">
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" type="button" className="shrink-0">
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
               
               {/* Segunda linha: Status e Licença */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Licença */}
+                <div className="space-y-2">
+                  <Label htmlFor="license-desktop">Licença de Uso</Label>
+                  <Select
+                    value={formData.licenseType}
+                    onValueChange={(value) => handleSelectChange("licenseType", value)}
+                  >
+                    <SelectTrigger id="license-desktop">
+                      {formData.licenseType === 'premium' ? (
+                        <div className="flex items-center">
+                          <Crown className="h-4 w-4 text-amber-500 mr-2" />
+                          <span>Premium</span>
+                        </div>
+                      ) : (
+                        <SelectValue />
+                      )}
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="free">Gratuito</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Determine como sua arte pode ser usada.</p>
+                </div>
+                
                 {/* Status */}
                 <div className="space-y-2">
                   <Label htmlFor="status-desktop">Status</Label>
@@ -772,7 +802,14 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                     onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
                   >
                     <SelectTrigger id="status-desktop">
-                      <SelectValue />
+                      {formData.status === 'aprovado' ? (
+                        <div className="flex items-center">
+                          <Check className="h-4 w-4 text-green-500 mr-2" />
+                          <span>Aprovado</span>
+                        </div>
+                      ) : (
+                        <SelectValue />
+                      )}
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="aprovado">Aprovado</SelectItem>
@@ -781,28 +818,17 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                     </SelectContent>
                   </Select>
                 </div>
-                
-                {/* Licença */}
-                <div className="space-y-2">
-                  <Label htmlFor="license-desktop">Licença</Label>
-                  <Select
-                    value={formData.licenseType}
-                    onValueChange={(value) => handleSelectChange("licenseType", value)}
-                  >
-                    <SelectTrigger id="license-desktop">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="premium">Premium</SelectItem>
-                      <SelectItem value="free">Gratuito</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
               
               {/* Terceira linha: Tags */}
               <div className="space-y-2">
-                <Label>Tags</Label>
+                <div className="flex justify-between items-center">
+                  <Label>Tags</Label>
+                  <Button variant="ghost" size="sm" className="text-xs font-normal h-6 px-2">
+                    <PlusCircle className="h-3 w-3 mr-1" />
+                    Nova Tag
+                  </Button>
+                </div>
                 <div className="flex items-center gap-2">
                   <Input
                     id="newTag-desktop"
@@ -840,53 +866,36 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               
               {/* Quarta linha: Formatos */}
               <div className="space-y-4">
-                <Label className="mb-2 block">Formatos disponíveis</Label>
-                <div className="grid grid-cols-3 gap-3">
+                <Label className="mb-2 block">Formatos da Postagem</Label>
+                <div className="flex gap-3">
                   {(['feed', 'cartaz', 'stories'] as PostFormat[]).map((format) => (
-                    <Button
-                      key={format}
-                      type="button"
-                      variant={formData.formats.includes(format) ? "default" : "outline"}
-                      className={cn(
-                        "flex items-center justify-center gap-2 h-12 capitalize",
-                        formData.formats.includes(format) && "bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
-                      )}
-                      onClick={() => handleFormatToggle(format)}
-                    >
-                      {format === 'feed' ? (
-                        <div className="w-6 h-6 bg-gray-100 rounded mr-1 flex-shrink-0 flex items-center justify-center">
-                          <div className="w-4 h-4 bg-gray-300 rounded" />
-                        </div>
-                      ) : format === 'cartaz' ? (
-                        <div className="w-6 h-6 bg-gray-100 rounded mr-1 flex-shrink-0 flex items-center justify-center">
-                          <div className="w-3 h-4 bg-gray-300 rounded" />
-                        </div>
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-100 rounded mr-1 flex-shrink-0 flex items-center justify-center">
-                          <div className="w-2 h-4 bg-gray-300 rounded" />
-                        </div>
-                      )}
-                      <span className="font-medium">{format}</span>
-                      
-                      {formData.formats.includes(format) && (
-                        <CheckCircle className="h-4 w-4 ml-1" />
-                      )}
-                    </Button>
+                    <div key={format} className="flex-1 min-w-0">
+                      <Button
+                        type="button"
+                        variant={formData.formats.includes(format) ? "default" : "outline"}
+                        className={cn(
+                          "w-full flex justify-between items-center h-10 capitalize",
+                          formData.formats.includes(format) && "bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                        )}
+                        onClick={() => handleFormatToggle(format)}
+                      >
+                        <CheckCircle className={cn(
+                          "h-4 w-4 mr-2",
+                          formData.formats.includes(format) ? "text-white" : "text-transparent"
+                        )} />
+                        <span className="font-medium capitalize">{format}</span>
+                        <Badge variant="secondary" className="ml-2">Essencial</Badge>
+                      </Button>
+                    </div>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">Selecione ao menos um formato para esta postagem.</p>
               </div>
               
-              {/* Código único (Visível para desktop também) */}
-              <div className="bg-slate-50 p-3 rounded-md border mt-2">
-                <div className="flex items-center">
-                  <div className="mr-3 bg-[#1f4ed8]/10 rounded-md p-2">
-                    <FileCheck className="h-5 w-5 text-[#1f4ed8]" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">ID único da postagem</p>
-                    <p className="text-xs text-muted-foreground">{formData.uniqueCode}</p>
-                  </div>
+              {/* Linha de Capa (Visível no primeiro passo) */}
+              <div className="space-y-2 mt-8">
+                <Label>Capa</Label>
+                <div className="border border-dashed rounded p-4 text-center">
+                  <p className="text-sm text-muted-foreground">Você poderá adicionar imagens na próxima etapa</p>
                 </div>
               </div>
             </div>
@@ -937,149 +946,162 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </TabsList>
               
               <div className="max-h-[calc(100vh-330px)] overflow-y-auto pb-20">
-                <TabsContent value="postagem" className="pt-4 px-6">
-                  <div className="space-y-5">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">Editar Informações da Postagem</CardTitle>
-                        <CardDescription>Modifique os detalhes básicos se necessário</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {/* Título */}
+                <div className="hidden md:flex gap-2 items-center px-6 pt-4 pb-6">
+                <h2 className="text-xl font-semibold">Adicionar Arquivos</h2>
+              </div>
+              
+              <div className="md:hidden px-6 pt-4 mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-medium">Adicionar Arquivos</h3>
+                </div>
+              </div>
+              
+              <div className="border-t border-b md:border-t-0 flex">
+                <div className="px-6 py-2 border-r border-b mb-4">
+                  <Button variant="ghost" className="font-medium" size="sm">
+                    Postagem
+                  </Button>
+                </div>
+                {formData.formats.map((format) => (
+                  <div key={format} className="px-6 py-2 border-r border-b mb-4">
+                    <Button variant="ghost" className="font-medium capitalize" size="sm" onClick={() => setActiveTab(format)}>
+                      {format}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              
+              <TabsContent value="postagem" className="pt-4 px-6">
+                <div className="md:hidden space-y-5">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Editar Informações da Postagem</CardTitle>
+                      <CardDescription>Modifique os detalhes básicos se necessário</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Título */}
+                      <div className="space-y-2">
+                        <Label htmlFor="step2-title">Título</Label>
+                        <Input
+                          id="step2-title"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                      
+                      {/* Categoria */}
+                      <div className="space-y-2">
+                        <Label htmlFor="step2-category">Categoria</Label>
+                        <Select
+                          value={formData.categoryId?.toString() || ""}
+                          onValueChange={(value) => handleSelectChange("categoryId", value)}
+                        >
+                          <SelectTrigger id="step2-category">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Status & Licença */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="step2-title">Título</Label>
-                          <Input
-                            id="step2-title"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        
-                        {/* Categoria */}
-                        <div className="space-y-2">
-                          <Label htmlFor="step2-category">Categoria</Label>
+                          <Label htmlFor="step2-status">Status</Label>
                           <Select
-                            value={formData.categoryId?.toString() || ""}
-                            onValueChange={(value) => handleSelectChange("categoryId", value)}
+                            value={formData.status}
+                            onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
                           >
-                            <SelectTrigger id="step2-category">
-                              <SelectValue placeholder="Selecione uma categoria" />
+                            <SelectTrigger id="step2-status">
+                              <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {categories.map((category) => (
-                                <SelectItem key={category.id} value={category.id.toString()}>
-                                  {category.name}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="aprovado">Aprovado</SelectItem>
+                              <SelectItem value="rascunho">Rascunho</SelectItem>
+                              <SelectItem value="rejeitado">Rejeitado</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
-                        {/* Status & Licença */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="step2-status">Status</Label>
-                            <Select
-                              value={formData.status}
-                              onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
-                            >
-                              <SelectTrigger id="step2-status">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="aprovado">Aprovado</SelectItem>
-                                <SelectItem value="rascunho">Rascunho</SelectItem>
-                                <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="step2-license">Licença</Label>
-                            <Select
-                              value={formData.licenseType}
-                              onValueChange={(value) => handleSelectChange("licenseType", value)}
-                            >
-                              <SelectTrigger id="step2-license">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="premium">Premium</SelectItem>
-                                <SelectItem value="free">Gratuito</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        {/* Tags */}
                         <div className="space-y-2">
-                          <Label>Tags</Label>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              id="newTagStep2"
-                              value={newTag}
-                              onChange={(e) => setNewTag(e.target.value)}
-                              placeholder="Adicionar tag"
-                              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                            />
-                            <Button 
-                              type="button" 
-                              onClick={handleAddTag} 
-                              size="sm" 
-                              className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 shrink-0"
-                            >
-                              <PlusCircle className="h-4 w-4 mr-1" />
-                              Adicionar
-                            </Button>
-                          </div>
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {formData.tags.length > 0 ? (
-                              formData.tags.map((tag) => (
-                                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                                  #{tag}
-                                  <X
-                                    className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-foreground"
-                                    onClick={() => handleRemoveTag(tag)}
-                                  />
-                                </Badge>
-                              ))
-                            ) : (
-                              <p className="text-xs text-muted-foreground">Nenhuma tag adicionada</p>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Formatos */}
-                        <div className="space-y-2">
-                          <Label>Formatos Selecionados</Label>
-                          <div className="flex flex-wrap gap-2">
-                            {formData.formats.map((format) => (
-                              <Badge key={format} className="capitalize bg-[#1f4ed8]">
-                                {format}
-                              </Badge>
-                            ))}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            <strong>Nota:</strong> Para adicionar ou remover formatos, retorne à etapa anterior.
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <div className="bg-slate-50 p-3 rounded-md border">
-                      <div className="flex items-center">
-                        <div className="mr-3 bg-[#1f4ed8]/10 rounded-md p-2">
-                          <FileCheck className="h-5 w-5 text-[#1f4ed8]" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">ID único da postagem</p>
-                          <p className="text-xs text-muted-foreground">{formData.uniqueCode}</p>
+                          <Label htmlFor="step2-license">Licença</Label>
+                          <Select
+                            value={formData.licenseType}
+                            onValueChange={(value) => handleSelectChange("licenseType", value)}
+                          >
+                            <SelectTrigger id="step2-license">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="premium">Premium</SelectItem>
+                              <SelectItem value="free">Gratuito</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </TabsContent>
+                      
+                      {/* Tags */}
+                      <div className="space-y-2">
+                        <Label>Tags</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="newTagStep2"
+                            value={newTag}
+                            onChange={(e) => setNewTag(e.target.value)}
+                            placeholder="Adicionar tag"
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                          />
+                          <Button 
+                            type="button" 
+                            onClick={handleAddTag} 
+                            size="sm" 
+                            className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 shrink-0"
+                          >
+                            <PlusCircle className="h-4 w-4 mr-1" />
+                            Adicionar
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {formData.tags.length > 0 ? (
+                            formData.tags.map((tag) => (
+                              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                                #{tag}
+                                <X
+                                  className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-foreground"
+                                  onClick={() => handleRemoveTag(tag)}
+                                />
+                              </Badge>
+                            ))
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Nenhuma tag adicionada</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Formatos */}
+                      <div className="space-y-2">
+                        <Label>Formatos Selecionados</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.formats.map((format) => (
+                            <Badge key={format} className="capitalize bg-[#1f4ed8]">
+                              {format}
+                            </Badge>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <strong>Nota:</strong> Para adicionar ou remover formatos, retorne à etapa anterior.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
                 
                 {/* Conteúdo para cada formato */}
                 {formData.formats.map((format) => (
@@ -1317,8 +1339,7 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                 onClick={nextStep}
                 className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
               >
-                Revisar
-                <ArrowRight className="h-4 w-4 ml-2" />
+                Publicar Postagem
               </Button>
             </div>
           </div>
