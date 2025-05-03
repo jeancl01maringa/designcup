@@ -270,6 +270,26 @@ export default function PostagensPage() {
       year: 'numeric'
     });
   };
+  
+  // Verificar a visibilidade com controle de fallback
+  const isPostVisible = (post: Post) => {
+    // Se o post tiver a propriedade isVisible definida, use-a
+    if (typeof post.isVisible === 'boolean') {
+      return post.isVisible;
+    }
+    // Caso contrário, considere como visível por padrão
+    return true;
+  };
+  
+  // Verificar se o post é premium
+  const isPostPremium = (post: Post) => {
+    // Se o post tiver a propriedade licenseType definida, verifique se é 'premium'
+    if (typeof post.licenseType === 'string') {
+      return post.licenseType === 'premium';
+    }
+    // Caso contrário, considere como free por padrão
+    return false;
+  };
 
   // Status da postagem para exibição
   const getStatusBadge = (status: string) => {
@@ -621,11 +641,11 @@ export default function PostagensPage() {
                       className="h-8 w-8"
                       onClick={() => toggleLicenseTypeMutation.mutate({ 
                         id: post.id, 
-                        licenseType: post.licenseType === 'premium' ? 'free' : 'premium'
+                        licenseType: isPostPremium(post) ? 'free' : 'premium'
                       })}
-                      title={post.licenseType === 'premium' ? 'Conteúdo Premium (clique para tornar gratuito)' : 'Conteúdo Gratuito (clique para tornar premium)'}
+                      title={isPostPremium(post) ? 'Conteúdo Premium (clique para tornar gratuito)' : 'Conteúdo Gratuito (clique para tornar premium)'}
                     >
-                      {post.licenseType === 'premium' ? (
+                      {isPostPremium(post) ? (
                         <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
                       ) : (
                         <Crown className="h-4 w-4 text-muted-foreground" />
@@ -634,16 +654,19 @@ export default function PostagensPage() {
                   </TableCell>
                   <TableCell className="py-3 text-center">
                     <div 
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer ${post.isVisible ? 'bg-blue-500' : 'bg-gray-300'}`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer ${isPostVisible(post) ? 'bg-blue-500' : 'bg-gray-300'}`}
                       role="switch"
-                      aria-checked={post.isVisible}
-                      data-state={post.isVisible ? 'checked' : 'unchecked'}
-                      onClick={() => toggleVisibilityMutation.mutate({ id: post.id, isVisible: !post.isVisible })}
-                      title={post.isVisible ? 'Visível no feed (clique para ocultar)' : 'Oculto no feed (clique para tornar visível)'}
+                      aria-checked={isPostVisible(post)}
+                      data-state={isPostVisible(post) ? 'checked' : 'unchecked'}
+                      onClick={() => toggleVisibilityMutation.mutate({ 
+                        id: post.id, 
+                        isVisible: !isPostVisible(post)
+                      })}
+                      title={isPostVisible(post) ? 'Visível no feed (clique para ocultar)' : 'Oculto no feed (clique para tornar visível)'}
                     >
                       <span 
-                        className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${post.isVisible ? 'translate-x-6' : 'translate-x-1'}`} 
-                        data-state={post.isVisible ? 'checked' : 'unchecked'} 
+                        className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${isPostVisible(post) ? 'translate-x-6' : 'translate-x-1'}`} 
+                        data-state={isPostVisible(post) ? 'checked' : 'unchecked'} 
                       />
                     </div>
                   </TableCell>
