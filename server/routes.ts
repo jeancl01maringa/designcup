@@ -139,69 +139,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { name, type, icon, is_active } = req.body;
       
-      const updateData: any = {};
-      if (name !== undefined) updateData.name = name;
-      if (type !== undefined) updateData.type = type;
-      if (icon !== undefined) updateData.icon = icon;
-      if (is_active !== undefined) updateData.is_active = is_active;
+      console.log(`Atualizando formato de arquivo #${id}:`, { name, type, icon, is_active });
       
-      console.log(`Atualizando formato de arquivo #${id}:`, updateData);
+      // Usar diretamente o PostgreSQL para esta operação
+      // Construir a query SQL de atualização
+      let setClauses = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      
+      if (name !== undefined) {
+        setClauses.push(`name = $${paramIndex}`);
+        queryParams.push(name);
+        paramIndex++;
+      }
+      
+      if (type !== undefined) {
+        setClauses.push(`type = $${paramIndex}`);
+        queryParams.push(type);
+        paramIndex++;
+      }
+      
+      if (icon !== undefined) {
+        setClauses.push(`icon = $${paramIndex}`);
+        queryParams.push(icon);
+        paramIndex++;
+      }
+      
+      if (is_active !== undefined) {
+        setClauses.push(`is_active = $${paramIndex}`);
+        queryParams.push(is_active);
+        paramIndex++;
+      }
+      
+      // Se não houver cláusulas para atualizar, retornar erro
+      if (setClauses.length === 0) {
+        return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
+      }
+      
+      // Adicionar o parâmetro id ao final
+      queryParams.push(id);
+      
+      const updateQuery = `
+        UPDATE file_formats 
+        SET ${setClauses.join(', ')} 
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+      
+      console.log(`Executando query: ${updateQuery}`, queryParams);
       
       try {
-        // Tentar primeiro com Supabase
-        const { data, error } = await supabase
-          .from('file_formats')
-          .update(updateData)
-          .eq('id', id)
-          .select();
-          
-        if (!error && data && data.length > 0) {
-          console.log(`Formato de arquivo #${id} atualizado com sucesso via Supabase`);
-          return res.json(data[0]);
-        }
-        
-        // Se falhar no Supabase, tentar com PostgreSQL diretamente
-        console.log(`Tentando atualizar formato de arquivo #${id} via PostgreSQL direto`);
-        
-        // Construir a query SQL de atualização
-        let setClauses = [];
-        const queryParams = [];
-        let paramIndex = 1;
-        
-        if (name !== undefined) {
-          setClauses.push(`name = $${paramIndex}`);
-          queryParams.push(name);
-          paramIndex++;
-        }
-        
-        if (type !== undefined) {
-          setClauses.push(`type = $${paramIndex}`);
-          queryParams.push(type);
-          paramIndex++;
-        }
-        
-        if (icon !== undefined) {
-          setClauses.push(`icon = $${paramIndex}`);
-          queryParams.push(icon);
-          paramIndex++;
-        }
-        
-        if (is_active !== undefined) {
-          setClauses.push(`is_active = $${paramIndex}`);
-          queryParams.push(is_active);
-          paramIndex++;
-        }
-        
-        // Adicionar o parâmetro id ao final
-        queryParams.push(id);
-        
-        const updateQuery = `
-          UPDATE file_formats 
-          SET ${setClauses.join(', ')} 
-          WHERE id = $${paramIndex}
-          RETURNING *
-        `;
-        
         const result = await pool.query(updateQuery, queryParams);
         
         if (result.rows && result.rows.length > 0) {
@@ -237,19 +224,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Excluindo formato de arquivo #${id}`);
       
       try {
-        // Tentar primeiro com Supabase
-        const { error } = await supabase
-          .from('file_formats')
-          .delete()
-          .eq('id', id);
-          
-        if (!error) {
-          console.log(`Formato de arquivo #${id} excluído com sucesso via Supabase`);
-          return res.status(200).json({ success: true });
-        }
-        
-        // Se falhar no Supabase, tentar com PostgreSQL diretamente
-        console.log(`Tentando excluir formato de arquivo #${id} via PostgreSQL direto`);
+        // Usar diretamente o PostgreSQL para operação de exclusão
+        console.log(`Executando exclusão via PostgreSQL direto`);
         const result = await pool.query('DELETE FROM file_formats WHERE id = $1 RETURNING id', [id]);
         
         if (result.rows && result.rows.length > 0) {
@@ -397,69 +373,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { name, size, orientation, is_active } = req.body;
       
-      const updateData: any = {};
-      if (name !== undefined) updateData.name = name;
-      if (size !== undefined) updateData.size = size;
-      if (orientation !== undefined) updateData.orientation = orientation;
-      if (is_active !== undefined) updateData.is_active = is_active;
+      console.log(`Atualizando formato de post #${id}:`, { name, size, orientation, is_active });
       
-      console.log(`Atualizando formato de post #${id}:`, updateData);
+      // Usar diretamente o PostgreSQL para esta operação
+      // Construir a query SQL de atualização
+      let setClauses = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      
+      if (name !== undefined) {
+        setClauses.push(`name = $${paramIndex}`);
+        queryParams.push(name);
+        paramIndex++;
+      }
+      
+      if (size !== undefined) {
+        setClauses.push(`size = $${paramIndex}`);
+        queryParams.push(size);
+        paramIndex++;
+      }
+      
+      if (orientation !== undefined) {
+        setClauses.push(`orientation = $${paramIndex}`);
+        queryParams.push(orientation);
+        paramIndex++;
+      }
+      
+      if (is_active !== undefined) {
+        setClauses.push(`is_active = $${paramIndex}`);
+        queryParams.push(is_active);
+        paramIndex++;
+      }
+      
+      // Se não houver cláusulas para atualizar, retornar erro
+      if (setClauses.length === 0) {
+        return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
+      }
+      
+      // Adicionar o parâmetro id ao final
+      queryParams.push(id);
+      
+      const updateQuery = `
+        UPDATE post_formats 
+        SET ${setClauses.join(', ')} 
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+      
+      console.log(`Executando query: ${updateQuery}`, queryParams);
       
       try {
-        // Tentar primeiro com Supabase
-        const { data, error } = await supabase
-          .from('post_formats')
-          .update(updateData)
-          .eq('id', id)
-          .select();
-          
-        if (!error && data && data.length > 0) {
-          console.log(`Formato de post #${id} atualizado com sucesso via Supabase`);
-          return res.json(data[0]);
-        }
-        
-        // Se falhar no Supabase, tentar com PostgreSQL diretamente
-        console.log(`Tentando atualizar formato de post #${id} via PostgreSQL direto`);
-        
-        // Construir a query SQL de atualização
-        let setClauses = [];
-        const queryParams = [];
-        let paramIndex = 1;
-        
-        if (name !== undefined) {
-          setClauses.push(`name = $${paramIndex}`);
-          queryParams.push(name);
-          paramIndex++;
-        }
-        
-        if (size !== undefined) {
-          setClauses.push(`size = $${paramIndex}`);
-          queryParams.push(size);
-          paramIndex++;
-        }
-        
-        if (orientation !== undefined) {
-          setClauses.push(`orientation = $${paramIndex}`);
-          queryParams.push(orientation);
-          paramIndex++;
-        }
-        
-        if (is_active !== undefined) {
-          setClauses.push(`is_active = $${paramIndex}`);
-          queryParams.push(is_active);
-          paramIndex++;
-        }
-        
-        // Adicionar o parâmetro id ao final
-        queryParams.push(id);
-        
-        const updateQuery = `
-          UPDATE post_formats 
-          SET ${setClauses.join(', ')} 
-          WHERE id = $${paramIndex}
-          RETURNING *
-        `;
-        
         const result = await pool.query(updateQuery, queryParams);
         
         if (result.rows && result.rows.length > 0) {
@@ -495,19 +458,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Excluindo formato de post #${id}`);
       
       try {
-        // Tentar primeiro com Supabase
-        const { error } = await supabase
-          .from('post_formats')
-          .delete()
-          .eq('id', id);
-          
-        if (!error) {
-          console.log(`Formato de post #${id} excluído com sucesso via Supabase`);
-          return res.status(200).json({ success: true });
-        }
-        
-        // Se falhar no Supabase, tentar com PostgreSQL diretamente
-        console.log(`Tentando excluir formato de post #${id} via PostgreSQL direto`);
+        // Usar diretamente o PostgreSQL para operação de exclusão
+        console.log(`Executando exclusão via PostgreSQL direto`);
         const result = await pool.query('DELETE FROM post_formats WHERE id = $1 RETURNING id', [id]);
         
         if (result.rows && result.rows.length > 0) {
