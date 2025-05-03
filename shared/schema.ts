@@ -4,6 +4,8 @@ import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // User schema
+export const userTipoEnum = pgEnum('user_tipo', ['free', 'premium']);
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -11,11 +13,20 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // Campos para gerenciar assinantes
+  tipo: userTipoEnum("tipo").default('free').notNull(),
+  plano_id: text("plano_id"),
+  data_vencimento: timestamp("data_vencimento"),
+  active: boolean("active").default(false).notNull(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   favorites: many(favorites),
   userArtworks: many(userArtworks),
+  plan: one(plans, {
+    fields: [users.plano_id],
+    references: [plans.codigoHotmart],
+  }),
 }));
 
 // Extendemos o schema para incluir isAdmin para consistência com o código TypeScript
@@ -238,11 +249,15 @@ export const plans = pgTable("plans", {
   isActive: boolean("is_active").default(true).notNull(),
   isPrincipal: boolean("is_principal").default(false), // Indica se é o plano principal
   isGratuito: boolean("is_gratuito").default(false), // Indica se é o plano gratuito
-  codigoHotmart: text("codigo_hotmart"), // Código do plano na Hotmart
+  codigoHotmart: text("codigo_hotmart").unique(), // Código do plano na Hotmart
   urlHotmart: text("url_hotmart"), // URL de checkout do Hotmart
   beneficios: text("beneficios"), // Lista de benefícios, um por linha
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const plansRelations = relations(plans, ({ many }) => ({
+  users: many(users)
+}));
 
 export const insertPlanSchema = createInsertSchema(plans).omit({
   id: true,

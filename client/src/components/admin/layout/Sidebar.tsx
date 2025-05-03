@@ -74,7 +74,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       id: "gerenciamento",
       label: "Gerenciamento",
       path: "/admin/gerenciamento",
-      icon: <Database className="h-4 w-4" />,
+      icon: <Settings className="h-4 w-4" />,
       separator: false,
     },
     {
@@ -82,6 +82,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       label: "Usuários",
       path: "/admin/gerenciamento/usuarios",
       icon: <Users className="h-4 w-4" />,
+    },
+    {
+      id: "assinantes",
+      label: "Assinantes",
+      path: "/admin/gerenciamento/assinantes",
+      icon: <Users className="h-4 w-4 text-blue-500" />,
     },
     {
       id: "formatos",

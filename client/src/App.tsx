@@ -29,6 +29,8 @@ import PlanosPage from "@/pages/admin/PlanosPage";
 import FileFormatsPage from "@/pages/admin/gerenciamento/FileFormatsPage";
 import PostFormatsPage from "@/pages/admin/gerenciamento/PostFormatsPage";
 import TagsPage from "@/pages/admin/gerenciamento/TagsPage";
+import UsuariosPage from "@/pages/admin/gerenciamento/UsuariosPage";
+import AssinantesPage from "@/pages/admin/gerenciamento/AssinantesPage";
 
 function Router() {
   const [location] = useLocation();
