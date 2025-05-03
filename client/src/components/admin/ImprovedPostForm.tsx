@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,10 +94,20 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     isVisible: true // Por padrão a postagem é visível
   });
 
-  // Resetar o formulário ou preencher com dados de edição
+  // Referência para controlar quando o diálogo foi aberto pela última vez
+  const openRef = useRef(open);
+  const initialRender = useRef(true);
+  
+  // Resetar o formulário ou preencher com dados de edição apenas quando o modal é aberto
   useEffect(() => {
-    // Se estiver abrindo o formulário (open === true)
-    if (open) {
+    // Pular a primeira renderização
+    if (initialRender.current) {
+      initialRender.current = false;
+      return;
+    }
+    
+    // Verificar se o estado mudou de fechado para aberto
+    if (open && !openRef.current) {
       // Caso 1: Edição de postagem existente
       if (isEdit && initialData) {
         const formatFiles: Record<PostFormat, FormatFile> = {
@@ -150,6 +160,9 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         setHasUnsavedChanges(false);
       }
     }
+    
+    // Atualizar a referência
+    openRef.current = open;
   }, [open, isEdit, initialData, defaultFormatFile]);
   
   // Rastrear mudanças no formulário quando esses valores específicos mudarem
