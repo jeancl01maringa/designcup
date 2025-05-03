@@ -366,6 +366,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         return;
       }
       
+      // Definir o primeiro formato selecionado como aba ativa
+      if (formData.formats.length > 0) {
+        setActiveTab(formData.formats[0]);
+      }
+      
       setStep(2);
     } else if (step === 2) {
       setStep(3);
@@ -457,6 +462,13 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl p-0">
+        <DialogTitle className="sr-only">
+          {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Publicação"}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Formulário para {isEdit ? "editar" : "criar"} uma nova postagem
+        </DialogDescription>
+        
         {/* Header com nome da etapa */}
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center">
@@ -672,7 +684,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         {/* Conteúdo da etapa 2: Upload de arquivos */}
         {step === 2 && (
           <>
-            <Tabs defaultValue="feed" value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="border-b">
                 <TabsList className="p-0 h-auto bg-transparent border-b-0">
                   <TabsTrigger 
