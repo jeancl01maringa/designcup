@@ -32,6 +32,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
+import { SupabaseRLSAlert } from "@/components/ui/supabase-alert";
 
 interface PostFormProps {
   open: boolean;
@@ -235,10 +236,13 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       } else {
         console.error("URL inválida retornada pelo upload:", imageUrl);
         toast({
-          title: "Aviso",
-          description: "A imagem foi carregada, mas pode haver problemas com a URL.",
+          title: "Problema com Supabase Storage",
+          description: "As imagens não puderam ser salvas devido às políticas de segurança do Supabase.",
           variant: "destructive",
         });
+        
+        // Mostrar alerta sobre configuração RLS necessária
+        // O alerta será exibido automaticamente no render condicional
       }
     } catch (error) {
       console.error("Erro ao fazer upload da imagem:", error);
