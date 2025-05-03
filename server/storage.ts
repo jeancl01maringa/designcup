@@ -1169,6 +1169,34 @@ export class DatabaseStorage implements IStorage {
       if (post.status !== undefined) supabasePost.status = post.status;
       if (post.publishedAt !== undefined) supabasePost.published_at = post.publishedAt.toISOString();
       
+      // Verificar se há campos de licença e atualizar todos que forem necessários
+      if (post.licenseType !== undefined) {
+        // Armazenar o licenseType como string (premium ou free)
+        supabasePost.license_type = post.licenseType;
+        
+        // Se estamos usando o Supabase diretamente, também podemos atualizar o campo is_pro
+        // que é usado nas tabelas supabase para indicar conteúdo premium
+        if (post.isPro !== undefined) {
+          // Se foi explicitamente fornecido, usar o valor diretamente
+          supabasePost.is_pro = post.isPro;
+        } else {
+          // Caso contrário, considerar premium se licenseType for 'premium'
+          supabasePost.is_pro = post.licenseType === 'premium';
+        }
+        
+        console.log(`DATABASE updatePost - Atualizando licença: license_type=${supabasePost.license_type}, is_pro=${supabasePost.is_pro}`);
+      } else if (post.isPro !== undefined) {
+        // Se apenas isPro foi fornecido, atualizar apenas esse campo
+        supabasePost.is_pro = post.isPro;
+        console.log(`DATABASE updatePost - Atualizando apenas is_pro=${supabasePost.is_pro}`);
+      }
+      
+      // Visibilidade no feed
+      if (post.isVisible !== undefined) {
+        supabasePost.is_visible = post.isVisible;
+        console.log(`DATABASE updatePost - Atualizando is_visible=${supabasePost.is_visible}`);
+      }
+      
       const { data, error } = await supabase
         .from('posts')
         .update(supabasePost)

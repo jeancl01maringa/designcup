@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertArtworkSchema, insertCategorySchema, insertPostSchema } from "@shared/schema";
+import { insertArtworkSchema, insertCategorySchema, insertPostSchema, type InsertPost } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
@@ -292,6 +292,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).end();
     } catch (error) {
       res.status(500).json({ message: 'Error deleting post' });
+    }
+  });
+  
+  // Endpoint PATCH para atualizações parciais (como licenseType, isVisible, etc)
+  app.patch('/api/admin/posts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      console.log(`PATCH /api/admin/posts/${id} - Dados:`, req.body);
+      
+      // Permitir campos específicos para atualização parcial
+      const { licenseType, isVisible } = req.body;
+      
+      // Mapear para o formato do modelo
+      const updateData: Partial<InsertPost> = {};
+      
+      if (licenseType !== undefined) {
+        // Salvar como licenseType e também atualizar is_pro
+        updateData.licenseType = licenseType;
+        // Será true se licenseType for 'premium'
+        updateData.isPro = licenseType === 'premium';
+        console.log(`Atualizando licenseType para ${licenseType} e isPro para ${updateData.isPro}`);
+      }
+      
+      if (isVisible !== undefined) {
+        updateData.isVisible = isVisible;
+        console.log(`Atualizando isVisible para ${isVisible}`);
+      }
+      
+      const post = await storage.updatePost(id, updateData);
+      res.json(post);
+    } catch (error) {
+      console.error('Error updating post:', error);
+      res.status(500).json({ message: 'Error updating post' });
     }
   });
   
