@@ -147,25 +147,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Atualizando formato de arquivo #${id}:`, updateData);
       
-      const { data, error } = await supabase
-        .from('file_formats')
-        .update(updateData)
-        .eq('id', id)
-        .select();
+      try {
+        // Tentar primeiro com Supabase
+        const { data, error } = await supabase
+          .from('file_formats')
+          .update(updateData)
+          .eq('id', id)
+          .select();
+          
+        if (!error && data && data.length > 0) {
+          console.log(`Formato de arquivo #${id} atualizado com sucesso via Supabase`);
+          return res.json(data[0]);
+        }
         
-      if (error) {
-        console.error(`Erro ao atualizar formato de arquivo #${id}:`, error);
+        // Se falhar no Supabase, tentar com PostgreSQL diretamente
+        console.log(`Tentando atualizar formato de arquivo #${id} via PostgreSQL direto`);
+        
+        // Construir a query SQL de atualização
+        let setClauses = [];
+        const queryParams = [];
+        let paramIndex = 1;
+        
+        if (name !== undefined) {
+          setClauses.push(`name = $${paramIndex}`);
+          queryParams.push(name);
+          paramIndex++;
+        }
+        
+        if (type !== undefined) {
+          setClauses.push(`type = $${paramIndex}`);
+          queryParams.push(type);
+          paramIndex++;
+        }
+        
+        if (icon !== undefined) {
+          setClauses.push(`icon = $${paramIndex}`);
+          queryParams.push(icon);
+          paramIndex++;
+        }
+        
+        if (is_active !== undefined) {
+          setClauses.push(`is_active = $${paramIndex}`);
+          queryParams.push(is_active);
+          paramIndex++;
+        }
+        
+        // Adicionar o parâmetro id ao final
+        queryParams.push(id);
+        
+        const updateQuery = `
+          UPDATE file_formats 
+          SET ${setClauses.join(', ')} 
+          WHERE id = $${paramIndex}
+          RETURNING *
+        `;
+        
+        const result = await pool.query(updateQuery, queryParams);
+        
+        if (result.rows && result.rows.length > 0) {
+          console.log(`Formato de arquivo #${id} atualizado com sucesso via PostgreSQL`);
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Formato não encontrado ou não foi atualizado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar formato de arquivo #${id} via PostgreSQL:`, dbError);
         return res.status(500).json({ 
           message: 'Erro ao atualizar formato de arquivo',
-          error: error.message
+          error: dbError.message
         });
       }
-      
-      if (!data || data.length === 0) {
-        return res.status(404).json({ message: 'Formato não encontrado ou não foi atualizado' });
-      }
-      
-      res.json(data[0]);
     } catch (error: any) {
       console.error('Error updating file format:', error);
       res.status(500).json({ 
@@ -185,20 +236,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Excluindo formato de arquivo #${id}`);
       
-      const { error } = await supabase
-        .from('file_formats')
-        .delete()
-        .eq('id', id);
+      try {
+        // Tentar primeiro com Supabase
+        const { error } = await supabase
+          .from('file_formats')
+          .delete()
+          .eq('id', id);
+          
+        if (!error) {
+          console.log(`Formato de arquivo #${id} excluído com sucesso via Supabase`);
+          return res.status(200).json({ success: true });
+        }
         
-      if (error) {
-        console.error(`Erro ao excluir formato de arquivo #${id}:`, error);
+        // Se falhar no Supabase, tentar com PostgreSQL diretamente
+        console.log(`Tentando excluir formato de arquivo #${id} via PostgreSQL direto`);
+        const result = await pool.query('DELETE FROM file_formats WHERE id = $1 RETURNING id', [id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          console.log(`Formato de arquivo #${id} excluído com sucesso via PostgreSQL`);
+          return res.status(200).json({ success: true });
+        } else {
+          console.log(`Formato de arquivo #${id} não encontrado para exclusão via PostgreSQL`);
+          return res.status(404).json({ message: 'Formato não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao excluir formato de arquivo #${id} via PostgreSQL:`, dbError);
         return res.status(500).json({ 
           message: 'Erro ao excluir formato de arquivo',
-          error: error.message
+          error: dbError.message
         });
       }
-      
-      res.status(200).json({ success: true });
     } catch (error: any) {
       console.error('Error deleting file format:', error);
       res.status(500).json({ 
@@ -338,25 +405,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Atualizando formato de post #${id}:`, updateData);
       
-      const { data, error } = await supabase
-        .from('post_formats')
-        .update(updateData)
-        .eq('id', id)
-        .select();
+      try {
+        // Tentar primeiro com Supabase
+        const { data, error } = await supabase
+          .from('post_formats')
+          .update(updateData)
+          .eq('id', id)
+          .select();
+          
+        if (!error && data && data.length > 0) {
+          console.log(`Formato de post #${id} atualizado com sucesso via Supabase`);
+          return res.json(data[0]);
+        }
         
-      if (error) {
-        console.error(`Erro ao atualizar formato de post #${id}:`, error);
+        // Se falhar no Supabase, tentar com PostgreSQL diretamente
+        console.log(`Tentando atualizar formato de post #${id} via PostgreSQL direto`);
+        
+        // Construir a query SQL de atualização
+        let setClauses = [];
+        const queryParams = [];
+        let paramIndex = 1;
+        
+        if (name !== undefined) {
+          setClauses.push(`name = $${paramIndex}`);
+          queryParams.push(name);
+          paramIndex++;
+        }
+        
+        if (size !== undefined) {
+          setClauses.push(`size = $${paramIndex}`);
+          queryParams.push(size);
+          paramIndex++;
+        }
+        
+        if (orientation !== undefined) {
+          setClauses.push(`orientation = $${paramIndex}`);
+          queryParams.push(orientation);
+          paramIndex++;
+        }
+        
+        if (is_active !== undefined) {
+          setClauses.push(`is_active = $${paramIndex}`);
+          queryParams.push(is_active);
+          paramIndex++;
+        }
+        
+        // Adicionar o parâmetro id ao final
+        queryParams.push(id);
+        
+        const updateQuery = `
+          UPDATE post_formats 
+          SET ${setClauses.join(', ')} 
+          WHERE id = $${paramIndex}
+          RETURNING *
+        `;
+        
+        const result = await pool.query(updateQuery, queryParams);
+        
+        if (result.rows && result.rows.length > 0) {
+          console.log(`Formato de post #${id} atualizado com sucesso via PostgreSQL`);
+          return res.json(result.rows[0]);
+        } else {
+          return res.status(404).json({ message: 'Formato não encontrado ou não foi atualizado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar formato de post #${id} via PostgreSQL:`, dbError);
         return res.status(500).json({ 
           message: 'Erro ao atualizar formato de post',
-          error: error.message
+          error: dbError.message
         });
       }
-      
-      if (!data || data.length === 0) {
-        return res.status(404).json({ message: 'Formato não encontrado ou não foi atualizado' });
-      }
-      
-      res.json(data[0]);
     } catch (error: any) {
       console.error('Error updating post format:', error);
       res.status(500).json({ 
@@ -376,20 +494,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Excluindo formato de post #${id}`);
       
-      const { error } = await supabase
-        .from('post_formats')
-        .delete()
-        .eq('id', id);
+      try {
+        // Tentar primeiro com Supabase
+        const { error } = await supabase
+          .from('post_formats')
+          .delete()
+          .eq('id', id);
+          
+        if (!error) {
+          console.log(`Formato de post #${id} excluído com sucesso via Supabase`);
+          return res.status(200).json({ success: true });
+        }
         
-      if (error) {
-        console.error(`Erro ao excluir formato de post #${id}:`, error);
+        // Se falhar no Supabase, tentar com PostgreSQL diretamente
+        console.log(`Tentando excluir formato de post #${id} via PostgreSQL direto`);
+        const result = await pool.query('DELETE FROM post_formats WHERE id = $1 RETURNING id', [id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          console.log(`Formato de post #${id} excluído com sucesso via PostgreSQL`);
+          return res.status(200).json({ success: true });
+        } else {
+          console.log(`Formato de post #${id} não encontrado para exclusão via PostgreSQL`);
+          return res.status(404).json({ message: 'Formato não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao excluir formato de post #${id} via PostgreSQL:`, dbError);
         return res.status(500).json({ 
           message: 'Erro ao excluir formato de post',
-          error: error.message
+          error: dbError.message
         });
       }
-      
-      res.status(200).json({ success: true });
     } catch (error: any) {
       console.error('Error deleting post format:', error);
       res.status(500).json({ 
