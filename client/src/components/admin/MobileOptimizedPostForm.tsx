@@ -1121,9 +1121,9 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                             formData.formatFiles[format].imagePreview ? "border-primary" : "border-border"
                           }`}
                           style={{
-                            height: format === 'feed' ? "280px" : format === 'cartaz' ? "280px" : "320px",
+                            height: format === 'feed' ? "350px" : format === 'cartaz' ? "400px" : "450px",
                             margin: "0 auto",
-                            width: format === 'feed' ? "280px" : format === 'cartaz' ? "225px" : "180px",
+                            width: format === 'feed' ? "350px" : format === 'cartaz' ? "320px" : "250px",
                             maxWidth: "100%"
                           }}
                         >
@@ -1319,7 +1319,7 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </div>
             </Tabs>
             
-            {/* Botões de Navegação estilo Instagram */}
+            {/* Botões de Navegação estilo Instagram - Mobile */}
             <div className="md:hidden bg-white px-4 py-3 border-t fixed bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
@@ -1330,23 +1330,46 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               </Button>
             </div>
             
-            {/* Versão Desktop - Botões originais */}
+            {/* Versão Desktop - Botões no final da página */}
             <div className="hidden md:flex justify-between bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
               <Button 
                 type="button" 
                 onClick={prevStep}
                 variant="outline"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
+                Cancelar
               </Button>
-              <Button 
-                type="button" 
-                onClick={nextStep}
-                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
-              >
-                Publicar Postagem
-              </Button>
+              
+              {activeTab === "postagem" ? (
+                <Button 
+                  type="button" 
+                  onClick={() => {
+                    if (formData.formats.length > 0) {
+                      setActiveTab(formData.formats[0]);
+                    } else {
+                      setStep(3);
+                    }
+                  }}
+                  className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                >
+                  Próximo
+                </Button>
+              ) : (
+                <Button 
+                  type="button" 
+                  onClick={() => {
+                    if (activeTab === formData.formats[formData.formats.length - 1]) {
+                      setStep(3);
+                    } else {
+                      const currentIndex = formData.formats.indexOf(activeTab as PostFormat);
+                      setActiveTab(formData.formats[currentIndex + 1]);
+                    }
+                  }}
+                  className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                >
+                  {activeTab === formData.formats[formData.formats.length - 1] ? "Publicar Postagem" : "Próximo"}
+                </Button>
+              )}
             </div>
           </div>
         )}
