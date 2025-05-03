@@ -1,22 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Category, Post } from "@shared/schema";
+import { cn } from "@/lib/utils";
+import { uploadToSupabase } from "@/lib/admin/uploadToSupabase";
 import { useToast } from "@/hooks/use-toast";
-import { insertPostSchema } from "@shared/schema";
-import { generateUniqueFileName } from "@/lib/admin/uploadToSupabase";
-import { uploadImageToSupabase } from "@/lib/admin/uploadToSupabase";
-import { supabase } from "@/lib/supabase";
 
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -27,220 +24,175 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Loader2, ImagePlus } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { Category, Post } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, PlusCircle, X, Image } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
-// Estender o schema do Zod para incluir validações adicionais
-const postFormSchema = insertPostSchema.extend({
-  title: z.string().min(5, "O título deve ter pelo menos 5 caracteres").max(100, "O título deve ter no máximo 100 caracteres"),
-  description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres").max(500, "A descrição deve ter no máximo 500 caracteres"),
-  image: z.instanceof(File).optional(),
-  imageUrl: z.string().optional(),
-}).refine(data => data.image || data.imageUrl, {
-  message: "É necessário fornecer uma imagem ou URL de imagem",
-  path: ["image"],
+const formSchema = z.object({
+  title: z.string().min(3, {
+    message: "O título deve ter pelo menos 3 caracteres.",
+  }),
+  description: z.string().optional(),
+  categoryId: z.string().nullable().transform(val => val ? parseInt(val, 10) : null),
+  status: z.string().default("rascunho"),
+  imageUrl: z.string().nullable(),
+  licenseType: z.string().default("premium"),
+  tags: z.array(z.string()).default([]),
+  formats: z.array(z.string()).default([]),
 });
 
-type PostFormValues = z.infer<typeof postFormSchema>;
+type FormValues = z.infer<typeof formSchema>;
+
+const FORMATS = [
+  { id: "feed", name: "FEED", description: "Para publicação no feed do Instagram" },
+  { id: "cartaz", name: "CARTAZ", description: "Para divulgação impressa ou digital" },
+  { id: "stories", name: "STORIES", description: "Formato vertical para stories" },
+];
 
 interface PostFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: FormValues) => void;
   post?: Post;
   categories: Category[];
 }
 
 export function PostForm({ isOpen, onClose, onSubmit, post, categories }: PostFormProps) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [newTag, setNewTag] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  // Inicializar o formulário
-  const form = useForm<PostFormValues>({
-    resolver: zodResolver(postFormSchema),
-    defaultValues: post ? {
-      title: post.title,
-      description: post.description || "",
-      categoryId: post.categoryId || undefined,
-      imageUrl: post.imageUrl,
-      status: post.status || "rascunho",
-      uniqueCode: post.uniqueCode,
-    } : {
-      title: "",
-      description: "",
-      categoryId: undefined,
-      imageUrl: "",
-      status: "rascunho",
-      uniqueCode: Math.random().toString(36).substring(2, 10),
+  // Inicializar form com valores padrão ou do post existente
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: post?.title || "",
+      description: post?.description || "",
+      categoryId: post?.categoryId ? String(post.categoryId) : null,
+      status: post?.status || "rascunho",
+      imageUrl: post?.imageUrl || null,
+      licenseType: post?.licenseType || "premium",
+      tags: post?.tags || [],
+      formats: post?.formats || [],
     },
   });
   
-  // Resetar o formulário quando o diálogo fechar
-  React.useEffect(() => {
-    if (!isOpen) {
-      form.reset();
-      setImagePreview(null);
-    } else if (post) {
-      setImagePreview(post.imageUrl);
-    }
-  }, [isOpen, form, post]);
+  // Resetar formulário quando o post muda
+  useEffect(() => {
+    form.reset({
+      title: post?.title || "",
+      description: post?.description || "",
+      categoryId: post?.categoryId ? String(post.categoryId) : null,
+      status: post?.status || "rascunho",
+      imageUrl: post?.imageUrl || null,
+      licenseType: post?.licenseType || "premium",
+      tags: post?.tags || [],
+      formats: post?.formats || [],
+    });
+    
+    setImagePreview(post?.imageUrl || null);
+  }, [post, form]);
   
-  // Manipular o upload de imagem
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    // Validar o tipo de arquivo
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Tipo de arquivo inválido",
-        description: "Por favor, selecione um arquivo de imagem (JPG, PNG, WebP).",
-        variant: "destructive",
-      });
-      return;
+  // Manipular adição de tag
+  const handleAddTag = () => {
+    if (newTag.trim() && !form.getValues().tags.includes(newTag.trim())) {
+      const currentTags = form.getValues().tags;
+      form.setValue("tags", [...currentTags, newTag.trim()]);
+      setNewTag("");
     }
-    
-    // Validar o tamanho do arquivo (max 3MB)
-    if (file.size > 3 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "O tamanho máximo permitido é 3MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Atualizar o formulário
-    form.setValue("image", file);
-    
-    // Mostrar preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
   };
   
-  // Manipular o envio do formulário
-  const handleSubmit = async (values: PostFormValues) => {
-    setIsSubmitting(true);
+  // Manipular remoção de tag
+  const handleRemoveTag = (tag: string) => {
+    const currentTags = form.getValues().tags;
+    form.setValue("tags", currentTags.filter(t => t !== tag));
+  };
+  
+  // Manipular toggle de formato
+  const handleFormatToggle = (format: string) => {
+    const currentFormats = form.getValues().formats;
+    if (currentFormats.includes(format)) {
+      form.setValue("formats", currentFormats.filter(f => f !== format));
+    } else {
+      form.setValue("formats", [...currentFormats, format]);
+    }
+  };
+  
+  // Manipular alteração de imagem
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      
+      // Criar URL temporária para preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // Manipular envio do formulário
+  const handleFormSubmit = async (values: FormValues) => {
+    setIsLoading(true);
     
     try {
-      let imageUrl = values.imageUrl;
-      
-      // Se tem um novo arquivo de imagem, fazer upload para o Supabase
-      if (values.image) {
-        const fileName = generateUniqueFileName(values.image.name);
-        const filePath = `posts/${fileName}`;
+      // Se houver uma nova imagem, fazer upload
+      if (imageFile) {
+        const path = `posts/${Date.now()}_${imageFile.name.replace(/\s+/g, '_')}`;
+        const imageUrl = await uploadToSupabase(imageFile, path);
         
-        // Upload para o Supabase Storage
-        const { data, error } = await supabase.storage
-          .from("images")
-          .upload(filePath, values.image, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-        
-        if (error) {
-          throw new Error(`Erro ao fazer upload da imagem: ${error.message}`);
+        if (imageUrl) {
+          values.imageUrl = imageUrl;
+        } else {
+          throw new Error("Falha ao fazer upload da imagem");
         }
-        
-        // Obter URL pública
-        const { data: publicUrlData } = supabase.storage
-          .from("images")
-          .getPublicUrl(filePath);
-        
-        imageUrl = publicUrlData.publicUrl;
       }
       
-      // Dados finais para salvar
-      const postData = {
-        ...values,
-        imageUrl,
-        image: undefined, // Não enviar o arquivo para a API
-      };
-      
-      // Enviar para o servidor
-      await onSubmit(postData);
-      
-      toast({
-        title: "Sucesso!",
-        description: post ? "Post atualizado com sucesso." : "Post criado com sucesso.",
-      });
-      
-      // Fechar o modal
+      // Enviar dados para o servidor
+      await onSubmit(values);
       onClose();
-    } catch (error: any) {
+    } catch (error) {
+      console.error("Erro ao salvar post:", error);
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro ao salvar o post.",
+        description: "Ocorreu um erro ao salvar a postagem.",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{post ? "Editar Post" : "Criar Novo Post"}</DialogTitle>
-          <DialogDescription>
-            {post 
-              ? "Atualize as informações do post existente." 
-              : "Preencha os detalhes para criar um novo post."}
-          </DialogDescription>
+          <DialogTitle>{post ? "Editar" : "Nova"} Postagem</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Título */}
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 pt-4">
+            {/* Informações básicas */}
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título</FormLabel>
+                  <FormLabel>Nome da Postagem</FormLabel>
                   <FormControl>
-                    <Input placeholder="Título do post" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Um título claro e atrativo para o post.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Descrição */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descrição do post" 
-                      className="min-h-[100px]" 
+                    <Input 
+                      placeholder="Ex: Cartaz de Promoção Primavera" 
                       {...field} 
                     />
                   </FormControl>
-                  <FormDescription>
-                    Uma breve descrição do conteúdo do post.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -253,142 +205,258 @@ export function PostForm({ isOpen, onClose, onSubmit, post, categories }: PostFo
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    defaultValue={field.value?.toString()}
-                  >
+                  <div className="flex items-center gap-2">
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value !== null ? field.value.toString() : ""}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id.toString()}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem 
-                          key={category.id} 
-                          value={category.id.toString()}
-                        >
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    A categoria à qual este post pertence.
-                  </FormDescription>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title="Nova Categoria"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Imagem */}
-            <div className="space-y-2">
-              <Label htmlFor="image">Imagem</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Licença */}
+              <FormField
+                control={form.control}
+                name="licenseType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Licença de Uso</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="premium">
+                            Premium 
+                            <span className="ml-2 text-yellow-500">👑</span>
+                          </SelectItem>
+                          <SelectItem value="standard">Standard</SelectItem>
+                          <SelectItem value="free">Gratuito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormDescription>
+                      Determine como sua arte pode ser usada.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
-              <div className="flex flex-col gap-4">
-                {/* Preview de imagem */}
-                {imagePreview && (
-                  <div className="relative rounded-md overflow-hidden w-full max-h-[200px]">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      className="w-full h-auto object-cover"
+              {/* Status */}
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="aprovado">
+                            Aprovado 
+                            <span className="ml-2 text-green-500">✓</span>
+                          </SelectItem>
+                          <SelectItem value="rascunho">Rascunho</SelectItem>
+                          <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            {/* Tags */}
+            <FormItem>
+              <FormLabel>Tags</FormLabel>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Adicionar tag"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleAddTag}
+                  title="Nova Tag"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="flex flex-wrap gap-1 mt-2">
+                {form.getValues().tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                    {tag}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => handleRemoveTag(tag)}
                     />
+                  </Badge>
+                ))}
+                {form.getValues().tags.length === 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    Tags comuns
                   </div>
                 )}
-                
-                {/* Input de arquivo */}
-                <div className="grid w-full items-center gap-1.5">
-                  <Label 
-                    htmlFor="image-upload" 
-                    className={cn(
-                      "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-md cursor-pointer",
-                      "hover:bg-muted/50 transition-colors",
-                      imagePreview ? "border-muted" : "border-primary/30"
-                    )}
-                  >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImagePlus className={cn(
-                        "w-8 h-8 mb-4",
-                        imagePreview ? "text-muted-foreground" : "text-primary/70"
-                      )} />
-                      <p className="text-sm text-muted-foreground">
-                        {imagePreview 
-                          ? "Clique para alterar a imagem" 
-                          : "Clique para fazer upload de uma imagem"}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        PNG, JPG ou WebP (máx. 3MB)
-                      </p>
+              </div>
+              <FormMessage />
+            </FormItem>
+            
+            {/* Formatos */}
+            <FormItem>
+              <FormLabel>Formatos da Postagem</FormLabel>
+              <div className="flex flex-wrap gap-3 mt-2">
+                {FORMATS.map((format) => {
+                  const isActive = form.getValues().formats.includes(format.id);
+                  return (
+                    <div
+                      key={format.id}
+                      className={cn(
+                        "p-4 border rounded-md cursor-pointer transition-all relative",
+                        "hover:border-primary",
+                        isActive ? "border-primary bg-primary/5" : "border-border"
+                      )}
+                      onClick={() => handleFormatToggle(format.id)}
+                    >
+                      <div className="text-sm font-medium">{format.name}</div>
+                      {isActive && (
+                        <Badge className="absolute -top-2 -right-2 text-xs">
+                          Essencial
+                        </Badge>
+                      )}
                     </div>
-                    <Input
-                      id="image-upload"
+                  );
+                })}
+              </div>
+              <FormMessage />
+            </FormItem>
+            
+            {/* Imagem de Capa */}
+            <FormItem>
+              <FormLabel>Capa</FormLabel>
+              <div className="mt-2 border-2 border-dashed border-border rounded-md p-4">
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="max-h-48 mx-auto rounded-md object-contain"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                        form.setValue("imageUrl", null);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center h-32 cursor-pointer">
+                    <Image className="h-10 w-10 text-muted-foreground mb-2" />
+                    <span className="text-sm text-muted-foreground">
+                      Clique para fazer upload ou arraste uma imagem
+                    </span>
+                    <input
                       type="file"
                       accept="image/*"
                       className="hidden"
                       onChange={handleImageChange}
                     />
-                  </Label>
-                </div>
+                  </label>
+                )}
               </div>
-              
-              {form.formState.errors.image && (
-                <p className="text-sm font-medium text-destructive">
-                  {form.formState.errors.image.message}
-                </p>
-              )}
-            </div>
+              <FormMessage />
+            </FormItem>
             
-            {/* Status */}
+            {/* Descrição */}
             <FormField
               control={form.control}
-              name="status"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="rascunho">Rascunho</SelectItem>
-                      <SelectItem value="aprovado">Aprovado</SelectItem>
-                      <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    O status atual do post.
-                  </FormDescription>
+                  <FormLabel>Descrição (opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Descrição da postagem..."
+                      className="resize-none"
+                      rows={4}
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            {/* Código único - invisível para o usuário */}
-            <input type="hidden" {...form.register("uniqueCode")} />
             
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                disabled={isSubmitting}
+                disabled={isLoading}
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Salvando...
                   </>
                 ) : (
-                  <>{post ? "Atualizar" : "Criar"}</>
+                  "Próximo"
                 )}
               </Button>
             </DialogFooter>

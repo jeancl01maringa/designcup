@@ -1,87 +1,98 @@
-import { supabase } from '@/lib/supabase';
-import imageCompression from 'browser-image-compression';
+import { supabase } from "../supabase";
+import browserImageCompression from "browser-image-compression";
 
 /**
- * Gera um nome de arquivo único baseado no timestamp e randomização
+ * Comprime uma imagem antes do upload
+ * @param file Arquivo de imagem a ser comprimido 
+ * @returns Arquivo comprimido
  */
-export function generateUniqueFileName(originalName: string): string {
-  const timestamp = new Date().getTime();
-  const randomString = Math.random().toString(36).substring(2, 8);
+async function compressImage(file: File): Promise<File> {
+  // Configurações de compressão
+  const options = {
+    maxSizeMB: 1, // tamanho máximo em MB
+    maxWidthOrHeight: 1920, // resolução máxima
+    useWebWorker: true,
+    fileType: 'image/webp', // converter para WebP para melhor compressão
+  };
   
-  // Limpa o nome do arquivo original, removendo caracteres especiais
-  const cleanName = originalName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-{2,}/g, '-')
-    .substring(0, 20);
-  
-  return `${cleanName}-${timestamp}-${randomString}`;
+  try {
+    return await browserImageCompression(file, options);
+  } catch (error) {
+    console.error("Erro ao comprimir imagem:", error);
+    // Em caso de erro, retornar o arquivo original
+    return file;
+  }
 }
 
 /**
- * Faz o upload de uma imagem para o Supabase, com compressão opcional
+ * Faz upload de uma imagem para o Supabase Storage
+ * @param file Arquivo a ser enviado
+ * @param path Caminho no bucket (ex: 'posts/imagem.webp')
+ * @returns URL pública da imagem ou null em caso de erro
  */
-export async function uploadImageToSupabase(
-  file: File,
-  folderPath: string,
-  options: {
-    compress?: boolean;
-    maxSizeMB?: number;
-    maxWidthOrHeight?: number;
-  } = {}
-): Promise<string> {
+export async function uploadToSupabase(file: File, path: string): Promise<string | null> {
   try {
-    console.log(`Iniciando upload para ${folderPath}...`);
-    
-    // Opções de compressão padrão
-    const {
-      compress = true,
-      maxSizeMB = 1,
-      maxWidthOrHeight = 1920
-    } = options;
-    
-    // Comprimir a imagem se necessário
-    let fileToUpload = file;
-    
-    if (compress && file.type.startsWith('image/')) {
-      console.log('Comprimindo imagem...');
-      
-      const compressionOptions = {
-        maxSizeMB,
-        maxWidthOrHeight,
-        useWebWorker: true,
-        fileType: 'image/webp'
-      };
-      
-      fileToUpload = await imageCompression(file, compressionOptions);
-      console.log(`Imagem comprimida de ${file.size} para ${fileToUpload.size} bytes`);
+    // Verificar se o cliente Supabase está disponível
+    if (!supabase) {
+      throw new Error("Cliente Supabase não inicializado");
     }
     
-    // Gerar um nome de arquivo único
-    const fileName = generateUniqueFileName(file.name);
-    const filePath = `${folderPath}/${fileName}`;
+    // Comprimir a imagem antes do upload
+    const compressedFile = await compressImage(file);
     
-    // Upload para o Supabase
+    // Fazer o upload para o bucket 'images'
     const { data, error } = await supabase.storage
       .from('images')
-      .upload(filePath, fileToUpload, {
+      .upload(path, compressedFile, {
         cacheControl: '3600',
-        upsert: false
+        upsert: true,
       });
     
     if (error) {
-      throw new Error(`Erro ao fazer upload: ${error.message}`);
+      throw error;
     }
     
-    // Obter a URL pública
-    const { data: publicUrlData } = supabase.storage
+    // Gerar URL pública
+    const { data: publicURL } = supabase.storage
       .from('images')
-      .getPublicUrl(filePath);
+      .getPublicUrl(path);
     
-    console.log(`Upload concluído: ${publicUrlData.publicUrl}`);
-    return publicUrlData.publicUrl;
-  } catch (error: any) {
-    console.error('Erro no upload para Supabase:', error);
-    throw new Error(`Falha ao fazer upload: ${error.message}`);
+    return publicURL?.publicUrl || null;
+  } catch (error) {
+    console.error('Erro no upload para o Supabase:', error);
+    return null;
+  }
+}
+
+/**
+ * Exclui uma imagem do Supabase Storage
+ * @param path Caminho da imagem no bucket
+ * @returns Boolean indicando sucesso ou falha
+ */
+export async function deleteFromSupabase(path: string): Promise<boolean> {
+  try {
+    // Verificar se o cliente Supabase está disponível
+    if (!supabase) {
+      throw new Error("Cliente Supabase não inicializado");
+    }
+    
+    // Remover o prefixo da URL pública se existir
+    const cleanPath = path.includes('/storage/v1/object/public/images/')
+      ? path.split('/storage/v1/object/public/images/')[1]
+      : path;
+    
+    // Fazer a remoção
+    const { error } = await supabase.storage
+      .from('images')
+      .remove([cleanPath]);
+    
+    if (error) {
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao excluir do Supabase:', error);
+    return false;
   }
 }
