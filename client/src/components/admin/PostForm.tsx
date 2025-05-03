@@ -287,17 +287,16 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     // Verificar imagens
     if (formatFile.imagePreview !== null) {
       // Considerar qualquer preview válido como conteúdo, exceto blobs temporários
-      // Aceitar URLs http/https e base64
+      // Aceitar apenas URLs http/https como válidas persistentes
       const isBlobUrl = formatFile.imagePreview.startsWith("blob:");
       const isHttpUrl = formatFile.imagePreview.startsWith("http");
-      const isBase64 = formatFile.imagePreview.startsWith("data:image/");
       
-      // Considerar como conteúdo válido se não for blob temporário
-      if (!isBlobUrl && (isHttpUrl || isBase64)) {
+      // Considerar como conteúdo válido se for uma URL HTTP
+      if (isHttpUrl) {
         return true;
       }
       
-      // Se for blob mas também tiver arquivo, ainda é válido
+      // Se for blob mas também tiver arquivo, ainda é válido (será enviado)
       if (isBlobUrl && formatFile.imageFile !== null) {
         return true;
       }
@@ -330,20 +329,19 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     let mainImageUrl = "";
     
     // Usar a primeira imagem disponível como capa principal
-    // Priorizar URLs permanentes (http:// ou data:image/) em vez de blobs
+    // Priorizar URLs permanentes (http://) em vez de blobs
     for (const format of formData.formats) {
       const preview = formData.formatFiles[format].imagePreview;
       if (preview) {
         // Verificar tipo de URL
         const isBlobUrl = preview.startsWith("blob:");
         const isHttpUrl = preview.startsWith("http");
-        const isBase64 = preview.startsWith("data:image/");
         
-        // URL válida = HTTP ou base64, mas não blob temporário
-        const isValidUrl = isHttpUrl || isBase64;
+        // URL válida = apenas HTTP, não blob temporário
+        const isValidUrl = isHttpUrl;
         
         if (isValidUrl) {
-          // Se for URL válida, usar como capa
+          // Se for URL HTTP válida, usar como capa
           if (!mainImageUrl) mainImageUrl = preview;
           imageUrls[format] = preview;
         } else if (isBlobUrl && !mainImageUrl) {
@@ -361,10 +359,10 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     const formatData = formData.formats.map(format => {
       const preview = formData.formatFiles[format].imagePreview;
       
-      // Apenas usar URL se for válida (http ou base64, não blob)
+      // Apenas usar URL se for HTTP válida (não blob)
       let imageUrl = "";
       if (preview) {
-        if (preview.startsWith("http") || preview.startsWith("data:image/")) {
+        if (preview.startsWith("http")) {
           imageUrl = preview;
         } else if (preview.startsWith("blob:")) {
           // Evitar salvar URLs blob que não serão válidas após recarga da página
