@@ -16,7 +16,9 @@ import {
   FileType,
   Database,
   Globe,
-  ExternalLink
+  ExternalLink,
+  Hash,
+  Tag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -92,6 +94,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       label: "Formatos de Post",
       path: "/admin/gerenciamento/formatos-post",
       icon: <LayoutTemplate className="h-4 w-4" />,
+    },
+    {
+      id: "tags",
+      label: "Gerenciar Tags",
+      path: "/admin/gerenciamento/tags",
+      icon: <Tag className="h-4 w-4" />,
       separator: true,
     },
     {

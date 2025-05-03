@@ -159,6 +159,51 @@ export const insertPostSchema = createInsertSchema(posts).omit({
   publishedAt: true,
 });
 
+// Tags para o sistema de SEO
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  count: integer("count").default(0), // contador de uso
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Relacionamento Many-to-Many entre Posts e Tags
+export const postTags = pgTable("post_tags", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  tagId: integer("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  postTags: many(postTags)
+}));
+
+export const postTagsRelations = relations(postTags, ({ one }) => ({
+  post: one(posts, {
+    fields: [postTags.postId],
+    references: [posts.id],
+  }),
+  tag: one(tags, {
+    fields: [postTags.tagId],
+    references: [tags.id],
+  })
+}));
+
+export const insertTagSchema = createInsertSchema(tags).omit({
+  id: true,
+  createdAt: true,
+  count: true,
+});
+
+export const insertPostTagSchema = createInsertSchema(postTags).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -174,6 +219,12 @@ export type UserArtwork = typeof userArtworks.$inferSelect;
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
+
+export type InsertTag = z.infer<typeof insertTagSchema>;
+export type Tag = typeof tags.$inferSelect;
+
+export type InsertPostTag = z.infer<typeof insertPostTagSchema>;
+export type PostTag = typeof postTags.$inferSelect;
 
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Post = typeof posts.$inferSelect;
