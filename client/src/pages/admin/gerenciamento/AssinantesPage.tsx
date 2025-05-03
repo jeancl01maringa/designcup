@@ -28,6 +28,7 @@ interface Assinante {
   plano_id: string;
   data_vencimento: string;
   active: boolean;
+  telefone?: string;
 }
 
 // Interface para o plano
@@ -48,7 +49,8 @@ export default function AssinantesPage() {
   const [editFormData, setEditFormData] = useState({
     plano_id: "",
     data_vencimento: "",
-    active: true
+    active: true,
+    telefone: ""
   });
 
   // Buscar todos os assinantes (usuários premium ativos)
