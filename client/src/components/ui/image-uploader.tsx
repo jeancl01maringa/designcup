@@ -2,7 +2,8 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { supabase, ensureImageBucket, generateUniqueFileName, getPublicImageUrl } from '@/lib/supabase';
+import { supabase, ensureImageBucket } from '@/lib/supabase';
+import { nanoid } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Upload, ImageOff, X, RefreshCw } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
@@ -62,7 +63,10 @@ export function ImageUploader({
       setUploadProgress(60);
 
       // Gerar nome único para o arquivo
-      const fileName = generateUniqueFileName(file.name);
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'webp';
+      const timestamp = Date.now();
+      const uniqueId = nanoid();
+      const fileName = `uploads/${uniqueId}-${timestamp}.${fileExt}`;
       
       // Enviar para o Supabase
       const { error: uploadError } = await supabase.storage
@@ -79,7 +83,8 @@ export function ImageUploader({
       setUploadProgress(90);
       
       // Obter URL pública
-      const publicUrl = getPublicImageUrl(fileName);
+      const { data } = supabase.storage.from('images').getPublicUrl(fileName);
+      const publicUrl = data.publicUrl;
       
       setImageUrl(publicUrl);
       onImageUploaded(publicUrl);

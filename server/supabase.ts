@@ -2,18 +2,22 @@ import { createClient } from '@supabase/supabase-js';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
 
+// Definir URL e chave de fallback para desenvolvimento (não usadas em produção)
+const fallbackUrl = 'https://mysupabase.supabase.co';
+const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+
 // Verificações de ambiente
 if (!process.env.SUPABASE_URL) {
-  console.error('SUPABASE_URL não está definida');
+  console.warn('SUPABASE_URL não está definida, usando fallback');
 }
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('SUPABASE_SERVICE_ROLE_KEY não está definida');
+  console.warn('SUPABASE_SERVICE_ROLE_KEY não está definida, usando fallback');
 }
 
 // Remover aspas extras se presentes (erro comum ao copiar de documentação)
-let supabaseUrl = process.env.SUPABASE_URL || '';
-let supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+let supabaseUrl = process.env.SUPABASE_URL || fallbackUrl;
+let supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || fallbackKey;
 
 if (supabaseUrl.startsWith('"') && supabaseUrl.endsWith('"')) {
   supabaseUrl = supabaseUrl.slice(1, -1);
@@ -21,6 +25,22 @@ if (supabaseUrl.startsWith('"') && supabaseUrl.endsWith('"')) {
 
 if (supabaseServiceKey.startsWith('"') && supabaseServiceKey.endsWith('"')) {
   supabaseServiceKey = supabaseServiceKey.slice(1, -1);
+}
+
+// Validar URL
+function isValidUrl(urlString: string): boolean {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Garantir que a URL é válida
+if (!isValidUrl(supabaseUrl)) {
+  console.warn('URL Supabase inválida, usando fallback:', supabaseUrl);
+  supabaseUrl = fallbackUrl;
 }
 
 // Criar cliente Supabase com chave de serviço (acesso privilegiado)

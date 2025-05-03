@@ -1,136 +1,81 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Função para validar URL
+// Definir URL e chave de fallback para desenvolvimento (não usadas em produção)
+const fallbackUrl = 'https://mysupabase.supabase.co';
+const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+
+// Usar as variáveis de ambiente configuradas no Replit
+// No frontend, apenas import.meta.env está disponível (não process.env)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_KEY;
+
+// Validar se as credenciais estão disponíveis
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    "Aviso: Credenciais do Supabase não encontradas nas variáveis de ambiente. Usando valores de fallback."
+  );
+}
+
+// Verificar se a URL é válida
 function isValidUrl(urlString: string): boolean {
   try {
-    // Tentar criar um objeto URL (lança exceção se inválido)
     new URL(urlString);
-    // Verificar se é um URL do tipo https
-    return urlString.startsWith('https://');
-  } catch (e) {
+    return true;
+  } catch (error) {
     return false;
   }
 }
 
-// Verificar se as variáveis de ambiente estão disponíveis e válidas
-let supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string || '';
-let supabaseKey = import.meta.env.VITE_SUPABASE_KEY as string || '';
+// Selecionar URL e chave a serem usadas
+const url = (supabaseUrl && isValidUrl(supabaseUrl)) ? supabaseUrl : fallbackUrl;
+const key = supabaseAnonKey || fallbackKey;
 
-// Remover aspas extras se presentes (erro comum ao copiar de documentação)
-if (supabaseUrl.startsWith('"') && supabaseUrl.endsWith('"')) {
-  supabaseUrl = supabaseUrl.slice(1, -1);
-}
-if (supabaseKey.startsWith('"') && supabaseKey.endsWith('"')) {
-  supabaseKey = supabaseKey.slice(1, -1);
-}
-
-// Verificar a validade da URL
-if (!isValidUrl(supabaseUrl)) {
-  console.error(`VITE_SUPABASE_URL inválida: "${supabaseUrl}". O armazenamento de imagens não funcionará corretamente.`);
-  supabaseUrl = 'https://example.supabase.co'; // URL placeholder para evitar erros de construção
-}
-
-// Verificar se a chave está presente
-if (!supabaseKey) {
-  console.error('VITE_SUPABASE_KEY não definida. O armazenamento de imagens não funcionará corretamente.');
-}
-
-// Criar uma função que retorna um cliente mock se as credenciais não forem válidas
-function createSupabaseClient() {
-  const hasValidCredentials = isValidUrl(supabaseUrl) && supabaseKey.length > 0;
-  
-  if (!hasValidCredentials) {
-    console.error('Usando cliente Supabase simulado devido a credenciais inválidas.');
-    // @ts-ignore - permitindo um mock rudimentar para evitar erros
-    return {
-      storage: {
-        listBuckets: () => ({ data: [], error: new Error('Credenciais Supabase inválidas') }),
-        createBucket: () => ({ error: new Error('Credenciais Supabase inválidas') }),
-        from: () => ({
-          upload: () => ({ error: new Error('Credenciais Supabase inválidas') }),
-          getPublicUrl: () => ({ data: { publicUrl: '' } }),
-        }),
-      },
-    };
-  }
-  
-  // Criar um cliente real se tivermos credenciais válidas
-  try {
-    console.log('Inicializando cliente Supabase com URL:', supabaseUrl);
-    console.log('Chave Supabase válida:', supabaseKey && supabaseKey.length > 0);
-    return createClient(supabaseUrl, supabaseKey);
-  } catch (error) {
-    console.error('Erro ao criar cliente Supabase:', error);
-    // @ts-ignore - permitindo um mock rudimentar para evitar erros
-    return {
-      storage: {
-        listBuckets: () => ({ data: [], error: new Error('Erro ao criar cliente Supabase') }),
-        createBucket: () => ({ error: new Error('Erro ao criar cliente Supabase') }),
-        from: () => ({
-          upload: () => ({ error: new Error('Erro ao criar cliente Supabase') }),
-          getPublicUrl: () => ({ data: { publicUrl: '' } }),
-        }),
-      },
-    };
-  }
-}
-
-// Exportar o cliente
-export const supabase = createSupabaseClient();
+console.log("Inicializando Supabase com URL:", url.substring(0, 8) + "...");
 
 /**
- * Verifica se o bucket de imagens existe e o cria se necessário
+ * Cliente do Supabase configurado para uso no lado do cliente (browser)
  */
-export async function ensureImageBucket() {
+export const supabase = createClient(url, key);
+
+/**
+ * Verifica se a conexão com o Supabase está funcionando
+ * @returns Promise<boolean> verdadeiro se a conexão for bem-sucedida
+ */
+export async function checkSupabaseConnection(): Promise<boolean> {
   try {
-    // Verificar se o bucket já existe
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    const { data, error } = await supabase.from('users').select('count');
+    return !error;
+  } catch (error) {
+    console.error('Erro ao verificar conexão com Supabase:', error);
+    return false;
+  }
+}
+
+/**
+ * Verifica e garante que o bucket de imagens existe
+ */
+export async function ensureImageBucket(): Promise<void> {
+  try {
+    const { data: buckets, error } = await supabase.storage.listBuckets();
     
-    if (listError) {
-      throw listError;
+    if (error) {
+      console.error('Erro ao listar buckets:', error);
+      return;
     }
     
-    const imagesBucketExists = buckets?.some(bucket => bucket.name === 'images');
+    const imagesBucketExists = buckets.some(bucket => bucket.name === 'images');
     
     if (!imagesBucketExists) {
-      // Criar bucket se não existir
       const { error: createError } = await supabase.storage.createBucket('images', {
-        public: true,
-        fileSizeLimit: 5242880, // 5MB
-        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp']
+        public: true, // acessível publicamente
+        fileSizeLimit: 10485760, // 10MB
       });
       
       if (createError) {
-        throw createError;
+        console.error('Erro ao criar bucket images:', createError);
       }
-      
-      console.log('Bucket de imagens criado com sucesso!');
     }
   } catch (error) {
-    console.error('Erro ao configurar bucket de imagens:', error);
-    throw new Error('Não foi possível configurar o armazenamento de imagens.');
+    console.error('Falha ao verificar/criar bucket:', error);
   }
-}
-
-/**
- * Gera um nome de arquivo único para upload
- */
-export function generateUniqueFileName(originalFileName: string, extension = 'webp') {
-  const timestamp = new Date().getTime();
-  const randomString = Math.random().toString(36).substring(2, 10);
-  const cleanFileName = originalFileName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-  
-  return `${cleanFileName.substring(0, 20)}-${timestamp}-${randomString}.${extension}`;
-}
-
-/**
- * Retorna a URL pública de uma imagem armazenada no Supabase
- */
-export function getPublicImageUrl(filePath: string) {
-  const { data } = supabase.storage.from('images').getPublicUrl(filePath);
-  return data.publicUrl;
 }

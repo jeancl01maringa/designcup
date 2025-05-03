@@ -1,205 +1,131 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ImageUploader } from "@/components/ui/image-uploader";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { uploadToSupabase, getPublicUrl } from '@/lib/admin/uploadToSupabase';
+import { nanoid } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ImageUploadDemo() {
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
-  const [maxSizeMB, setMaxSizeMB] = useState<number>(1);
-  const [maxWidth, setMaxWidth] = useState<number>(1080);
-  const [showSupabaseInfo, setShowSupabaseInfo] = useState(false);
-  const [supabaseStatus, setSupabaseStatus] = useState<"checking" | "connected" | "error">("checking");
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
-  // Verifica conexão com o Supabase
-  React.useEffect(() => {
-    const checkSupabaseConnection = async () => {
-      try {
-        setSupabaseStatus("checking");
-        
-        // Tenta listar buckets para verificar a conexão
-        const { data, error } = await supabase.storage.listBuckets();
-        
-        if (error) {
-          throw error;
-        }
-        
-        setSupabaseStatus("connected");
-        console.log("Buckets disponíveis:", data);
-      } catch (error) {
-        setSupabaseStatus("error");
-        console.error("Erro ao conectar com Supabase:", error);
-        setErrorMessage(error instanceof Error ? error.message : "Erro desconhecido");
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Criar uma URL para preview
+      const previewUrl = URL.createObjectURL(file);
+      setPreview(previewUrl);
+      // Limpar URL após upload
+      setUploadedUrl(null);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "Nenhum arquivo selecionado",
+        description: "Por favor, selecione uma imagem para fazer upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Criar ID único para o teste
+      const uniqueId = nanoid();
+      const filePath = `test/${uniqueId}/${selectedFile.name}`;
+      
+      // Fazer upload com otimização
+      const imageUrl = await uploadToSupabase(selectedFile, filePath, true);
+      
+      if (imageUrl) {
+        setUploadedUrl(imageUrl);
+        toast({
+          title: "Upload concluído!",
+          description: "Imagem otimizada e enviada com sucesso.",
+          variant: "default",
+        });
+      } else {
+        throw new Error("Falha ao fazer upload da imagem");
       }
-    };
-    
-    checkSupabaseConnection();
-  }, []);
-
-  const handleImageUploaded = (imageUrl: string) => {
-    setUploadedImageUrl(imageUrl);
-    console.log("Imagem enviada com sucesso:", imageUrl);
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível enviar a imagem. Verifique as credenciais do Supabase.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold tracking-tight">Upload de Imagens com Supabase</h1>
-        <p className="text-muted-foreground mt-2">
-          Upload de imagens com compressão automática para WebP e armazenamento no Supabase
-        </p>
-      </div>
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Teste de Upload de Imagem para Supabase</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div className="md:col-span-5 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload de Imagem</CardTitle>
-              <CardDescription>
-                Selecione uma imagem para enviar ao Supabase Storage
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="maxSize">Tamanho máximo (MB): {maxSizeMB}MB</Label>
-                <Input
-                  id="maxSize"
-                  type="range"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                  value={maxSizeMB}
-                  onChange={(e) => setMaxSizeMB(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="maxWidth">Largura/Altura máxima (px): {maxWidth}px</Label>
-                <Input
-                  id="maxWidth"
-                  type="range"
-                  min="400"
-                  max="2000"
-                  step="100"
-                  value={maxWidth}
-                  onChange={(e) => setMaxWidth(parseInt(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="showSupabaseInfo">Mostrar informações do Supabase</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Exibir detalhes técnicos da conexão
-                    </p>
-                  </div>
-                  <Switch
-                    id="showSupabaseInfo"
-                    checked={showSupabaseInfo}
-                    onCheckedChange={setShowSupabaseInfo}
-                  />
-                </div>
-                
-                {showSupabaseInfo && (
-                  <div className="bg-muted p-4 rounded-md text-sm">
-                    <h3 className="font-medium mb-2">Status da conexão Supabase</h3>
-                    <div className="flex items-center">
-                      <div 
-                        className={`w-3 h-3 rounded-full mr-2 ${
-                          supabaseStatus === "checking" ? "bg-yellow-500" :
-                          supabaseStatus === "connected" ? "bg-green-500" :
-                          "bg-red-500"
-                        }`} 
-                      />
-                      <span>
-                        {supabaseStatus === "checking" ? "Verificando conexão..." :
-                         supabaseStatus === "connected" ? "Conectado" :
-                         "Erro de conexão"}
-                      </span>
-                    </div>
-                    
-                    {supabaseStatus === "error" && (
-                      <div className="mt-2 text-red-500">
-                        {errorMessage}
-                      </div>
-                    )}
-                    
-                    {supabaseStatus === "connected" && (
-                      <div className="mt-2 space-y-1 text-xs">
-                        <p>
-                          As imagens enviadas são automaticamente armazenadas
-                          no bucket 'images' do Supabase Storage, convertidas para WebP
-                          e otimizadas para web.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="mb-4">
+          <label 
+            htmlFor="file-upload" 
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Selecione uma imagem
+          </label>
+          <input
+            id="file-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-primary file:text-white
+                      hover:file:bg-primary/80"
+          />
         </div>
         
-        <div className="md:col-span-7 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Enviar Imagem</CardTitle>
-              <CardDescription>
-                Arraste uma imagem ou selecione do seu dispositivo
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ImageUploader 
-                onImageUploaded={handleImageUploaded}
-                maxSizeMB={maxSizeMB}
-                maxWidthOrHeight={maxWidth}
+        {preview && (
+          <div className="mb-4">
+            <h2 className="text-sm font-medium text-gray-700 mb-2">Preview:</h2>
+            <div className="relative w-full h-60 border rounded-md overflow-hidden">
+              <img 
+                src={preview} 
+                alt="Preview" 
+                className="absolute w-full h-full object-contain"
               />
-            </CardContent>
-          </Card>
-          
-          {uploadedImageUrl && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Imagem Enviada</CardTitle>
-                <CardDescription>
-                  Visualização da imagem otimizada armazenada no Supabase
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border rounded-md overflow-hidden">
-                  <img
-                    src={uploadedImageUrl}
-                    alt="Imagem enviada"
-                    className="w-full object-contain max-h-96"
-                  />
-                </div>
-                
-                <div className="p-4 bg-muted rounded-md">
-                  <Label className="block mb-1">URL da imagem:</Label>
-                  <div className="flex items-center">
-                    <Input
-                      value={uploadedImageUrl}
-                      readOnly
-                      className="text-xs font-mono"
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Esta URL pode ser usada em qualquer lugar da plataforma para exibir esta imagem.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+        
+        <Button 
+          onClick={handleUpload} 
+          disabled={!selectedFile || isUploading}
+          className="w-full"
+        >
+          {isUploading ? 'Enviando...' : 'Fazer Upload'}
+        </Button>
+        
+        {uploadedUrl && (
+          <div className="mt-6">
+            <h2 className="text-sm font-medium text-gray-700 mb-2">Imagem Otimizada (WebP):</h2>
+            <div className="relative w-full h-60 border rounded-md overflow-hidden">
+              <img 
+                src={uploadedUrl} 
+                alt="Imagem Otimizada" 
+                className="absolute w-full h-full object-contain"
+              />
+            </div>
+            <p className="mt-2 text-xs text-gray-500 break-all">
+              <strong>URL:</strong> {uploadedUrl}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

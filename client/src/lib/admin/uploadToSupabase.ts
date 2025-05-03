@@ -1,98 +1,119 @@
-import { supabase } from "../supabase";
+import { supabase, ensureImageBucket } from "@/lib/supabase";
 import browserImageCompression from "browser-image-compression";
 
 /**
- * Comprime uma imagem antes do upload
- * @param file Arquivo de imagem a ser comprimido 
- * @returns Arquivo comprimido
+ * Comprime e converte uma imagem para o formato WebP
+ * @param file Arquivo de imagem para otimizar
+ * @returns Promise com o arquivo otimizado
  */
-async function compressImage(file: File): Promise<File> {
-  // Configurações de compressão
-  const options = {
-    maxSizeMB: 1, // tamanho máximo em MB
-    maxWidthOrHeight: 1920, // resolução máxima
-    useWebWorker: true,
-    fileType: 'image/webp', // converter para WebP para melhor compressão
-  };
-  
+async function optimizeImage(file: File): Promise<File> {
   try {
-    return await browserImageCompression(file, options);
+    // Opções de compressão
+    const options = {
+      maxSizeMB: 1, // tamanho máximo em MB
+      maxWidthOrHeight: 1920, // dimensão máxima
+      useWebWorker: true, // usar Web Worker para processamento em segundo plano
+      fileType: 'image/webp', // converter para formato WebP
+    };
+    
+    // Compressão e conversão para WebP
+    const compressedFile = await browserImageCompression(file, options);
+    
+    // Criar um novo arquivo com extensão .webp
+    const filename = file.name.split('.').slice(0, -1).join('.') + '.webp';
+    return new File([compressedFile], filename, { type: 'image/webp' });
   } catch (error) {
-    console.error("Erro ao comprimir imagem:", error);
-    // Em caso de erro, retornar o arquivo original
-    return file;
+    console.error('Erro ao otimizar imagem:', error);
+    return file; // Retorna o arquivo original em caso de falha
   }
 }
 
 /**
- * Faz upload de uma imagem para o Supabase Storage
- * @param file Arquivo a ser enviado
- * @param path Caminho no bucket (ex: 'posts/imagem.webp')
- * @returns URL pública da imagem ou null em caso de erro
+ * Faz upload de um arquivo para o Supabase Storage
+ * @param file Arquivo para upload
+ * @param path Caminho no bucket para armazenar
+ * @param optimize Se verdadeiro, comprime e converte para WebP
+ * @returns URL público do arquivo ou null em caso de erro
  */
-export async function uploadToSupabase(file: File, path: string): Promise<string | null> {
+export async function uploadToSupabase(
+  file: File,
+  path: string,
+  optimize = true
+): Promise<string | null> {
   try {
-    // Verificar se o cliente Supabase está disponível
-    if (!supabase) {
-      throw new Error("Cliente Supabase não inicializado");
-    }
+    // Verificar se o bucket existe
+    await ensureImageBucket();
     
-    // Comprimir a imagem antes do upload
-    const compressedFile = await compressImage(file);
-    
-    // Fazer o upload para o bucket 'images'
+    // Otimizar imagem se solicitado
+    const fileToUpload = optimize && file.type.startsWith('image/') 
+      ? await optimizeImage(file) 
+      : file;
+      
+    // Fazer upload do arquivo
     const { data, error } = await supabase.storage
       .from('images')
-      .upload(path, compressedFile, {
+      .upload(path, fileToUpload, {
         cacheControl: '3600',
-        upsert: true,
+        upsert: true, // substituir arquivo existente
       });
-    
+      
     if (error) {
-      throw error;
+      console.error('Erro no upload para Supabase:', error);
+      return null;
     }
     
-    // Gerar URL pública
-    const { data: publicURL } = supabase.storage
-      .from('images')
-      .getPublicUrl(path);
-    
-    return publicURL?.publicUrl || null;
+    // Retornar URL público
+    return getPublicUrl(path);
   } catch (error) {
-    console.error('Erro no upload para o Supabase:', error);
+    console.error('Falha no upload:', error);
     return null;
   }
 }
 
+// Nota: A função ensureBucketExists foi removida pois estamos usando ensureImageBucket do cliente Supabase
+
 /**
- * Exclui uma imagem do Supabase Storage
- * @param path Caminho da imagem no bucket
- * @returns Boolean indicando sucesso ou falha
+ * Remove um arquivo do Supabase Storage
+ * @param path Caminho do arquivo a ser removido
+ * @returns Promise<boolean> verdadeiro se removido com sucesso
  */
-export async function deleteFromSupabase(path: string): Promise<boolean> {
+export async function removeFromSupabase(path: string): Promise<boolean> {
   try {
-    // Verificar se o cliente Supabase está disponível
-    if (!supabase) {
-      throw new Error("Cliente Supabase não inicializado");
-    }
-    
-    // Remover o prefixo da URL pública se existir
-    const cleanPath = path.includes('/storage/v1/object/public/images/')
-      ? path.split('/storage/v1/object/public/images/')[1]
-      : path;
-    
-    // Fazer a remoção
     const { error } = await supabase.storage
       .from('images')
-      .remove([cleanPath]);
-    
-    if (error) {
-      throw error;
-    }
-    
-    return true;
+      .remove([path]);
+      
+    return !error;
   } catch (error) {
-    console.error('Erro ao excluir do Supabase:', error);
+    console.error('Erro ao remover arquivo:', error);
     return false;
   }
+}
+
+/**
+ * Obtém o URL público de um arquivo no Supabase Storage
+ * @param path Caminho do arquivo no bucket
+ * @returns URL público do arquivo
+ */
+export function getPublicUrl(path: string): string {
+  const { data } = supabase.storage
+    .from('images')
+    .getPublicUrl(path);
+    
+  return data.publicUrl;
+}
+
+/**
+ * Cria caminho para arquivos no Supabase incluindo o ID único
+ * @param uniqueId ID único da entidade relacionada
+ * @param fileName Nome do arquivo
+ * @param folder Pasta opcional dentro do bucket (default: 'posts')
+ */
+export function createFilePath(uniqueId: string, fileName: string, folder = 'posts'): string {
+  // Remover caracteres especiais e espaços do nome do arquivo
+  const sanitizedFileName = fileName
+    .replace(/[^a-zA-Z0-9-.]/g, '_')
+    .toLowerCase();
+    
+  return `${folder}/${uniqueId}/${sanitizedFileName}`;
 }

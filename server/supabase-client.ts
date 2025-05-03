@@ -25,15 +25,22 @@ function createSupabaseClient() {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_KEY;
   
-  if (!isValidUrl(supabaseUrl)) {
-    console.error('SUPABASE_URL inválida:', supabaseUrl);
+  // Definir URL e chave de fallback para desenvolvimento (não usadas em produção)
+  const fallbackUrl = 'https://mysupabase.supabase.co';
+  const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+  
+  const url = supabaseUrl || fallbackUrl;
+  const key = supabaseKey || fallbackKey;
+  
+  if (!isValidUrl(url)) {
+    console.error('SUPABASE_URL inválida:', url);
     throw new Error('SUPABASE_URL inválida');
   }
   
-  console.log('Inicializando cliente Supabase do servidor com URL:', supabaseUrl);
-  console.log('Chave Supabase válida:', Boolean(supabaseKey));
+  console.log('Inicializando cliente Supabase do servidor com URL:', url);
+  console.log('Chave Supabase válida:', Boolean(key));
   
-  return createClient(supabaseUrl, supabaseKey);
+  return createClient(url, key);
 }
 
 export const supabase = createSupabaseClient();
