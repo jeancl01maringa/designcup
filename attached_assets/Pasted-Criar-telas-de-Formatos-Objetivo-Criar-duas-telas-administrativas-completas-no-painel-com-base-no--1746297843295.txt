@@ -1,0 +1,74 @@
+Criar telas de Formatos
+Objetivo: Criar duas telas administrativas completas no painel, com base no layout atual, e atualizar o controle de status com toggle ao invés de botões de ação.
+
+1. 📂 Tela: Formatos de Arquivo
+Localização no menu lateral: Já existe o item Formatos de Arquivo — o que falta é renderizar a interface da direita com os dados do Supabase.
+
+Título da página: Formato Arquivo
+
+Botão no topo direito:
+🔵 + Novo Formato de Arquivo
+
+Tabela com colunas:
+
+Ícone: representa o tipo de arquivo (ícone de download ou edição)
+
+Nome: nome do software ou tipo (ex: Canva, PNG, Adobe Photoshop)
+
+Tipo: badge indicando Download ou Editável
+
+Status: badge Ativo ou Desativado + toggle lateral (ligado/desligado)
+
+Ações: botões Editar e Excluir
+
+Comportamento extra:
+→ O status do formato deve ser controlado com um toggle, e não com botão de ação.
+→ Quando o usuário alternar o toggle, deve atualizar a coluna ativo no Supabase (true ou false), em tempo real.
+
+2. 🖼️ Tela: Formatos de Post
+Localização no menu lateral: Criar novo item na barra chamado Formatos de Post
+
+Título da página: Formato Post
+
+Botão no topo direito:
+🔵 + Novo Formato
+
+Tabela com colunas:
+
+Nome: (ex: Feed, Cartaz, Stories, Capa)
+
+Tamanho: (ex: 1080x1080px)
+
+Orientação: (ex: Quadrado, Vertical, Horizontal)
+
+Status: badge Ativo ou Desativado + toggle lateral
+
+Ações: botões Editar e Excluir
+
+Comportamento extra:
+→ Mesmo padrão: o toggle controla a visibilidade do formato no momento de criação da postagem.
+→ Quando um formato está desativado, ele não aparece no formulário de nova postagem.
+
+🧠 Estilo visual
+Seguir design do painel já implementado.
+
+Cantos levemente arredondados.
+
+Cores:
+
+Toggle ON: azul ou verde claro
+
+Toggle OFF: cinza claro
+
+Editar: botão contornado
+
+Excluir: botão vermelho com ícone de lixeira
+
+✅ Comportamento esperado
+O toggle deve refletir imediatamente no banco Supabase (ativo: true | false)
+
+Ao editar um item, abrir modal com os dados atuais preenchidos
+
+Botão + Novo Formato abre modal para novo registro
+
+Leitura e escrita dos dados deve ser feita via Supabase
