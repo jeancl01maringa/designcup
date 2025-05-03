@@ -29,7 +29,7 @@ function Router() {
       <Route path="/video-aulas" component={VideoClasses} />
       <Route path="/mais" component={More} />
       <Route path="/artwork/:id" component={ArtworkDetail} />
-      <Route path="/auth/*" component={AuthPage} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
       <ProtectedRoute path="/admin" component={AdminDashboard} />
