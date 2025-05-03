@@ -225,108 +225,109 @@ export default function ArtDetailPage() {
         <div className="space-y-6">
           {/* Título e selo premium */}
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{post.title} {isPremium && (
-              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 ml-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <h1 className="text-xl font-bold">{post.title}</h1>
+            {isPremium && (
+              <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 h-6 py-0 px-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
                 </svg>
-                <span>Premium</span>
+                <span className="text-xs">Premium</span>
               </Badge>
-            )}</h1>
+            )}
           </div>
           
           {/* Checklist de vantagens */}
           <div>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={14} className="text-green-500" />
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={10} className="text-green-500" />
                 </div>
-                <span className="text-gray-700">Editável no Canva gratuito</span>
+                <span className="text-gray-700 text-sm">Editável no Canva gratuito</span>
               </li>
-              <li className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={14} className="text-green-500" />
+              <li className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={10} className="text-green-500" />
                 </div>
-                <span className="text-gray-700">Para projetos comerciais e pessoais</span>
+                <span className="text-gray-700 text-sm">Para projetos comerciais e pessoais</span>
               </li>
-              <li className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={14} className="text-green-500" />
+              <li className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={10} className="text-green-500" />
                 </div>
-                <span className="text-gray-700">Não precisa atribuir o autor</span>
+                <span className="text-gray-700 text-sm">Não precisa atribuir o autor</span>
               </li>
-              <li className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center">
-                  <Check size={14} className="text-green-500" />
+              <li className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check size={10} className="text-green-500" />
                 </div>
-                <span className="text-gray-700">Qualidade profissional</span>
+                <span className="text-gray-700 text-sm">Qualidade profissional</span>
               </li>
             </ul>
           </div>
           
           {/* Especificações do arquivo */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Especificações do Arquivo</h3>
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-5 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 border border-gray-300 rounded-full bg-white"></div>
+          <div className="space-y-3">
+            <h3 className="text-base font-medium">Especificações do Arquivo</h3>
+            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-sm">Formato:</span>
-                  <span className="font-medium">{formatLabel(post.formats?.[0] || 'FEED')}</span>
+                  <span className="text-gray-500 text-xs">Formato:</span>
+                  <span className="text-sm">{formatLabel(post.formats?.[0] || 'FEED')}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 border border-gray-300 rounded-full bg-white"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-sm">Tipo:</span>
-                  <span className="font-medium">Canva</span>
+                  <span className="text-gray-500 text-xs">Tipo:</span>
+                  <span className="text-sm">Canva</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 flex items-center justify-center">
-                  <Eye size={16} className="text-gray-400" />
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 flex items-center justify-center">
+                  <Eye size={13} className="text-gray-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-sm">Visualizações:</span>
-                  <span className="font-medium">{post.views || 3}</span>
+                  <span className="text-gray-500 text-xs">Visualizações:</span>
+                  <span className="text-sm">{post.views || 3}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 flex items-center justify-center">
-                  <Download size={16} className="text-gray-400" />
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 flex items-center justify-center">
+                  <Download size={13} className="text-gray-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-sm">Downloads:</span>
-                  <span className="font-medium">{post.downloads || 0}</span>
+                  <span className="text-gray-500 text-xs">Downloads:</span>
+                  <span className="text-sm">{post.downloads || 0}</span>
                 </div>
               </div>
             </div>
           </div>
           
           {/* Formatos disponíveis */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Formatos disponíveis</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div className={`relative rounded-md border ${post.formats?.[0] === 'FEED' || !post.formats ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-3 text-center cursor-pointer`}>
-                <div className="text-sm font-medium">FEED</div>
-                <div className="text-xs text-gray-500">1080x1080</div>
+          <div className="space-y-3">
+            <h3 className="text-base font-medium">Formatos disponíveis</h3>
+            <div className="grid grid-cols-3 gap-2">
+              <div className={`relative rounded-md border ${post.formats?.[0] === 'FEED' || !post.formats ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-2 text-center cursor-pointer`}>
+                <div className="text-xs font-medium">FEED</div>
+                <div className="text-[10px] text-gray-500">1080x1080</div>
                 {(post.formats?.[0] === 'FEED' || !post.formats) && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-blue-600"></div>
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-blue-600"></div>
                 )}
               </div>
-              <div className={`relative rounded-md border ${post.formats?.includes('CARTAZ') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-3 text-center cursor-pointer`}>
-                <div className="text-sm font-medium">CARTAZ</div>
-                <div className="text-xs text-gray-500">1080x1350</div>
+              <div className={`relative rounded-md border ${post.formats?.includes('CARTAZ') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-2 text-center cursor-pointer`}>
+                <div className="text-xs font-medium">CARTAZ</div>
+                <div className="text-[10px] text-gray-500">1080x1350</div>
                 {post.formats?.includes('CARTAZ') && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-blue-600"></div>
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-blue-600"></div>
                 )}
               </div>
-              <div className={`relative rounded-md border ${post.formats?.includes('STORIES') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-3 text-center cursor-pointer`}>
-                <div className="text-sm font-medium">STORIES</div>
-                <div className="text-xs text-gray-500">1080x1920</div>
+              <div className={`relative rounded-md border ${post.formats?.includes('STORIES') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-2 text-center cursor-pointer`}>
+                <div className="text-xs font-medium">STORIES</div>
+                <div className="text-[10px] text-gray-500">1080x1920</div>
                 {post.formats?.includes('STORIES') && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-5 h-0.5 bg-blue-600"></div>
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-blue-600"></div>
                 )}
               </div>
             </div>
@@ -335,14 +336,14 @@ export default function ArtDetailPage() {
           {/* Botão principal de ação */}
           <Button 
             onClick={handleEditCanva} 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 h-auto flex items-center justify-center gap-2 rounded-md"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
               <polyline points="15 3 21 3 21 9" />
               <line x1="10" y1="14" x2="21" y2="3" />
             </svg>
-            <span className="font-semibold">EDITAR NO CANVA</span>
+            <span className="font-medium text-sm">EDITAR NO CANVA</span>
           </Button>
           
           {/* Linha de ações */}
