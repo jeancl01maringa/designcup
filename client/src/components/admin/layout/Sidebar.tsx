@@ -1,114 +1,23 @@
 import React from "react";
 import { Link } from "wouter";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User } from "@shared/schema";
 import { 
-  ChevronLeft, 
-  LayoutDashboard, 
-  Tag, 
-  CreditCard, 
-  FileType, 
-  LayoutTemplate,
-  Upload, 
+  Home, 
+  FileText, 
   Settings, 
-  DollarSign, 
-  GraduationCap, 
-  Globe, 
-  Webhook, 
-  Code as CodeIcon,
-  Menu
+  LogOut, 
+  Menu, 
+  ChevronLeft,
+  Users,
+  FolderOpen,
+  LayoutTemplate,
+  FileType,
+  Database
 } from "lucide-react";
-
-// Definir os itens de menu
-const menuItems = [
-  { 
-    id: 'dashboard', 
-    label: 'Dashboard', 
-    icon: <LayoutDashboard className="h-5 w-5" />, 
-    path: '/admin',
-    separator: false 
-  },
-  { 
-    id: 'categorias', 
-    label: 'Categorias', 
-    icon: <Tag className="h-5 w-5" />, 
-    path: '/admin/categorias',
-    separator: false 
-  },
-  { 
-    id: 'planos', 
-    label: 'Planos', 
-    icon: <CreditCard className="h-5 w-5" />, 
-    path: '/admin/planos',
-    separator: false 
-  },
-  { 
-    id: 'formatos-arquivo', 
-    label: 'Formatos de Arquivo', 
-    icon: <FileType className="h-5 w-5" />, 
-    path: '/admin/formatos-arquivo',
-    separator: false 
-  },
-  { 
-    id: 'formatos-post', 
-    label: 'Formatos de Post', 
-    icon: <LayoutTemplate className="h-5 w-5" />, 
-    path: '/admin/formatos-post',
-    separator: false 
-  },
-  { 
-    id: 'postagens', 
-    label: 'Postagens', 
-    icon: <Upload className="h-5 w-5" />, 
-    path: '/admin/postagens',
-    separator: true
-  },
-  { 
-    id: 'gerenciamento', 
-    label: 'Gerenciamento', 
-    icon: <Settings className="h-5 w-5" />, 
-    path: '/admin/gerenciamento',
-    separator: false 
-  },
-  { 
-    id: 'monetizacao', 
-    label: 'Monetização', 
-    icon: <DollarSign className="h-5 w-5" />, 
-    path: '/admin/monetizacao',
-    separator: false 
-  },
-  { 
-    id: 'cursos', 
-    label: 'Cursos', 
-    icon: <GraduationCap className="h-5 w-5" />, 
-    path: '/admin/cursos',
-    separator: false 
-  },
-  { 
-    id: 'integracoes', 
-    label: 'Integrações', 
-    icon: <Globe className="h-5 w-5" />, 
-    path: '/admin/integracoes',
-    separator: false 
-  },
-  { 
-    id: 'webhooks', 
-    label: 'Webhooks & APIs', 
-    icon: <Webhook className="h-5 w-5" />, 
-    path: '/admin/webhooks',
-    separator: false 
-  },
-  { 
-    id: 'dev', 
-    label: 'Dev', 
-    icon: <CodeIcon className="h-5 w-5" />, 
-    path: '/admin/dev',
-    separator: false 
-  },
-];
+import { cn } from "@/lib/utils";
+import { User } from "@shared/schema";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -118,111 +27,155 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProps) {
-  // Obter as iniciais do nome do usuário para o avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+  // Função para verificar se um item de menu está ativo
+  const isActive = (path: string) => {
+    return currentPath === path || currentPath.startsWith(`${path}/`);
   };
 
-  // Verificar se o caminho atual corresponde ao item de menu
-  const isActive = (path: string) => {
-    if (path === '/admin' && currentPath === '/admin') {
-      return true;
-    }
-    if (path !== '/admin' && currentPath.startsWith(path)) {
-      return true;
-    }
-    return false;
-  };
+  // Itens do menu da sidebar com seus respectivos ícones e caminhos
+  const menuItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      path: "/admin",
+      icon: <Home className="h-4 w-4" />,
+    },
+    {
+      id: "postagens",
+      label: "Postagens",
+      path: "/admin/postagens",
+      icon: <FileText className="h-4 w-4" />,
+    },
+    {
+      id: "categorias",
+      label: "Categorias",
+      path: "/admin/categorias",
+      icon: <FolderOpen className="h-4 w-4" />,
+    },
+    {
+      id: "planos",
+      label: "Planos",
+      path: "/admin/planos",
+      icon: <LayoutTemplate className="h-4 w-4" />,
+      separator: true,
+    },
+    {
+      id: "gerenciamento",
+      label: "Gerenciamento",
+      path: "/admin/gerenciamento",
+      icon: <Database className="h-4 w-4" />,
+      separator: false,
+    },
+    {
+      id: "usuarios",
+      label: "Usuários",
+      path: "/admin/gerenciamento/usuarios",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      id: "formatos",
+      label: "Formatos de Arquivo",
+      path: "/admin/gerenciamento/formatos",
+      icon: <FileType className="h-4 w-4" />,
+      separator: true,
+    },
+    {
+      id: "configuracoes",
+      label: "Configurações",
+      path: "/admin/configuracoes",
+      icon: <Settings className="h-4 w-4" />,
+    },
+  ];
 
   return (
     <>
-      {/* Overlay para mobile */}
+      {/* Overlay para dispositivos móveis */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
           onClick={onToggle}
         />
       )}
-
+      
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-white border-r border-border shadow-sm",
-          "w-60 transition-all duration-300 transform",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16",
-          "md:relative md:z-auto"
+          "fixed z-50 flex flex-col h-full bg-background border-r transition-all duration-300 ease-in-out",
+          isOpen 
+            ? "w-60 left-0" 
+            : "w-0 -left-full md:left-0 md:w-16"
         )}
       >
-        {/* Botão Toggle no Mobile */}
-        <button
-          className="absolute right-0 translate-x-full top-4 bg-white p-2 rounded-r-md border border-l-0 border-border md:hidden"
-          onClick={onToggle}
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
-        {/* Botão Toggle no Desktop */}
-        <button
-          className="absolute -right-3 top-20 hidden md:flex bg-white p-1 rounded-full border border-border shadow-sm"
-          onClick={onToggle}
-        >
-          <ChevronLeft className={cn("h-4 w-4 transition-transform", !isOpen && "rotate-180")} />
-        </button>
-        
-        <div className="flex flex-col h-full">
-          {/* Cabeçalho do usuário */}
+        <div className="h-full flex flex-col overflow-hidden">
+          {/* Cabeçalho da sidebar */}
+          <div className="p-4 border-b flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {/* Logo/Ícone */}
+              <div className="flex-shrink-0 text-primary font-bold">
+                {isOpen ? "Design para Estética" : "DE"}
+              </div>
+            </div>
+            
+            {/* Botão para recolher a sidebar */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onToggle}
+              className="h-6 w-6"
+            >
+              {isOpen ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
+          </div>
+          
+          {/* Perfil do usuário */}
           <div className={cn(
-            "p-4 flex items-center gap-3",
-            !isOpen && "md:justify-center"
+            "flex items-center gap-3 p-4 border-b",
+            !isOpen && "justify-center"
           )}>
-            <Avatar className="h-10 w-10">
-              <AvatarImage src="" alt={userData?.username || ""} />
-              <AvatarFallback>{userData ? getInitials(userData.username) : "US"}</AvatarFallback>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="" alt={userData?.username || "Admin"} />
+              <AvatarFallback>
+                {userData?.username?.slice(0, 2)?.toUpperCase() || "AD"}
+              </AvatarFallback>
             </Avatar>
             
             {isOpen && (
-              <div className="flex flex-col overflow-hidden">
-                <h3 className="font-medium text-sm truncate">{userData?.username || "Usuário"}</h3>
-                <p className="text-xs text-muted-foreground truncate">{userData?.email || ""}</p>
-                <span className="text-xs text-primary/80">Administrador</span>
+              <div className="overflow-hidden">
+                <p className="text-sm font-medium truncate">
+                  {userData?.username || "Admin"}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {userData?.email || "admin@example.com"}
+                </p>
               </div>
             )}
           </div>
           
-          <Separator />
-
-          {/* Menu de navegação */}
+          {/* Links de navegação */}
           <nav className="flex-1 overflow-y-auto py-4 px-2">
             <ul className="space-y-1">
               {menuItems.map((item) => (
                 <React.Fragment key={item.id}>
                   <li>
                     <Link href={item.path}>
-                      <a className="block">
-                        <Button
-                          variant={isActive(item.path) ? "default" : "ghost"}
-                          className={cn(
-                            "w-full justify-start",
-                            isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
-                            !isOpen && "md:justify-center"
-                          )}
-                          size="sm"
-                        >
-                          <span className={cn(
-                            "mr-2",
-                            isActive(item.path) ? "text-primary" : "text-muted-foreground",
-                            !isOpen && "md:mr-0"
-                          )}>
-                            {item.icon}
-                          </span>
-                          {isOpen && <span>{item.label}</span>}
-                        </Button>
-                      </a>
+                      <Button
+                        variant={isActive(item.path) ? "default" : "ghost"}
+                        className={cn(
+                          "w-full justify-start",
+                          isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
+                          !isOpen && "md:justify-center"
+                        )}
+                        size="sm"
+                      >
+                        <span className={cn(
+                          "mr-2",
+                          isActive(item.path) ? "text-primary" : "text-muted-foreground",
+                          !isOpen && "md:mr-0"
+                        )}>
+                          {item.icon}
+                        </span>
+                        {isOpen && <span>{item.label}</span>}
+                      </Button>
                     </Link>
                   </li>
                   {item.separator && isOpen && <Separator className="my-4" />}

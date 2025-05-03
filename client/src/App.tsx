@@ -38,8 +38,12 @@ function Router() {
       <Route path="/demo/sharing" component={SocialSharingDemo} />
       
       {/* Rotas Administrativas */}
-      <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />
-      <ProtectedRoute path="/admin/postagens" component={PostagensPage} requireAdmin={true} />
+      <Route path="/admin/postagens">
+        <ProtectedRoute path="/admin/postagens" component={PostagensPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin">
+        {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
+      </Route>
       
       {/* Rota 404 */}
       <Route component={NotFound} />

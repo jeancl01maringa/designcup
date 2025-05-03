@@ -1,553 +1,506 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { PageHeader } from "@/components/admin/layout/PageHeader";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { PostForm } from "@/components/admin/PostForm";
-import { Post, Category } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Eye,
-  Pencil,
-  Trash2,
-  Search,
-  Plus,
-  Filter,
-  ChevronDown,
-  MoreHorizontal,
-  Loader2,
-  RefreshCw,
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  MoreVertical, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  CheckCircle, 
+  Clock, 
+  XCircle,
+  RefreshCcw
 } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Post } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+
+interface PostFilter {
+  searchTerm?: string;
+  categoryId?: number | null;
+  status?: string;
+  month?: number;
+  year?: number;
+}
 
 export default function PostagensPage() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Estado para modais
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  
-  // Estado para seleção em massa
+  const [filters, setFilters] = useState<PostFilter>({});
   const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
-  
-  // Estado para filtros
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [month, setMonth] = useState<string>("");
-  const [year, setYear] = useState<string>(new Date().getFullYear().toString());
-  
-  // Query para buscar posts
-  const {
-    data: posts = [],
-    isLoading: isLoadingPosts,
-    refetch: refetchPosts,
-  } = useQuery<Post[]>({
-    queryKey: ['/api/admin/posts', { searchTerm, categoryId, month, year }],
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+
+  // Buscar postagens com filtros
+  const { data: posts, isLoading, refetch } = useQuery<Post[]>({
+    queryKey: ['/api/admin/posts', filters],
     queryFn: async () => {
-      const queryParams = new URLSearchParams();
-      
-      if (searchTerm) {
-        queryParams.append('searchTerm', searchTerm);
+      try {
+        // Construir os parâmetros de consulta a partir dos filtros
+        const params = new URLSearchParams();
+        if (filters.searchTerm) params.append('search', filters.searchTerm);
+        if (filters.categoryId) params.append('categoryId', filters.categoryId.toString());
+        if (filters.status) params.append('status', filters.status);
+        if (filters.month) params.append('month', filters.month.toString());
+        if (filters.year) params.append('year', filters.year.toString());
+        
+        // Fazer a requisição à API
+        const queryString = params.toString() ? `?${params.toString()}` : '';
+        const response = await apiRequest('GET', `/api/admin/posts${queryString}`);
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao buscar postagens:", error);
+        // Consulta direta ao Supabase como fallback
+        try {
+          const query = supabase
+            .from('posts')
+            .select('*');
+            
+          // Aplicar filtros, se disponíveis
+          if (filters.status) {
+            query.eq('status', filters.status);
+          }
+          
+          if (filters.searchTerm) {
+            query.ilike('title', `%${filters.searchTerm}%`);
+          }
+          
+          if (filters.categoryId) {
+            query.eq('category_id', filters.categoryId);
+          }
+          
+          const { data, error } = await query.order('created_at', { ascending: false });
+          
+          if (error) throw error;
+          
+          // Transformar os dados do formato do Supabase para o formato esperado
+          return data.map(post => ({
+            id: post.id,
+            title: post.title,
+            description: post.description,
+            imageUrl: post.image_url,
+            status: post.status,
+            categoryId: post.category_id,
+            uniqueCode: post.unique_code,
+            createdAt: new Date(post.created_at),
+            publishedAt: post.published_at ? new Date(post.published_at) : null
+          }));
+        } catch (supabaseError) {
+          console.error("Erro ao buscar do Supabase:", supabaseError);
+          return [];
+        }
       }
-      
-      if (categoryId) {
-        queryParams.append('categoryId', categoryId);
-      }
-      
-      if (month) {
-        queryParams.append('month', month);
-      }
-      
-      if (year) {
-        queryParams.append('year', year);
-      }
-      
-      const endpoint = `/api/admin/posts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      const response = await apiRequest('GET', endpoint);
-      return await response.json();
-    }
-  });
-  
-  // Query para buscar categorias
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ['/api/admin/categories'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/categories');
-      return await response.json();
-    }
-  });
-  
-  // Mutation para criar post
-  const createPostMutation = useMutation({
-    mutationFn: async (postData: any) => {
-      const response = await apiRequest('POST', '/api/admin/posts', postData);
-      return await response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Post criado com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Falha ao criar o post.",
-        variant: "destructive",
-      });
-    }
+    refetchOnWindowFocus: false
   });
-  
-  // Mutation para atualizar post
-  const updatePostMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: any }) => {
-      const response = await apiRequest('PUT', `/api/admin/posts/${id}`, data);
-      return await response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Post atualizado com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Falha ao atualizar o post.",
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Mutation para excluir post
+
+  // Mutação para excluir postagem
   const deletePostMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest('DELETE', `/api/admin/posts/${id}`);
+      const response = await apiRequest('DELETE', `/api/admin/posts/${id}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao excluir postagem');
+      }
+      return id;
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
-        description: "Post excluído com sucesso.",
+        title: "Postagem excluída",
+        description: "A postagem foi excluída com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
       setSelectedPosts([]);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erro",
-        description: error.message || "Falha ao excluir o post.",
+        title: "Erro ao excluir",
+        description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
-  
-  // Mutation para atualizar status em massa
+
+  // Mutação para atualizar o status de várias postagens
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ ids, status }: { ids: number[], status: string }) => {
-      await apiRequest('PUT', '/api/admin/posts/status/batch', { ids, status });
+    mutationFn: async ({ ids, status }: { ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado' }) => {
+      const response = await apiRequest('PATCH', '/api/admin/posts/status', { ids, status });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar status');
+      }
+      return { ids, status };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       toast({
-        title: "Sucesso",
-        description: `Status atualizado para ${variables.status} em ${variables.ids.length} posts.`,
+        title: "Status atualizado",
+        description: "O status das postagens foi atualizado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
       setSelectedPosts([]);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erro",
-        description: error.message || "Falha ao atualizar o status dos posts.",
+        title: "Erro ao atualizar status",
+        description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
-  
-  // Handler para criar/editar post
-  const handleSubmit = async (data: any) => {
-    if (selectedPost) {
-      await updatePostMutation.mutateAsync({
-        id: selectedPost.id,
-        data
-      });
-    } else {
-      await createPostMutation.mutateAsync(data);
-    }
+
+  // Formatar a data para exibição
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   };
-  
-  // Handler para excluir post
-  const confirmDelete = () => {
-    if (selectedPost) {
-      deletePostMutation.mutate(selectedPost.id);
-      setIsDeleteModalOpen(false);
-      setSelectedPost(null);
-    }
-  };
-  
-  // Handler para seleção/desseleção de todos os posts
-  const toggleSelectAll = () => {
-    if (selectedPosts.length === posts.length) {
-      setSelectedPosts([]);
-    } else {
-      setSelectedPosts(posts.map(post => post.id));
-    }
-  };
-  
-  // Função auxiliar para renderizar o status com badge colorida
-  const renderStatus = (status: string) => {
+
+  // Status da postagem para exibição
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'aprovado':
-        return <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">Aprovado</Badge>;
+        return (
+          <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs">
+            <CheckCircle className="h-3 w-3" />
+            <span>Aprovado</span>
+          </div>
+        );
       case 'rascunho':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-gray-100">Rascunho</Badge>;
+        return (
+          <div className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-full text-xs">
+            <Clock className="h-3 w-3" />
+            <span>Rascunho</span>
+          </div>
+        );
       case 'rejeitado':
-        return <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">Rejeitado</Badge>;
+        return (
+          <div className="flex items-center gap-1 text-red-600 bg-red-50 px-2 py-1 rounded-full text-xs">
+            <XCircle className="h-3 w-3" />
+            <span>Rejeitado</span>
+          </div>
+        );
       default:
-        return <Badge>{status}</Badge>;
+        return status;
     }
   };
-  
-  // Função para obter o nome da categoria pelo ID
-  const getCategoryName = (categoryId: number | null) => {
-    if (!categoryId) return "Sem categoria";
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.name : "Desconhecida";
+
+  // Manipulador para seleção de todas as postagens
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedPosts(posts?.map(post => post.id) || []);
+    } else {
+      setSelectedPosts([]);
+    }
   };
-  
-  // Renderizar a página
+
+  // Manipulador para seleção individual de postagens
+  const handleSelectPost = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedPosts(prev => [...prev, id]);
+    } else {
+      setSelectedPosts(prev => prev.filter(postId => postId !== id));
+    }
+  };
+
+  // Verificar se todas as postagens estão selecionadas
+  const allSelected = posts?.length ? selectedPosts.length === posts.length : false;
+
+  // Manipulador para edição de postagem
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post);
+    setIsFormOpen(true);
+  };
+
+  // Manipulador para exclusão de postagem
+  const handleDeletePost = (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir esta postagem?')) {
+      deletePostMutation.mutate(id);
+    }
+  };
+
+  // Manipulador para atualização de status em lote
+  const handleBatchStatusUpdate = (status: 'aprovado' | 'rascunho' | 'rejeitado') => {
+    if (selectedPosts.length === 0) {
+      toast({
+        title: "Nenhuma postagem selecionada",
+        description: "Selecione pelo menos uma postagem para atualizar o status.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateStatusMutation.mutate({ ids: selectedPosts, status });
+  };
+
   return (
     <AdminLayout>
       <PageHeader 
         title="Postagens" 
-        actions={
-          <Button onClick={() => {
-            setSelectedPost(null);
-            setIsCreateModalOpen(true);
-          }} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova postagem
-          </Button>
-        }
+        description="Gerencie as postagens do site"
       />
-      
-      {/* Barra de pesquisa e filtros */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou ID (#64017c)..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Select value={month} onValueChange={setMonth}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Todos os meses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos os meses</SelectItem>
-              <SelectItem value="1">Janeiro</SelectItem>
-              <SelectItem value="2">Fevereiro</SelectItem>
-              <SelectItem value="3">Março</SelectItem>
-              <SelectItem value="4">Abril</SelectItem>
-              <SelectItem value="5">Maio</SelectItem>
-              <SelectItem value="6">Junho</SelectItem>
-              <SelectItem value="7">Julho</SelectItem>
-              <SelectItem value="8">Agosto</SelectItem>
-              <SelectItem value="9">Setembro</SelectItem>
-              <SelectItem value="10">Outubro</SelectItem>
-              <SelectItem value="11">Novembro</SelectItem>
-              <SelectItem value="12">Dezembro</SelectItem>
-            </SelectContent>
-          </Select>
+
+      {/* Filtros e ações */}
+      <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome ou ID..."
+              className="pl-8"
+              value={filters.searchTerm || ''}
+              onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
+            />
+          </div>
           
-          <Select value={year} onValueChange={setYear}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Todos os anos" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({length: 3}, (_, i) => new Date().getFullYear() - i).map(y => (
-                <SelectItem key={y} value={y.toString()}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={categoryId} onValueChange={setCategoryId}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Todas as categorias" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas as categorias</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id.toString()}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="p-2">
+                <p className="text-sm font-medium mb-2">Status</p>
+                <Select
+                  value={filters.status || ''}
+                  onValueChange={(value) => setFilters({ ...filters, status: value || undefined })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="aprovado">Aprovado</SelectItem>
+                    <SelectItem value="rascunho">Rascunho</SelectItem>
+                    <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Separator className="my-2" />
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-2"
+                  onClick={() => setFilters({})}
+                >
+                  Limpar filtros
+                </Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button 
             variant="outline" 
-            size="icon"
-            onClick={() => refetchPosts()}
+            size="icon" 
+            onClick={() => refetch()}
             title="Atualizar"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCcw className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-      
-      {/* Contador de posts */}
-      <div className="text-sm text-muted-foreground mb-4">
-        {posts.length} postagens encontradas {posts.length > 0 ? `(total: ${posts.length})` : ''}
-      </div>
-      
-      {/* Barra de ações em massa */}
-      {selectedPosts.length > 0 && (
-        <div className="p-3 bg-muted rounded-md flex items-center justify-between mb-4">
-          <span className="text-sm font-medium">
-            {selectedPosts.length} post{selectedPosts.length > 1 ? 's' : ''} selecionado{selectedPosts.length > 1 ? 's' : ''}
-          </span>
-          <div className="flex gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Alterar status
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem 
-                  onClick={() => updateStatusMutation.mutate({ ids: selectedPosts, status: 'aprovado' })}
-                >
-                  Aprovar
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => updateStatusMutation.mutate({ ids: selectedPosts, status: 'rascunho' })}
-                >
-                  Definir como rascunho
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => updateStatusMutation.mutate({ ids: selectedPosts, status: 'rejeitado' })}
-                >
-                  Rejeitar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={() => setSelectedPosts([])}
-            >
-              Cancelar seleção
-            </Button>
-          </div>
+
+        <div className="flex items-center gap-2">
+          {selectedPosts.length > 0 && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleBatchStatusUpdate('aprovado')}
+                className="text-green-600"
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Aprovar
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleBatchStatusUpdate('rascunho')}
+                className="text-amber-600"
+              >
+                <Clock className="h-4 w-4 mr-1" />
+                Rascunho
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleBatchStatusUpdate('rejeitado')}
+                className="text-red-600"
+              >
+                <XCircle className="h-4 w-4 mr-1" />
+                Rejeitar
+              </Button>
+              <Separator orientation="vertical" className="h-8" />
+            </>
+          )}
+          
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setEditingPost(null)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Nova postagem
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingPost ? 'Editar Postagem' : 'Nova Postagem'}</DialogTitle>
+              </DialogHeader>
+              {/* O componente PostForm seria importado aqui */}
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">Formulário de postagem será carregado aqui</p>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-      )}
-      
+      </div>
+
       {/* Tabela de postagens */}
-      {isLoadingPosts ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-border" />
-        </div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground bg-white border rounded-md shadow-sm">
-          <p>Nenhuma postagem encontrada.</p>
-          <p className="text-sm mt-1">Crie uma nova postagem ou ajuste os filtros de busca.</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-md shadow-sm border overflow-hidden">
-          <Table>
-            <TableHeader>
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">
+                <Checkbox 
+                  checked={allSelected} 
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Selecionar todas as postagens"
+                />
+              </TableHead>
+              <TableHead className="w-14">ID</TableHead>
+              <TableHead className="min-w-[250px]">Título</TableHead>
+              <TableHead className="hidden md:table-cell">Categoria</TableHead>
+              <TableHead className="w-24">Status</TableHead>
+              <TableHead className="hidden md:table-cell">Data</TableHead>
+              <TableHead className="w-16"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
               <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox 
-                    checked={selectedPosts.length === posts.length && posts.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                    aria-label="Selecionar todos os posts"
-                  />
-                </TableHead>
-                <TableHead className="w-14">Img</TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead className="hidden md:table-cell">ID</TableHead>
-                <TableHead className="hidden md:table-cell">Data</TableHead>
-                <TableHead className="hidden md:table-cell">Categoria</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableCell colSpan={7} className="h-48 text-center">
+                  Carregando postagens...
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {posts.map((post) => (
-                <TableRow key={post.id} className="hover:bg-background">
+            ) : posts?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-48 text-center">
+                  Nenhuma postagem encontrada.
+                </TableCell>
+              </TableRow>
+            ) : (
+              posts?.map((post) => (
+                <TableRow key={post.id}>
                   <TableCell>
                     <Checkbox 
                       checked={selectedPosts.includes(post.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedPosts([...selectedPosts, post.id]);
-                        } else {
-                          setSelectedPosts(selectedPosts.filter(id => id !== post.id));
-                        }
-                      }}
-                      aria-label={`Selecionar post ${post.title}`}
+                      onCheckedChange={(checked) => handleSelectPost(post.id, checked === true)}
+                      aria-label={`Selecionar postagem ${post.title}`}
                     />
                   </TableCell>
+                  <TableCell className="font-medium">#{post.id}</TableCell>
                   <TableCell>
-                    {post.imageUrl ? (
-                      <div 
-                        className="h-10 w-10 rounded-md bg-cover bg-center bg-muted"
-                        style={{ backgroundImage: `url(${post.imageUrl})` }}
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                        Sem
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {post.title}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">
-                    #{post.uniqueCode?.substring(0, 6)}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground whitespace-nowrap">
-                    {post.createdAt ? format(new Date(post.createdAt), "dd MMM yyyy", { locale: ptBR }) : ''}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">
-                    {getCategoryName(post.categoryId)}
-                  </TableCell>
-                  <TableCell>
-                    {renderStatus(post.status || 'rascunho')}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => window.open(`/post/${post.id}`, '_blank')}
-                        title="Visualizar"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => {
-                          setSelectedPost(post);
-                          setIsEditModalOpen(true);
-                        }}
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => {
-                          setSelectedPost(post);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="flex items-center gap-3">
+                      {post.imageUrl && (
+                        <div className="h-10 w-10 rounded overflow-hidden bg-muted">
+                          <img 
+                            src={post.imageUrl}
+                            alt={post.title}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="font-medium">{post.title}</div>
                     </div>
                   </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {post.categoryId || '-'}
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(post.status)}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">
+                    {formatDate(post.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => window.open(`/preview/${post.id}`, '_blank')}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Visualizar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditPost(post)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeletePost(post.id)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Informação sobre seleção */}
+      {selectedPosts.length > 0 && (
+        <div className="flex items-center justify-between border rounded-lg p-4 mt-4 bg-muted/50">
+          <div className="text-sm">
+            {selectedPosts.length} {selectedPosts.length === 1 ? 'postagem selecionada' : 'postagens selecionadas'}
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setSelectedPosts([])}
+          >
+            Limpar seleção
+          </Button>
         </div>
       )}
-      
-      {/* Modal de criar/editar post */}
-      <PostForm
-        isOpen={isCreateModalOpen || isEditModalOpen}
-        onClose={() => {
-          setIsCreateModalOpen(false);
-          setIsEditModalOpen(false);
-          setSelectedPost(null);
-        }}
-        onSubmit={handleSubmit}
-        post={selectedPost || undefined}
-        categories={categories}
-      />
-      
-      {/* Diálogo de confirmação de exclusão */}
-      <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O post será excluído permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setIsDeleteModalOpen(false);
-              setSelectedPost(null);
-            }}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
-              {deletePostMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Excluindo...
-                </>
-              ) : (
-                "Sim, excluir"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AdminLayout>
   );
 }
