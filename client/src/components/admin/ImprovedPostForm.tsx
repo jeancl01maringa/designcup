@@ -693,6 +693,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                   <TabsTrigger 
                     value="postagem" 
                     className="py-2 px-4 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none"
+                    onClick={() => setStep(1)}
                   >
                     Postagem
                   </TabsTrigger>
@@ -709,17 +710,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
               </div>
               
               <div className="p-6">
-                <TabsContent key="postagem" value="postagem" className="mt-0">
-                  <div className="flex flex-col items-center justify-center p-8 text-center">
-                    <p className="text-lg font-medium mb-2">Volte à primeira etapa para editar as informações da postagem</p>
-                    <Button 
-                      onClick={() => setStep(1)}
-                      className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 mt-4"
-                    >
-                      Editar Informações
-                    </Button>
-                  </div>
-                </TabsContent>
+                <TabsContent key="postagem" value="postagem" className="mt-0" />
                 {formData.formats.map((format) => (
                   <TabsContent key={format} value={format} className="mt-0">
                     <div className="grid grid-cols-2 gap-8">
