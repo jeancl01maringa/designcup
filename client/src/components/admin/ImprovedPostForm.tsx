@@ -440,7 +440,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       }
       
       // Fechar modal em caso de sucesso
-      onClose?.();
+      onOpenChange(false);
       
       // Feedback de sucesso
       toast({
@@ -701,7 +701,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                 onClick={onOpenChange.bind(null, false)}
                 variant="outline"
               >
-                Cancelar
+                Voltar
               </Button>
               <Button 
                 type="button" 
