@@ -1336,7 +1336,8 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                 onClick={prevStep}
                 variant="outline"
               >
-                Cancelar
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
               </Button>
               
               {activeTab === "postagem" ? (
@@ -1550,7 +1551,7 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                   </>
                 ) : (
                   <>
-                    {isEdit ? "Atualizar" : "Publicar"}
+                    {isEdit ? "Atualizar Postagem" : "Publicar Postagem"}
                     <Check className="h-4 w-4 ml-2" />
                   </>
                 )}
