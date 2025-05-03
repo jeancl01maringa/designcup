@@ -531,221 +531,455 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
         </div>
         
         {step === 1 && (
-          <div className="space-y-6">
-            {/* Nome da Postagem */}
-            <div className="space-y-2">
-              <Label htmlFor="title">Nome da Postagem</Label>
-              <Input
-                id="title"
-                name="title"
-                placeholder="Ex: Cartaz de Promoção Primavera"
-                value={formData.title}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            {/* Categoria */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="category">Categoria</Label>
-                <Select
-                  value={formData.categoryId?.toString() || ""}
-                  onValueChange={(value) => handleSelectChange("categoryId", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="self-end h-10 w-10"
-                title="Nova Categoria"
-              >
-                <PlusCircle className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {/* Licença & Status lado a lado */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="license">Licença de Uso</Label>
-                <Select
-                  value={formData.licenseType}
-                  onValueChange={(value) => handleSelectChange("licenseType", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="premium">
-                      <div className="flex items-center gap-2">
-                        <Crown className="h-4 w-4 text-amber-500" />
-                        <span>Premium</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="free">Gratuito</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Determine como sua arte pode ser usada.</p>
-              </div>
+          <div className="space-y-6 max-h-[65vh] overflow-y-auto pb-4 px-1 md:max-h-none md:overflow-visible md:pb-0 md:px-0">
+            <Tabs className="w-full md:hidden" defaultValue="info">
+              <TabsList className="w-full grid grid-cols-2">
+                <TabsTrigger value="info">Informações</TabsTrigger>
+                <TabsTrigger value="formats">Formatos</TabsTrigger>
+              </TabsList>
               
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="aprovado">
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-500" />
-                        <span>Aprovado</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="rascunho">Rascunho</SelectItem>
-                    <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            {/* Tags */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="tags">Tags</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs"
-                  onClick={() => document.getElementById("newTag")?.focus()}
-                >
-                  <PlusCircle className="h-3 w-3 mr-1" />
-                  <span>Nova Tag</span>
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <Input 
-                    id="newTag"
-                    placeholder="Digite uma tag e pressione Enter"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+              <TabsContent value="info" className="pt-4">
+                {/* Nome da Postagem */}
+                <div className="space-y-2">
+                  <Label htmlFor="title">Nome da Postagem</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    placeholder="Ex: Cartaz de Promoção Primavera"
+                    value={formData.title}
+                    onChange={handleInputChange}
                   />
                 </div>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleAddTag}
-                  className="h-10"
+                
+                {/* Categoria */}
+                <div className="flex items-center gap-2 mt-4">
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="category">Categoria</Label>
+                    <Select
+                      value={formData.categoryId?.toString() || ""}
+                      onValueChange={(value) => handleSelectChange("categoryId", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="self-end h-10 w-10"
+                    title="Nova Categoria"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {/* Licença & Status lado a lado */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="license">Licença de Uso</Label>
+                    <Select
+                      value={formData.licenseType}
+                      onValueChange={(value) => handleSelectChange("licenseType", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="premium">
+                          <div className="flex items-center gap-2">
+                            <Crown className="h-4 w-4 text-amber-500" />
+                            <span>Premium</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="free">Gratuito</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Determine como sua arte pode ser usada.</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="aprovado">
+                          <div className="flex items-center gap-2">
+                            <Check className="h-4 w-4 text-green-500" />
+                            <span>Aprovado</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="rascunho">Rascunho</SelectItem>
+                        <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Tags */}
+                <div className="space-y-2 mt-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="tags">Tags</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => document.getElementById("newTag")?.focus()}
+                    >
+                      <PlusCircle className="h-3 w-3 mr-1" />
+                      <span>Nova Tag</span>
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Input 
+                        id="newTag"
+                        placeholder="Digite uma tag e pressione Enter"
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                      />
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleAddTag}
+                      className="h-10"
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+                  
+                  {formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.tags.map((tag) => (
+                        <Badge 
+                          key={tag} 
+                          variant="secondary"
+                          className="flex items-center gap-1 py-1 px-2"
+                        >
+                          <span>#{tag}</span>
+                          <X
+                            className="h-3 w-3 cursor-pointer hover:text-destructive"
+                            onClick={() => handleRemoveTag(tag)}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Tags Comuns */}
+                  {formData.tags.length === 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-muted-foreground mb-2">Tags comuns:</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              tags: [...prev.tags, "preenchimento_labial"]
+                            }))
+                          }}
+                        >
+                          #preenchimento_labial
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              tags: [...prev.tags, "botox"]
+                            }))
+                          }}
+                        >
+                          #botox
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="formats" className="pt-4">
+                {/* Formatos da Postagem (Mobile) */}
+                <div className="space-y-2">
+                  <Label>Formatos da Postagem</Label>
+                  <div className="grid grid-cols-1 gap-2 mt-4">
+                    {[
+                      { id: "feed", label: "FEED", description: "Quadrado 1080x1080" },
+                      { id: "cartaz", label: "CARTAZ", description: "Retângulo 1080x1350" },
+                      { id: "stories", label: "STORIES", description: "Vertical 1080x1920" }
+                    ].map((format) => (
+                      <div key={format.id}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={`w-full h-12 flex items-center justify-start px-4 rounded-lg transition-colors ${
+                            formData.formats.includes(format.id as PostFormat) 
+                              ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
+                              : "border-gray-200 hover:bg-gray-50"
+                          }`}
+                          onClick={() => handleFormatToggle(format.id as PostFormat)}
+                        >
+                          <div className="flex items-center">
+                            {formData.formats.includes(format.id as PostFormat) ? (
+                              <CheckCircle className="h-5 w-5 text-[#1f4ed8] mr-3 flex-shrink-0" />
+                            ) : (
+                              <Circle className="h-5 w-5 text-gray-300 mr-3 flex-shrink-0" />
+                            )}
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium text-sm">{format.label}</span>
+                              <span className="text-xs text-muted-foreground">{format.description}</span>
+                            </div>
+                          </div>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Selecione ao menos um formato para esta postagem.</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            {/* Versão Desktop - Todos os campos juntos */}
+            <div className="hidden md:block space-y-6">
+              {/* Nome da Postagem */}
+              <div className="space-y-2">
+                <Label htmlFor="title-desktop">Nome da Postagem</Label>
+                <Input
+                  id="title-desktop"
+                  name="title"
+                  placeholder="Ex: Cartaz de Promoção Primavera"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                />
+              </div>
+              
+              {/* Categoria */}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="category-desktop">Categoria</Label>
+                  <Select
+                    value={formData.categoryId?.toString() || ""}
+                    onValueChange={(value) => handleSelectChange("categoryId", value)}
+                  >
+                    <SelectTrigger id="category-desktop">
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="self-end h-10 w-10"
+                  title="Nova Categoria"
                 >
-                  Adicionar
+                  <PlusCircle className="h-4 w-4" />
                 </Button>
               </div>
               
-              {formData.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.tags.map((tag) => (
-                    <Badge 
-                      key={tag} 
-                      variant="secondary"
-                      className="flex items-center gap-1 py-1 px-2"
-                    >
-                      <span>#{tag}</span>
-                      <X
-                        className="h-3 w-3 cursor-pointer hover:text-destructive"
-                        onClick={() => handleRemoveTag(tag)}
-                      />
-                    </Badge>
+              {/* Licença & Status lado a lado */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="license-desktop">Licença de Uso</Label>
+                  <Select
+                    value={formData.licenseType}
+                    onValueChange={(value) => handleSelectChange("licenseType", value)}
+                  >
+                    <SelectTrigger id="license-desktop">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="premium">
+                        <div className="flex items-center gap-2">
+                          <Crown className="h-4 w-4 text-amber-500" />
+                          <span>Premium</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="free">Gratuito</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Determine como sua arte pode ser usada.</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="status-desktop">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
+                  >
+                    <SelectTrigger id="status-desktop">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="aprovado">
+                        <div className="flex items-center gap-2">
+                          <Check className="h-4 w-4 text-green-500" />
+                          <span>Aprovado</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="rascunho">Rascunho</SelectItem>
+                      <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Tags */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="tags-desktop">Tags</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => document.getElementById("newTag-desktop")?.focus()}
+                  >
+                    <PlusCircle className="h-3 w-3 mr-1" />
+                    <span>Nova Tag</span>
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <Input 
+                      id="newTag-desktop"
+                      placeholder="Digite uma tag e pressione Enter"
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                    />
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleAddTag}
+                    className="h-10"
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+                
+                {formData.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.tags.map((tag) => (
+                      <Badge 
+                        key={tag} 
+                        variant="secondary"
+                        className="flex items-center gap-1 py-1 px-2"
+                      >
+                        <span>#{tag}</span>
+                        <X
+                          className="h-3 w-3 cursor-pointer hover:text-destructive"
+                          onClick={() => handleRemoveTag(tag)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Tags Comuns */}
+                {formData.tags.length === 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs text-muted-foreground mb-2">Tags comuns:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge 
+                        variant="outline" 
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            tags: [...prev.tags, "preenchimento_labial"]
+                          }))
+                        }}
+                      >
+                        #preenchimento_labial
+                      </Badge>
+                      <Badge 
+                        variant="outline" 
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            tags: [...prev.tags, "botox"]
+                          }))
+                        }}
+                      >
+                        #botox
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Formatos da Postagem (Desktop) */}
+              <div className="space-y-2">
+                <Label>Formatos da Postagem</Label>
+                <div className="grid grid-cols-3 gap-2 mt-4">
+                  {[
+                    { id: "feed", label: "FEED", description: "Quadrado 1080x1080" },
+                    { id: "cartaz", label: "CARTAZ", description: "Retângulo 1080x1350" },
+                    { id: "stories", label: "STORIES", description: "Vertical 1080x1920" }
+                  ].map((format) => (
+                    <div key={format.id}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={`w-full h-12 flex items-center justify-start px-4 rounded-lg transition-colors ${
+                          formData.formats.includes(format.id as PostFormat) 
+                            ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
+                            : "border-gray-200 hover:bg-gray-50"
+                        }`}
+                        onClick={() => handleFormatToggle(format.id as PostFormat)}
+                      >
+                        <div className="flex items-center">
+                          {formData.formats.includes(format.id as PostFormat) ? (
+                            <CheckCircle className="h-5 w-5 text-[#1f4ed8] mr-3 flex-shrink-0" />
+                          ) : (
+                            <Circle className="h-5 w-5 text-gray-300 mr-3 flex-shrink-0" />
+                          )}
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium text-sm">{format.label}</span>
+                            <span className="text-xs text-muted-foreground">{format.description}</span>
+                          </div>
+                        </div>
+                      </Button>
+                    </div>
                   ))}
                 </div>
-              )}
-              
-              {/* Tags Comuns */}
-              {formData.tags.length === 0 && (
-                <div className="mt-2">
-                  <p className="text-xs text-muted-foreground mb-2">Tags comuns:</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge 
-                      variant="outline" 
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          tags: [...prev.tags, "preenchimento_labial"]
-                        }))
-                      }}
-                    >
-                      #preenchimento_labial
-                    </Badge>
-                    <Badge 
-                      variant="outline" 
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          tags: [...prev.tags, "botox"]
-                        }))
-                      }}
-                    >
-                      #botox
-                    </Badge>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Formatos da Postagem */}
-            <div className="space-y-2">
-              <Label>Formatos da Postagem</Label>
-              <div className="grid grid-cols-3 gap-2 mt-4">
-                {[
-                  { id: "feed", label: "FEED", description: "Quadrado 1080x1080" },
-                  { id: "cartaz", label: "CARTAZ", description: "Retângulo 1080x1350" },
-                  { id: "stories", label: "STORIES", description: "Vertical 1080x1920" }
-                ].map((format) => (
-                  <div key={format.id}>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={`w-full h-full flex flex-col items-center justify-center p-3 rounded-lg transition-colors ${
-                        formData.formats.includes(format.id as PostFormat) 
-                          ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
-                          : "border-gray-200 hover:bg-gray-50"
-                      }`}
-                      onClick={() => handleFormatToggle(format.id as PostFormat)}
-                    >
-                      {formData.formats.includes(format.id as PostFormat) ? (
-                        <CheckCircle className="h-5 w-5 text-[#1f4ed8] mb-1" />
-                      ) : (
-                        <Circle className="h-5 w-5 text-gray-300 mb-1" />
-                      )}
-                      <span className="font-medium text-sm">{format.label}</span>
-                      <span className="text-xs text-muted-foreground mt-1">{format.description}</span>
-                    </Button>
-                  </div>
-                ))}
+                <p className="text-xs text-muted-foreground mt-2">Selecione ao menos um formato para esta postagem.</p>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">Selecione ao menos um formato para esta postagem.</p>
             </div>
             
-            {/* Botões de Navegação */}
-            <div className="flex justify-between mt-8">
+            {/* Botões de Navegação - Sempre visíveis no final da tela */}
+            <div className="flex justify-between mt-6 pt-4 border-t sticky -bottom-6 -mx-6 px-6 pb-6 bg-white z-10">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
                   Cancelar
