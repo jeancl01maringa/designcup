@@ -483,284 +483,310 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
-        <DialogTitle className="text-xl font-bold">
-          {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Postagem"}
-        </DialogTitle>
-        <DialogDescription>
-          {step === 1 ? "Preencha os dados básicos da postagem" : 
-           step === 2 ? "Adicione imagens e links para cada formato" : 
-           "Revise todos os dados antes de publicar"}
-        </DialogDescription>
-        
-        {/* Indicador de progresso */}
-        <div className="flex items-center justify-center mb-4 pt-2">
-          <div className="flex items-center w-full max-w-md">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              step >= 1 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
-            }`}>
-              1
+      <DialogContent className="max-w-4xl p-0 md:p-6 md:pb-8">
+        <div className="sticky top-0 bg-white z-20 pt-6 px-6 pb-3 border-b">
+          <DialogTitle className="text-xl font-bold">
+            {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Postagem"}
+          </DialogTitle>
+          <DialogDescription>
+            {step === 1 ? "Preencha os dados básicos da postagem" : 
+             step === 2 ? "Adicione imagens e links para cada formato" : 
+             "Revise todos os dados antes de publicar"}
+          </DialogDescription>
+          
+          {/* Indicador de progresso */}
+          <div className="flex items-center justify-center mb-4 pt-2">
+            <div className="flex items-center w-full max-w-md">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                step >= 1 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
+              }`}>
+                1
+              </div>
+              <div className={`flex-1 h-1 mx-2 ${
+                step > 1 ? "bg-[#1f4ed8]" : "bg-gray-200"
+              }`}></div>
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                step >= 2 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
+              }`}>
+                2
+              </div>
+              <div className={`flex-1 h-1 mx-2 ${
+                step > 2 ? "bg-[#1f4ed8]" : "bg-gray-200"
+              }`}></div>
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                step >= 3 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
+              }`}>
+                3
+              </div>
             </div>
-            <div className={`flex-1 h-1 mx-2 ${
-              step > 1 ? "bg-[#1f4ed8]" : "bg-gray-200"
-            }`}></div>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              step >= 2 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
-            }`}>
-              2
-            </div>
-            <div className={`flex-1 h-1 mx-2 ${
-              step > 2 ? "bg-[#1f4ed8]" : "bg-gray-200"
-            }`}></div>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              step >= 3 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
-            }`}>
-              3
-            </div>
+          </div>
+          
+          <div className="flex justify-center">
+            <p className="text-sm text-muted-foreground">
+              Etapa {step} de 3: {
+                step === 1 ? "Informações da postagem" : 
+                step === 2 ? "Upload de arquivos" : 
+                "Revisão e confirmação"
+              }
+            </p>
           </div>
         </div>
         
-        <div className="mb-4 flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Etapa {step} de 3: {
-              step === 1 ? "Informações da postagem" : 
-              step === 2 ? "Upload de arquivos" : 
-              "Revisão e confirmação"
-            }
-          </p>
-        </div>
-        
         {step === 1 && (
-          <div className="space-y-6 max-h-[65vh] overflow-y-auto pb-4 px-1 md:max-h-none md:overflow-visible md:pb-0 md:px-0">
-            <Tabs className="w-full md:hidden" defaultValue="info">
-              <TabsList className="w-full grid grid-cols-2">
-                <TabsTrigger value="info">Informações</TabsTrigger>
-                <TabsTrigger value="formats">Formatos</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="info" className="pt-4">
-                {/* Nome da Postagem */}
-                <div className="space-y-2">
-                  <Label htmlFor="title">Nome da Postagem</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    placeholder="Ex: Cartaz de Promoção Primavera"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                  />
-                </div>
+          <div className="relative h-full">
+            {/* Mobile - Três etapas simples */}
+            <div className="md:hidden">
+              <Tabs className="w-full" defaultValue="info">
+                <TabsList className="w-full grid grid-cols-3 sticky top-[129px] bg-white z-10 border-b rounded-none shadow-sm">
+                  <TabsTrigger value="info" className="rounded-none">Básico</TabsTrigger>
+                  <TabsTrigger value="meta" className="rounded-none">Detalhes</TabsTrigger>
+                  <TabsTrigger value="formats" className="rounded-none">Formatos</TabsTrigger>
+                </TabsList>
                 
-                {/* Categoria */}
-                <div className="flex items-center gap-2 mt-4">
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor="category">Categoria</Label>
-                    <Select
-                      value={formData.categoryId?.toString() || ""}
-                      onValueChange={(value) => handleSelectChange("categoryId", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="self-end h-10 w-10"
-                    title="Nova Categoria"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                {/* Licença & Status lado a lado */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="license">Licença de Uso</Label>
-                    <Select
-                      value={formData.licenseType}
-                      onValueChange={(value) => handleSelectChange("licenseType", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="premium">
-                          <div className="flex items-center gap-2">
-                            <Crown className="h-4 w-4 text-amber-500" />
-                            <span>Premium</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="free">Gratuito</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">Determine como sua arte pode ser usada.</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="aprovado">
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-500" />
-                            <span>Aprovado</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="rascunho">Rascunho</SelectItem>
-                        <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                {/* Tags */}
-                <div className="space-y-2 mt-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="tags">Tags</Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => document.getElementById("newTag")?.focus()}
-                    >
-                      <PlusCircle className="h-3 w-3 mr-1" />
-                      <span>Nova Tag</span>
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Input 
-                        id="newTag"
-                        placeholder="Digite uma tag e pressione Enter"
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                <div className="max-h-[calc(100vh-330px)] overflow-y-auto pb-16 px-6">
+                  {/* Dados básicos */}
+                  <TabsContent value="info">
+                    {/* Nome da Postagem */}
+                    <div className="space-y-2 pt-4">
+                      <Label htmlFor="title-mobile">Nome da Postagem</Label>
+                      <Input
+                        id="title-mobile"
+                        name="title"
+                        placeholder="Ex: Cartaz de Promoção Primavera"
+                        value={formData.title}
+                        onChange={handleInputChange}
                       />
                     </div>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={handleAddTag}
-                      className="h-10"
-                    >
-                      Adicionar
-                    </Button>
-                  </div>
-                  
-                  {formData.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formData.tags.map((tag) => (
-                        <Badge 
-                          key={tag} 
-                          variant="secondary"
-                          className="flex items-center gap-1 py-1 px-2"
+                    
+                    {/* Categoria */}
+                    <div className="flex items-center gap-2 mt-4">
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="category-mobile">Categoria</Label>
+                        <Select
+                          value={formData.categoryId?.toString() || ""}
+                          onValueChange={(value) => handleSelectChange("categoryId", value)}
                         >
-                          <span>#{tag}</span>
-                          <X
-                            className="h-3 w-3 cursor-pointer hover:text-destructive"
-                            onClick={() => handleRemoveTag(tag)}
-                          />
-                        </Badge>
-                      ))}
+                          <SelectTrigger id="category-mobile">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="self-end h-10 w-10"
+                        title="Nova Categoria"
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
                     </div>
-                  )}
-                  
-                  {/* Tags Comuns */}
-                  {formData.tags.length === 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs text-muted-foreground mb-2">Tags comuns:</p>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge 
-                          variant="outline" 
-                          className="cursor-pointer"
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev,
-                              tags: [...prev.tags, "preenchimento_labial"]
-                            }))
-                          }}
-                        >
-                          #preenchimento_labial
-                        </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className="cursor-pointer"
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev,
-                              tags: [...prev.tags, "botox"]
-                            }))
-                          }}
-                        >
-                          #botox
-                        </Badge>
+                    
+                    {/* ID único */}
+                    <div className="bg-slate-50 p-3 rounded-md border mt-4">
+                      <div className="flex items-center">
+                        <div className="mr-3 bg-[#1f4ed8]/10 rounded-md p-2">
+                          <FileCheck className="h-5 w-5 text-[#1f4ed8]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">ID único da postagem</p>
+                          <p className="text-xs text-muted-foreground">{formData.uniqueCode}</p>
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="formats" className="pt-4">
-                {/* Formatos da Postagem (Mobile) */}
-                <div className="space-y-2">
-                  <Label>Formatos da Postagem</Label>
-                  <div className="grid grid-cols-1 gap-2 mt-4">
-                    {[
-                      { id: "feed", label: "FEED", description: "Quadrado 1080x1080" },
-                      { id: "cartaz", label: "CARTAZ", description: "Retângulo 1080x1350" },
-                      { id: "stories", label: "STORIES", description: "Vertical 1080x1920" }
-                    ].map((format) => (
-                      <div key={format.id}>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className={`w-full h-12 flex items-center justify-start px-4 rounded-lg transition-colors ${
-                            formData.formats.includes(format.id as PostFormat) 
-                              ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
-                              : "border-gray-200 hover:bg-gray-50"
-                          }`}
-                          onClick={() => handleFormatToggle(format.id as PostFormat)}
+                  </TabsContent>
+                  
+                  {/* Status e licença */}
+                  <TabsContent value="meta">
+                    {/* Licença & Status */}
+                    <div className="space-y-4 pt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="license-mobile">Licença de Uso</Label>
+                        <Select
+                          value={formData.licenseType}
+                          onValueChange={(value) => handleSelectChange("licenseType", value)}
                         >
-                          <div className="flex items-center">
-                            {formData.formats.includes(format.id as PostFormat) ? (
-                              <CheckCircle className="h-5 w-5 text-[#1f4ed8] mr-3 flex-shrink-0" />
-                            ) : (
-                              <Circle className="h-5 w-5 text-gray-300 mr-3 flex-shrink-0" />
-                            )}
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium text-sm">{format.label}</span>
-                              <span className="text-xs text-muted-foreground">{format.description}</span>
+                          <SelectTrigger id="license-mobile">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="premium">
+                              <div className="flex items-center gap-2">
+                                <Crown className="h-4 w-4 text-amber-500" />
+                                <span>Premium</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="free">Gratuito</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">Determine como sua arte pode ser usada.</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="status-mobile">Status</Label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) => handleSelectChange("status", value as 'aprovado' | 'rascunho' | 'rejeitado')}
+                        >
+                          <SelectTrigger id="status-mobile">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="aprovado">
+                              <div className="flex items-center gap-2">
+                                <Check className="h-4 w-4 text-green-500" />
+                                <span>Aprovado</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="rascunho">Rascunho</SelectItem>
+                            <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Tags */}
+                      <div className="space-y-2 mt-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="tags-mobile">Tags</Label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() => document.getElementById("newTag-mobile")?.focus()}
+                          >
+                            <PlusCircle className="h-3 w-3 mr-1" />
+                            <span>Nova Tag</span>
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <Input 
+                              id="newTag-mobile"
+                              placeholder="Digite uma tag e pressione Enter"
+                              value={newTag}
+                              onChange={(e) => setNewTag(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                            />
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={handleAddTag}
+                            className="h-10"
+                          >
+                            Adicionar
+                          </Button>
+                        </div>
+                        
+                        {formData.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {formData.tags.map((tag) => (
+                              <Badge 
+                                key={tag} 
+                                variant="secondary"
+                                className="flex items-center gap-1 py-1 px-2"
+                              >
+                                <span>#{tag}</span>
+                                <X
+                                  className="h-3 w-3 cursor-pointer hover:text-destructive"
+                                  onClick={() => handleRemoveTag(tag)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Tags Comuns */}
+                        {formData.tags.length === 0 && (
+                          <div className="mt-2">
+                            <p className="text-xs text-muted-foreground mb-2">Tags comuns:</p>
+                            <div className="flex flex-wrap gap-2">
+                              <Badge 
+                                variant="outline" 
+                                className="cursor-pointer"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    tags: [...prev.tags, "preenchimento_labial"]
+                                  }))
+                                }}
+                              >
+                                #preenchimento_labial
+                              </Badge>
+                              <Badge 
+                                variant="outline" 
+                                className="cursor-pointer"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    tags: [...prev.tags, "botox"]
+                                  }))
+                                }}
+                              >
+                                #botox
+                              </Badge>
                             </div>
                           </div>
-                        </Button>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">Selecione ao menos um formato para esta postagem.</p>
+                    </div>
+                  </TabsContent>
+                  
+                  {/* Formatos */}
+                  <TabsContent value="formats">
+                    {/* Formatos da Postagem (Mobile) */}
+                    <div className="space-y-2 pt-4">
+                      <Label>Formatos da Postagem</Label>
+                      <div className="grid grid-cols-1 gap-2 mt-4">
+                        {[
+                          { id: "feed", label: "FEED", description: "Quadrado 1080x1080" },
+                          { id: "cartaz", label: "CARTAZ", description: "Retângulo 1080x1350" },
+                          { id: "stories", label: "STORIES", description: "Vertical 1080x1920" }
+                        ].map((format) => (
+                          <div key={format.id}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={`w-full h-12 flex items-center justify-start px-4 rounded-lg transition-colors ${
+                                formData.formats.includes(format.id as PostFormat) 
+                                  ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
+                                  : "border-gray-200 hover:bg-gray-50"
+                              }`}
+                              onClick={() => handleFormatToggle(format.id as PostFormat)}
+                            >
+                              <div className="flex items-center">
+                                {formData.formats.includes(format.id as PostFormat) ? (
+                                  <CheckCircle className="h-5 w-5 text-[#1f4ed8] mr-3 flex-shrink-0" />
+                                ) : (
+                                  <Circle className="h-5 w-5 text-gray-300 mr-3 flex-shrink-0" />
+                                )}
+                                <div className="flex flex-col items-start">
+                                  <span className="font-medium text-sm">{format.label}</span>
+                                  <span className="text-xs text-muted-foreground">{format.description}</span>
+                                </div>
+                              </div>
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">Selecione ao menos um formato para esta postagem.</p>
+                    </div>
+                  </TabsContent>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </Tabs>
+            </div>
             
             {/* Versão Desktop - Todos os campos juntos */}
-            <div className="hidden md:block space-y-6">
+            <div className="hidden md:block space-y-6 px-6 py-4 overflow-y-auto max-h-[70vh]">
               {/* Nome da Postagem */}
               <div className="space-y-2">
                 <Label htmlFor="title-desktop">Nome da Postagem</Label>
@@ -978,8 +1004,8 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
               </div>
             </div>
             
-            {/* Botões de Navegação - Sempre visíveis no final da tela */}
-            <div className="flex justify-between mt-6 pt-4 border-t sticky -bottom-6 -mx-6 px-6 pb-6 bg-white z-10">
+            {/* Botões de Navegação - Sempre visíveis no bottom */}
+            <div className="flex justify-between border-t bg-white px-6 py-4 sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
                   Cancelar
