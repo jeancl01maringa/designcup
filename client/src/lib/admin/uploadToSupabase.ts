@@ -41,11 +41,18 @@ export async function uploadToSupabase(
   optimize = true
 ): Promise<string | null> {
   try {
+    console.log(`Iniciando upload para '${path}'...`);
+    
     // Verificar conexão com Supabase
     const isConnected = await checkSupabaseConnection();
     if (!isConnected) {
       console.error('Erro no upload: Não foi possível conectar ao Supabase. Verifique suas credenciais.');
       throw new Error('Não foi possível conectar ao Supabase. Verifique suas credenciais.');
+    }
+    
+    // Verificar o tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      console.warn('Tipo de arquivo não é uma imagem:', file.type);
     }
     
     try {
@@ -57,14 +64,27 @@ export async function uploadToSupabase(
     }
     
     // Otimizar imagem se solicitado
-    const fileToUpload = optimize && file.type.startsWith('image/') 
-      ? await optimizeImage(file) 
-      : file;
+    let fileToUpload = file;
+    if (optimize && file.type.startsWith('image/')) {
+      try {
+        console.log(`Otimizando imagem de ${(file.size / 1024 / 1024).toFixed(2)}MB...`);
+        fileToUpload = await optimizeImage(file);
+        console.log(`Imagem otimizada para ${(fileToUpload.size / 1024 / 1024).toFixed(2)}MB`);
+      } catch (optimizeError) {
+        console.error('Falha ao otimizar imagem, usando original:', optimizeError);
+        fileToUpload = file;
+      }
+    }
+    
+    // Sanitizar caminho para garantir que não tenha caracteres problemáticos
+    const safePath = path.replace(/[^a-zA-Z0-9-_\/.]/g, '_');
+    
+    console.log(`Fazendo upload para Supabase em '${safePath}'...`);
       
     // Fazer upload do arquivo
     const { data, error } = await supabase.storage
       .from('images')
-      .upload(path, fileToUpload, {
+      .upload(safePath, fileToUpload, {
         cacheControl: '3600',
         upsert: true, // substituir arquivo existente
       });
@@ -79,13 +99,38 @@ export async function uploadToSupabase(
         throw new Error('Permissão negada no bucket. Verifique as políticas de acesso do Supabase.');
       } else if (error.message.includes('bucket')) {
         throw new Error('Problema com o bucket. Verifique se o bucket "images" existe.');
+      } else if (error.message.includes('Invalid key')) {
+        // Tentar upload com nome de arquivo ainda mais simplificado
+        console.warn('Nome de arquivo inválido. Tentando com nome simplificado...');
+        const timestamp = Date.now();
+        const ext = fileToUpload.name.split('.').pop() || 'webp';
+        const simplePath = `${safePath.split('/').slice(0, -1).join('/')}/${timestamp}.${ext}`;
+        
+        const { data: retryData, error: retryError } = await supabase.storage
+          .from('images')
+          .upload(simplePath, fileToUpload, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+          
+        if (retryError) {
+          console.error('Falha na segunda tentativa de upload:', retryError);
+          throw retryError;
+        }
+        
+        // Retornar URL do arquivo com nome simplificado
+        const publicUrl = getPublicUrl(simplePath);
+        console.log('Upload bem-sucedido com nome simplificado:', publicUrl);
+        return publicUrl;
       }
       
       throw error;
     }
     
     // Retornar URL público
-    return getPublicUrl(path);
+    const publicUrl = getPublicUrl(safePath);
+    console.log('Upload bem-sucedido:', publicUrl);
+    return publicUrl;
   } catch (error) {
     console.error('Falha no upload:', error);
     return null;

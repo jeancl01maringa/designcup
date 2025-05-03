@@ -91,48 +91,46 @@ export async function ensureImageBucket() {
 
 /**
  * Configura políticas de acesso para o bucket de imagens
- * Isso é necessário para permitir operações de upload/download
+ * 
+ * Nota: As políticas de acesso geralmente são configuradas no painel do Supabase,
+ * não via API. Aqui tentamos garantir que o bucket seja público para leitura,
+ * mas as políticas de RLS (Row Level Security) precisam ser configuradas no painel.
  */
 async function configureImageBucketPolicies() {
   try {
     // Nome do bucket
     const bucketName = 'images';
     
-    // 1. Política para leitura pública (qualquer pessoa pode visualizar)
-    const { error: publicReadError } = await supabase.storage.from(bucketName)
-      .createPolicy('public_read', {
-        name: 'Public Read Policy',
-        definition: {
-          type: 'READ',
-          permissions: ['SELECT'],
-          check: {},
-          inverted: false
-        }
-      });
+    // Atualizar configurações do bucket para permitir acesso público
+    const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
+      public: true,
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
+      fileSizeLimit: 10485760 // 10MB
+    });
     
-    if (publicReadError) {
-      console.error('Erro ao criar política de leitura pública:', publicReadError);
+    if (updateError) {
+      console.error('Erro ao atualizar bucket para acesso público:', updateError);
     } else {
-      console.log('Política de leitura pública criada/atualizada com sucesso');
+      console.log('Bucket configurado para acesso público com sucesso');
     }
     
-    // 2. Política para escrita (upload) por qualquer usuário autenticado
-    const { error: writeError } = await supabase.storage.from(bucketName)
-      .createPolicy('authenticated_write', {
-        name: 'Authenticated Write Policy',
-        definition: {
-          type: 'WRITE',
-          permissions: ['INSERT', 'UPDATE'],
-          check: {},
-          inverted: false
-        }
-      });
-    
-    if (writeError) {
-      console.error('Erro ao criar política de escrita autenticada:', writeError);
-    } else {
-      console.log('Política de escrita autenticada criada/atualizada com sucesso');
-    }
+    // Mensagem de instruções para o console
+    console.log(`
+=================================================
+IMPORTANTE: POLÍTICAS DE ACESSO PARA SUPABASE
+=================================================
+Para garantir que o upload de imagens funcione corretamente, 
+você precisa configurar as políticas de acesso no painel do Supabase:
+
+1. Acesse o painel do Supabase: https://app.supabase.io
+2. Vá para "Storage" > "Policies"
+3. Para o bucket "images", adicione políticas:
+   - Para permitir SELECT para todos: "true"
+   - Para permitir INSERT para usuários autenticados: "true"
+   
+Sem estas políticas, os uploads podem falhar com erros de permissão.
+=================================================
+`);
     
   } catch (error) {
     console.error('Erro ao configurar políticas de bucket:', error);

@@ -309,35 +309,53 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     const imageUrls: Record<string, string> = {};
     let mainImageUrl = "";
     
-    // Usar a primeira imagem disponível como capa principal (incluindo blobs para preview)
+    // Usar a primeira imagem disponível como capa principal
+    // Priorizar URLs permanentes do Supabase em vez de blobs
     for (const format of formData.formats) {
       const preview = formData.formatFiles[format].imagePreview;
       if (preview) {
-        // Mesmo uma imagem blob é usada para visualização temporária
-        if (!mainImageUrl) mainImageUrl = preview;
-        imageUrls[format] = preview;
+        // Filtrar URLs temporárias blob:// se possível
+        const isValidUrl = preview && !preview.startsWith("blob:");
+        
+        if (isValidUrl) {
+          // Se for URL permanente do Supabase, usar como capa
+          if (!mainImageUrl) mainImageUrl = preview;
+          imageUrls[format] = preview;
+        } else if (!mainImageUrl && !isValidUrl) {
+          // Usar URL temporária apenas se não tiver nenhuma permanente
+          mainImageUrl = preview;
+          imageUrls[format] = preview;
+        }
       }
     }
     
-    // Compilar dados dos formatos
-    const formatData = formData.formats.map(format => ({
-      type: format,
-      imageUrl: imageUrls[format] || "",
-      links: formData.formatFiles[format].links
-    }));
+    // Compilar dados dos formatos - filtrando URLs inválidas temporárias
+    const formatData = formData.formats.map(format => {
+      const preview = formData.formatFiles[format].imagePreview;
+      const imageUrl = (preview && !preview.startsWith("blob:")) ? preview : "";
+      
+      return {
+        type: format,
+        imageUrl: imageUrl,
+        links: formData.formatFiles[format].links
+      };
+    });
     
-    // Construir objeto da postagem
+    // Certificar-se de que formatData seja uma string JSON
+    const formatDataString = JSON.stringify(formatData);
+    
+    // Construir objeto da postagem com formato correto
     return {
       title: formData.title,
       categoryId: formData.categoryId,
       status: formData.status,
       description: formData.description,
-      imageUrl: mainImageUrl || "",  // Usa qualquer imagem, mesmo blob temporário
+      imageUrl: mainImageUrl || "",  // A imagem principal (capa)
       uniqueCode: formData.uniqueCode,
       licenseType: formData.licenseType,
       tags: formData.tags,
       formats: formData.formats,
-      formatData: JSON.stringify(formatData),
+      formatData: formatDataString, // String JSON no formato esperado pelo servidor
       groupId: formData.groupId
     };
   };
