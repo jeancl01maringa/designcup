@@ -11,12 +11,15 @@ import ArtworkDetail from "@/pages/ArtworkDetail";
 import AuthPage from "@/pages/auth-page";
 import ImageUploadDemo from "@/pages/ImageUploadDemo";
 import SocialSharingDemo from "@/pages/SocialSharingDemo";
-import AdminDashboard from "@/pages/admin/Dashboard";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+
+// Admin Pages
+import AdminDashboard from "@/pages/admin/Dashboard";
+import PostagensPage from "@/pages/admin/PostagensPage";
 
 function Router() {
   const [location] = useLocation();
@@ -24,6 +27,7 @@ function Router() {
 
   return (
     <Switch>
+      {/* Rotas Públicas */}
       <Route path="/" component={Home} />
       <Route path="/categorias" component={Categories} />
       <Route path="/video-aulas" component={VideoClasses} />
@@ -32,7 +36,12 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
+      
+      {/* Rotas Administrativas */}
       <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />
+      <ProtectedRoute path="/admin/postagens" component={PostagensPage} requireAdmin={true} />
+      
+      {/* Rota 404 */}
       <Route component={NotFound} />
     </Switch>
   );

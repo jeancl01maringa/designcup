@@ -18,7 +18,7 @@ import {
   GraduationCap, 
   Globe, 
   Webhook, 
-  code as CodeIcon,
+  Code as CodeIcon,
   Menu
 } from "lucide-react";
 
