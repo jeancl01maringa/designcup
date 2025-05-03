@@ -26,21 +26,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Buscando todos os formatos de arquivo');
       
-      const { data, error } = await supabase
-        .from('file_formats')
-        .select('*')
-        .order('id', { ascending: true });
+      try {
+        // Tentar primeiro com Supabase
+        const { data, error } = await supabase
+          .from('file_formats')
+          .select('*')
+          .order('id', { ascending: true });
+          
+        if (!error) {
+          console.log(`Encontrados ${data?.length || 0} formatos de arquivo via Supabase`);
+          return res.json(data || []);
+        }
         
-      if (error) {
-        console.error("Erro ao buscar formatos de arquivo:", error);
+        // Se falhar no Supabase, tentar diretamente com PostgreSQL
+        console.log("Tentando buscar formatos com PostgreSQL direto");
+        const { rows } = await db.execute(`SELECT * FROM file_formats ORDER BY id ASC`);
+        console.log(`Encontrados ${rows?.length || 0} formatos de arquivo via PostgreSQL`);
+        return res.json(rows || []);
+      } catch (dbError: any) {
+        console.error("Erro ao buscar formatos de arquivo via PostgreSQL:", dbError);
         return res.status(500).json({ 
           message: 'Erro ao buscar formatos de arquivo',
-          error: error.message
+          error: dbError.message
         });
       }
-      
-      console.log(`Encontrados ${data?.length || 0} formatos de arquivo`);
-      return res.json(data || []);
     } catch (error: any) {
       console.error('Error fetching file formats:', error);
       res.status(500).json({ 
@@ -190,21 +199,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Buscando todos os formatos de post');
       
-      const { data, error } = await supabase
-        .from('post_formats')
-        .select('*')
-        .order('id', { ascending: true });
+      try {
+        // Tentar primeiro com Supabase
+        const { data, error } = await supabase
+          .from('post_formats')
+          .select('*')
+          .order('id', { ascending: true });
+          
+        if (!error) {
+          console.log(`Encontrados ${data?.length || 0} formatos de post via Supabase`);
+          return res.json(data || []);
+        }
         
-      if (error) {
-        console.error("Erro ao buscar formatos de post:", error);
+        // Se falhar no Supabase, tentar diretamente com PostgreSQL
+        console.log("Tentando buscar formatos de post com PostgreSQL direto");
+        const { rows } = await db.execute(`SELECT * FROM post_formats ORDER BY id ASC`);
+        console.log(`Encontrados ${rows?.length || 0} formatos de post via PostgreSQL`);
+        return res.json(rows || []);
+      } catch (dbError: any) {
+        console.error("Erro ao buscar formatos de post via PostgreSQL:", dbError);
         return res.status(500).json({ 
           message: 'Erro ao buscar formatos de post',
-          error: error.message
+          error: dbError.message
         });
       }
-      
-      console.log(`Encontrados ${data?.length || 0} formatos de post`);
-      return res.json(data || []);
     } catch (error: any) {
       console.error('Error fetching post formats:', error);
       res.status(500).json({ 
