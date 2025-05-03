@@ -65,18 +65,18 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         className="mr-4 w-[300px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Cabeçalho com gradiente verde */}
-        <div className="bg-gradient-to-r from-[#00b96b] to-[#38d39f] pt-8 pb-4 px-6 text-center">
+        {/* Cabeçalho com fundo preto */}
+        <div className="bg-black pt-8 pb-4 px-6 text-center">
           <div className="w-20 h-20 mx-auto mb-2 rounded-full border-4 border-white overflow-hidden">
             <img 
-              src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=38d39f&color=fff`} 
+              src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=1D1D1D&color=fff`} 
               alt={user.username}
               className="w-full h-full object-cover"
             />
           </div>
           <h3 className="text-white font-bold text-lg">{user.username}</h3>
           <p className="text-white/90 text-sm">{user.email}</p>
-          <span className="inline-block mt-2 px-3 py-1 bg-[#d1f7e5] text-[#00b96b] text-xs font-semibold rounded-full">
+          <span className="inline-block mt-2 px-3 py-1 bg-white text-black text-xs font-semibold rounded-full">
             CONTA MENSAL
           </span>
         </div>
