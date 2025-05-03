@@ -60,25 +60,60 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    if (user) {
+      // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
+      return {
+        ...user,
+        isAdmin: user.is_admin
+      };
+    }
+    return undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    if (user) {
+      // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
+      return {
+        ...user,
+        isAdmin: user.is_admin
+      };
+    }
+    return undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    if (user) {
+      // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
+      return {
+        ...user,
+        isAdmin: user.is_admin
+      };
+    }
+    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    // Mapear isAdmin para is_admin no banco de dados (se existir)
+    const dbUser = {
+      ...insertUser,
+      is_admin: insertUser.isAdmin
+    };
+    
+    // Remover isAdmin para evitar erro "property does not exist"
+    delete (dbUser as any).isAdmin;
+    
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(dbUser)
       .returning();
-    return user;
+      
+    // Mapear is_admin para isAdmin na resposta
+    return {
+      ...user,
+      isAdmin: user.is_admin
+    };
   }
   
   async getArtworks(): Promise<Artwork[]> {

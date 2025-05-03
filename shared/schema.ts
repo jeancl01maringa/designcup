@@ -18,11 +18,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   userArtworks: many(userArtworks),
 }));
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  email: true,
-  password: true,
-});
+// Extendemos o schema para incluir isAdmin para consistência com o código TypeScript
+export const insertUserSchema = createInsertSchema(users)
+  .pick({
+    username: true,
+    email: true,
+    password: true,
+  })
+  .extend({
+    isAdmin: z.boolean().optional().default(false),
+  });
 
 // Artwork schema with different formats
 export const artworks = pgTable("artworks", {

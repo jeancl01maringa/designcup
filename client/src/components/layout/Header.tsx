@@ -176,7 +176,7 @@ const MobileMenu = () => {
               <span className="text-[#1D1D1D] font-medium">{user.username}</span>
             </div>
             
-            {user.is_admin && (
+            {user.isAdmin && (
               <Link 
                 href="/admin"
                 className="block text-primary hover:text-primary/80 font-medium text-base py-2 transition-colors"
