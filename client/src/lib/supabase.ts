@@ -207,6 +207,16 @@ export function sanitizeFileName(name: string): string {
 }
 
 /**
+ * Limites absolutos para todas as imagens, independente do tipo
+ */
+const GLOBAL_LIMITS = {
+  maxSizeMB: 2,           // Nenhuma imagem terá mais de 2MB
+  maxWidthOrHeight: 1920, // Limita dimensão absoluta em 1920px para qualquer tipo
+  minQuality: 0.75,       // Garantir qualidade mínima
+  maxQuality: 0.90        // Limitar qualidade máxima (evitar arquivos grandes)
+};
+
+/**
  * Dimensões máximas para cada tipo de conteúdo
  * Estes valores definem o tamanho máximo em pixels para cada tipo de imagem
  * mantendo sempre a proporção original (aspect ratio)
@@ -222,6 +232,7 @@ const MAX_DIMENSIONS = {
  * Comprime e converte uma imagem para WebP antes do upload
  * Melhora significativamente o desempenho e tamanho do arquivo
  * Redimensiona a imagem para o tamanho máximo adequado ao tipo de conteúdo
+ * e aplica limitações globais de tamanho e dimensões
  * 
  * @param file Arquivo de imagem original
  * @param contentType Tipo de conteúdo para determinar dimensão máxima
@@ -238,15 +249,27 @@ async function compressAndConvertToWebP(
     const imageCompression = await import('browser-image-compression');
     
     // Determinar a dimensão máxima com base no tipo de conteúdo
-    const maxDimension = customMaxSize || MAX_DIMENSIONS[contentType] || MAX_DIMENSIONS.default;
+    // Garantindo que não exceda o limite global máximo
+    let maxDimension = customMaxSize || MAX_DIMENSIONS[contentType] || MAX_DIMENSIONS.default;
+    
+    // Aplicar limite absoluto global se necessário
+    maxDimension = Math.min(maxDimension, GLOBAL_LIMITS.maxWidthOrHeight);
+    
+    // Definir qualidade conforme o tipo de conteúdo
+    // Imagens menores como perfil podem ter menor qualidade
+    let quality = 0.85; // Padrão
+    if (contentType === 'perfil') quality = 0.80;
+    
+    // Manter a qualidade dentro dos limites
+    quality = Math.max(GLOBAL_LIMITS.minQuality, Math.min(quality, GLOBAL_LIMITS.maxQuality));
     
     // Opções de compressão otimizadas para web
     const options = {
-      maxSizeMB: 2,              // Tamanho máximo em MB
-      maxWidthOrHeight: maxDimension,  // Dimensão máxima específica por tipo
-      useWebWorker: true,        // Usa worker para não bloquear UI
-      fileType: 'image/webp',    // Converte para WebP
-      initialQuality: 0.85,      // Qualidade inicial (0-1)
+      maxSizeMB: GLOBAL_LIMITS.maxSizeMB, // Tamanho máximo em MB (global)
+      maxWidthOrHeight: maxDimension,     // Dimensão máxima por tipo
+      useWebWorker: true,                 // Usa worker para não bloquear UI
+      fileType: 'image/webp',             // Converte para WebP
+      initialQuality: quality,            // Qualidade específica por tipo
     };
     
     console.log(`Comprimindo imagem: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);

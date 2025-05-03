@@ -238,10 +238,27 @@ export default function ImageUploadDemo() {
                   />
                 </div>
                 
-                <div className="mt-2">
-                  <p className="text-sm text-muted-foreground mb-1">URL da imagem:</p>
-                  <div className="bg-slate-50 p-2 rounded text-xs font-mono break-all border">
-                    {uploadedImageUrl}
+                <div className="mt-2 space-y-3">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">URL da imagem:</p>
+                    <div className="bg-slate-50 p-2 rounded text-xs font-mono break-all border">
+                      {uploadedImageUrl}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-50 p-3 rounded-md text-sm border border-blue-100">
+                    <h4 className="font-medium text-blue-700 mb-1 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Limites de otimização de imagem
+                    </h4>
+                    <ul className="text-blue-800 pl-5 list-disc text-xs space-y-1">
+                      <li>Perfil: máximo 300px, qualidade 80%</li>
+                      <li>Cursos: máximo 1080px, qualidade 85%</li>
+                      <li>Posts: máximo 1920px, qualidade 85%</li>
+                      <li><strong>Limite global:</strong> 2MB, máximo 1920px</li>
+                    </ul>
                   </div>
                 </div>
               </div>
