@@ -469,7 +469,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl">
         <DialogTitle className="text-xl font-bold">
           {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Postagem"}
         </DialogTitle>
@@ -907,8 +907,12 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                     <div className="space-y-4">
                       <h3 className="font-medium">Upload da Capa da Arte</h3>
                       <div 
-                        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center h-64 text-center ${
+                        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center ${
                           formData.formatFiles[format].imagePreview ? "border-primary" : "border-border"
+                        } ${
+                          format === 'feed' ? 'h-64 aspect-square' : 
+                          format === 'cartaz' ? 'h-64 aspect-[4/5]' : 
+                          'h-72 aspect-[9/16]'
                         }`}
                       >
                         {formData.formatFiles[format].imagePreview ? (
@@ -916,7 +920,11 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                             <img 
                               src={formData.formatFiles[format].imagePreview}
                               alt="Preview"
-                              className="rounded object-contain w-full h-full"
+                              className={`rounded w-full h-full ${
+                                format === 'feed' ? 'object-cover aspect-square' : 
+                                format === 'cartaz' ? 'object-cover aspect-[4/5]' : 
+                                'object-cover aspect-[9/16]'
+                              }`}
                             />
                             <Button
                               variant="destructive"
@@ -1160,11 +1168,21 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                       <CardContent className="p-0">
                         {formData.formatFiles[format].imagePreview ? (
                           <div className="relative border-t border-b">
-                            <img 
-                              src={formData.formatFiles[format].imagePreview} 
-                              alt={`Preview da ${format}`} 
-                              className="w-full h-32 object-cover"
-                            />
+                            <div className={`${
+                              format === 'feed' ? 'aspect-square' : 
+                              format === 'cartaz' ? 'aspect-[4/5]' : 
+                              'aspect-[9/16]'
+                            } max-h-48 overflow-hidden flex items-center justify-center`}>
+                              <img 
+                                src={formData.formatFiles[format].imagePreview} 
+                                alt={`Preview da ${format}`} 
+                                className={`${
+                                  format === 'feed' ? 'aspect-square' : 
+                                  format === 'cartaz' ? 'aspect-[4/5]' : 
+                                  'aspect-[9/16] max-h-full'
+                                } object-cover`}
+                              />
+                            </div>
                           </div>
                         ) : (
                           <div className="flex items-center justify-center h-16 border-t border-b bg-slate-50">
@@ -1181,9 +1199,16 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
                           {formData.formatFiles[format].links.length > 0 && (
                             <div className="pt-1">
                               {formData.formatFiles[format].links.map(link => (
-                                <div key={link.id} className="flex items-center text-xs text-muted-foreground gap-1 mb-1">
-                                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                                  <span className="truncate">{link.provider}: {link.url}</span>
+                                <div key={link.id} className="flex items-center text-xs gap-1 mb-1">
+                                  <ExternalLink className="h-3 w-3 flex-shrink-0 text-blue-600" />
+                                  <a 
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="truncate text-blue-600 hover:underline"
+                                  >
+                                    {link.provider}: {link.url}
+                                  </a>
                                 </div>
                               ))}
                             </div>
