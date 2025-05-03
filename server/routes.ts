@@ -205,6 +205,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error fetching approved posts' });
     }
   });
+  
+  // Endpoint público para obter posts relacionados (variações de formato)
+  app.get('/api/posts/formats/:groupId', async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      
+      if (!groupId) {
+        return res.status(400).json({ message: 'Group ID is required' });
+      }
+      
+      // Buscar apenas posts aprovados com este groupId (para o público)
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('group_id', groupId)
+        .eq('status', 'aprovado')
+        .order('id', { ascending: true });
+        
+      if (error) {
+        console.error("Erro ao buscar variações de formato:", error);
+        throw error;
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pelo cliente
+      const formattedData = data?.map(post => ({
+        id: post.id,
+        title: post.title,
+        description: post.description || "",
+        imageUrl: post.image_url,
+        uniqueCode: post.unique_code,
+        categoryId: post.category_id,
+        status: post.status,
+        createdAt: new Date(post.created_at),
+        publishedAt: post.published_at ? new Date(post.published_at) : null,
+        formato: post.formato,
+        groupId: post.group_id,
+        tituloBase: post.titulo_base,
+        isPro: !!post.is_pro,
+        licenseType: post.license_type || 'free',
+        canvaUrl: post.canva_url,
+        formatoData: post.formato_data,
+        isVisible: post.is_visible !== false
+      })) || [];
+      
+      console.log(`Encontradas ${formattedData.length} variações de formato para o grupo ${groupId}`);
+      res.json(formattedData);
+    } catch (error) {
+      console.error('Error fetching format variations:', error);
+      res.status(500).json({ message: 'Error fetching format variations' });
+    }
+  });
 
   app.get('/api/admin/posts', async (req, res) => {
     try {

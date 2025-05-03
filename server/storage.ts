@@ -1197,7 +1197,7 @@ export class DatabaseStorage implements IStorage {
       console.log("DATABASE createPost - Criando novo post:", JSON.stringify(post));
       
       // Mapear do formato da aplicação para o formato do Supabase
-      const supabasePost = {
+      const supabasePost: any = {
         title: post.title,
         description: post.description,
         image_url: post.imageUrl,
@@ -1206,6 +1206,38 @@ export class DatabaseStorage implements IStorage {
         status: post.status || 'rascunho',
         published_at: post.publishedAt ? post.publishedAt.toISOString() : null
       };
+      
+      // Adicionar os novos campos para suporte a múltiplos formatos
+      if (post.formato) supabasePost.formato = post.formato;
+      if (post.groupId) supabasePost.group_id = post.groupId;
+      if (post.tituloBase) supabasePost.titulo_base = post.tituloBase;
+      if (post.canvaUrl) supabasePost.canva_url = post.canvaUrl;
+      if (post.formatoData) supabasePost.formato_data = post.formatoData;
+      
+      // Definir licenseType e isPro (garantir consistência)
+      if (post.licenseType) {
+        supabasePost.license_type = post.licenseType;
+        supabasePost.is_pro = post.licenseType === 'premium';
+      } else if (post.isPro !== undefined) {
+        supabasePost.is_pro = post.isPro;
+        supabasePost.license_type = post.isPro ? 'premium' : 'free';
+      }
+      
+      // Visibilidade no feed
+      if (post.isVisible !== undefined) {
+        supabasePost.is_visible = post.isVisible;
+      }
+      
+      // Campos de array
+      if (post.tags && Array.isArray(post.tags)) {
+        supabasePost.tags = post.tags;
+      }
+      
+      if (post.formats && Array.isArray(post.formats)) {
+        supabasePost.formats = post.formats;
+      }
+      
+      console.log("DATABASE createPost - Dados completos a serem enviados:", supabasePost);
       
       const { data, error } = await supabase
         .from('posts')
@@ -1232,7 +1264,15 @@ export class DatabaseStorage implements IStorage {
         categoryId: data.category_id,
         status: data.status,
         createdAt: new Date(data.created_at),
-        publishedAt: data.published_at ? new Date(data.published_at) : null
+        publishedAt: data.published_at ? new Date(data.published_at) : null,
+        formato: data.formato,
+        groupId: data.group_id,
+        tituloBase: data.titulo_base,
+        isPro: !!data.is_pro,
+        licenseType: data.license_type || 'free',
+        canvaUrl: data.canva_url,
+        formatoData: data.formato_data,
+        isVisible: data.is_visible !== false // se for null ou undefined, assume true
       };
       
       console.log(`DATABASE createPost - Post criado com ID: ${result.id}`);
@@ -1257,6 +1297,22 @@ export class DatabaseStorage implements IStorage {
       if (post.categoryId !== undefined) supabasePost.category_id = post.categoryId;
       if (post.status !== undefined) supabasePost.status = post.status;
       if (post.publishedAt !== undefined) supabasePost.published_at = post.publishedAt.toISOString();
+      
+      // Campos para suporte a múltiplos formatos
+      if (post.formato !== undefined) supabasePost.formato = post.formato;
+      if (post.groupId !== undefined) supabasePost.group_id = post.groupId;
+      if (post.tituloBase !== undefined) supabasePost.titulo_base = post.tituloBase;
+      if (post.canvaUrl !== undefined) supabasePost.canva_url = post.canvaUrl;
+      if (post.formatoData !== undefined) supabasePost.formato_data = post.formatoData;
+      
+      // Campos de array
+      if (post.tags && Array.isArray(post.tags)) {
+        supabasePost.tags = post.tags;
+      }
+      
+      if (post.formats && Array.isArray(post.formats)) {
+        supabasePost.formats = post.formats;
+      }
       
       // Verificar se há campos de licença e atualizar todos que forem necessários
       if (post.licenseType !== undefined) {
@@ -1312,7 +1368,15 @@ export class DatabaseStorage implements IStorage {
         categoryId: data.category_id,
         status: data.status,
         createdAt: new Date(data.created_at),
-        publishedAt: data.published_at ? new Date(data.published_at) : null
+        publishedAt: data.published_at ? new Date(data.published_at) : null,
+        formato: data.formato,
+        groupId: data.group_id,
+        tituloBase: data.titulo_base,
+        isPro: !!data.is_pro,
+        licenseType: data.license_type || 'free',
+        canvaUrl: data.canva_url,
+        formatoData: data.formato_data,
+        isVisible: data.is_visible !== false // se for null ou undefined, assume true
       };
       
       console.log(`DATABASE updatePost - Post atualizado: ${result.title}`);
