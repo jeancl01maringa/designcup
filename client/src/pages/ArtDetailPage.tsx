@@ -23,8 +23,11 @@ export default function ArtDetailPage() {
   const params = useParams<{ slug: string }>();
   const { slug } = params;
   
-  // Extrair o ID numérico do slug (por exemplo, "pele-12" => 12)
-  const postId = slug ? parseInt(slug.split('-').pop() || '0', 10) : 0;
+  // Extrair o ID numérico do slug (por exemplo, "10-xxxxx" => 10)
+  const postId = slug ? parseInt(slug.split('-')[0] || '0', 10) : 0;
+  
+  console.log('Slug recebido:', slug);
+  console.log('ID extraído:', postId);
   
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -36,43 +39,35 @@ export default function ArtDetailPage() {
     queryFn: async () => {
       if (!postId) throw new Error('ID inválido');
       
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*, categories(*)')
-        .eq('id', postId)
-        .single();
-        
-      if (error) throw error;
-      if (!data) throw new Error('Arte não encontrada');
+      // Usar nossa API em vez do Supabase diretamente
+      const response = await fetch(`/api/admin/posts/${postId}`);
       
-      // Incrementar contador de visualizações (opcional)
-      try {
-        await supabase.rpc('increment_view_count', { post_id: postId });
-      } catch (err) {
-        console.error('Erro ao incrementar visualizações:', err);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Arte não encontrada');
+        }
+        throw new Error('Erro ao buscar arte');
       }
+      
+      const data = await response.json();
+      console.log("Dados do post recebidos:", data);
       
       return data;
     },
-    retry: 1
+    retry: 1,
+    enabled: !!postId
   });
   
-  // Buscar outros formatos da mesma arte (mesmo group_id)
+  // Buscar outros formatos da mesma arte - seria ideal ter um endpoint específico 
+  // mas por agora vamos simplificar e desativar essa funcionalidade
   const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery({
-    queryKey: ['/api/admin/posts/related', post?.group_id],
+    queryKey: ['/api/admin/posts/related', post?.groupId],
     queryFn: async () => {
-      if (!post?.group_id) return [];
-      
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('group_id', post.group_id)
-        .neq('id', post.id);
-        
-      if (error) throw error;
-      return data || [];
+      // Com a implementação atual, desativamos busca por formatos relacionados
+      // Quando implementarmos o endpoint group_id, reativamos essa funcionalidade
+      return [];
     },
-    enabled: !!post?.group_id
+    enabled: false // !!post?.groupId
   });
   
   // Formatar objetos para exibição
@@ -88,8 +83,8 @@ export default function ArtDetailPage() {
     return formatMap[format.toLowerCase()] || format.toUpperCase();
   };
   
-  // Determinar se é premium
-  const isPremium = post?.license_type === 'premium' || post?.is_pro;
+  // Determinar se é premium (verificar todos os possíveis campos)
+  const isPremium = post?.licenseType === 'premium' || post?.is_pro || post?.isPro;
   
   // Handlers para ações
   const handleFavorite = () => setIsFavorite(!isFavorite);
@@ -219,7 +214,7 @@ export default function ArtDetailPage() {
           {/* Imagem principal */}
           <div className="overflow-hidden rounded-lg shadow-md">
             <img 
-              src={post.image_url} 
+              src={post.imageUrl || post.image_url} 
               alt={post.title} 
               className="w-full h-auto object-cover"
             />
