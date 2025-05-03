@@ -51,11 +51,24 @@ import {
 // Schema para validação do formulário
 const categoryFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
+  slug: z.string().optional(),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
 });
 
 type CategoryFormValues = z.infer<typeof categoryFormSchema>;
+
+// Função para gerar slug a partir do nome
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
+    .replace(/\s+/g, '-') // Substitui espaços por hífens
+    .replace(/--+/g, '-') // Remove hífens duplicados
+    .trim();
+};
 
 export default function CategoriasPage() {
   const { toast } = useToast();
@@ -253,16 +266,24 @@ export default function CategoriasPage() {
 
   // Enviar formulário de criação
   const onCreateSubmit = (values: CategoryFormValues) => {
-    createMutation.mutate(values);
+    // Gera o slug automaticamente a partir do nome
+    const dataWithSlug = {
+      ...values,
+      slug: generateSlug(values.name),
+    };
+    createMutation.mutate(dataWithSlug);
   };
 
   // Enviar formulário de edição
   const onEditSubmit = (values: CategoryFormValues) => {
     if (selectedCategory) {
-      updateMutation.mutate({
+      // Gera o slug automaticamente a partir do nome
+      const dataWithSlug = {
         ...values,
+        slug: generateSlug(values.name),
         id: selectedCategory.id,
-      });
+      };
+      updateMutation.mutate(dataWithSlug);
     }
   };
 
