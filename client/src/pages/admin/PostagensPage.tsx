@@ -555,7 +555,7 @@ export default function PostagensPage() {
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell py-3">
-                    {post.categoryId || '-'}
+                    {categories.find(c => c.id === post.categoryId)?.name || '-'}
                   </TableCell>
                   <TableCell className="py-3">
                     {getStatusBadge(post.status)}
@@ -615,29 +615,44 @@ export default function PostagensPage() {
       )}
       {/* Diálogo de confirmação de exclusão (individual) */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <AlertDialogContent className="bg-white rounded-md shadow-md border-0 p-0 overflow-hidden max-w-md">
-          <div className="p-6">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-semibold">Excluir postagem</AlertDialogTitle>
-              <AlertDialogDescription className="pt-2 text-gray-600">
-                Você tem certeza que deseja excluir esta postagem? Essa ação não poderá ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-          </div>
-          
-          <div className="flex border-t border-gray-100">
+        <AlertDialogContent className="max-w-md p-6">
+          <div className="flex justify-between items-start mb-1">
+            <AlertDialogTitle className="text-xl font-semibold">Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogCancel 
               onClick={() => {
                 setIsDeleteModalOpen(false);
                 setPostToDelete(null);
               }}
-              className="flex-1 m-0 rounded-none bg-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-800 border-r"
+              className="h-8 w-8 p-0 rounded-full"
+            >
+              ×
+            </AlertDialogCancel>
+          </div>
+          
+          {postToDelete && (
+            <AlertDialogDescription className="mb-6">
+              <p className="font-medium text-base text-gray-900 mb-2">
+                Tem certeza que deseja excluir a postagem "{posts?.find(p => p.id === postToDelete)?.title}"?
+              </p>
+              <p className="text-sm text-gray-600">
+                Esta ação não pode ser desfeita. Todos os dados associados serão permanentemente removidos.
+              </p>
+            </AlertDialogDescription>
+          )}
+          
+          <div className="flex gap-3 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setPostToDelete(null);
+              }}
             >
               Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction 
+            </Button>
+            <Button 
+              variant="destructive"
               onClick={confirmDelete}
-              className="flex-1 m-0 rounded-none bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               {deletePostMutation.isPending ? (
                 <>
@@ -645,46 +660,55 @@ export default function PostagensPage() {
                   Excluindo...
                 </>
               ) : (
-                "Confirmar Exclusão"
+                "Excluir Postagem"
               )}
-            </AlertDialogAction>
+            </Button>
           </div>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Diálogo de confirmação de exclusão em lote */}
       <AlertDialog open={isDeleteBatchModalOpen} onOpenChange={setIsDeleteBatchModalOpen}>
-        <AlertDialogContent className="bg-white rounded-md shadow-md border-0 p-0 overflow-hidden max-w-md">
-          <div className="p-6">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-semibold">Excluir postagens</AlertDialogTitle>
-              <AlertDialogDescription className="pt-2 text-gray-600">
-                Você tem certeza que deseja excluir {selectedPosts.length} {selectedPosts.length === 1 ? 'postagem' : 'postagens'}? 
-                Essa ação não poderá ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-          </div>
-          
-          <div className="flex border-t border-gray-100">
+        <AlertDialogContent className="max-w-md p-6">
+          <div className="flex justify-between items-start mb-1">
+            <AlertDialogTitle className="text-xl font-semibold">Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogCancel 
               onClick={() => setIsDeleteBatchModalOpen(false)}
-              className="flex-1 m-0 rounded-none bg-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-800 border-r"
+              className="h-8 w-8 p-0 rounded-full"
+            >
+              ×
+            </AlertDialogCancel>
+          </div>
+          
+          <AlertDialogDescription className="mb-6">
+            <p className="font-medium text-base text-gray-900 mb-2">
+              Tem certeza que deseja excluir {selectedPosts.length} {selectedPosts.length === 1 ? 'postagem' : 'postagens'}?
+            </p>
+            <p className="text-sm text-gray-600">
+              Esta ação não pode ser desfeita. Todos os dados associados serão permanentemente removidos.
+            </p>
+          </AlertDialogDescription>
+          
+          <div className="flex gap-3 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteBatchModalOpen(false)}
             >
               Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction 
+            </Button>
+            <Button 
+              variant="destructive"
               onClick={confirmDeleteBatch}
-              className="flex-1 m-0 rounded-none bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
             >
-              {deletePostMutation.isPending ? (
+              {batchDeleteMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Excluindo...
                 </>
               ) : (
-                "Confirmar Exclusão"
+                `Excluir ${selectedPosts.length} ${selectedPosts.length === 1 ? 'Postagem' : 'Postagens'}`
               )}
-            </AlertDialogAction>
+            </Button>
           </div>
         </AlertDialogContent>
       </AlertDialog>
