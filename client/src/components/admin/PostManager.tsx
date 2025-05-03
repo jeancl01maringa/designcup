@@ -201,7 +201,7 @@ export function PostManager() {
   // Mutation para atualizar status em massa
   const updateStatusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: number[], status: string }) => {
-      await apiRequest('PATCH', '/api/admin/posts/status', { ids, status });
+      await apiRequest('PUT', '/api/admin/posts/status/batch', { ids, status });
     },
     onSuccess: (_, variables) => {
       toast({
