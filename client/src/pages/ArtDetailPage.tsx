@@ -79,41 +79,71 @@ export default function ArtDetailPage() {
   
   // Extrair formatos do post a partir dos dados gravados no banco
   const availableFormats = React.useMemo(() => {
+    // Verificar primeiro formato diretamente no post
+    if (post?.formato) {
+      return [post.formato];
+    }
+    
+    // Verificar array de formatos
+    if (post?.formats && Array.isArray(post.formats) && post.formats.length > 0) {
+      return post.formats;
+    }
+    
     // Tentar extrair formatos do formato_data ou format_data (formato JSON)
     if (post?.formato_data || post?.format_data) {
       try {
-        const formatData = JSON.parse(post.formato_data || post.format_data || '{}');
-        
-        // Se temos formatos definidos diretamente no formato_data
-        if (formatData.formats && Array.isArray(formatData.formats)) {
-          return formatData.formats;
-        }
-        
-        // Verificar se temos opções de formatos
-        if (formatData.options && Array.isArray(formatData.options)) {
-          return formatData.options.map((opt: any) => opt.format || 'FEED');
-        }
-        
-        // Se temos apenas um formato
-        if (formatData.format) {
-          return [formatData.format];
+        const formatDataString = post?.formato_data || post?.format_data || '{}';
+        if (typeof formatDataString === 'string') {
+          const formatData = JSON.parse(formatDataString);
+          
+          // Se temos formatos definidos diretamente no formato_data
+          if (formatData.formats && Array.isArray(formatData.formats)) {
+            return formatData.formats;
+          }
+          
+          // Verificar se temos opções de formatos
+          if (formatData.options && Array.isArray(formatData.options)) {
+            return formatData.options.map((opt: any) => opt.format || 'FEED');
+          }
+          
+          // Se temos apenas um formato
+          if (formatData.format) {
+            return [formatData.format];
+          }
+          
+          // Se temos o formato como propriedade direta
+          if (formatData.formato) {
+            return [formatData.formato];
+          }
         }
       } catch (err) {
         console.error('Erro ao processar formato_data:', err);
       }
     }
     
-    // Se temos o formato diretamente no post
-    if (post?.formats && Array.isArray(post.formats)) {
-      return post.formats;
-    }
-    
-    // Valor padrão
+    // Valor padrão se nada for encontrado
     return ['FEED'];
   }, [post]);
   
+  // Interface para formatos relacionados
+  interface RelatedFormat {
+    id: number;
+    title: string;
+    imageUrl?: string;
+    image_url?: string;
+    uniqueCode?: string;
+    unique_code?: string;
+    formato?: string;
+    format?: string;
+    formats?: string[];
+    licenseType?: string;
+    license_type?: string;
+    isPro?: boolean;
+    is_pro?: boolean;
+  }
+  
   // Buscar outros formatos da mesma arte usando o novo endpoint específico
-  const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery({
+  const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery<RelatedFormat[]>({
     queryKey: ['/api/posts/formats', post?.groupId],
     queryFn: async () => {
       // Só buscar se temos um groupId válido
@@ -128,7 +158,7 @@ export default function ArtDetailPage() {
       const data = await response.json();
       
       // Filtrar para não incluir o post atual
-      return data.filter((item: any) => item.id !== post.id);
+      return data.filter((item: RelatedFormat) => item.id !== post.id);
     },
     // Habilitar a query apenas se temos um groupId válido
     enabled: !!post?.groupId
@@ -553,18 +583,18 @@ export default function ArtDetailPage() {
         <div className="mt-12">
           <h2 className="text-xl font-bold mb-4">Outros formatos</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {relatedFormats.map((format) => (
+            {relatedFormats.map((format: any) => (
               <div key={format.id} className="relative rounded-lg overflow-hidden shadow-sm">
                 <a 
-                  href={`/artes/${format.unique_code || format.id}`}
+                  href={`/artes/${format.uniqueCode || format.unique_code || format.id}`}
                   className="block"
                 >
                   <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
-                    {formatLabel(format.formats?.[0] || 'FEED')}
+                    {formatLabel(format.formato || (format.formats && format.formats[0]) || format.format)}
                   </div>
                   
                   {/* Selo premium nos relacionados */}
-                  {(format.license_type === 'premium' || format.is_pro) && (
+                  {(format.licenseType === 'premium' || format.license_type === 'premium' || format.isPro || format.is_pro) && (
                     <div className="absolute top-2 right-2 bg-amber-400 text-white rounded-full p-1">
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
@@ -573,10 +603,13 @@ export default function ArtDetailPage() {
                   )}
                   
                   <img 
-                    src={format.image_url} 
+                    src={format.imageUrl || format.image_url} 
                     alt={format.title} 
-                    className="w-full h-auto object-cover"
+                    className="w-full h-[180px] object-cover"
                   />
+                  <div className="p-2 bg-white">
+                    <p className="text-xs font-medium truncate">{format.title}</p>
+                  </div>
                 </a>
               </div>
             ))}
