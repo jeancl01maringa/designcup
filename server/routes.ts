@@ -1557,6 +1557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             u.id, 
             u.username, 
             u.email, 
+            u.telefone,
             u.is_admin as "isAdmin",
             u.created_at as "createdAt",
             COALESCE(u.tipo, 'free') as tipo,
@@ -1599,6 +1600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             u.id, 
             u.username, 
             u.email, 
+            u.telefone,
             u.is_admin as "isAdmin",
             u.created_at as "createdAt",
             COALESCE(u.tipo, 'free') as tipo,
@@ -1801,7 +1803,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           UPDATE users 
           SET active = $1 
           WHERE id = $2
-          RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+          RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
             COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
         `, [active, id]);
         
@@ -1850,7 +1852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           UPDATE users 
           SET password = $1 
           WHERE id = $2
-          RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+          RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
             COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
         `, [hashedPassword, id]);
         
