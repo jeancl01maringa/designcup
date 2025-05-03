@@ -1,0 +1,122 @@
+Crie uma interface de painel administrativo moderna e limpa para gerenciar postagens. O layout deve seguir exatamente a estrutura e estilo do seguinte modelo:
+
+🧱 Estrutura geral da tela (2 colunas):
+Coluna lateral (esquerda): Menu vertical com fundo branco e ícones ao lado dos textos
+
+Coluna principal (direita): Área de conteúdo com o título "Postagens" e a listagem dos cards
+
+📐 Coluna lateral esquerda (Sidebar):
+Largura fixa: 240px
+
+Cor de fundo: #ffffff
+
+Layout vertical com espaçamento
+
+Ícone + título do usuário no topo:
+
+Avatar circular
+
+Nome: Jean Carlos Santos
+
+Email: jean.maringa@hotmail.com
+
+Texto “Administrador” abaixo
+
+Lista de seções com ícones:
+
+Dashboard
+
+Categorias
+
+Planos
+
+Formatos de Arquivo
+
+Formatos de Post
+
+Postagens (ativa, com fundo leve e ícone de upload destacado)
+
+Gerenciamento
+
+Monetização
+
+Cursos
+
+Integrações
+
+Webhooks & APIs
+
+Dev
+
+📌 Coluna principal (direita):
+🔹 Topo
+Título: Postagens
+
+Campo de busca com placeholder:
+
+nginx
+Copiar
+Editar
+Buscar por nome ou ID (#64017c)…
+Botão à direita: Verificar conexão
+
+Filtros:
+
+Dropdown: Todos os meses
+
+Dropdown: Todos os anos
+
+Campo: Filtrar por período
+
+Dropdown lateral: “Todas as categorias”
+
+Botão azul escuro (direita): + Nova postagem
+
+📝 Listagem de postagens (cards):
+Subtítulo: “8 postagens encontradas (total: 8)”
+
+Cada item da lista contém:
+
+Checkbox à esquerda
+
+Imagem (miniatura quadrada) ou texto "Sem"
+
+Título da postagem (ex: PELE 12, e33fd3, etc)
+
+Código de identificação (ex: #ca9cc1)
+
+Data (ex: 29 abr 2025)
+
+Categoria (ex: Massagem, Depilação, etc)
+
+Selo “Aprovado” em verde claro
+
+Ícones de ação (à direita):
+
+👁 Visualizar
+
+✏️ Editar
+
+🗑 Excluir
+
+🎨 Estilo geral:
+Paleta: branco, azul leve, cinza claro, verde suave (para status “Aprovado”)
+
+Bordas arredondadas
+
+Fontes limpas e modernas
+
+Layout espaçado, com respiro entre os elementos
+
+Comportamento responsivo: colapsa sidebar em telas pequenas
+
+⚙️ Funcionalidade esperada (opcional, se for implementar)
+Clique em “+ Nova postagem” abre modal/formulário
+
+Ícones de ação (visualizar/editar/excluir) com tooltips
+
+Campo de busca com filtro por ID ou nome
+
+Filtros por mês, ano, período e categoria funcionando
+
+Selo “Aprovado” muda de cor/estado conforme status
