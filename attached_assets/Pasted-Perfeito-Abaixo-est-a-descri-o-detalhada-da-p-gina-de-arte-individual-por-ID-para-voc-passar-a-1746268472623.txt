@@ -1,0 +1,112 @@
+Perfeito! Abaixo está a descrição detalhada da página de arte individual (por ID) para você passar ao Replit com clareza total sobre como deve ser implementada.
+
+🎨 Prompt: Página de Arte (por ID)
+Objetivo:
+Criar uma tela individual para cada arte da plataforma, acessada por rota dinâmica (ex: /artes/pele-12). A tela exibe detalhes completos da arte, links para edição no Canva, e outros formatos disponíveis.
+
+🧱 Estrutura geral da tela
+📌 Layout
+Duas colunas principais:
+
+Coluna da esquerda (imagem da arte): 50%
+
+Coluna da direita (informações e botões): 50%
+
+Totalmente responsivo:
+
+Em mobile, colunas empilham (imagem acima, informações abaixo)
+
+🖼️ Coluna da Esquerda – Imagem da Arte
+Imagem em destaque, com proporção original (sem crop forçado)
+
+Canto superior esquerdo: label do formato (ex: FEED)
+
+Canto superior direito: selo Premium redondo (ícone da coroa)
+
+Cantos da imagem: levemente arredondados (border-radius: 10px)
+
+📋 Coluna da Direita – Informações da Arte
+Título da arte
+Ex: PELE 12
+
+Exibe selo Premium ao lado do nome (amarelo com ícone)
+
+Check-list de vantagens
+Estilo “verificado” com ícones ✅
+
+Lista:
+
+Editável no Canva gratuito
+
+Para projetos comerciais e pessoais
+
+Não precisa atribuir o autor
+
+Qualidade profissional
+
+Especificações do arquivo
+Formato: FEED
+
+Tipo: Canva
+
+Visualizações
+
+Downloads (contadores reais)
+
+Formatos disponíveis
+Mostra o formato principal + botão com “3 opções” para exibir outros (dropdown ou modal)
+
+Botão azul de ação principal
+Texto: EDITAR NO CANVA
+
+Link direto para a URL canva
+
+Ações abaixo (linha de ícones)
+Favoritar (❤️)
+
+Salvar
+
+Compartilhar
+
+👤 Perfil do Criador
+Logo/ícone à esquerda
+
+Nome da conta (ex: “Design para Estética”)
+
+Subtexto: “100+ artes postadas”
+
+Botão Seguir
+
+🔄 Outros Formatos (Abaixo da imagem)
+Seção com miniaturas dos outros formatos dessa arte (ex: Cartaz, Stories)
+
+Exibidos em carrossel horizontal ou grade responsiva
+
+Selo Premium no canto das miniaturas (caso seja premium)
+
+Ao clicar, navega para o ID daquele formato (nova rota)
+
+✅ Estilo visual
+Paleta neutra e branca (background #ffffff)
+
+Tipografia clara, moderna e espaçada
+
+Ícones lineares com boa hierarquia visual
+
+Divisões suaves (sem bordas duras)
+
+🔗 Exemplo de rota
+bash
+Copiar
+Editar
+/artes/pele-12
+/artes/cartaz-pele-12
+/artes/stories-pele-12
+🔧 Extras para implementação no Replit
+Os dados devem ser buscados do Supabase com base no ID da arte
+
+A URL do Canva vem do Supabase (link de edição)
+
+O botão de salvar/favoritar pode usar localStorage ou Supabase Auth
+
+O contador de visualizações pode ser incrementado ao visitar a página
