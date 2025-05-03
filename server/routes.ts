@@ -17,6 +17,244 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
   // prefix all routes with /api
 
+  // API endpoints para formatos de arquivo (file_formats)
+  app.get('/api/admin/file-formats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { data, error } = await supabase
+        .from('file_formats')
+        .select('*')
+        .order('id', { ascending: true });
+        
+      if (error) {
+        console.error("Erro ao buscar formatos de arquivo:", error);
+        throw error;
+      }
+      
+      res.json(data || []);
+    } catch (error) {
+      console.error('Error fetching file formats:', error);
+      res.status(500).json({ message: 'Erro ao buscar formatos de arquivo' });
+    }
+  });
+
+  app.post('/api/admin/file-formats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { name, type, icon, is_active } = req.body;
+      
+      if (!name || !type) {
+        return res.status(400).json({ message: 'Nome e tipo são obrigatórios' });
+      }
+      
+      const { data, error } = await supabase
+        .from('file_formats')
+        .insert([{ 
+          name, 
+          type, 
+          icon: icon || null, 
+          is_active: is_active !== false,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("Erro ao criar formato de arquivo:", error);
+        throw error;
+      }
+      
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Error creating file format:', error);
+      res.status(500).json({ message: 'Erro ao criar formato de arquivo' });
+    }
+  });
+
+  app.patch('/api/admin/file-formats/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { name, type, icon, is_active } = req.body;
+      
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (type !== undefined) updateData.type = type;
+      if (icon !== undefined) updateData.icon = icon;
+      if (is_active !== undefined) updateData.is_active = is_active;
+      
+      const { data, error } = await supabase
+        .from('file_formats')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error(`Erro ao atualizar formato de arquivo #${id}:`, error);
+        throw error;
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error('Error updating file format:', error);
+      res.status(500).json({ message: 'Erro ao atualizar formato de arquivo' });
+    }
+  });
+
+  app.delete('/api/admin/file-formats/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      const { error } = await supabase
+        .from('file_formats')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        console.error(`Erro ao excluir formato de arquivo #${id}:`, error);
+        throw error;
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error deleting file format:', error);
+      res.status(500).json({ message: 'Erro ao excluir formato de arquivo' });
+    }
+  });
+
+  // API endpoints para formatos de post (post_formats)
+  app.get('/api/admin/post-formats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { data, error } = await supabase
+        .from('post_formats')
+        .select('*')
+        .order('id', { ascending: true });
+        
+      if (error) {
+        console.error("Erro ao buscar formatos de post:", error);
+        throw error;
+      }
+      
+      res.json(data || []);
+    } catch (error) {
+      console.error('Error fetching post formats:', error);
+      res.status(500).json({ message: 'Erro ao buscar formatos de post' });
+    }
+  });
+
+  app.post('/api/admin/post-formats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { name, size, orientation, is_active } = req.body;
+      
+      if (!name || !size || !orientation) {
+        return res.status(400).json({ message: 'Nome, tamanho e orientação são obrigatórios' });
+      }
+      
+      const { data, error } = await supabase
+        .from('post_formats')
+        .insert([{ 
+          name, 
+          size, 
+          orientation, 
+          is_active: is_active !== false,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("Erro ao criar formato de post:", error);
+        throw error;
+      }
+      
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Error creating post format:', error);
+      res.status(500).json({ message: 'Erro ao criar formato de post' });
+    }
+  });
+
+  app.patch('/api/admin/post-formats/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { name, size, orientation, is_active } = req.body;
+      
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (size !== undefined) updateData.size = size;
+      if (orientation !== undefined) updateData.orientation = orientation;
+      if (is_active !== undefined) updateData.is_active = is_active;
+      
+      const { data, error } = await supabase
+        .from('post_formats')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error(`Erro ao atualizar formato de post #${id}:`, error);
+        throw error;
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error('Error updating post format:', error);
+      res.status(500).json({ message: 'Erro ao atualizar formato de post' });
+    }
+  });
+
+  app.delete('/api/admin/post-formats/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      const { error } = await supabase
+        .from('post_formats')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        console.error(`Erro ao excluir formato de post #${id}:`, error);
+        throw error;
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error deleting post format:', error);
+      res.status(500).json({ message: 'Erro ao excluir formato de post' });
+    }
+  });
+
   // API endpoints for artworks
   app.get('/api/artworks', async (req, res) => {
     try {
