@@ -1,0 +1,93 @@
+Objetivo: Criar um dropdown elegante e funcional que aparece ao clicar na foto do usuário no cabeçalho. O estilo é clean, moderno e altamente organizado.
+
+📍 Estrutura geral:
+Disparo: Ao clicar na foto do usuário no topo (canto superior direito)
+
+Formato: Caixa flutuante vertical com cantos arredondados
+
+Cor de fundo: Branco
+
+Largura: ~300px
+
+Sombra: Leve box-shadow para destaque
+
+Scroll automático se passar da altura da tela
+
+👤 Cabeçalho do Dropdown:
+Fundo verde gradiente no topo (#00b96b → #38d39f)
+
+Foto do usuário em círculo (centralizada)
+
+Nome do usuário em destaque (texto bold)
+
+Email do usuário abaixo (cinza escuro)
+
+Badge da conta (CONTA MENSAL, CONTA PREMIUM, etc.) em verde claro ou amarelo
+
+Exemplo: fundo #d1f7e5, texto #00b96b, bordas arredondadas
+
+🧩 Lista de opções (em colunas verticais):
+Cada item deve conter:
+
+Ícone à esquerda (em cor sutil e fundo claro, com padding e border-radius)
+
+Título da seção (bold)
+
+Descrição (texto pequeno e cinza)
+
+📋 Itens exibidos (em ordem):
+Minha conta
+Perfil, privacidade e dados
+Ícone: 👤
+
+Assinatura
+Gerenciar sua assinatura
+Ícone: 📄
+
+Downloads
+Histórico de downloads
+Ícone: ⬇️ (com ícone de "∞" caso downloads ilimitados)
+
+Curtidas
+Seus itens favoritos
+Ícone: ❤️
+
+Salvos
+Artes para usar depois
+Ícone: 📌
+
+Seguindo
+Designers que você segue
+Ícone: 👥
+
+💬 Rodapé:
+Suporte por WhatsApp
+Texto azul com ícone do WhatsApp, link clicável para atendimento
+
+Sair da conta
+Em vermelho, com ícone 🔚
+Destaque de botão de logout — "Encerrar sessão atual"
+
+🧪 Estilo extra:
+hover em cada item deve mudar o fundo para #f7f7f7
+
+Transição suave: transition: background 0.2s ease
+
+✳️ Exemplo JSX (resumido):
+jsx
+Copiar
+Editar
+<div className="dropdown-menu">
+  <div className="dropdown-header">
+    <img src="/foto.jpg" className="avatar" />
+    <h3>Jean Carlos</h3>
+    <p>jean.maringa@hotmail.com</p>
+    <span className="badge">CONTA MENSAL</span>
+  </div>
+  <ul className="dropdown-options">
+    <li><UserIcon /> <div><strong>Minha conta</strong><p>Perfil, privacidade e dados</p></div></li>
+    ...
+    <li className="whatsapp">💬 Suporte por WhatsApp</li>
+    <li className="logout">🚪 Sair da conta</li>
+  </ul>
+</div>
