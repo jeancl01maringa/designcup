@@ -49,8 +49,10 @@ import {
   CheckCircle, 
   Clock, 
   XCircle,
-  RefreshCcw
+  RefreshCcw,
+  Loader2
 } from "lucide-react";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Post, Category } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -522,15 +524,11 @@ export default function PostagensPage() {
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded bg-muted flex items-center justify-center overflow-hidden" style={{ aspectRatio: '1/1' }}>
                         {post.imageUrl ? (
-                          <img 
+                          <ImageWithFallback 
                             src={post.imageUrl}
                             alt={post.title}
                             className="h-full w-full object-cover"
-                            onError={(e) => {
-                              // Substituir por um ícone de imagem caso falhe o carregamento
-                              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWltYWdlIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ii8+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSIvPjwvc3ZnPg==';
-                              e.currentTarget.className = 'h-6 w-6 opacity-30';
-                            }}
+                            fallbackClassName="h-6 w-6 opacity-30"
                           />
                         ) : (
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 opacity-30">
