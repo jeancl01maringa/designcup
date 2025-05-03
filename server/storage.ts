@@ -379,6 +379,33 @@ export class DatabaseStorage implements IStorage {
       
       // Insert sample artworks
       await db.insert(artworks).values(sampleArtworks);
+
+      // Create admin user if it doesn't exist
+      const adminUsername = "admin";
+      const adminEmail = "admin@estetica.app";
+      const [existingAdmin] = await db.select().from(users).where(eq(users.username, adminUsername));
+      
+      if (!existingAdmin) {
+        // Import necessary modules for password hashing
+        const { scrypt, randomBytes } = await import('crypto');
+        const { promisify } = await import('util');
+        const scryptAsync = promisify(scrypt);
+        
+        // Hash the password
+        const salt = randomBytes(16).toString("hex");
+        const derivedKey = await scryptAsync("admin123", salt, 64) as Buffer;
+        const hashedPassword = `${derivedKey.toString("hex")}.${salt}`;
+        
+        // Create admin user
+        await db.insert(users).values({
+          username: adminUsername,
+          email: adminEmail,
+          password: hashedPassword,
+          isAdmin: true
+        });
+        
+        console.log("Admin user created with username 'admin' and password 'admin123'");
+      }
     }
   }
 }
