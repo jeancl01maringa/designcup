@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
+import { supabase } from "./supabase-client";
 
 export interface IStorage {
   // User methods
@@ -59,102 +60,187 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    if (user) {
+    try {
+      // Usando a API do Supabase em vez do drizzle-orm
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) {
+        console.error("DATABASE getUser - Erro ao buscar usuário:", error.message);
+        return undefined;
+      }
+      
+      if (!data) {
+        console.log("DATABASE getUser - Usuário não encontrado");
+        return undefined;
+      }
+      
       // Log para depuração
-      console.log("DATABASE getUser - Dados brutos do usuário:", JSON.stringify(user));
+      console.log("DATABASE getUser - Dados brutos do usuário:", JSON.stringify(data));
       
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
-      // Cria um novo objeto sem as propriedades específicas do banco de dados
-      const { is_admin, ...rest } = user;
-      
-      // Convertendo explicitamente para boolean com !! para garantir que o valor booleano seja preserved
-      const isAdmin = is_admin === true || is_admin === 't';
-      console.log("DATABASE getUser - is_admin raw value:", is_admin, "tipo:", typeof is_admin); 
+      // Convertendo explicitamente para boolean
+      const isAdmin = data.is_admin === true || data.is_admin === 't';
+      console.log("DATABASE getUser - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin); 
       console.log("DATABASE getUser - isAdmin convertido:", isAdmin);
       
-      return {
-        ...rest,
-        isAdmin: isAdmin
+      // Criar um objeto User no formato esperado pela aplicação
+      const user: User = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        isAdmin: isAdmin,
+        createdAt: new Date(data.created_at)
       };
+      
+      return user;
+    } catch (error) {
+      console.error("DATABASE getUser - Exceção:", error);
+      return undefined;
     }
-    return undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    if (user) {
+    try {
+      // Usando a API do Supabase em vez do drizzle-orm
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single();
+        
+      if (error) {
+        console.error("DATABASE getUserByUsername - Erro ao buscar usuário:", error.message);
+        return undefined;
+      }
+      
+      if (!data) {
+        console.log("DATABASE getUserByUsername - Usuário não encontrado");
+        return undefined;
+      }
+      
       // Log para depuração
-      console.log("DATABASE getUserByUsername - Dados brutos do usuário:", JSON.stringify(user));
+      console.log("DATABASE getUserByUsername - Dados brutos do usuário:", JSON.stringify(data));
       
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
-      const { is_admin, ...rest } = user;
-      
-      // Convertendo explicitamente para boolean com !! para garantir que o valor booleano seja preserved
-      const isAdmin = is_admin === true || is_admin === 't';
-      console.log("DATABASE getUserByUsername - is_admin raw value:", is_admin, "tipo:", typeof is_admin); 
+      // Convertendo explicitamente para boolean
+      const isAdmin = data.is_admin === true || data.is_admin === 't';
+      console.log("DATABASE getUserByUsername - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin); 
       console.log("DATABASE getUserByUsername - isAdmin convertido:", isAdmin);
       
-      return {
-        ...rest,
-        isAdmin: isAdmin
+      // Criar um objeto User no formato esperado pela aplicação
+      const user: User = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        isAdmin: isAdmin,
+        createdAt: new Date(data.created_at)
       };
+      
+      return user;
+    } catch (error) {
+      console.error("DATABASE getUserByUsername - Exceção:", error);
+      return undefined;
     }
-    return undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    if (user) {
+    try {
+      // Usando a API do Supabase em vez do drizzle-orm
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+        
+      if (error) {
+        console.error("DATABASE getUserByEmail - Erro ao buscar usuário:", error.message);
+        return undefined;
+      }
+      
+      if (!data) {
+        console.log("DATABASE getUserByEmail - Usuário não encontrado");
+        return undefined;
+      }
+      
       // Log para depuração
-      console.log("DATABASE getUserByEmail - Dados brutos do usuário:", JSON.stringify(user));
+      console.log("DATABASE getUserByEmail - Dados brutos do usuário:", JSON.stringify(data));
       
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
-      const { is_admin, ...rest } = user;
-      
-      // Convertendo explicitamente para boolean com !! para garantir que o valor booleano seja preserved
-      const isAdmin = is_admin === true || is_admin === 't';
-      console.log("DATABASE getUserByEmail - is_admin raw value:", is_admin, "tipo:", typeof is_admin); 
+      // Convertendo explicitamente para boolean
+      const isAdmin = data.is_admin === true || data.is_admin === 't';
+      console.log("DATABASE getUserByEmail - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin); 
       console.log("DATABASE getUserByEmail - isAdmin convertido:", isAdmin);
       
-      return {
-        ...rest,
-        isAdmin: isAdmin
+      // Criar um objeto User no formato esperado pela aplicação
+      const user: User = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        isAdmin: isAdmin,
+        createdAt: new Date(data.created_at)
       };
+      
+      return user;
+    } catch (error) {
+      console.error("DATABASE getUserByEmail - Exceção:", error);
+      return undefined;
     }
-    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    console.log("DATABASE createUser - Recebendo dados:", JSON.stringify(insertUser));
-    
-    // Mapear isAdmin para is_admin no banco de dados (se existir)
-    const dbUser = {
-      ...insertUser,
-      is_admin: insertUser.isAdmin
-    };
-    
-    // Remover isAdmin para evitar erro "property does not exist"
-    delete (dbUser as any).isAdmin;
-    
-    console.log("DATABASE createUser - Enviando para o banco:", JSON.stringify(dbUser));
-    
-    const [user] = await db
-      .insert(users)
-      .values(dbUser)
-      .returning();
-    
-    console.log("DATABASE createUser - Resultado do banco:", JSON.stringify(user));
-    
-    // Converter is_admin para boolean usando o mesmo método
-    const isAdmin = user.is_admin === true || user.is_admin === 't';
-    console.log("DATABASE createUser - isAdmin convertido:", isAdmin);
-    
-    // Mapear is_admin para isAdmin na resposta
-    return {
-      ...user,
-      isAdmin: isAdmin
-    };
+    try {
+      console.log("DATABASE createUser - Recebendo dados:", JSON.stringify(insertUser));
+      
+      // Mapear isAdmin para is_admin no banco de dados
+      const dbUser = {
+        username: insertUser.username,
+        email: insertUser.email,
+        password: insertUser.password,
+        is_admin: insertUser.isAdmin || false,
+      };
+      
+      console.log("DATABASE createUser - Enviando para o banco:", JSON.stringify(dbUser));
+      
+      // Usar a API do Supabase para criar o usuário
+      const { data, error } = await supabase
+        .from('users')
+        .insert(dbUser)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE createUser - Erro ao criar usuário:", error.message);
+        throw new Error(`Erro ao criar usuário: ${error.message}`);
+      }
+      
+      console.log("DATABASE createUser - Resultado do banco:", JSON.stringify(data));
+      
+      // Converter is_admin para boolean usando o mesmo método
+      const isAdmin = data.is_admin === true || data.is_admin === 't';
+      console.log("DATABASE createUser - isAdmin convertido:", isAdmin);
+      
+      // Mapear para o formato esperado pela aplicação
+      const user: User = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        isAdmin: isAdmin,
+        createdAt: new Date(data.created_at)
+      };
+      
+      return user;
+    } catch (error) {
+      console.error("DATABASE createUser - Exceção:", error);
+      throw error;
+    }
   }
   
   async getArtworks(): Promise<Artwork[]> {
