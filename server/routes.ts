@@ -1305,6 +1305,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API endpoints para planos (plans)
+  // Rota de compatibilidade em português
+  app.get('/api/admin/planos', async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      
+      console.log('Buscando todos os planos (via compatibilidade)');
+      
+      // Parâmetro opcional: mostrar todos ou apenas ativos
+      const showInactive = req.query.showInactive === 'true';
+      
+      try {
+        const plans = await storage.getPlans(showInactive);
+        console.log(`Encontrados ${plans.length} planos`);
+        return res.json(plans);
+      } catch (storageError: any) {
+        console.error("Erro ao buscar planos via storage:", storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar planos',
+          error: storageError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching plans:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar planos',
+        error: error.message
+      });
+    }
+  });
+  
   app.get('/api/admin/plans', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
@@ -1334,6 +1366,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error.message
       });
     }
+  });
+  
+  // Rota de compatibilidade em português
+  app.get('/api/admin/planos/:id', async (req, res) => {
+    req.url = `/api/admin/plans/${req.params.id}`;
+    app.handle(req, res);
   });
   
   app.get('/api/admin/plans/:id', async (req, res) => {
