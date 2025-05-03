@@ -6,6 +6,8 @@ import {
   categories, type Category, type InsertCategory,
   posts, type Post, type InsertPost,
   plans, type Plan, type InsertPlan,
+  tags, type Tag, type InsertTag,
+  postTags, type PostTag,
   postStatusEnum
 } from "@shared/schema";
 import { db, pool } from "./db";
@@ -66,6 +68,15 @@ export interface IStorage {
   updatePlan(id: number, plan: Partial<InsertPlan>): Promise<Plan>;
   deletePlan(id: number): Promise<void>;
   togglePlanStatus(id: number, isActive: boolean): Promise<Plan>;
+  
+  // Tag methods (for SEO management)
+  getTags(): Promise<Tag[]>;
+  getTagById(id: number): Promise<Tag | undefined>;
+  getTagBySlug(slug: string): Promise<Tag | undefined>;
+  createTag(tag: InsertTag): Promise<Tag>;
+  updateTag(id: number, tag: Partial<InsertTag>): Promise<Tag>;
+  deleteTag(id: number): Promise<void>;
+  toggleTagStatus(id: number, isActive: boolean): Promise<Tag>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2117,6 +2128,424 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Falha ao atualizar status do plano com ID ${id}: ambos os métodos falharam`);
     } catch (error) {
       console.error("DATABASE togglePlanStatus - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  // Implementação dos métodos de gerenciamento de tags
+  
+  async getTags(): Promise<Tag[]> {
+    try {
+      console.log("DATABASE getTags - Buscando todas as tags");
+      
+      // Tentar primeiro com Supabase
+      const { data, error } = await supabase
+        .from('tags')
+        .select('*')
+        .order('name', { ascending: true });
+        
+      if (error) {
+        console.error("DATABASE getTags - Erro ao buscar tags via Supabase:", error.message);
+        // Tentar com PostgreSQL direto se o Supabase falhar
+        try {
+          console.log("DATABASE getTags - Tentando via PostgreSQL após falha no Supabase");
+          const result = await pool.query(
+            'SELECT * FROM tags ORDER BY name ASC'
+          );
+          
+          return result.rows.map(tag => ({
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            description: tag.description,
+            isActive: tag.is_active === true || tag.is_active === 't',
+            count: tag.count || 0,
+            createdAt: new Date(tag.created_at)
+          }));
+        } catch (pgError) {
+          console.error("DATABASE getTags - Erro também no PostgreSQL:", pgError);
+          return [];
+        }
+      }
+      
+      if (!data) {
+        console.log("DATABASE getTags - Nenhuma tag encontrada");
+        return [];
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return data.map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        description: tag.description,
+        isActive: tag.is_active === true || tag.is_active === 't',
+        count: tag.count || 0,
+        createdAt: new Date(tag.created_at)
+      }));
+    } catch (error) {
+      console.error("DATABASE getTags - Exceção:", error);
+      return [];
+    }
+  }
+  
+  async getTagById(id: number): Promise<Tag | undefined> {
+    try {
+      console.log(`DATABASE getTagById - Buscando tag com ID ${id}`);
+      
+      // Tentar primeiro com Supabase
+      const { data, error } = await supabase
+        .from('tags')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) {
+        console.error("DATABASE getTagById - Erro ao buscar tag via Supabase:", error.message);
+        // Tentar com PostgreSQL direto se o Supabase falhar
+        try {
+          console.log("DATABASE getTagById - Tentando via PostgreSQL após falha no Supabase");
+          const result = await pool.query(
+            'SELECT * FROM tags WHERE id = $1',
+            [id]
+          );
+          
+          if (result.rows.length === 0) {
+            return undefined;
+          }
+          
+          const tag = result.rows[0];
+          return {
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            description: tag.description,
+            isActive: tag.is_active === true || tag.is_active === 't',
+            count: tag.count || 0,
+            createdAt: new Date(tag.created_at)
+          };
+        } catch (pgError) {
+          console.error("DATABASE getTagById - Erro também no PostgreSQL:", pgError);
+          return undefined;
+        }
+      }
+      
+      if (!data) {
+        console.log(`DATABASE getTagById - Tag com ID ${id} não encontrada`);
+        return undefined;
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        isActive: data.is_active === true || data.is_active === 't',
+        count: data.count || 0,
+        createdAt: new Date(data.created_at)
+      };
+    } catch (error) {
+      console.error("DATABASE getTagById - Exceção:", error);
+      return undefined;
+    }
+  }
+  
+  async getTagBySlug(slug: string): Promise<Tag | undefined> {
+    try {
+      console.log(`DATABASE getTagBySlug - Buscando tag com slug "${slug}"`);
+      
+      // Tentar primeiro com Supabase
+      const { data, error } = await supabase
+        .from('tags')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+        
+      if (error) {
+        console.error("DATABASE getTagBySlug - Erro ao buscar tag via Supabase:", error.message);
+        // Tentar com PostgreSQL direto se o Supabase falhar
+        try {
+          console.log("DATABASE getTagBySlug - Tentando via PostgreSQL após falha no Supabase");
+          const result = await pool.query(
+            'SELECT * FROM tags WHERE slug = $1',
+            [slug]
+          );
+          
+          if (result.rows.length === 0) {
+            return undefined;
+          }
+          
+          const tag = result.rows[0];
+          return {
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            description: tag.description,
+            isActive: tag.is_active === true || tag.is_active === 't',
+            count: tag.count || 0,
+            createdAt: new Date(tag.created_at)
+          };
+        } catch (pgError) {
+          console.error("DATABASE getTagBySlug - Erro também no PostgreSQL:", pgError);
+          return undefined;
+        }
+      }
+      
+      if (!data) {
+        console.log(`DATABASE getTagBySlug - Tag com slug "${slug}" não encontrada`);
+        return undefined;
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        isActive: data.is_active === true || data.is_active === 't',
+        count: data.count || 0,
+        createdAt: new Date(data.created_at)
+      };
+    } catch (error) {
+      console.error("DATABASE getTagBySlug - Exceção:", error);
+      return undefined;
+    }
+  }
+  
+  async createTag(tag: InsertTag): Promise<Tag> {
+    try {
+      console.log("DATABASE createTag - Criando nova tag:", tag);
+      
+      // Mapear os campos para o formato do banco
+      const dbTag = {
+        name: tag.name,
+        slug: tag.slug,
+        description: tag.description,
+        is_active: tag.isActive === undefined ? true : tag.isActive,
+        count: 0
+      };
+      
+      // Tentar primeiro com Supabase
+      const { data, error } = await supabase
+        .from('tags')
+        .insert(dbTag)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("DATABASE createTag - Erro ao criar tag via Supabase:", error.message);
+        // Tentar com PostgreSQL direto se o Supabase falhar
+        try {
+          console.log("DATABASE createTag - Tentando via PostgreSQL após falha no Supabase");
+          const result = await pool.query(
+            'INSERT INTO tags (name, slug, description, is_active, count) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [tag.name, tag.slug, tag.description, tag.isActive === undefined ? true : tag.isActive, 0]
+          );
+          
+          const newTag = result.rows[0];
+          return {
+            id: newTag.id,
+            name: newTag.name,
+            slug: newTag.slug,
+            description: newTag.description,
+            isActive: newTag.is_active === true || newTag.is_active === 't',
+            count: newTag.count || 0,
+            createdAt: new Date(newTag.created_at)
+          };
+        } catch (pgError) {
+          console.error("DATABASE createTag - Erro também no PostgreSQL:", pgError);
+          throw new Error(`Erro ao criar tag: ${error.message}`);
+        }
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        isActive: data.is_active === true || data.is_active === 't',
+        count: data.count || 0,
+        createdAt: new Date(data.created_at)
+      };
+    } catch (error) {
+      console.error("DATABASE createTag - Exceção:", error);
+      throw error;
+    }
+  }
+  
+  async updateTag(id: number, tagUpdate: Partial<InsertTag>): Promise<Tag> {
+    try {
+      console.log(`DATABASE updateTag - Atualizando tag ${id}:`, tagUpdate);
+      
+      // Mapear os campos para o formato do banco
+      const dbTagUpdate: any = {};
+      if (tagUpdate.name !== undefined) dbTagUpdate.name = tagUpdate.name;
+      if (tagUpdate.slug !== undefined) dbTagUpdate.slug = tagUpdate.slug;
+      if (tagUpdate.description !== undefined) dbTagUpdate.description = tagUpdate.description;
+      if (tagUpdate.isActive !== undefined) dbTagUpdate.is_active = tagUpdate.isActive;
+      
+      // Tentar primeiro com Supabase
+      const { data, error } = await supabase
+        .from('tags')
+        .update(dbTagUpdate)
+        .eq('id', id)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("DATABASE updateTag - Erro ao atualizar tag via Supabase:", error.message);
+        // Tentar com PostgreSQL direto se o Supabase falhar
+        try {
+          console.log("DATABASE updateTag - Tentando via PostgreSQL após falha no Supabase");
+          
+          // Construir a consulta SQL dinamicamente com base nos campos presentes
+          const fields = Object.keys(dbTagUpdate);
+          
+          if (fields.length === 0) {
+            // Se não houver campos para atualizar, apenas retornar a tag atual
+            const getResult = await pool.query('SELECT * FROM tags WHERE id = $1', [id]);
+            
+            if (getResult.rows.length === 0) {
+              throw new Error(`Tag com ID ${id} não encontrada`);
+            }
+            
+            const tag = getResult.rows[0];
+            return {
+              id: tag.id,
+              name: tag.name,
+              slug: tag.slug,
+              description: tag.description,
+              isActive: tag.is_active === true || tag.is_active === 't',
+              count: tag.count || 0,
+              createdAt: new Date(tag.created_at)
+            };
+          }
+          
+          const placeholders = fields.map((field, index) => `${field} = $${index + 1}`);
+          const values = fields.map(field => dbTagUpdate[field]);
+          
+          const query = `UPDATE tags SET ${placeholders.join(', ')} WHERE id = $${fields.length + 1} RETURNING *`;
+          const result = await pool.query(query, [...values, id]);
+          
+          if (result.rows.length === 0) {
+            throw new Error(`Tag com ID ${id} não encontrada`);
+          }
+          
+          const updatedTag = result.rows[0];
+          return {
+            id: updatedTag.id,
+            name: updatedTag.name,
+            slug: updatedTag.slug,
+            description: updatedTag.description,
+            isActive: updatedTag.is_active === true || updatedTag.is_active === 't',
+            count: updatedTag.count || 0,
+            createdAt: new Date(updatedTag.created_at)
+          };
+        } catch (pgError) {
+          console.error("DATABASE updateTag - Erro também no PostgreSQL:", pgError);
+          throw new Error(`Erro ao atualizar tag: ${error.message}`);
+        }
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        isActive: data.is_active === true || data.is_active === 't',
+        count: data.count || 0,
+        createdAt: new Date(data.created_at)
+      };
+    } catch (error) {
+      console.error("DATABASE updateTag - Exceção:", error);
+      throw error;
+    }
+  }
+  
+  async deleteTag(id: number): Promise<void> {
+    try {
+      console.log(`DATABASE deleteTag - Excluindo tag ${id}`);
+      
+      // Tentar primeiro com Supabase
+      const { error } = await supabase
+        .from('tags')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        console.error("DATABASE deleteTag - Erro ao excluir tag via Supabase:", error.message);
+        // Tentar com PostgreSQL direto se o Supabase falhar
+        try {
+          console.log("DATABASE deleteTag - Tentando via PostgreSQL após falha no Supabase");
+          await pool.query('DELETE FROM tags WHERE id = $1', [id]);
+        } catch (pgError) {
+          console.error("DATABASE deleteTag - Erro também no PostgreSQL:", pgError);
+          throw new Error(`Erro ao excluir tag: ${error.message}`);
+        }
+      }
+    } catch (error) {
+      console.error("DATABASE deleteTag - Exceção:", error);
+      throw error;
+    }
+  }
+  
+  async toggleTagStatus(id: number, isActive: boolean): Promise<Tag> {
+    try {
+      console.log(`DATABASE toggleTagStatus - Alternando status da tag ${id} para ${isActive ? 'ativo' : 'inativo'}`);
+      
+      // Usar método PATCH do Supabase
+      const { data, error } = await supabase
+        .from('tags')
+        .update({ is_active: isActive })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE toggleTagStatus - Erro ao alternar status via Supabase:", error.message);
+        // Se falhar no Supabase, tentar diretamente via PostgreSQL
+        try {
+          console.log("DATABASE toggleTagStatus - Tentando via PostgreSQL após falha no Supabase");
+          const result = await pool.query(
+            'UPDATE tags SET is_active = $1 WHERE id = $2 RETURNING *',
+            [isActive, id]
+          );
+          
+          if (result.rows.length === 0) {
+            throw new Error(`Tag com ID ${id} não encontrada`);
+          }
+          
+          const tagData = result.rows[0];
+          return {
+            id: tagData.id,
+            name: tagData.name,
+            slug: tagData.slug,
+            description: tagData.description,
+            isActive: tagData.is_active === true || tagData.is_active === 't',
+            count: tagData.count || 0,
+            createdAt: new Date(tagData.created_at)
+          };
+        } catch (pgError) {
+          console.error("DATABASE toggleTagStatus - Erro também no PostgreSQL:", pgError);
+          throw new Error(`Erro ao alternar status da tag: ${error.message}`);
+        }
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        isActive: data.is_active === true || data.is_active === 't',
+        count: data.count || 0,
+        createdAt: new Date(data.created_at)
+      };
+    } catch (error) {
+      console.error("DATABASE toggleTagStatus - Exceção:", error);
       throw error;
     }
   }
