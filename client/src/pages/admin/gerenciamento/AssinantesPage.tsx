@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { CreditCard, Edit2, MessageSquare, Search, Shield, Trash2, User } from "lucide-react";
+import { CreditCard, Edit2, Key, MessageSquare, Search, Shield, Trash2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
@@ -447,6 +447,26 @@ export default function AssinantesPage() {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
+              <Label htmlFor="username">Nome do Usuário</Label>
+              <Input 
+                id="username"
+                type="text"
+                value={editFormData.username}
+                onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail</Label>
+              <Input 
+                id="email"
+                type="email"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="plano_id">Plano</Label>
               <select
                 id="plano_id"
@@ -530,6 +550,28 @@ export default function AssinantesPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {cancelarAssinaturaMutation.isPending ? "Cancelando..." : "Cancelar Assinatura"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Alert dialog para confirmar redefinição de senha */}
+      <AlertDialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Redefinir senha do assinante</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja redefinir a senha do assinante "{selectedAssinante?.username}"?
+              A nova senha será "estetica@123".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => selectedAssinante && resetPasswordMutation.mutate(selectedAssinante.id)}
+              className="bg-yellow-600 text-white hover:bg-yellow-700"
+            >
+              {resetPasswordMutation.isPending ? "Redefinindo..." : "Redefinir Senha"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
