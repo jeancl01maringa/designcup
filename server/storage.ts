@@ -62,9 +62,11 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     if (user) {
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
+      // Cria um novo objeto sem as propriedades específicas do banco de dados
+      const { is_admin, ...rest } = user;
       return {
-        ...user,
-        isAdmin: user.is_admin
+        ...rest,
+        isAdmin: is_admin
       };
     }
     return undefined;
@@ -74,9 +76,10 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     if (user) {
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
+      const { is_admin, ...rest } = user;
       return {
-        ...user,
-        isAdmin: user.is_admin
+        ...rest,
+        isAdmin: is_admin
       };
     }
     return undefined;
@@ -86,9 +89,10 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     if (user) {
       // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
+      const { is_admin, ...rest } = user;
       return {
-        ...user,
-        isAdmin: user.is_admin
+        ...rest,
+        isAdmin: is_admin
       };
     }
     return undefined;
