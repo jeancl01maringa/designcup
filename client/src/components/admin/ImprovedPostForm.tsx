@@ -17,7 +17,8 @@ import {
   ArrowLeft, Link as LinkIcon, 
   ChevronLeft, Crown, Plus,
   ImageIcon, Trash, Circle, 
-  ExternalLink, FileImage
+  ExternalLink, FileImage,
+  Clock, XCircle
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";

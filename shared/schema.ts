@@ -129,6 +129,7 @@ export const posts = pgTable("posts", {
   formats: text("formats").array(), // array de formatos (feed, stories, cartaz)
   formatData: text("format_data"), // dados de formato em JSON
   groupId: text("group_id"), // ID para agrupar artes relacionadas
+  isVisible: boolean("is_visible").default(true).notNull(), // controle de visibilidade no feed
 });
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
