@@ -1231,16 +1231,18 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`DATABASE updatePostStatus - Atualizando status para ${status} nos posts:`, ids);
       
-      for (const id of ids) {
-        const { error } = await supabase
-          .from('posts')
-          .update({ status })
-          .eq('id', id);
-        
-        if (error) {
-          console.error(`DATABASE updatePostStatus - Erro ao atualizar status do post ${id}:`, error.message);
-          throw new Error(`Erro ao atualizar status do post ${id}: ${error.message}`);
-        }
+      // Usar operação em lote (in) para atualizar todos os posts de uma vez
+      const { error } = await supabase
+        .from('posts')
+        .update({ 
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .in('id', ids);
+      
+      if (error) {
+        console.error('DATABASE updatePostStatus - Erro ao atualizar status dos posts:', error);
+        throw new Error(`Erro ao atualizar status dos posts: ${error.message}`);
       }
       
       console.log(`DATABASE updatePostStatus - Status atualizado para ${status} em ${ids.length} posts`);
