@@ -12,13 +12,24 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, XCircle, Image, Upload, Check, Crown, X } from "lucide-react";
+import { 
+  PlusCircle, XCircle, Image, Upload, Check, Crown, X, 
+  Link as LinkIcon, FileCheck, ArrowLeft, ExternalLink, FileImage
+} from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { uploadToSupabase } from "@/lib/admin/uploadToSupabase";
 import { Post, Category } from "@shared/schema";
-import { nanoid } from "@/lib/utils";
+import { nanoid, cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 
 interface PostFormProps {
   open: boolean;
@@ -45,6 +56,7 @@ interface PostFormData {
   formats: PostFormat[];
   formatFiles: Record<PostFormat, FormatFile>;
   uniqueCode: string;
+  groupId?: string; // ID para agrupar artes relacionadas (até 3)
 }
 
 export function PostForm({ open, onOpenChange, initialData, isEdit = false }: PostFormProps) {
@@ -401,33 +413,45 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogTitle className="text-xl font-bold">
-          {step === 1 ? "Nova Postagem" : "Adicionar Arquivos"}
+          {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Postagem"}
         </DialogTitle>
         
         {/* Indicador de progresso */}
-        <div className="flex items-center justify-center mb-6 pt-2">
-          <div className="flex items-center w-full max-w-xs">
+        <div className="flex items-center justify-center mb-4 pt-2">
+          <div className="flex items-center w-full max-w-md">
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              step >= 1 ? "bg-blue-100 text-blue-700 border border-blue-300" : "bg-gray-100 text-gray-400 border border-gray-300"
+              step >= 1 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
             }`}>
               1
             </div>
             <div className={`flex-1 h-1 mx-2 ${
-              step > 1 ? "bg-blue-500" : "bg-gray-200"
+              step > 1 ? "bg-[#1f4ed8]" : "bg-gray-200"
             }`}></div>
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              step >= 2 ? "bg-blue-100 text-blue-700 border border-blue-300" : "bg-gray-100 text-gray-400 border border-gray-300"
+              step >= 2 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
             }`}>
               2
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${
+              step > 2 ? "bg-[#1f4ed8]" : "bg-gray-200"
+            }`}></div>
+            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+              step >= 3 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
+            }`}>
+              3
             </div>
           </div>
         </div>
         
         <div className="mb-4 flex justify-center">
           <p className="text-sm text-muted-foreground">
-            Etapa {step} de 2: {step === 1 ? "Informações da postagem" : "Upload de arquivos"}
+            Etapa {step} de 3: {
+              step === 1 ? "Informações da postagem" : 
+              step === 2 ? "Upload de arquivos" : 
+              "Revisão e confirmação"
+            }
           </p>
         </div>
         
