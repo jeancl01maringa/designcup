@@ -272,6 +272,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error deleting post' });
     }
   });
+  
+  // Excluir múltiplos posts em lote
+  app.delete('/api/admin/posts/batch', async (req, res) => {
+    try {
+      const { ids } = req.body;
+      
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: 'Invalid post IDs' });
+      }
+      
+      // Excluir cada post do array de IDs
+      for (const id of ids) {
+        await storage.deletePost(id);
+      }
+      
+      res.status(200).json({ 
+        success: true,
+        message: `${ids.length} posts deleted successfully` 
+      });
+    } catch (error) {
+      console.error('Error deleting posts in batch:', error);
+      res.status(500).json({ message: 'Error deleting posts' });
+    }
+  });
 
   // Atualizar status de múltiplos posts
   app.put('/api/admin/posts/status/batch', async (req, res) => {

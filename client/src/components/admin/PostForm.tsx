@@ -37,6 +37,8 @@ interface PostFormProps {
   onOpenChange: (open: boolean) => void;
   initialData?: Post;
   isEdit?: boolean;
+  categories: Category[];
+  onSubmit: (data: any) => Promise<void>;
 }
 
 type PostFormat = 'feed' | 'cartaz' | 'stories';
@@ -60,7 +62,7 @@ interface PostFormData {
   groupId?: string; // ID para agrupar artes relacionadas (até 3)
 }
 
-export function PostForm({ open, onOpenChange, initialData, isEdit = false }: PostFormProps) {
+export function PostForm({ open, onOpenChange, initialData, isEdit = false, categories, onSubmit }: PostFormProps) {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [activeTab, setActiveTab] = useState<string>("postagem");
@@ -115,64 +117,10 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false }: Po
     }
   }, [isEdit, initialData, uniquePostId]);
 
-  // Buscar categorias
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/admin/categories"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/categories");
-      if (!res.ok) throw new Error("Falha ao buscar categorias");
-      return res.json();
-    }
-  });
+  // Categorias são recebidas por props
 
-  // Criar nova postagem
-  const createPostMutation = useMutation({
-    mutationFn: async (postData: Partial<Post>) => {
-      const res = await apiRequest("POST", "/api/admin/posts", postData);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso!",
-        description: "Postagem criada com sucesso.",
-        variant: "default",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/posts"] });
-      onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao criar postagem",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Atualizar postagem existente
-  const updatePostMutation = useMutation({
-    mutationFn: async (postData: Partial<Post>) => {
-      if (!initialData?.id) throw new Error("ID da postagem é necessário para atualização");
-      const res = await apiRequest("PATCH", `/api/admin/posts/${initialData.id}`, postData);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso!",
-        description: "Postagem atualizada com sucesso.",
-        variant: "default",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/posts"] });
-      onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar postagem",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Função para salvar ou atualizar a postagem
+  // Usa o onSubmit que é passado como prop para o componente
 
   // Manipuladores de formulário
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
