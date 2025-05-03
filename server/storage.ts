@@ -1057,27 +1057,11 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getPostById - Buscando post com ID:", id);
       
+      // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
+      // Caso o schema ainda não tenha sido atualizado
       const { data, error } = await supabase
         .from('posts')
-        .select(`
-          id,
-          title,
-          description,
-          image_url,
-          unique_code,
-          category_id,
-          status,
-          created_at,
-          published_at,
-          formato,
-          group_id,
-          titulo_base,
-          is_pro,
-          license_type,
-          canva_url,
-          formato_data,
-          is_visible
-        `)
+        .select('*')
         .eq('id', id)
         .single();
       
@@ -1091,7 +1075,8 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
       
-      // Mapear para o formato esperado pela aplicação
+      // Mapear para o formato esperado pela aplicação com valores padrão 
+      // para os campos que podem não existir ainda no banco
       const result: Post = {
         id: data.id,
         title: data.title,
@@ -1102,13 +1087,17 @@ export class DatabaseStorage implements IStorage {
         status: data.status,
         createdAt: new Date(data.created_at),
         publishedAt: data.published_at ? new Date(data.published_at) : null,
-        formato: data.formato,
-        groupId: data.group_id,
-        tituloBase: data.titulo_base,
-        isPro: !!data.is_pro,
+        // Novos campos com fallbacks
+        formato: data.formato || null,
+        groupId: data.group_id || null,
+        tituloBase: data.titulo_base || data.title, // Usar o título como fallback
+        isPro: data.is_pro !== undefined ? !!data.is_pro : false,
         licenseType: data.license_type || 'free',
-        canvaUrl: data.canva_url,
-        formatoData: data.formato_data,
+        canvaUrl: data.canva_url || null,
+        formatoData: data.formato_data || null,
+        tags: data.tags || [],
+        formats: data.formats || [],
+        formatData: data.format_data || null,
         isVisible: data.is_visible !== false // se for null ou undefined, assume true
       };
       
@@ -1129,27 +1118,11 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
+      // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
+      // Caso o schema ainda não tenha sido atualizado
       const { data, error } = await supabase
         .from('posts')
-        .select(`
-          id,
-          title,
-          description,
-          image_url,
-          unique_code,
-          category_id,
-          status,
-          created_at,
-          published_at,
-          formato,
-          group_id,
-          titulo_base,
-          is_pro,
-          license_type,
-          canva_url,
-          formato_data,
-          is_visible
-        `)
+        .select('*')
         .eq('group_id', groupId)
         .order('id', { ascending: true });
       
@@ -1164,6 +1137,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Mapear os dados do Supabase para o formato esperado pela aplicação
+      // com valores padrão para os campos que podem não existir ainda no banco
       const result = data.map(post => ({
         id: post.id,
         title: post.title,
@@ -1174,13 +1148,17 @@ export class DatabaseStorage implements IStorage {
         status: post.status,
         createdAt: new Date(post.created_at),
         publishedAt: post.published_at ? new Date(post.published_at) : null,
-        formato: post.formato,
-        groupId: post.group_id,
-        tituloBase: post.titulo_base,
-        isPro: !!post.is_pro,
+        // Novos campos com fallbacks
+        formato: post.formato || null,
+        groupId: post.group_id || null,
+        tituloBase: post.titulo_base || post.title, // Usar title como fallback
+        isPro: post.is_pro !== undefined ? !!post.is_pro : false,
         licenseType: post.license_type || 'free',
-        canvaUrl: post.canva_url,
-        formatoData: post.formato_data,
+        canvaUrl: post.canva_url || null,
+        formatoData: post.formato_data || null,
+        tags: post.tags || [],
+        formats: post.formats || [],
+        formatData: post.format_data || null,
         isVisible: post.is_visible !== false // se for null ou undefined, assume true
       }));
       
