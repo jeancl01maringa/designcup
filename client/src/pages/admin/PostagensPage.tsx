@@ -42,9 +42,10 @@ import {
   RefreshCcw
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Post } from "@shared/schema";
+import { Post, Category } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { PostForm } from "@/components/admin/PostForm";
 
 interface PostFilter {
   searchTerm?: string;
@@ -60,6 +61,20 @@ export default function PostagensPage() {
   const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+
+  // Buscar categorias (necessário para o formulário)
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['/api/admin/categories'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/admin/categories');
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao buscar categorias:", error);
+        return [];
+      }
+    }
+  });
 
   // Buscar postagens com filtros
   const { data: posts, isLoading, refetch } = useQuery<Post[]>({
@@ -366,22 +381,24 @@ export default function PostagensPage() {
             </>
           )}
           
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <Dialog>
             <DialogTrigger asChild>
-              <Button onClick={() => setEditingPost(null)}>
+              <Button onClick={() => {
+                setEditingPost(null);
+                setIsFormOpen(true);
+              }}>
                 <Plus className="h-4 w-4 mr-1" />
                 Nova postagem
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{editingPost ? 'Editar Postagem' : 'Nova Postagem'}</DialogTitle>
-              </DialogHeader>
-              {/* O componente PostForm seria importado aqui */}
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Formulário de postagem será carregado aqui</p>
-              </div>
-            </DialogContent>
+            
+            {/* Renderiza o PostForm no seu próprio Dialog para controle completo */}
+            <PostForm 
+              open={isFormOpen}
+              onOpenChange={setIsFormOpen}
+              initialData={editingPost || undefined}
+              isEdit={!!editingPost}
+            />
           </Dialog>
         </div>
       </div>
