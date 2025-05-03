@@ -308,6 +308,7 @@ export default function UsuariosPage() {
               <TableRow>
                 <TableHead>Usuário</TableHead>
                 <TableHead>E-mail</TableHead>
+                <TableHead>Telefone</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Plano</TableHead>
                 <TableHead>Status</TableHead>
@@ -317,13 +318,13 @@ export default function UsuariosPage() {
             <TableBody>
               {isLoadingUsuarios ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
+                  <TableCell colSpan={7} className="text-center py-6">
                     Carregando usuários...
                   </TableCell>
                 </TableRow>
               ) : filteredUsuarios.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
+                  <TableCell colSpan={7} className="text-center py-6">
                     {searchTerm ? "Nenhum usuário encontrado com este termo de pesquisa." : "Nenhum usuário cadastrado."}
                   </TableCell>
                 </TableRow>
@@ -349,6 +350,16 @@ export default function UsuariosPage() {
                     </TableCell>
                     <TableCell>{usuario.email}</TableCell>
                     <TableCell>
+                      {usuario.telefone ? (
+                        <div className="flex items-center gap-1">
+                          <Phone size={14} className="text-gray-500" />
+                          <span>{usuario.telefone}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Não informado</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <Badge variant={usuario.tipo === 'premium' ? 'default' : 'outline'} className={usuario.tipo === 'premium' ? 'bg-blue-600' : ''}>
                         {usuario.tipo === 'premium' ? 'Premium' : 'Free'}
                       </Badge>
@@ -368,6 +379,23 @@ export default function UsuariosPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
+                      {usuario.telefone && (
+                        <a 
+                          href={`https://wa.me/${usuario.telefone.replace(/\D/g, '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mr-1"
+                            title="Contatar via WhatsApp"
+                          >
+                            <Phone size={16} className="text-green-600" />
+                          </Button>
+                        </a>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
