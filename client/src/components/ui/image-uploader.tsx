@@ -1,11 +1,12 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { supabase, ensureImageBucket } from '@/lib/supabase';
+import { supabase, checkSupabaseConnection, ensureImageBucket } from '@/lib/supabase';
 import { nanoid } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { Upload, ImageOff, X, RefreshCw } from 'lucide-react';
+import { Upload, ImageOff, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import imageCompression from 'browser-image-compression';
 
 interface ImageUploaderProps {
@@ -30,7 +31,25 @@ export function ImageUploader({
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        console.log('Verificando conexão com Supabase...');
+        const isConnected = await checkSupabaseConnection();
+        console.log('Status da conexão com Supabase:', isConnected ? 'Conectado' : 'Desconectado');
+        setSupabaseConnected(isConnected);
+      } catch (error) {
+        console.error('Erro ao verificar conexão:', error);
+        setSupabaseConnected(false);
+      }
+    };
+    
+    checkConnection();
+  }, []);
 
   const handleFileSelect = useCallback(async (file: File) => {
     try {
@@ -41,6 +60,19 @@ export function ImageUploader({
       // Verificar se é uma imagem
       if (!file.type.startsWith('image/')) {
         throw new Error('Por favor, selecione um arquivo de imagem válido');
+      }
+
+      // Verificar conexão com Supabase
+      const isConnected = await checkSupabaseConnection();
+      setSupabaseConnected(isConnected);
+      
+      if (!isConnected) {
+        toast({
+          title: "Erro de conexão",
+          description: "Não foi possível conectar ao serviço de armazenamento. Verifique suas credenciais do Supabase.",
+          variant: "destructive",
+        });
+        throw new Error('Erro de conexão com o serviço de armazenamento. Verifique suas credenciais do Supabase.');
       }
 
       setUploadProgress(20);
@@ -55,10 +87,18 @@ export function ImageUploader({
       });
       console.log(`Imagem comprimida! (novo tamanho: ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB)`);
       
-      setUploadProgress(50);
+      setUploadProgress(40);
 
-      // Garantir que o bucket existe
-      await ensureImageBucket();
+      try {
+        // Garantir que o bucket existe
+        await ensureImageBucket();
+      } catch (bucketError) {
+        console.error('Erro ao verificar/criar bucket:', bucketError);
+        toast({
+          title: "Aviso",
+          description: "Não foi possível verificar o bucket de imagens. Tentando upload mesmo assim.",
+        });
+      }
       
       setUploadProgress(60);
 
@@ -73,10 +113,20 @@ export function ImageUploader({
         .from('images')
         .upload(fileName, compressedFile, {
           cacheControl: '3600',
-          upsert: false,
+          upsert: true, // Alterado para true para garantir que substitua se já existir
         });
 
       if (uploadError) {
+        console.error('Erro no upload para Supabase:', uploadError);
+        
+        if (uploadError.message.includes('auth')) {
+          throw new Error('Erro de autenticação no Supabase. Verifique suas credenciais.');
+        } else if (uploadError.message.includes('permission')) {
+          throw new Error('Permissão negada no bucket. Verifique as políticas de acesso do Supabase.');
+        } else if (uploadError.message.includes('bucket')) {
+          throw new Error('Problema com o bucket. Verifique se o bucket "images" existe.');
+        }
+        
         throw uploadError;
       }
       
@@ -90,13 +140,23 @@ export function ImageUploader({
       onImageUploaded(publicUrl);
       
       setUploadProgress(100);
+      toast({
+        title: "Sucesso!",
+        description: "Imagem enviada com sucesso.",
+      });
     } catch (err) {
       console.error('Erro ao fazer upload da imagem:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao enviar imagem');
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao enviar imagem';
+      setError(errorMessage);
+      toast({
+        title: "Erro no upload",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsUploading(false);
     }
-  }, [maxSizeMB, maxWidthOrHeight, onImageUploaded]);
+  }, [maxSizeMB, maxWidthOrHeight, onImageUploaded, toast]);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -164,6 +224,27 @@ export function ImageUploader({
           <div className="w-full max-w-xs">
             <Progress value={uploadProgress} className="h-2" />
           </div>
+        </div>
+      ) : supabaseConnected === false ? (
+        <div className="flex flex-col items-center justify-center p-6 w-full h-full">
+          <AlertCircle size={30} className="text-amber-500 mb-3" />
+          <p className="text-sm text-amber-600 font-medium mb-2">Falha na conexão com Supabase</p>
+          <div className="text-xs text-gray-500 text-center max-w-xs">
+            <p className="mb-2">Verifique se as variáveis de ambiente do Supabase estão configuradas:</p>
+            <ol className="list-decimal list-inside text-left space-y-1 mb-3">
+              <li>VITE_SUPABASE_URL</li>
+              <li>VITE_SUPABASE_KEY</li>
+            </ol>
+            <p>Essas credenciais são necessárias para upload de imagens.</p>
+          </div>
+          <Button 
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => setSupabaseConnected(null)}
+          >
+            Entendi
+          </Button>
         </div>
       ) : imageUrl ? (
         <div className="relative w-full h-full">

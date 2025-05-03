@@ -1,4 +1,4 @@
-import { supabase, ensureImageBucket } from "@/lib/supabase";
+import { supabase, ensureImageBucket, checkSupabaseConnection } from "@/lib/supabase";
 import browserImageCompression from "browser-image-compression";
 
 /**
@@ -41,8 +41,20 @@ export async function uploadToSupabase(
   optimize = true
 ): Promise<string | null> {
   try {
-    // Verificar se o bucket existe
-    await ensureImageBucket();
+    // Verificar conexão com Supabase
+    const isConnected = await checkSupabaseConnection();
+    if (!isConnected) {
+      console.error('Erro no upload: Não foi possível conectar ao Supabase. Verifique suas credenciais.');
+      throw new Error('Não foi possível conectar ao Supabase. Verifique suas credenciais.');
+    }
+    
+    try {
+      // Verificar se o bucket existe
+      await ensureImageBucket();
+    } catch (bucketError) {
+      console.error('Erro ao verificar/criar bucket:', bucketError);
+      // Continuar mesmo se falhar a verificação do bucket
+    }
     
     // Otimizar imagem se solicitado
     const fileToUpload = optimize && file.type.startsWith('image/') 
@@ -59,7 +71,17 @@ export async function uploadToSupabase(
       
     if (error) {
       console.error('Erro no upload para Supabase:', error);
-      return null;
+      
+      // Verificar tipo de erro para melhor diagnóstico
+      if (error.message.includes('auth')) {
+        throw new Error('Erro de autenticação no Supabase. Verifique suas credenciais de API.');
+      } else if (error.message.includes('permission')) {
+        throw new Error('Permissão negada no bucket. Verifique as políticas de acesso do Supabase.');
+      } else if (error.message.includes('bucket')) {
+        throw new Error('Problema com o bucket. Verifique se o bucket "images" existe.');
+      }
+      
+      throw error;
     }
     
     // Retornar URL público
