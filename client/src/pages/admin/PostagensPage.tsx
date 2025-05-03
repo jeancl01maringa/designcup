@@ -283,10 +283,16 @@ export default function PostagensPage() {
   
   // Verificar se o post é premium
   const isPostPremium = (post: Post) => {
-    // Se o post tiver a propriedade licenseType definida, verifique se é 'premium'
+    // Verificar primeiro o campo licenseType (usado pelo front-end)
     if (typeof post.licenseType === 'string') {
       return post.licenseType === 'premium';
     }
+    
+    // Se não tiver licenseType, verificar o campo isPro (usado pelo back-end/banco de dados)
+    if (typeof post.isPro === 'boolean') {
+      return post.isPro;
+    }
+    
     // Caso contrário, considere como free por padrão
     return false;
   };
