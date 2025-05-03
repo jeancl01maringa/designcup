@@ -1816,6 +1816,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para redefinir a senha de um usuário para o padrão
+  app.patch('/api/admin/usuarios/:id/reset-password', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { newPassword } = req.body;
+      
+      if (!newPassword) {
+        return res.status(400).json({ message: 'Nova senha é obrigatória' });
+      }
+
+      console.log(`Redefinindo senha do usuário #${id} para o padrão`);
+      
+      // Gerar o hash da nova senha
+      const hashedPassword = await hashPassword(newPassword);
+      
+      try {
+        const result = await pool.query(`
+          UPDATE users 
+          SET password = $1 
+          WHERE id = $2
+          RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+            COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
+        `, [hashedPassword, id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          return res.json({ 
+            message: 'Senha redefinida com sucesso',
+            user: result.rows[0]
+          });
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao redefinir senha do usuário #${id}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao redefinir senha do usuário',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error resetting user password:', error);
+      res.status(500).json({ 
+        message: 'Erro ao redefinir senha do usuário',
+        error: error.message
+      });
+    }
+  });
+
   // API endpoints para gerenciamento de assinantes
   app.get('/api/admin/assinantes', async (req, res) => {
     try {
