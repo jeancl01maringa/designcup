@@ -1639,7 +1639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const { username, email, isAdmin, tipo, plano_id, data_vencimento, active } = req.body;
+      const { username, email, isAdmin, tipo, plano_id, data_vencimento, active, telefone } = req.body;
       
       console.log(`Atualizando usuário #${id}:`, req.body);
       
@@ -1658,6 +1658,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         setClauses.push(`email = $${paramIndex}`);
         queryParams.push(email);
         paramIndex++;
+      }
+      
+      if (telefone !== undefined) {
+        if (telefone === "") {
+          setClauses.push(`telefone = NULL`);
+        } else {
+          setClauses.push(`telefone = $${paramIndex}`);
+          queryParams.push(telefone);
+          paramIndex++;
+        }
       }
       
       if (isAdmin !== undefined) {
@@ -1710,7 +1720,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         UPDATE users 
         SET ${setClauses.join(', ')} 
         WHERE id = $${paramIndex}
-        RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
+        RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
           COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
       `;
       
