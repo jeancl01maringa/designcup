@@ -68,15 +68,14 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const [newTag, setNewTag] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
-  // Gerar um ID único para a postagem
-  const uniquePostId = nanoid();
-  
+  // Definir o formato padrão para arquivos
   const defaultFormatFile: FormatFile = {
     imageFile: null,
     imagePreview: null,
     links: []
   };
   
+  // Estado inicial do formulário com valores vazios
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
     categoryId: null,
@@ -90,35 +89,68 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       cartaz: { ...defaultFormatFile },
       stories: { ...defaultFormatFile }
     },
-    uniqueCode: uniquePostId,
-    groupId: nanoid(),
+    uniqueCode: "",
+    groupId: "",
     isVisible: true // Por padrão a postagem é visível
   });
 
-  // Preencher dados caso seja edição
+  // Resetar o formulário ou preencher com dados de edição
   useEffect(() => {
-    if (isEdit && initialData) {
-      const formatFiles: Record<PostFormat, FormatFile> = {
-        feed: { ...defaultFormatFile },
-        cartaz: { ...defaultFormatFile },
-        stories: { ...defaultFormatFile }
-      };
+    // Se estiver abrindo o formulário (open === true)
+    if (open) {
+      // Caso 1: Edição de postagem existente
+      if (isEdit && initialData) {
+        const formatFiles: Record<PostFormat, FormatFile> = {
+          feed: { ...defaultFormatFile },
+          cartaz: { ...defaultFormatFile },
+          stories: { ...defaultFormatFile }
+        };
 
-      setFormData({
-        title: initialData.title,
-        categoryId: initialData.categoryId,
-        status: initialData.status as 'aprovado' | 'rascunho' | 'rejeitado',
-        description: initialData.description,
-        licenseType: initialData.licenseType || "premium",
-        tags: initialData.tags || [],
-        formats: (initialData.formats as PostFormat[]) || [],
-        formatFiles: formatFiles,
-        uniqueCode: initialData.uniqueCode || uniquePostId,
-        groupId: initialData.groupId || nanoid(),
-        isVisible: initialData.isVisible !== undefined ? initialData.isVisible : true
-      });
+        setFormData({
+          title: initialData.title,
+          categoryId: initialData.categoryId,
+          status: initialData.status as 'aprovado' | 'rascunho' | 'rejeitado',
+          description: initialData.description,
+          licenseType: initialData.licenseType || "premium",
+          tags: initialData.tags || [],
+          formats: (initialData.formats as PostFormat[]) || [],
+          formatFiles: formatFiles,
+          uniqueCode: initialData.uniqueCode || nanoid(),
+          groupId: initialData.groupId || nanoid(),
+          isVisible: initialData.isVisible !== undefined ? initialData.isVisible : true
+        });
+      } 
+      // Caso 2: Nova postagem (resetar para o estado inicial)
+      else if (!isEdit) {
+        // Gerar um novo ID único para cada nova postagem
+        const newUniquePostId = nanoid();
+        
+        setFormData({
+          title: "",
+          categoryId: null,
+          status: "aprovado",
+          description: null,
+          licenseType: "premium",
+          tags: [],
+          formats: [],
+          formatFiles: {
+            feed: { ...defaultFormatFile },
+            cartaz: { ...defaultFormatFile },
+            stories: { ...defaultFormatFile }
+          },
+          uniqueCode: newUniquePostId,
+          groupId: nanoid(),
+          isVisible: true
+        });
+        
+        // Resetar também o passo e a aba ativa
+        setStep(1);
+        setActiveTab("feed");
+        setNewTag("");
+        setHasUnsavedChanges(false);
+      }
     }
-  }, [isEdit, initialData, uniquePostId]);
+  }, [open, isEdit, initialData, defaultFormatFile]);
   
   // Rastrear mudanças no formulário quando esses valores específicos mudarem
   useEffect(() => {
