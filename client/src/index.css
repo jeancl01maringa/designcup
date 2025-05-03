@@ -95,8 +95,8 @@
   .image-card img {
     width: 100%;
     height: auto;
-    object-fit: cover;
     display: block;
+    /* Removido object-fit: cover para manter proporção original das imagens */
   }
 
   .badge-premium {

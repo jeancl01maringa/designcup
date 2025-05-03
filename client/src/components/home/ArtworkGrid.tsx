@@ -215,16 +215,10 @@ export default function ArtworkGrid() {
           </div>
         </div>
 
-        {/* Grid responsivo com auto-fit e minmax */}
-        <div 
-          className="grid gap-5 mb-10"
-          style={{ 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gridAutoRows: 'auto'
-          }}
-        >
+        {/* Grid estilo Pinterest (Masonry) com imagens de proporções originais */}
+        <div className="columns-1 xs:columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-5 mb-10 space-y-5">
           {otherArtworks.map((artwork: MockArtwork) => (
-            <div key={artwork.id}>
+            <div key={artwork.id} className="break-inside-avoid">
               <ArtworkCard artwork={artwork as any} />
             </div>
           ))}
@@ -252,16 +246,10 @@ export default function ArtworkGrid() {
           </div>
         </div>
 
-        {/* Grid para stories - responsivo com auto-fit e minmax */}
-        <div 
-          className="grid gap-5"
-          style={{ 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-            gridAutoRows: 'auto'
-          }}
-        >
+        {/* Grid para stories no estilo Pinterest */}
+        <div className="columns-2 xs:columns-3 sm:columns-4 md:columns-5 lg:columns-6 gap-5 space-y-5">
           {storiesArtworks.map((artwork: MockArtwork) => (
-            <div key={artwork.id}>
+            <div key={artwork.id} className="break-inside-avoid">
               <ArtworkCard artwork={artwork as any} />
             </div>
           ))}

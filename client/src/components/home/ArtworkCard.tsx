@@ -54,31 +54,31 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
 
   return (
     <div 
-      className="image-card relative rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md hover:scale-[1.02]"
+      className="image-card relative rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md hover:scale-[1.02] w-full"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <Link href={`/artwork/${artwork.id}`} className="block">
         <div className="relative overflow-hidden w-full">
+          {/* 
+            Esta imagem mantém sua proporção original e natural sem qualquer transformação
+            Não estamos forçando nenhum aspect-ratio via CSS
+          */}
           <img 
             src={artwork.imageUrl} 
             alt={artwork.title}
             className="w-full h-auto object-cover display-block"
-            style={{ aspectRatio: artwork.format === "1:1" ? "1/1" : 
-                    artwork.format === "9:16" ? "9/16" : 
-                    artwork.format === "16:9" ? "16/9" : 
-                    artwork.format === "1080:1350" ? "1080/1350" : "1/1" }}
             loading="lazy"
           />
           
-          {/* Pro badge - sempre visível */}
+          {/* Pro badge - coroa premium no canto superior direito */}
           {artwork.isPro && (
             <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-8 h-8 flex items-center justify-center">
               <Crown className="h-4 w-4 fill-[#FFC107]" />
             </div>
           )}
           
-          {/* Hover actions - só aparecem quando passa o mouse */}
+          {/* Hover actions - botões de curtir e salvar */}
           <div 
             className={`hover-actions absolute bottom-3 right-3 flex gap-2 transition-opacity duration-300 ease-in-out z-20
               ${hovered ? 'opacity-100' : 'opacity-0'}`}
@@ -104,7 +104,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             </button>
           </div>
           
-          {/* Botão de editar ao passar o mouse no meio da imagem */}
+          {/* Botão de editar ao passar o mouse */}
           <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
             <Button 
               className="bg-black/70 hover:bg-black/90 text-white rounded-full px-6 py-1 h-8 text-xs shadow-md z-10"
