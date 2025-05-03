@@ -222,7 +222,7 @@ export default function ArtDetailPage() {
         </div>
         
         {/* Coluna da direita - Informações */}
-        <div className="space-y-6">
+        <div className="space-y-5 border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
           {/* Título e selo premium */}
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">{post.title}</h1>
@@ -267,9 +267,9 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Especificações do arquivo */}
-          <div className="space-y-3">
-            <h3 className="text-base font-medium">Especificações do Arquivo</h3>
-            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700">Especificações do Arquivo</h3>
+            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
                 <div className="flex flex-col">
@@ -303,32 +303,28 @@ export default function ArtDetailPage() {
                 </div>
               </div>
             </div>
+            <div className="flex justify-center mt-2">
+              <button className="text-xs text-gray-500 flex items-center gap-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="16"></line>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Ver mais detalhes
+              </button>
+            </div>
           </div>
           
           {/* Formatos disponíveis */}
-          <div className="space-y-3">
-            <h3 className="text-base font-medium">Formatos disponíveis</h3>
-            <div className="grid grid-cols-3 gap-2">
-              <div className={`relative rounded-md border ${post.formats?.[0] === 'FEED' || !post.formats ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-2 text-center cursor-pointer`}>
-                <div className="text-xs font-medium">FEED</div>
-                <div className="text-[10px] text-gray-500">1080x1080</div>
-                {(post.formats?.[0] === 'FEED' || !post.formats) && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-blue-600"></div>
-                )}
-              </div>
-              <div className={`relative rounded-md border ${post.formats?.includes('CARTAZ') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-2 text-center cursor-pointer`}>
-                <div className="text-xs font-medium">CARTAZ</div>
-                <div className="text-[10px] text-gray-500">1080x1350</div>
-                {post.formats?.includes('CARTAZ') && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-blue-600"></div>
-                )}
-              </div>
-              <div className={`relative rounded-md border ${post.formats?.includes('STORIES') ? 'border-blue-600 bg-blue-50' : 'border-gray-200'} p-2 text-center cursor-pointer`}>
-                <div className="text-xs font-medium">STORIES</div>
-                <div className="text-[10px] text-gray-500">1080x1920</div>
-                {post.formats?.includes('STORIES') && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-blue-600"></div>
-                )}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700">Formatos disponíveis</h3>
+            <div className="border border-gray-200 rounded-md p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="text-xs font-medium">FEED</div>
+                  <div className="text-[10px] text-gray-500">1080×1080px • Quadrado</div>
+                </div>
+                <div className="text-xs text-blue-600">3 opções</div>
               </div>
             </div>
           </div>
