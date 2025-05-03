@@ -583,7 +583,7 @@ export default function ArtDetailPage() {
         <div className="mt-12">
           <h2 className="text-xl font-bold mb-4">Outros formatos</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {relatedFormats.map((format: any) => (
+            {relatedFormats.map((format: RelatedFormat) => (
               <div key={format.id} className="relative rounded-lg overflow-hidden shadow-sm">
                 <a 
                   href={`/artes/${format.uniqueCode || format.unique_code || format.id}`}
