@@ -44,6 +44,7 @@ export default function UsuariosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [editFormData, setEditFormData] = useState({
     username: "",
@@ -214,11 +215,17 @@ export default function UsuariosPage() {
     });
   };
   
-  // Função para redefinir a senha para o padrão
-  const handleResetPassword = (usuario: Usuario) => {
-    if (confirm(`Tem certeza que deseja redefinir a senha do usuário ${usuario.username} para 'estetica@123'?`)) {
-      resetPasswordMutation.mutate(usuario.id);
-    }
+  // Função para mostrar diálogo de confirmação de redefinição de senha
+  const handleResetPasswordClick = (usuario: Usuario) => {
+    setSelectedUsuario(usuario);
+    setIsResetPasswordDialogOpen(true);
+  };
+  
+  // Função para confirmar e executar a redefinição de senha
+  const handleConfirmResetPassword = () => {
+    if (!selectedUsuario) return;
+    resetPasswordMutation.mutate(selectedUsuario.id);
+    setIsResetPasswordDialogOpen(false);
   };
 
   // Filtrar usuários com base no termo de pesquisa
@@ -357,7 +364,7 @@ export default function UsuariosPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleResetPassword(usuario)}
+                        onClick={() => handleResetPasswordClick(usuario)}
                         className="mr-1"
                         title="Redefinir senha para padrão"
                       >
@@ -509,6 +516,28 @@ export default function UsuariosPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteUsuarioMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Alert dialog para confirmar redefinição de senha */}
+      <AlertDialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Redefinir senha</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja redefinir a senha do usuário "{selectedUsuario?.username}" para 'estetica@123'?
+              O usuário precisará alterar essa senha no próximo login.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmResetPassword}
+              className="bg-yellow-600 text-white hover:bg-yellow-700"
+            >
+              {resetPasswordMutation.isPending ? "Redefinindo..." : "Redefinir senha"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
