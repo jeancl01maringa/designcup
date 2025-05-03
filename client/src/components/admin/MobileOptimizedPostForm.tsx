@@ -839,12 +839,12 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Tags</Label>
-                  <Button variant="ghost" size="sm" className="text-xs font-normal h-6 px-2">
+                  <Button variant="ghost" size="sm" className="text-xs text-blue-600 font-normal h-6 px-2">
                     <PlusCircle className="h-3 w-3 mr-1" />
                     Nova Tag
                   </Button>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="hidden">
                   <Input
                     id="newTag-desktop"
                     value={newTag}
@@ -852,15 +852,6 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                     placeholder="Adicionar tag"
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                   />
-                  <Button 
-                    type="button" 
-                    onClick={handleAddTag} 
-                    size="sm" 
-                    className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 shrink-0"
-                  >
-                    <PlusCircle className="h-4 w-4 mr-1" />
-                    Adicionar
-                  </Button>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {formData.tags.length > 0 ? (
@@ -881,7 +872,10 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
               
               {/* Quarta linha: Formatos */}
               <div className="space-y-3">
-                <Label className="mb-2 block">Formatos da Postagem</Label>
+                <div className="flex justify-between items-center">
+                  <Label className="mb-2 block">Formatos da Postagem</Label>
+                </div>
+                
                 <div className="flex flex-wrap gap-4">
                   {(['feed', 'cartaz', 'stories'] as PostFormat[]).map((format) => (
                     <div key={format} className="w-auto">
@@ -905,16 +899,26 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                 </div>
               </div>
               
-              {/* Linha de Capa (Visível no primeiro passo) */}
-              <div className="space-y-2 mt-8">
-                <Label>Capa</Label>
-                <div className="border border-dashed rounded p-4 text-center">
-                  <p className="text-sm text-muted-foreground">Você poderá adicionar imagens na próxima etapa</p>
-                </div>
+              {/* Botões inferiores na versão desktop - No final da página após os formatos */}
+              <div className="hidden md:flex justify-between mt-8 pt-4">
+                <Button 
+                  type="button" 
+                  onClick={onOpenChange.bind(null, false)}
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={nextStep}
+                  className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
+                >
+                  Próximo
+                </Button>
               </div>
             </div>
             
-            {/* Botão de ação principal estilo Instagram */}
+            {/* Botão de ação principal estilo Instagram - Mobile */}
             <div className="md:hidden bg-white px-4 py-3 border-t fixed bottom-0 left-0 right-0 z-30">
               <Button 
                 type="button" 
@@ -922,24 +926,6 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                 className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90 text-white w-full h-12 text-base font-medium"
               >
                 Avançar
-              </Button>
-            </div>
-            
-            {/* Versão Desktop - Botões conforme a referência */}
-            <div className="hidden md:flex justify-between bg-white px-6 py-4 border-t sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
-              <Button 
-                type="button" 
-                onClick={onOpenChange.bind(null, false)}
-                variant="outline"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="button" 
-                onClick={nextStep}
-                className="bg-[#1f4ed8] hover:bg-[#1f4ed8]/90"
-              >
-                Próximo
               </Button>
             </div>
           </div>
