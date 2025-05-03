@@ -19,7 +19,8 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { uploadToSupabase, createFilePath } from "@/lib/admin/uploadToSupabase";
+// Importar a nova função de upload
+import { uploadFileToSupabase } from "@/lib/supabase";
 import { Post, Category } from "@shared/schema";
 import { nanoid, cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -186,12 +187,11 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         description: "Aguarde enquanto otimizamos sua imagem.",
       });
       
-      // Sanitizar e criar caminho no Supabase com ID único da postagem
-      // Usando a função createFilePath para garantir nomes de arquivo válidos
-      const filePath = createFilePath(formData.uniqueCode, `${format}_${file.name}`);
+      // Criar caminho personalizado para o arquivo no Supabase
+      const customPath = `posts/${formData.uniqueCode}/${format}_${file.name}`;
       
-      // Upload e otimização (para WebP) no Supabase
-      const imageUrl = await uploadToSupabase(file, filePath, true);
+      // Upload usando a nova implementação
+      const imageUrl = await uploadFileToSupabase(file, customPath);
       
       // Verificar se a URL retornada é válida
       if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {

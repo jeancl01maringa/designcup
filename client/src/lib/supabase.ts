@@ -156,3 +156,84 @@ export async function ensureImageBucket(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Verifica se o usuário está autenticado no Supabase
+ * @returns Promise que resolve com o objeto do usuário ou null se não estiver autenticado
+ */
+export async function getCurrentUser() {
+  try {
+    // Se as credenciais são inválidas, não tente obter o usuário
+    if (!hasValidCredentials) {
+      console.warn('Verificação de usuário ignorada: credenciais inválidas.');
+      return null;
+    }
+    
+    const { data, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error('Erro ao verificar usuário logado:', error);
+      return null;
+    }
+    
+    return data?.user || null;
+  } catch (error) {
+    console.error('Erro ao verificar autenticação do usuário:', error);
+    return null;
+  }
+}
+
+/**
+ * Faz o upload de um arquivo para o bucket 'images' do Supabase
+ * Implementação seguindo as práticas recomendadas
+ * 
+ * @param file Arquivo para upload
+ * @param customPath Caminho personalizado (opcional)
+ * @returns Promise com a URL pública do arquivo ou null em caso de erro
+ */
+export async function uploadFileToSupabase(file: File, customPath?: string): Promise<string | null> {
+  // Verificar se temos credenciais válidas
+  if (!hasValidCredentials) {
+    console.error('Upload falhou: credenciais do Supabase inválidas.');
+    return null;
+  }
+  
+  try {
+    // 1. Verificar se o usuário está autenticado (opcional, já que usamos chave anon)
+    const user = await getCurrentUser();
+    const isAuthenticated = !!user;
+    console.log(`Upload iniciado${isAuthenticated ? ' com usuário autenticado' : ' sem autenticação'}`);
+    
+    // 2. Preparar o caminho do arquivo com timestamp para evitar conflitos
+    const timestamp = Date.now();
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9-.]/g, '_').toLowerCase();
+    const filePath = customPath || `posts/${timestamp}-${cleanFileName}`;
+    
+    console.log(`Fazendo upload para Supabase em '${filePath}'...`);
+    
+    // 3. Fazer upload com opção upsert para sobrescrever arquivos existentes
+    const { data, error } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, {
+        upsert: true,  // Permite sobrescrever arquivos existentes
+        cacheControl: '3600',
+      });
+      
+    if (error) {
+      console.error('Erro no upload para Supabase:', error);
+      throw error;
+    }
+    
+    // 4. Gerar URL pública para o arquivo enviado
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath);
+      
+    console.log('Upload bem-sucedido. URL pública:', publicUrl);
+    return publicUrl;
+    
+  } catch (error) {
+    console.error('Falha no upload para Supabase:', error);
+    return null;
+  }
+}
