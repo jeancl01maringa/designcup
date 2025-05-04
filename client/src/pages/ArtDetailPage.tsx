@@ -227,41 +227,64 @@ export default function ArtDetailPage() {
     }).catch(err => console.error('Erro ao compartilhar:', err));
   };
   
-  // Extrair o Link do Canva dos dados de formato
+  // Extrair o Link do Canva dos dados do post
   const getCanvaUrl = (): string => {
     try {
-      // Verificar se temos dados de formato em formato JSON
+      console.log("Verificando URL do Canva no post:", post);
+      
+      // 1. Verificar se temos URL do Canva diretamente no post (prioridade máxima)
+      if (post?.canvaUrl) {
+        console.log("Usando canvaUrl diretamente do post:", post.canvaUrl);
+        return post.canvaUrl;
+      }
+      
+      // 2. Verificar se tem o campo no snake_case
+      if (post?.canva_url) {
+        console.log("Usando canva_url do post:", post.canva_url);
+        return post.canva_url;
+      }
+      
+      // 3. Verificar se temos dados de formato em formato JSON
       if (post?.format_data || post?.formato_data) {
         const formatDataString = post?.format_data || post?.formato_data || '{}';
-        const formatData = JSON.parse(formatDataString);
+        console.log("Verificando formatData:", formatDataString);
         
-        // Procurar link do Canva em diferentes possíveis localizações
+        try {
+          const formatData = JSON.parse(formatDataString);
         
-        // 1. Se tem a URL diretamente no formato_data
-        if (formatData.canvaUrl) {
-          return formatData.canvaUrl;
-        }
-        
-        // 2. Se temos um array de formatos, procurar pelo formato atual
-        if (Array.isArray(formatData) && formatData.length > 0) {
-          // Encontrar o formato correto baseado no formato atual
-          const currentFormat = formatData.find(
-            (f: any) => f.type?.toLowerCase() === availableFormats[0]?.toLowerCase()
-          );
+          // Se tem a URL diretamente no formato_data
+          if (formatData.canvaUrl) {
+            console.log("Usando canvaUrl do format_data:", formatData.canvaUrl);
+            return formatData.canvaUrl;
+          }
           
-          // Se encontrar o formato e tiver links
-          if (currentFormat && Array.isArray(currentFormat.links) && currentFormat.links.length > 0) {
-            // Procurar por um link do Canva
-            const canvaLink = currentFormat.links.find(
-              (link: any) => link.provider?.toLowerCase() === 'canva'
+          // Se temos um array de formatos, procurar pelo formato atual
+          if (Array.isArray(formatData) && formatData.length > 0) {
+            // Encontrar o formato correto baseado no formato atual
+            const currentFormat = formatData.find(
+              (f: any) => f.type?.toLowerCase() === availableFormats[0]?.toLowerCase()
             );
             
-            if (canvaLink && canvaLink.url) {
-              return canvaLink.url;
+            // Se encontrar o formato e tiver links
+            if (currentFormat && Array.isArray(currentFormat.links) && currentFormat.links.length > 0) {
+              // Procurar por um link do Canva
+              const canvaLink = currentFormat.links.find(
+                (link: any) => link.provider?.toLowerCase() === 'canva'
+              );
+              
+              if (canvaLink && canvaLink.url) {
+                console.log("Usando URL do Canva dos links do formato:", canvaLink.url);
+                return canvaLink.url;
+              }
             }
           }
+        } catch (parseErr) {
+          console.error("Erro ao analisar dados de formato:", parseErr);
         }
       }
+      
+      // Log quando nenhuma URL é encontrada
+      console.warn("Nenhuma URL do Canva encontrada, usando valor padrão");
       
       // Valor padrão se não encontrar nada
       return 'https://www.canva.com/design/new';
