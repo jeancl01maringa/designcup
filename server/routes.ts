@@ -1138,6 +1138,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error updating posts status' });
     }
   });
+  
+  // Endpoint especial para atualizar apenas a licença diretamente no Supabase
+  app.patch('/api/admin/posts/:id/premium', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const { isPremium } = req.body;
+      
+      if (isNaN(postId) || typeof isPremium !== 'boolean') {
+        return res.status(400).json({ message: 'ID de post e estado premium são obrigatórios' });
+      }
+      
+      console.log(`Endpoint /premium - Atualizando post ${postId} para isPremium=${isPremium}`);
+      
+      // Atualizar diretamente via Supabase
+      const { error } = await supabase
+        .from('posts')
+        .update({ 
+          is_pro: isPremium,
+          license_type: isPremium ? 'premium' : 'free'
+        })
+        .eq('id', postId);
+      
+      if (error) {
+        console.error("Endpoint /premium - Erro ao atualizar via Supabase:", error);
+        
+        // Tentar atualizar direto no PostgreSQL
+        try {
+          const result = await pool.query(`
+            UPDATE posts 
+            SET is_pro = $1, license_type = $2
+            WHERE id = $3
+            RETURNING id, title, is_pro, license_type
+          `, [isPremium, isPremium ? 'premium' : 'free', postId]);
+          
+          if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Post não encontrado' });
+          }
+          
+          console.log("Endpoint /premium - Post atualizado via PostgreSQL:", result.rows[0]);
+          return res.json(result.rows[0]);
+        } catch (pgError) {
+          console.error("Endpoint /premium - Erro ao atualizar via PostgreSQL:", pgError);
+          throw new Error("Falha ao atualizar post premium via PostgreSQL");
+        }
+      } else {
+        console.log("Endpoint /premium - Post atualizado com sucesso via Supabase");
+        
+        // Retornar sucesso mesmo sem buscar o post atualizado para evitar problemas de cache
+        return res.json({ 
+          id: postId, 
+          isPremium,
+          success: true,
+          message: `Post ${postId} updated to premium=${isPremium}`
+        });
+      }
+    } catch (error) {
+      console.error('Error updating post premium status:', error);
+      res.status(500).json({ message: 'Error updating post premium status' });
+    }
+  });
 
   // Endpoints para upload de imagens via Supabase
   app.post('/api/admin/upload', async (req, res) => {
