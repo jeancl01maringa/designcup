@@ -15,6 +15,21 @@ import { eq, like, or, desc } from "drizzle-orm";
 import { supabase } from "./supabase-client";
 import { normalizePremiumFields, ensurePremiumFields, isPostPremium } from "./utils/post-premium-handler";
 
+// Função utilitária para gerar slugs a partir de um nome
+function slugify(text: string): string {
+  return text
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Espaços para hífens
+    .replace(/[^\w-]+/g, '') // Remove caracteres não-palavra
+    .replace(/--+/g, '-') // Múltiplos hífens para um único
+    .replace(/^-+/, '') // Remove hífens do início
+    .replace(/-+$/, ''); // Remove hífens do final
+}
+
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
@@ -809,15 +824,21 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Mapear os dados do Supabase para o formato esperado pela aplicação
-      const categories: Category[] = data.map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        imageUrl: item.image_url,
-        iconUrl: item.icon_url,
-        isHighlighted: item.is_highlighted,
-        createdAt: new Date(item.created_at)
-      }));
+      const categories: Category[] = data.map(item => {
+        // Converter is_active para boolean explicitamente (pode vir como 't' do PostgreSQL)
+        const isActive = item.is_active === true || item.is_active === 't';
+        console.log(`Categoria ${item.id} (${item.name}): is_active = ${item.is_active}, isActive = ${isActive}`);
+        
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          slug: item.slug || slugify(item.name), // Gera slug se não existir
+          imageUrl: item.image_url,
+          isActive: isActive,
+          createdAt: new Date(item.created_at)
+        };
+      });
       
       console.log(`DATABASE getCategories - Encontradas ${categories.length} categorias`);
       return categories;
