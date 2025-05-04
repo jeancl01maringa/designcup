@@ -49,7 +49,9 @@ import { Textarea } from "@/components/ui/textarea";
 const categoryFormSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres").max(50),
   description: z.string().max(200, "A descrição deve ter no máximo 200 caracteres").optional(),
-  iconUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  slug: z.string().max(100).optional(),
+  isActive: z.boolean().default(true).optional(),
 });
 
 type CategoryFormValues = z.infer<typeof categoryFormSchema>;

@@ -870,13 +870,17 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Mapear os dados do Supabase para o formato esperado pela aplicação
+      // Converter is_active para boolean explicitamente
+      const isActive = data.is_active === true || data.is_active === 't';
+      console.log(`Categoria ${data.id} (${data.name}): is_active = ${data.is_active}, isActive = ${isActive}`);
+      
       const category: Category = {
         id: data.id,
         name: data.name,
         description: data.description,
+        slug: data.slug || slugify(data.name), // Gera slug se não existir
         imageUrl: data.image_url,
-        iconUrl: data.icon_url,
-        isHighlighted: data.is_highlighted,
+        isActive: isActive,
         createdAt: new Date(data.created_at)
       };
       
@@ -895,10 +899,10 @@ export class DatabaseStorage implements IStorage {
       // Mapear campos para formato do Supabase (snake_case)
       const dbCategory = {
         name: category.name,
+        slug: category.slug || slugify(category.name),
         description: category.description,
         image_url: category.imageUrl,
-        icon_url: category.iconUrl,
-        is_highlighted: category.isHighlighted
+        is_active: category.isActive !== undefined ? category.isActive : true
       };
       
       // Usar a API do Supabase para criar a categoria
@@ -914,13 +918,16 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Mapear para o formato esperado pela aplicação
+      // Converter is_active para boolean explicitamente
+      const isActive = data.is_active === true || data.is_active === 't';
+      
       const result: Category = {
         id: data.id,
         name: data.name,
         description: data.description,
+        slug: data.slug || slugify(data.name), // Gera slug se não existir
         imageUrl: data.image_url,
-        iconUrl: data.icon_url,
-        isHighlighted: data.is_highlighted,
+        isActive: isActive,
         createdAt: new Date(data.created_at)
       };
       
@@ -942,8 +949,8 @@ export class DatabaseStorage implements IStorage {
       if (category.name !== undefined) dbCategory.name = category.name;
       if (category.description !== undefined) dbCategory.description = category.description;
       if (category.imageUrl !== undefined) dbCategory.image_url = category.imageUrl;
-      if (category.iconUrl !== undefined) dbCategory.icon_url = category.iconUrl;
-      if (category.isHighlighted !== undefined) dbCategory.is_highlighted = category.isHighlighted;
+      if (category.slug !== undefined) dbCategory.slug = category.slug;
+      if (category.isActive !== undefined) dbCategory.is_active = category.isActive;
       
       // Usar a API do Supabase para atualizar a categoria
       const { data, error } = await supabase
@@ -959,13 +966,16 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Mapear para o formato esperado pela aplicação
+      // Converter is_active para boolean explicitamente
+      const isActive = data.is_active === true || data.is_active === 't';
+      
       const result: Category = {
         id: data.id,
         name: data.name,
         description: data.description,
+        slug: data.slug || slugify(data.name), // Gera slug se não existir
         imageUrl: data.image_url,
-        iconUrl: data.icon_url,
-        isHighlighted: data.is_highlighted,
+        isActive: isActive,
         createdAt: new Date(data.created_at)
       };
       
