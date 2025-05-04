@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -76,7 +77,9 @@ export function CategoryManager() {
     defaultValues: {
       name: "",
       description: "",
-      iconUrl: "",
+      imageUrl: "",
+      slug: "",
+      isActive: true,
     },
   });
 
@@ -86,13 +89,17 @@ export function CategoryManager() {
       form.reset({
         name: "",
         description: "",
-        iconUrl: "",
+        imageUrl: "",
+        slug: "",
+        isActive: true,
       });
     } else if (isEditDialogOpen && selectedCategory) {
       form.reset({
         name: selectedCategory.name,
         description: selectedCategory.description || "",
-        iconUrl: selectedCategory.iconUrl || "",
+        imageUrl: selectedCategory.imageUrl || "",
+        slug: selectedCategory.slug || "",
+        isActive: selectedCategory.isActive === undefined ? true : selectedCategory.isActive,
       });
     }
   }, [isCreateDialogOpen, isEditDialogOpen, selectedCategory, form]);
@@ -255,13 +262,14 @@ export function CategoryManager() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Descrição</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {categories?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
                     Nenhuma categoria encontrada.
                   </TableCell>
                 </TableRow>
@@ -271,6 +279,17 @@ export function CategoryManager() {
                     <TableCell className="font-medium">{category.name}</TableCell>
                     <TableCell className="truncate max-w-md">
                       {category.description || "-"}
+                    </TableCell>
+                    <TableCell>
+                      {category.isActive ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Ativa
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Inativa
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right space-x-1">
                       <Button
@@ -345,17 +364,57 @@ export function CategoryManager() {
               
               <FormField
                 control={form.control}
-                name="iconUrl"
+                name="imageUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL do Ícone</FormLabel>
+                    <FormLabel>URL da Imagem</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://exemplo.com/icone.png" {...field} value={field.value || ""} />
+                      <Input placeholder="https://exemplo.com/imagem.png" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormDescription>
-                      URL de um ícone que representa esta categoria (opcional)
+                      URL de uma imagem que representa esta categoria (opcional)
                     </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input placeholder="nome-da-categoria" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormDescription>
+                      Identificador único para URLs (deixe em branco para gerar automaticamente)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Categoria ativa
+                      </FormLabel>
+                      <FormDescription>
+                        Desmarque para esconder esta categoria no site
+                      </FormDescription>
+                    </div>
                   </FormItem>
                 )}
               />
@@ -421,21 +480,65 @@ export function CategoryManager() {
               
               <FormField
                 control={form.control}
-                name="iconUrl"
+                name="imageUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL do Ícone</FormLabel>
+                    <FormLabel>URL da Imagem</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="https://exemplo.com/icone.png" 
+                        placeholder="https://exemplo.com/imagem.png" 
                         {...field}
                         value={field.value || ""} 
                       />
                     </FormControl>
                     <FormDescription>
-                      URL de um ícone que representa esta categoria
+                      URL de uma imagem que representa esta categoria (opcional)
                     </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="nome-da-categoria" 
+                        {...field}
+                        value={field.value || ""} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Identificador único para URLs (deixe em branco para gerar automaticamente)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Categoria ativa
+                      </FormLabel>
+                      <FormDescription>
+                        Desmarque para esconder esta categoria no site
+                      </FormDescription>
+                    </div>
                   </FormItem>
                 )}
               />
