@@ -1809,60 +1809,167 @@ export class DatabaseStorage implements IStorage {
           // Se encontrou no Supabase, criar no PostgreSQL
           console.log(`DATABASE updatePost - Post com ID ${id} encontrado no Supabase, criando no PostgreSQL`);
           
-          // Criar o post no PostgreSQL
-          const fullPost = {
-            ...existingPost,
-            ...dbPost
-          };
-          
-          // Converter campos para formato correto do PostgreSQL
-          const pgPost: any = {};
-          for (const [key, value] of Object.entries(fullPost)) {
-            // Transformar chaves em snake_case
-            const pgKey = key.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
-            pgPost[pgKey] = value;
+          // Obter a estrutura correta da tabela posts no PostgreSQL primeiro
+          try {
+            const tableStructureQuery = `
+              SELECT column_name 
+              FROM information_schema.columns 
+              WHERE table_name = 'posts'
+            `;
+            
+            const tableStructure = await pool.query(tableStructureQuery);
+            const validColumns = tableStructure.rows.map(row => row.column_name);
+            
+            console.log(`DATABASE updatePost - Colunas válidas na tabela posts do PostgreSQL:`, validColumns);
+            
+            // Criar o post no PostgreSQL apenas com campos válidos
+            const fullPost = {
+              ...existingPost,
+              ...dbPost
+            };
+            
+            // Converter campos para formato correto do PostgreSQL
+            const pgPost: any = {};
+            
+            // Mapeamento manual de campos conhecidos que possam diferir entre Supabase e PostgreSQL
+            const fieldMappings: {[key: string]: string} = {
+              // Mapear quaisquer campos que tenham nomes diferentes
+              // Exemplo: 'conteudo': 'content'
+            };
+            
+            for (const [key, value] of Object.entries(fullPost)) {
+              // Transformar chaves em snake_case
+              const pgKey = key.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+              
+              // Verificar se o campo existe na tabela do PostgreSQL
+              if (validColumns.includes(pgKey) || validColumns.includes(fieldMappings[pgKey])) {
+                const finalKey = fieldMappings[pgKey] || pgKey;
+                pgPost[finalKey] = value;
+              }
+            }
+            
+            // Garantir que os campos essenciais estejam presentes
+            if (!pgPost.id) pgPost.id = id;
+            if (!pgPost.title && existingPost.title) pgPost.title = existingPost.title;
+            if (!pgPost.description && existingPost.description) pgPost.description = existingPost.description;
+            if (!pgPost.image_url && existingPost.image_url) pgPost.image_url = existingPost.image_url;
+            if (!pgPost.category_id && existingPost.category_id) pgPost.category_id = existingPost.category_id;
+            if (!pgPost.status) pgPost.status = 'aprovado';
+            if (!pgPost.created_at) pgPost.created_at = new Date().toISOString();
+            
+            // Definir explicitamente os campos de licença premium
+            pgPost.license_type = dbPost.license_type || (existingPost.is_pro ? 'premium' : 'free');
+            pgPost.is_pro = dbPost.is_pro !== undefined ? dbPost.is_pro : !!existingPost.is_pro;
+            
+            // Filtrar apenas os campos que existem na tabela
+            const validPgPost: any = {};
+            for (const [key, value] of Object.entries(pgPost)) {
+              if (validColumns.includes(key)) {
+                validPgPost[key] = value;
+              }
+            }
+            
+            // Construir consulta SQL para inserção
+            const insertFields = Object.keys(validPgPost);
+            const insertValues = Object.values(validPgPost);
+            const insertPlaceholders = insertFields.map((_, i) => `$${i + 1}`).join(', ');
+            
+            const insertSql = `
+              INSERT INTO posts (${insertFields.join(', ')})
+              VALUES (${insertPlaceholders})
+              RETURNING *
+            `;
+            
+            console.log(`DATABASE updatePost - Campos a inserir no PostgreSQL:`, insertFields);
+            
+            // Executar a inserção
+            const insertResult = await pool.query(insertSql, insertValues);
+            const data = insertResult.rows[0];
+            
+            // Mapear para o formato esperado pela aplicação
+            const postResult: Post = {
+              id: data.id,
+              title: data.title,
+              description: data.description || "",
+              imageUrl: data.image_url,
+              uniqueCode: data.unique_code,
+              categoryId: data.category_id,
+              status: data.status,
+              createdAt: new Date(data.created_at),
+              publishedAt: data.published_at ? new Date(data.published_at) : null,
+              formato: data.formato,
+              formatData: data.format_data,
+              groupId: data.group_id,
+              tituloBase: data.titulo_base,
+              isPro: !!data.is_pro,
+              licenseType: data.license_type || 'free',
+              canvaUrl: data.canva_url,
+              formatoData: data.formato_data,
+              isVisible: data.is_visible !== false,
+              tags: data.tags || [],
+              formats: data.formats || []
+            };
+            
+            console.log(`DATABASE updatePost - Post sincronizado entre Supabase e PostgreSQL`);
+            return postResult;
+          } catch (schemaError) {
+            console.error(`DATABASE updatePost - Erro ao obter estrutura da tabela:`, schemaError);
+            
+            // Criar um post básico com apenas os campos essenciais
+            const minimalPost = {
+              id,
+              title: existingPost.title || 'Sem título',
+              description: existingPost.description || '',
+              image_url: existingPost.image_url || '',
+              category_id: existingPost.category_id || 2,
+              status: 'aprovado',
+              created_at: new Date().toISOString(),
+              license_type: dbPost.license_type || (existingPost.is_pro ? 'premium' : 'free'),
+              is_pro: dbPost.is_pro !== undefined ? dbPost.is_pro : !!existingPost.is_pro
+            };
+            
+            // Construir consulta SQL para inserção simplificada
+            const insertFieldsMin = Object.keys(minimalPost);
+            const insertValuesMin = Object.values(minimalPost);
+            const insertPlaceholdersMin = insertFieldsMin.map((_, i) => `$${i + 1}`).join(', ');
+            
+            const insertSqlMin = `
+              INSERT INTO posts (${insertFieldsMin.join(', ')})
+              VALUES (${insertPlaceholdersMin})
+              RETURNING *
+            `;
+            
+            // Executar a inserção simplificada
+            const insertResult = await pool.query(insertSqlMin, insertValuesMin);
+            const data = insertResult.rows[0];
+            
+            // Mapear para o formato esperado pela aplicação
+            const postResult: Post = {
+              id: data.id,
+              title: data.title,
+              description: data.description || "",
+              imageUrl: data.image_url,
+              uniqueCode: data.unique_code || '',
+              categoryId: data.category_id,
+              status: data.status,
+              createdAt: new Date(data.created_at),
+              publishedAt: data.published_at ? new Date(data.published_at) : null,
+              formato: data.formato || '',
+              formatData: data.format_data || null,
+              groupId: data.group_id || '',
+              tituloBase: data.titulo_base || '',
+              isPro: !!data.is_pro,
+              licenseType: data.license_type || 'free',
+              canvaUrl: data.canva_url || '',
+              formatoData: data.formato_data || null,
+              isVisible: data.is_visible !== false,
+              tags: data.tags || [],
+              formats: data.formats || []
+            };
+            
+            console.log(`DATABASE updatePost - Post sincronizado com dados mínimos entre Supabase e PostgreSQL`);
+            return postResult;
           }
-          
-          // Construir consulta SQL para inserção
-          const insertFields = Object.keys(pgPost);
-          const insertValues = Object.values(pgPost);
-          const insertPlaceholders = insertFields.map((_, i) => `$${i + 1}`).join(', ');
-          
-          const insertSql = `
-            INSERT INTO posts (${insertFields.join(', ')})
-            VALUES (${insertPlaceholders})
-            RETURNING *
-          `;
-          
-          const insertResult = await pool.query(insertSql, insertValues);
-          const data = insertResult.rows[0];
-          
-          // Mapear para o formato esperado pela aplicação
-          const postResult: Post = {
-            id: data.id,
-            title: data.title,
-            description: data.description || "",
-            imageUrl: data.image_url,
-            uniqueCode: data.unique_code,
-            categoryId: data.category_id,
-            status: data.status,
-            createdAt: new Date(data.created_at),
-            publishedAt: data.published_at ? new Date(data.published_at) : null,
-            formato: data.formato,
-            formatData: data.format_data,
-            groupId: data.group_id,
-            tituloBase: data.titulo_base,
-            isPro: !!data.is_pro,
-            licenseType: data.license_type || 'free',
-            canvaUrl: data.canva_url,
-            formatoData: data.formato_data,
-            isVisible: data.is_visible !== false,
-            tags: data.tags || [],
-            formats: data.formats || []
-          };
-          
-          console.log(`DATABASE updatePost - Post sincronizado entre Supabase e PostgreSQL`);
-          return postResult;
         }
         
         const data = result.rows[0];
