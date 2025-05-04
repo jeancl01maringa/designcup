@@ -8,6 +8,7 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import * as dotenv from 'dotenv';
 import ws from 'ws';
+import { supabase } from './server/supabase-client';
 
 // Necessário para conexão WebSocket
 neonConfig.webSocketConstructor = ws as any;
@@ -18,6 +19,57 @@ async function createTestPost() {
   console.log("🔍 Criando post de teste para verificar os campos license_type e is_pro");
   
   try {
+    // Gerar um código único
+    const uniqueCode = `TEST${Math.floor(Math.random() * 10000)}`;
+    
+    console.log("🔄 Tentando criar posts via API do Supabase");
+    
+    // Criar post premium via Supabase
+    const { data: premiumData, error: premiumError } = await supabase
+      .from('posts')
+      .insert([{
+        title: 'Post de teste premium (Supabase)', 
+        description: 'Este é um post de teste premium criado via Supabase', 
+        image_url: 'https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/images/uploads/test-premium.jpg', 
+        unique_code: uniqueCode + '-premium-api', 
+        category_id: 2, 
+        status: 'aprovado',
+        license_type: 'premium',
+        is_pro: true
+      }])
+      .select('id, title, license_type, is_pro');
+    
+    if (premiumError) {
+      console.error("❌ Erro ao criar post premium via Supabase:", premiumError);
+    } else {
+      console.log("✅ Post premium criado via Supabase:");
+      console.table(premiumData);
+    }
+    
+    // Criar post gratuito via Supabase
+    const { data: freeData, error: freeError } = await supabase
+      .from('posts')
+      .insert([{
+        title: 'Post de teste gratuito (Supabase)', 
+        description: 'Este é um post de teste gratuito criado via Supabase', 
+        image_url: 'https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/images/uploads/test-free.jpg', 
+        unique_code: uniqueCode + '-free-api', 
+        category_id: 2, 
+        status: 'aprovado',
+        license_type: 'free',
+        is_pro: false
+      }])
+      .select('id, title, license_type, is_pro');
+    
+    if (freeError) {
+      console.error("❌ Erro ao criar post gratuito via Supabase:", freeError);
+    } else {
+      console.log("✅ Post gratuito criado via Supabase:");
+      console.table(freeData);
+    }
+    
+    console.log("\n🔄 Tentando abordagem alternativa com PostgreSQL direto");
+    
     // Conexão direta com PostgreSQL
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL
@@ -25,10 +77,7 @@ async function createTestPost() {
     
     console.log("🔄 Conectado ao banco de dados PostgreSQL");
     
-    // Gerar um código único
-    const uniqueCode = `TEST${Math.floor(Math.random() * 10000)}`;
-    
-    // Criar um post premium
+    // Criar um post premium com PostgreSQL
     const premiumPostResult = await pool.query(`
       INSERT INTO posts (
         title, 
@@ -40,21 +89,21 @@ async function createTestPost() {
         license_type,
         is_pro
       ) VALUES (
-        'Post de teste premium', 
-        'Este é um post de teste com licença premium', 
+        'Post de teste premium (PostgreSQL)', 
+        'Este é um post de teste com licença premium criado via PostgreSQL', 
         'https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/images/uploads/test-premium.jpg', 
         $1, 
-        2, /* Categoria 'Facial' */
+        2, 
         'aprovado',
         'premium',
         TRUE
       ) RETURNING id, title, license_type, is_pro
-    `, [uniqueCode + '-premium']);
+    `, [uniqueCode + '-premium-pg']);
     
-    console.log("✅ Post premium criado:");
+    console.log("✅ Post premium criado via PostgreSQL:");
     console.table(premiumPostResult.rows);
     
-    // Criar um post free
+    // Criar um post free com PostgreSQL
     const freePostResult = await pool.query(`
       INSERT INTO posts (
         title, 
@@ -66,28 +115,29 @@ async function createTestPost() {
         license_type,
         is_pro
       ) VALUES (
-        'Post de teste gratuito', 
-        'Este é um post de teste com licença gratuita', 
+        'Post de teste gratuito (PostgreSQL)', 
+        'Este é um post de teste com licença gratuita criado via PostgreSQL', 
         'https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/images/uploads/test-free.jpg', 
         $1, 
-        2, /* Categoria 'Facial' */
+        2, 
         'aprovado',
         'free',
         FALSE
       ) RETURNING id, title, license_type, is_pro
-    `, [uniqueCode + '-free']);
+    `, [uniqueCode + '-free-pg']);
     
-    console.log("✅ Post gratuito criado:");
+    console.log("✅ Post gratuito criado via PostgreSQL:");
     console.table(freePostResult.rows);
     
-    // Recuperar os posts para verificar
+    // Recuperar todos os posts de teste
     const checkResult = await pool.query(`
       SELECT id, title, license_type, is_pro
       FROM posts
-      WHERE unique_code IN ($1, $2)
-    `, [uniqueCode + '-premium', uniqueCode + '-free']);
+      WHERE unique_code LIKE $1
+      ORDER BY id DESC
+    `, [uniqueCode + '%']);
     
-    console.log("🔄 Verificando posts criados:");
+    console.log("\n🔄 Verificando todos os posts de teste criados:");
     console.table(checkResult.rows);
     
     // Fechar a conexão
