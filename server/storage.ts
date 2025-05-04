@@ -13,6 +13,7 @@ import {
 import { db, pool } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
 import { supabase } from "./supabase-client";
+import { normalizePremiumFields, ensurePremiumFields, isPostPremium } from "./utils/post-premium-handler";
 
 export interface IStorage {
   // User methods
