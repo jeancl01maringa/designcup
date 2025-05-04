@@ -11,7 +11,8 @@ import {
   ChevronsDown,
   Eye,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,13 +22,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ArtDetailPage() {
   const [location, setLocation] = useLocation();
   const params = useParams<{ slug: string }>();
   const { slug } = params;
+  const { user, isLoading: isLoadingAuth } = useAuth();
   
   // Extrair o ID numérico do slug (por exemplo, "10-xxxxx" => 10)
   const postId = slug ? parseInt(slug.split('-')[0] || '0', 10) : 0;
@@ -35,9 +44,17 @@ export default function ArtDetailPage() {
   console.log('Slug recebido:', slug);
   console.log('ID extraído:', postId);
   
+  // Estado para controlar a exibição do tooltip no botão
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  
+  // Verifica se o usuário é premium baseado no tipo/plano
+  const isUserPremium = user?.tipo === 'premium' || 
+                     (user?.plano_id !== undefined && user?.plano_id !== null && 
+                      typeof user?.plano_id === 'number' && user?.plano_id !== 1);
   
   // Buscar os dados da arte
   const { data: post, isLoading, error } = useQuery({
@@ -103,7 +120,7 @@ export default function ArtDetailPage() {
           
           // Verificar se temos opções de formatos
           if (formatData.options && Array.isArray(formatData.options)) {
-            return formatData.options.map((opt: any) => opt.format || 'FEED');
+            return formatData.options.map((opt: { format?: string }) => opt.format || 'FEED');
           }
           
           // Se temos apenas um formato
@@ -210,23 +227,69 @@ export default function ArtDetailPage() {
     }).catch(err => console.error('Erro ao compartilhar:', err));
   };
   
-  const handleEditCanva = () => {
-    // Implementar link para o Canva
-    // A URL canva deve vir dos dados do post em: post.formatData
-    // Format data é armazenado como string JSON, então precisamos fazer o parse
-    
+  // Extrair o Link do Canva dos dados de formato
+  const getCanvaUrl = (): string => {
     try {
-      let formatData;
-      if (post?.format_data) {
-        formatData = JSON.parse(post.format_data);
+      // Verificar se temos dados de formato em formato JSON
+      if (post?.format_data || post?.formato_data) {
+        const formatDataString = post?.format_data || post?.formato_data || '{}';
+        const formatData = JSON.parse(formatDataString);
+        
+        // Procurar link do Canva em diferentes possíveis localizações
+        
+        // 1. Se tem a URL diretamente no formato_data
+        if (formatData.canvaUrl) {
+          return formatData.canvaUrl;
+        }
+        
+        // 2. Se temos um array de formatos, procurar pelo formato atual
+        if (Array.isArray(formatData) && formatData.length > 0) {
+          // Encontrar o formato correto baseado no formato atual
+          const currentFormat = formatData.find(
+            (f: any) => f.type?.toLowerCase() === availableFormats[0]?.toLowerCase()
+          );
+          
+          // Se encontrar o formato e tiver links
+          if (currentFormat && Array.isArray(currentFormat.links) && currentFormat.links.length > 0) {
+            // Procurar por um link do Canva
+            const canvaLink = currentFormat.links.find(
+              (link: any) => link.provider?.toLowerCase() === 'canva'
+            );
+            
+            if (canvaLink && canvaLink.url) {
+              return canvaLink.url;
+            }
+          }
+        }
       }
       
-      const canvaUrl = formatData?.canvaUrl || 'https://www.canva.com/design/new';
-      window.open(canvaUrl, '_blank');
+      // Valor padrão se não encontrar nada
+      return 'https://www.canva.com/design/new';
     } catch (err) {
-      console.error('Erro ao abrir link do Canva:', err);
-      window.open('https://www.canva.com/design/new', '_blank');
+      console.error('Erro ao extrair URL do Canva:', err);
+      return 'https://www.canva.com/design/new';
     }
+  };
+  
+  // Determinar se o usuário pode editar esta arte
+  const canEditArt = (): boolean => {
+    // Se não está logado, não pode editar
+    if (!user) return false;
+    
+    // Se a arte é gratuita, qualquer usuário logado pode editar
+    if (!isPremium) return true;
+    
+    // Se a arte é premium, apenas usuários premium podem editar
+    return isUserPremium === true;
+  };
+  
+  const handleEditCanva = () => {
+    // Se não pode editar, não faz nada (o botão já deve estar desabilitado ou ser apenas visual)
+    if (!canEditArt()) return;
+    
+    // Obter a URL do Canva e abrir em nova janela
+    const canvaUrl = getCanvaUrl();
+    window.open(canvaUrl, '_blank');
   };
   
   // Skeletons para loading
@@ -460,7 +523,7 @@ export default function ArtDetailPage() {
                 </PopoverTrigger>
                 <PopoverContent className="w-[250px] p-0">
                   <div className="p-1">
-                    {availableFormats.map((format, index) => (
+                    {availableFormats.map((format: string, index: number) => (
                       <div 
                         key={index} 
                         className="p-2 hover:bg-gray-50 rounded-md cursor-pointer flex items-center gap-2"
@@ -506,17 +569,54 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Botão principal de ação */}
-          <Button 
-            onClick={handleEditCanva} 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            <span className="font-medium text-sm">EDITAR NO CANVA</span>
-          </Button>
+          {isPremium && !isUserPremium && user ? (
+            // Botão premium para usuários gratuitos logados
+            <TooltipProvider>
+              <Tooltip open={isTooltipOpen}>
+                <TooltipTrigger asChild
+                  onMouseEnter={() => setIsTooltipOpen(true)}
+                  onMouseLeave={() => setIsTooltipOpen(false)}
+                >
+                  <Button 
+                    className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+                    disabled={true}
+                  >
+                    <Crown size={16} className="text-white" />
+                    <span className="font-medium text-sm">EDITAR NO CANVA</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-800 text-white border-none p-2 text-xs">
+                  <p>Torne-se premium para editar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : !user ? (
+            // Botão desabilitado para usuários não logados
+            <Button 
+              className="w-full bg-gray-400 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md cursor-not-allowed"
+              disabled={true}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
+            </Button>
+          ) : (
+            // Botão normal para usuários com permissão (premium ou arte gratuita)
+            <Button 
+              onClick={handleEditCanva} 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span className="font-medium text-sm">EDITAR NO CANVA</span>
+            </Button>
+          )}
           
           {/* Linha de ações */}
           <div className="flex items-center justify-center gap-3 pt-5">
@@ -583,7 +683,7 @@ export default function ArtDetailPage() {
         <div className="mt-12">
           <h2 className="text-xl font-bold mb-4">Outros formatos</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {relatedFormats.map((format: RelatedFormat) => (
+            {relatedFormats.map((format: RelatedFormat, index: number) => (
               <div key={format.id} className="relative rounded-lg overflow-hidden shadow-sm">
                 <a 
                   href={`/artes/${format.uniqueCode || format.unique_code || format.id}`}
