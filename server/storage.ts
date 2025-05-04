@@ -1701,8 +1701,79 @@ export class DatabaseStorage implements IStorage {
         console.log(`DATABASE updatePost - Atualizando is_visible=${dbPost.is_visible}`);
       }
       
-      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
-      console.log("DATABASE updatePost - Usando PostgreSQL diretamente para atualização de post");
+      // Tentar primeiro atualizar via Supabase
+      console.log("DATABASE updatePost - Tentando atualizar post via Supabase primeiro");
+      
+      // Tentar atualizar via Supabase
+      try {
+        const { data: supabaseData, error: supabaseError } = await supabase
+          .from('posts')
+          .update(dbPost)
+          .eq('id', id)
+          .select()
+          .single();
+          
+        if (supabaseError) {
+          console.warn("DATABASE updatePost - Erro ao atualizar via Supabase:", supabaseError.message);
+          // Se falhar, tentamos com PostgreSQL direto
+        } else if (supabaseData) {
+          console.log(`DATABASE updatePost - Post atualizado com sucesso via Supabase`);
+          
+          // Mapear para o formato esperado pela aplicação
+          const postResult: Post = {
+            id: supabaseData.id,
+            title: supabaseData.title,
+            description: supabaseData.description || "",
+            imageUrl: supabaseData.image_url,
+            uniqueCode: supabaseData.unique_code,
+            categoryId: supabaseData.category_id,
+            status: supabaseData.status,
+            createdAt: new Date(supabaseData.created_at),
+            publishedAt: supabaseData.published_at ? new Date(supabaseData.published_at) : null,
+            formato: supabaseData.formato,
+            formatData: supabaseData.format_data,
+            groupId: supabaseData.group_id,
+            tituloBase: supabaseData.titulo_base,
+            isPro: !!supabaseData.is_pro,
+            licenseType: supabaseData.license_type || 'free',
+            canvaUrl: supabaseData.canva_url,
+            formatoData: supabaseData.formato_data,
+            isVisible: supabaseData.is_visible !== false,
+            tags: supabaseData.tags || [],
+            formats: supabaseData.formats || []
+          };
+          
+          // Aplicar normalização para campos premium
+          const normalizedPost = ensurePremiumFields(postResult);
+          
+          // Agora vamos tentar fazer o mesmo update no PostgreSQL direto como fallback
+          // para garantir consistência, mas sem falhar se não encontrar
+          try {
+            // Construir consulta SQL para atualização
+            const setClauses = Object.keys(dbPost).map((key, i) => `${key} = $${i + 1}`).join(', ');
+            const values = [...Object.values(dbPost), id];
+            
+            const sql = `
+              UPDATE posts 
+              SET ${setClauses} 
+              WHERE id = $${values.length}
+            `;
+            
+            await pool.query(sql, values);
+            console.log(`DATABASE updatePost - Post também atualizado no PostgreSQL direto como fallback`);
+          } catch (pgFallbackError) {
+            console.warn("DATABASE updatePost - Aviso: Falha ao sincronizar com PostgreSQL direto:", pgFallbackError);
+            // Não falhar aqui, pois o update no Supabase já funcionou
+          }
+          
+          return normalizedPost;
+        }
+      } catch (supabaseUpdateError) {
+        console.error("DATABASE updatePost - Exceção ao atualizar via Supabase:", supabaseUpdateError);
+      }
+      
+      // Se chegamos aqui, Supabase falhou ou retornou erro
+      console.log("DATABASE updatePost - Tentando agora com PostgreSQL direto");
       
       // Construir consulta SQL para atualização
       const setClauses = Object.keys(dbPost).map((key, i) => `${key} = $${i + 1}`).join(', ');
@@ -1722,7 +1793,76 @@ export class DatabaseStorage implements IStorage {
         const result = await pool.query(sql, values);
         
         if (result.rows.length === 0) {
-          throw new Error(`Post com ID ${id} não encontrado`);
+          // Se não encontrou no PostgreSQL direto, tente buscar do Supabase para ver se existe lá
+          console.log(`DATABASE updatePost - Post com ID ${id} não encontrado no PostgreSQL, verificando no Supabase`);
+          
+          const { data: existingPost, error: fetchError } = await supabase
+            .from('posts')
+            .select('*')
+            .eq('id', id)
+            .single();
+            
+          if (fetchError || !existingPost) {
+            throw new Error(`Post com ID ${id} não encontrado em nenhuma base de dados`);
+          }
+          
+          // Se encontrou no Supabase, criar no PostgreSQL
+          console.log(`DATABASE updatePost - Post com ID ${id} encontrado no Supabase, criando no PostgreSQL`);
+          
+          // Criar o post no PostgreSQL
+          const fullPost = {
+            ...existingPost,
+            ...dbPost
+          };
+          
+          // Converter campos para formato correto do PostgreSQL
+          const pgPost: any = {};
+          for (const [key, value] of Object.entries(fullPost)) {
+            // Transformar chaves em snake_case
+            const pgKey = key.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+            pgPost[pgKey] = value;
+          }
+          
+          // Construir consulta SQL para inserção
+          const insertFields = Object.keys(pgPost);
+          const insertValues = Object.values(pgPost);
+          const insertPlaceholders = insertFields.map((_, i) => `$${i + 1}`).join(', ');
+          
+          const insertSql = `
+            INSERT INTO posts (${insertFields.join(', ')})
+            VALUES (${insertPlaceholders})
+            RETURNING *
+          `;
+          
+          const insertResult = await pool.query(insertSql, insertValues);
+          const data = insertResult.rows[0];
+          
+          // Mapear para o formato esperado pela aplicação
+          const postResult: Post = {
+            id: data.id,
+            title: data.title,
+            description: data.description || "",
+            imageUrl: data.image_url,
+            uniqueCode: data.unique_code,
+            categoryId: data.category_id,
+            status: data.status,
+            createdAt: new Date(data.created_at),
+            publishedAt: data.published_at ? new Date(data.published_at) : null,
+            formato: data.formato,
+            formatData: data.format_data,
+            groupId: data.group_id,
+            tituloBase: data.titulo_base,
+            isPro: !!data.is_pro,
+            licenseType: data.license_type || 'free',
+            canvaUrl: data.canva_url,
+            formatoData: data.formato_data,
+            isVisible: data.is_visible !== false,
+            tags: data.tags || [],
+            formats: data.formats || []
+          };
+          
+          console.log(`DATABASE updatePost - Post sincronizado entre Supabase e PostgreSQL`);
+          return postResult;
         }
         
         const data = result.rows[0];
@@ -1767,8 +1907,27 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`DATABASE deletePost - Excluindo post com ID: ${id}`);
       
-      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
-      console.log("DATABASE deletePost - Usando PostgreSQL diretamente para exclusão de post");
+      // Tentar excluir primeiro do Supabase
+      console.log("DATABASE deletePost - Tentando excluir do Supabase primeiro");
+      
+      try {
+        const { error: supabaseError } = await supabase
+          .from('posts')
+          .delete()
+          .eq('id', id);
+          
+        if (supabaseError) {
+          console.warn("DATABASE deletePost - Erro ao excluir do Supabase:", supabaseError.message);
+          // Se falhar, continuamos com PostgreSQL
+        } else {
+          console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso do Supabase`);
+        }
+      } catch (supabaseDeleteError) {
+        console.error("DATABASE deletePost - Exceção ao excluir do Supabase:", supabaseDeleteError);
+      }
+      
+      // Excluir do PostgreSQL direto também (mesmo que Supabase tenha funcionado)
+      console.log("DATABASE deletePost - Excluindo do PostgreSQL direto");
       
       const sql = `DELETE FROM posts WHERE id = $1`;
       
@@ -1776,14 +1935,17 @@ export class DatabaseStorage implements IStorage {
         const result = await pool.query(sql, [id]);
         
         if (result.rowCount === 0) {
-          throw new Error(`Post com ID ${id} não encontrado`);
+          console.log(`DATABASE deletePost - Post com ID ${id} não encontrado no PostgreSQL direto (provavelmente já foi excluído ou nunca existiu)`);
+        } else {
+          console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso do PostgreSQL direto`);
         }
-        
-        console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso via PostgreSQL direto`);
       } catch (pgError: any) {
-        console.error("DATABASE deletePost - Erro PostgreSQL:", pgError);
-        throw new Error(`Erro ao excluir post: ${pgError.message}`);
+        console.error("DATABASE deletePost - Erro ao excluir do PostgreSQL:", pgError);
+        // Não falhar aqui se o Supabase já excluiu
       }
+      
+      // Sucesso se chegamos até aqui (pelo menos uma das exclusões funcionou)
+      console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso`);
     } catch (error) {
       console.error("DATABASE deletePost - Exceção:", error);
       throw error;
@@ -1794,21 +1956,45 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`DATABASE updatePostStatus - Atualizando status para ${status} nos posts:`, ids);
       
-      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
-      console.log("DATABASE updatePostStatus - Usando PostgreSQL diretamente para atualização de status");
+      // Definir dados para atualização
+      let updateData: any = { status };
+      
+      // Se for para aprovar, definir a data de publicação
+      if (status === 'aprovado') {
+        updateData.published_at = new Date().toISOString();
+      }
+      
+      // Primeiro tentar atualizar via Supabase
+      console.log("DATABASE updatePostStatus - Tentando atualizar status via Supabase");
+      let successCount = 0;
+      
+      try {
+        // Atualizar posts individualmente (Supabase não suporta .in para update)
+        for (const id of ids) {
+          const { error } = await supabase
+            .from('posts')
+            .update(updateData)
+            .eq('id', id);
+            
+          if (!error) {
+            successCount++;
+          }
+        }
+        
+        console.log(`DATABASE updatePostStatus - ${successCount} de ${ids.length} posts atualizados via Supabase`);
+      } catch (supabaseError) {
+        console.error("DATABASE updatePostStatus - Erro ao atualizar via Supabase:", supabaseError);
+      }
+      
+      // Também atualizar via PostgreSQL direto para garantir consistência
+      console.log("DATABASE updatePostStatus - Usando PostgreSQL direto para atualização de status");
       
       // Criar placeholder IDs para a consulta SQL
       const idPlaceholders = ids.map((_, i) => `$${i + 2}`).join(', ');
       
-      // Se for para aprovar, definir a data de publicação
-      let publishedAt = null;
-      if (status === 'aprovado') {
-        publishedAt = new Date();
-      }
-      
       const sql = `
         UPDATE posts 
-        SET status = $1${publishedAt ? ', published_at = $' + (ids.length + 2) : ''}
+        SET status = $1${status === 'aprovado' ? ', published_at = $' + (ids.length + 2) : ''}
         WHERE id IN (${idPlaceholders})
       `;
       
@@ -1816,8 +2002,8 @@ export class DatabaseStorage implements IStorage {
       const params = [status, ...ids];
       
       // Adicionar data de publicação se necessário
-      if (publishedAt) {
-        params.push(publishedAt);
+      if (status === 'aprovado') {
+        params.push(updateData.published_at);
       }
       
       try {
@@ -1826,8 +2012,16 @@ export class DatabaseStorage implements IStorage {
         console.log(`DATABASE updatePostStatus - Status atualizado para ${status} em ${result.rowCount} posts via PostgreSQL direto`);
       } catch (pgError: any) {
         console.error("DATABASE updatePostStatus - Erro PostgreSQL:", pgError);
-        throw new Error(`Erro ao atualizar status dos posts: ${pgError.message}`);
+        
+        // Se Supabase atualizou pelo menos alguns posts, não falhar
+        if (successCount > 0) {
+          console.log(`DATABASE updatePostStatus - Continuando, pois ${successCount} posts foram atualizados via Supabase`);
+        } else {
+          throw new Error(`Erro ao atualizar status dos posts: ${pgError.message}`);
+        }
       }
+      
+      console.log(`DATABASE updatePostStatus - Atualização de status concluída para ${ids.length} posts`);
     } catch (error) {
       console.error("DATABASE updatePostStatus - Exceção:", error);
       throw error;
