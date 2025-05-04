@@ -1348,6 +1348,30 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE createPost - Criando novo post:", JSON.stringify(post));
       
+      // Verificar se a categoria existe no Supabase antes de continuar
+      if (post.categoryId) {
+        console.log(`DATABASE createPost - Verificando se a categoria com ID ${post.categoryId} existe`);
+        try {
+          const { data: categoryData, error: categoryError } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('id', post.categoryId)
+            .single();
+            
+          if (categoryError || !categoryData) {
+            console.warn(`DATABASE createPost - Categoria com ID ${post.categoryId} não encontrada no Supabase`);
+            console.log("DATABASE createPost - Tentando usar categoria padrão (ID 2)");
+            post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+          } else {
+            console.log(`DATABASE createPost - Categoria com ID ${post.categoryId} encontrada`);
+          }
+        } catch (categoryCheckError) {
+          console.error("DATABASE createPost - Erro ao verificar categoria:", categoryCheckError);
+          console.log("DATABASE createPost - Usando categoria padrão (ID 2)");
+          post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+        }
+      }
+      
       // Mapear do formato da aplicação para o formato do PostgreSQL
       const dbPost: any = {
         title: post.title,
@@ -1392,7 +1416,56 @@ export class DatabaseStorage implements IStorage {
       
       console.log("DATABASE createPost - Dados completos a serem enviados:", dbPost);
       
-      // Usar diretamente PostgreSQL para evitar problemas de cache do Supabase
+      // Tentar criar o post no Supabase primeiro
+      try {
+        console.log("DATABASE createPost - Tentando criar post via Supabase");
+        
+        const { data: supabaseData, error: supabaseError } = await supabase
+          .from('posts')
+          .insert(dbPost)
+          .select()
+          .single();
+          
+        if (supabaseError) {
+          console.warn("DATABASE createPost - Erro ao criar post via Supabase:", supabaseError.message);
+          // Se falhar com Supabase, tentamos com PostgreSQL direto
+        } else if (supabaseData) {
+          console.log(`DATABASE createPost - Post criado com ID: ${supabaseData.id} via Supabase`);
+          
+          // Mapear para o formato esperado pela aplicação
+          const postResult: Post = {
+            id: supabaseData.id,
+            title: supabaseData.title,
+            description: supabaseData.description || "",
+            imageUrl: supabaseData.image_url,
+            uniqueCode: supabaseData.unique_code,
+            categoryId: supabaseData.category_id,
+            status: supabaseData.status,
+            createdAt: new Date(supabaseData.created_at),
+            publishedAt: supabaseData.published_at ? new Date(supabaseData.published_at) : null,
+            formato: supabaseData.formato,
+            formatData: supabaseData.format_data,
+            groupId: supabaseData.group_id,
+            tituloBase: supabaseData.titulo_base,
+            // Normalizar campos premium
+            isPro: supabaseData.is_pro,
+            licenseType: supabaseData.license_type,
+            canvaUrl: supabaseData.canva_url,
+            formatoData: supabaseData.formato_data,
+            isVisible: supabaseData.is_visible !== false,
+            tags: supabaseData.tags || [],
+            formats: supabaseData.formats || []
+          };
+          
+          // Aplicar normalização para campos premium
+          const normalizedPost = ensurePremiumFields(postResult);
+          return normalizedPost;
+        }
+      } catch (supabaseCreateError) {
+        console.error("DATABASE createPost - Exceção ao criar post via Supabase:", supabaseCreateError);
+      }
+      
+      // Se chegarmos aqui, Supabase falhou ou retornou erro. Tentar com PostgreSQL direto
       console.log("DATABASE createPost - Usando PostgreSQL diretamente para criação de post");
       
       // Construir consulta SQL para inserção
@@ -1457,6 +1530,30 @@ export class DatabaseStorage implements IStorage {
   async updatePost(id: number, post: Partial<InsertPost>): Promise<Post> {
     try {
       console.log(`DATABASE updatePost - Atualizando post com ID ${id}:`, JSON.stringify(post));
+      
+      // Verificar se a categoria existe no Supabase antes de continuar
+      if (post.categoryId) {
+        console.log(`DATABASE updatePost - Verificando se a categoria com ID ${post.categoryId} existe`);
+        try {
+          const { data: categoryData, error: categoryError } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('id', post.categoryId)
+            .single();
+            
+          if (categoryError || !categoryData) {
+            console.warn(`DATABASE updatePost - Categoria com ID ${post.categoryId} não encontrada no Supabase`);
+            console.log("DATABASE updatePost - Tentando usar categoria padrão (ID 2)");
+            post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+          } else {
+            console.log(`DATABASE updatePost - Categoria com ID ${post.categoryId} encontrada`);
+          }
+        } catch (categoryCheckError) {
+          console.error("DATABASE updatePost - Erro ao verificar categoria:", categoryCheckError);
+          console.log("DATABASE updatePost - Usando categoria padrão (ID 2)");
+          post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+        }
+      }
       
       // Mapear do formato da aplicação para o formato do PostgreSQL
       const dbPost: any = {};
