@@ -119,7 +119,7 @@ export default function PostagensPage() {
     },
   });
   
-  // Mutação para atualizar o tipo de licença da postagem
+  // Mutação para atualizar o tipo de licença da postagem (ANTIGO)
   const toggleLicenseTypeMutation = useMutation({
     mutationFn: async ({ id, licenseType }: { id: number, licenseType: 'premium' | 'free' }) => {
       const response = await apiRequest('PATCH', `/api/admin/posts/${id}`, { licenseType });
@@ -139,6 +139,35 @@ export default function PostagensPage() {
     onError: (error: Error) => {
       toast({
         title: "Erro ao atualizar tipo de licença",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutação especial para endpoint direto premium (NOVA - usa endpoint específico)
+  const updatePremiumStatusMutation = useMutation({
+    mutationFn: async ({ id, isPremium }: { id: number, isPremium: boolean }) => {
+      console.log(`Atualizando status premium do post ${id} para ${isPremium}`);
+      const response = await apiRequest('PATCH', `/api/admin/posts/${id}/premium`, { isPremium });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao atualizar status premium');
+      }
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      console.log("Status premium atualizado com sucesso:", data);
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/posts'] });
+      toast({
+        title: "Status premium atualizado",
+        description: "O status premium da postagem foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Erro na atualização premium:", error);
+      toast({
+        title: "Erro ao atualizar status premium",
         description: error.message,
         variant: "destructive",
       });
@@ -645,9 +674,9 @@ export default function PostagensPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => toggleLicenseTypeMutation.mutate({ 
+                      onClick={() => updatePremiumStatusMutation.mutate({ 
                         id: post.id, 
-                        licenseType: isPostPremium(post) ? 'free' : 'premium'
+                        isPremium: !isPostPremium(post)
                       })}
                       title={isPostPremium(post) ? 'Conteúdo Premium (clique para tornar gratuito)' : 'Conteúdo Gratuito (clique para tornar premium)'}
                     >
