@@ -819,7 +819,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       await storage.deleteCategory(id);
       res.status(204).end();
-    } catch (error) {
+    } catch (error: any) {
+      // Verificar se é um erro de restrição de chave estrangeira ou categoria em uso
+      if (error.message && (
+        error.message.includes('violates foreign key constraint') ||
+        error.message.includes('posts usando esta categoria')
+      )) {
+        return res.status(400).json({ 
+          message: error.message || 'Não é possível excluir esta categoria porque existem posts associados a ela'
+        });
+      }
+      
+      // Outro tipo de erro
+      console.error('Error deleting category:', error);
       res.status(500).json({ message: 'Error deleting category' });
     }
   });

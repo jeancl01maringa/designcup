@@ -960,18 +960,48 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE deleteCategory - Excluindo categoria com ID:", id);
       
-      // Usar a API do Supabase para excluir a categoria
+      // Primeiro, verificar se existem posts usando esta categoria
+      try {
+        const { data: postsWithCategory, error: checkError } = await supabase
+          .from('posts')
+          .select('id')
+          .eq('category_id', id);
+          
+        if (!checkError && postsWithCategory && postsWithCategory.length > 0) {
+          console.warn(`DATABASE deleteCategory - Existem ${postsWithCategory.length} posts usando esta categoria`);
+          throw new Error(`Não é possível excluir: existem ${postsWithCategory.length} posts usando esta categoria. Você deve primeiro atribuir esses posts a outra categoria ou excluí-los.`);
+        }
+      } catch (checkError) {
+        console.warn("DATABASE deleteCategory - Erro ao verificar posts relacionados:", checkError);
+        // Continuar mesmo com erro na verificação
+      }
+      
+      // Tentar com Supabase primeiro
       const { error } = await supabase
         .from('categories')
         .delete()
         .eq('id', id);
       
       if (error) {
-        console.error("DATABASE deleteCategory - Erro ao excluir categoria:", error.message);
-        throw new Error(`Erro ao excluir categoria: ${error.message}`);
+        console.error("DATABASE deleteCategory - Erro ao excluir via Supabase:", error.message);
+        // Se falhar, tentar com PostgreSQL direto
+        try {
+          console.log("DATABASE deleteCategory - Tentando excluir via PostgreSQL direto");
+          await pool.query('DELETE FROM categories WHERE id = $1', [id]);
+          console.log("DATABASE deleteCategory - Categoria excluída com sucesso via PostgreSQL direto");
+          return;
+        } catch (pgError: any) {
+          // Verificar se é um erro de restrição de chave estrangeira
+          if (pgError.message && pgError.message.includes('violates foreign key constraint')) {
+            console.error("DATABASE deleteCategory - Erro de restrição de chave estrangeira");
+            throw new Error(`Não é possível excluir a categoria pois existem posts associados a ela.`);
+          }
+          // Repassar o erro original
+          throw new Error(`Erro ao excluir categoria: ${pgError.message || 'Erro no banco de dados'}`);
+        }
       }
       
-      console.log(`DATABASE deleteCategory - Categoria excluída com sucesso`);
+      console.log(`DATABASE deleteCategory - Categoria excluída com sucesso via Supabase`);
     } catch (error) {
       console.error("DATABASE deleteCategory - Exceção:", error);
       throw error;
