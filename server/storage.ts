@@ -1360,8 +1360,8 @@ export class DatabaseStorage implements IStorage {
             
           if (categoryError || !categoryData) {
             console.warn(`DATABASE createPost - Categoria com ID ${post.categoryId} não encontrada no Supabase`);
-            console.log("DATABASE createPost - Tentando usar categoria padrão (ID 2)");
-            post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+            console.log("DATABASE createPost - Tentando usar categoria padrão (ID 6 - Corporal)");
+            post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
           } else {
             console.log(`DATABASE createPost - Categoria com ID ${post.categoryId} encontrada no Supabase:`, categoryData);
             
@@ -1407,14 +1407,14 @@ export class DatabaseStorage implements IStorage {
               }
             } catch (pgCategoryError) {
               console.error(`DATABASE createPost - Erro ao verificar/criar categoria ID ${post.categoryId} no PostgreSQL:`, pgCategoryError);
-              console.log("DATABASE createPost - Usando categoria padrão (ID 2)");
-              post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+              console.log("DATABASE createPost - Usando categoria padrão (ID 6 - Corporal)");
+              post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
             }
           }
         } catch (categoryCheckError) {
           console.error("DATABASE createPost - Erro ao verificar categoria:", categoryCheckError);
-          console.log("DATABASE createPost - Usando categoria padrão (ID 2)");
-          post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+          console.log("DATABASE createPost - Usando categoria padrão (ID 6 - Corporal)");
+          post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
         }
       }
       
@@ -1589,8 +1589,8 @@ export class DatabaseStorage implements IStorage {
             
           if (categoryError || !categoryData) {
             console.warn(`DATABASE updatePost - Categoria com ID ${post.categoryId} não encontrada no Supabase`);
-            console.log("DATABASE updatePost - Tentando usar categoria padrão (ID 2)");
-            post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+            console.log("DATABASE updatePost - Tentando usar categoria padrão (ID 6 - Corporal)");
+            post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
           } else {
             console.log(`DATABASE updatePost - Categoria com ID ${post.categoryId} encontrada no Supabase:`, categoryData);
             
@@ -1636,14 +1636,14 @@ export class DatabaseStorage implements IStorage {
               }
             } catch (pgCategoryError) {
               console.error(`DATABASE updatePost - Erro ao verificar/criar categoria ID ${post.categoryId} no PostgreSQL:`, pgCategoryError);
-              console.log("DATABASE updatePost - Usando categoria padrão (ID 2)");
-              post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+              console.log("DATABASE updatePost - Usando categoria padrão (ID 6 - Corporal)");
+              post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
             }
           }
         } catch (categoryCheckError) {
           console.error("DATABASE updatePost - Erro ao verificar categoria:", categoryCheckError);
-          console.log("DATABASE updatePost - Usando categoria padrão (ID 2)");
-          post.categoryId = 2; // Usar uma categoria que sabemos que existe (Facial, ID 2)
+          console.log("DATABASE updatePost - Usando categoria padrão (ID 6 - Corporal)");
+          post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
         }
       }
       
