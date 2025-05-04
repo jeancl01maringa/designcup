@@ -146,7 +146,23 @@ export function CategoryManager() {
   // Mutation para excluir categoria
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/admin/categories/${id}`);
+      try {
+        const response = await apiRequest("DELETE", `/api/admin/categories/${id}`);
+        
+        // Se a resposta não for 204 (sucesso sem conteúdo), analisar o erro
+        if (response.status !== 204) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Erro ao excluir categoria');
+        }
+        
+        return true;
+      } catch (error) {
+        // Capturar erros de rede ou de formato JSON
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('Erro desconhecido ao excluir categoria');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/categories'] });
@@ -157,12 +173,28 @@ export function CategoryManager() {
       setIsDeleteDialogOpen(false);
       setSelectedCategory(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Erro detalhado na exclusão:", error);
+      
+      // Verificar se é um erro relacionado a posts vinculados
+      const errorMessage = error.message || "Erro desconhecido";
+      const isPostsRelatedError = 
+        errorMessage.includes('posts usando esta categoria') || 
+        errorMessage.includes('posts associados') || 
+        errorMessage.includes('não é possível excluir');
+      
       toast({
-        title: "Erro ao excluir categoria",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
+        title: isPostsRelatedError 
+          ? "Categoria não pode ser excluída" 
+          : "Erro ao excluir categoria",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Apenas fechar o diálogo para erros não relacionados a posts
+      if (!isPostsRelatedError) {
+        setIsDeleteDialogOpen(false);
+      }
     },
   });
 
@@ -424,24 +456,53 @@ export function CategoryManager() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir a categoria "{selectedCategory?.name}"?
-              Esta ação não poderá ser desfeita.
+            <AlertDialogTitle>
+              {deleteMutation.isError && 
+               deleteMutation.error?.message && 
+               (deleteMutation.error.message.includes('posts usando esta categoria') || 
+                deleteMutation.error.message.includes('posts associados') ||
+                deleteMutation.error.message.includes('não é possível excluir'))
+                ? "Não é possível excluir esta categoria"
+                : "Excluir Categoria"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className={deleteMutation.isError ? "text-destructive" : ""}>
+              {deleteMutation.isError && deleteMutation.error?.message
+                ? deleteMutation.error.message
+                : `Tem certeza que deseja excluir a categoria "${selectedCategory?.name}"?
+                   Esta ação não poderá ser desfeita.`}
             </AlertDialogDescription>
+            
+            {/* Mensagem adicional de ajuda em caso de erro */}
+            {deleteMutation.isError && 
+             deleteMutation.error?.message && 
+             (deleteMutation.error.message.includes('posts usando esta categoria') || 
+              deleteMutation.error.message.includes('posts associados')) && (
+              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                <p className="text-sm text-orange-600">
+                  <strong>Dica:</strong> Você precisa primeiro atribuir os posts desta categoria a outra 
+                  categoria ou excluí-los antes de poder excluir esta categoria.
+                </p>
+              </div>
+            )}
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Excluir
-            </AlertDialogAction>
+            <AlertDialogCancel>
+              {deleteMutation.isError ? "Fechar" : "Cancelar"}
+            </AlertDialogCancel>
+            
+            {/* Mostrar botão de excluir apenas se não houver erro */}
+            {!deleteMutation.isError && (
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive hover:bg-destructive/90"
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Excluir
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
