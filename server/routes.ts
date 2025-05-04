@@ -827,26 +827,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      await storage.deleteCategory(id);
-      console.log(`DELETE /api/admin/categories/${id} - Categoria excluída com sucesso`);
+      // A função agora retorna informações sobre os posts atualizados
+      const result = await storage.deleteCategory(id);
       
-      // Enviar resposta de sucesso
+      console.log(`DELETE /api/admin/categories/${id} - Categoria excluída com sucesso. ${result.postsUpdated} posts afetados.`);
+      
+      // Enviar resposta com detalhes sobre os posts atualizados
+      if (result.postsUpdated > 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'Categoria excluída com sucesso.',
+          postsUpdated: result.postsUpdated,
+          details: `${result.postsUpdated} postagens foram atualizadas para ficar sem categoria.`
+        });
+      }
+      
+      // Se não havia posts, continuar com a resposta padrão de sucesso
       res.status(204).end();
     } catch (error: any) {
       // Capturar a mensagem de erro para análise
       const errorMessage = error.message || 'Erro desconhecido ao excluir categoria';
       console.error(`DELETE /api/admin/categories/${req.params.id} - Erro:`, errorMessage);
       
-      // Verificar se é um erro de restrição de chave estrangeira ou categoria em uso
-      if (
-        errorMessage.includes('violates foreign key constraint') ||
-        errorMessage.includes('posts usando esta categoria') ||
-        errorMessage.includes('não é possível excluir')
-      ) {
-        // Erro de negócio - categoria em uso
+      // Verificar se é um erro de restrição de chave estrangeira
+      if (errorMessage.includes('violates foreign key constraint')) {
+        return res.status(400).json({ 
+          message: 'Não foi possível excluir a categoria devido a restrições de banco de dados. Verifique se há outros objetos relacionados à categoria.',
+          error: 'RESTRICAO_BANCO_DADOS'
+        });
+      }
+      
+      // Verificar outros erros comuns
+      if (errorMessage.includes('Erro ao atualizar os posts relacionados')) {
         return res.status(400).json({ 
           message: errorMessage,
-          error: 'CATEGORIA_EM_USO'
+          error: 'ERRO_ATUALIZAR_POSTS'
         });
       }
       

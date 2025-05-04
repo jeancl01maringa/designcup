@@ -43,7 +43,7 @@ export interface IStorage {
   getCategoryById(id: number): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category>;
-  deleteCategory(id: number): Promise<void>;
+  deleteCategory(id: number): Promise<{ success: boolean; postsUpdated: number }>;
   
   // Post methods (for admin panel)
   getPosts(filters?: {
@@ -956,12 +956,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async deleteCategory(id: number): Promise<void> {
+  async deleteCategory(id: number): Promise<{ success: boolean; postsUpdated: number }> {
     try {
       console.log("DATABASE deleteCategory - Excluindo categoria com ID:", id);
+      let postsUpdated = 0;
       
       // Verificar se existem posts usando esta categoria no PostgreSQL direto
-      // Este método é mais confiável que o Supabase API para verificação
       try {
         console.log(`DATABASE deleteCategory - Verificando posts relacionados à categoria ${id} via PostgreSQL direto`);
         
@@ -970,40 +970,80 @@ export class DatabaseStorage implements IStorage {
           [id]
         );
         
-        const postCount = parseInt(checkResult.rows[0].count);
-        console.log(`DATABASE deleteCategory - Encontrados ${postCount} posts associados à categoria ${id}`);
+        postsUpdated = parseInt(checkResult.rows[0].count);
+        console.log(`DATABASE deleteCategory - Encontrados ${postsUpdated} posts associados à categoria ${id}`);
         
-        if (postCount > 0) {
-          throw new Error(`Não é possível excluir: existem ${postCount} posts usando esta categoria. Você deve primeiro atribuir esses posts a outra categoria ou excluí-los.`);
+        if (postsUpdated > 0) {
+          console.log(`DATABASE deleteCategory - Atualizando ${postsUpdated} posts para category_id = NULL`);
+          
+          // Atualizar todos os posts relacionados, definindo category_id como NULL
+          try {
+            // Via PostgreSQL direto (mais confiável)
+            await pool.query(
+              'UPDATE posts SET category_id = NULL WHERE category_id = $1',
+              [id]
+            );
+            console.log(`DATABASE deleteCategory - Posts atualizados com sucesso via PostgreSQL direto`);
+            
+            // Sincronizar com Supabase
+            try {
+              const { error: updateError } = await supabase
+                .from('posts')
+                .update({ category_id: null })
+                .eq('category_id', id);
+                
+              if (updateError) {
+                console.warn(`DATABASE deleteCategory - Erro ao atualizar posts via Supabase: ${updateError.message}`);
+              } else {
+                console.log(`DATABASE deleteCategory - Posts também atualizados via Supabase`);
+              }
+            } catch (supabaseUpdateError) {
+              console.warn("DATABASE deleteCategory - Erro ao atualizar posts via Supabase:", supabaseUpdateError);
+            }
+          } catch (updateError) {
+            console.error("DATABASE deleteCategory - Erro ao atualizar posts:", updateError);
+            throw new Error(`Erro ao atualizar os posts relacionados: ${updateError.message}`);
+          }
         }
       } catch (checkError: any) {
-        // Se o erro for na consulta de verificação, não apenas no resultado
-        if (checkError.message && !checkError.message.includes('posts usando esta categoria')) {
-          console.warn("DATABASE deleteCategory - Erro ao verificar posts relacionados via PostgreSQL:", checkError);
-          
-          // Tentar verificar via Supabase como plano B
-          try {
-            const { data: postsWithCategory, error: supabaseCheckError } = await supabase
+        // Se o erro for específico sobre posts, propagar
+        if (checkError.message && checkError.message.includes('Erro ao atualizar os posts')) {
+          throw checkError;
+        }
+        
+        // Caso contrário, é um erro na consulta de verificação
+        console.warn("DATABASE deleteCategory - Erro ao verificar posts relacionados via PostgreSQL:", checkError);
+        
+        // Tentar verificar via Supabase como plano B
+        try {
+          const { data: postsWithCategory, error: supabaseCheckError } = await supabase
+            .from('posts')
+            .select('id')
+            .eq('category_id', id);
+            
+          if (!supabaseCheckError && postsWithCategory && postsWithCategory.length > 0) {
+            postsUpdated = postsWithCategory.length;
+            console.log(`DATABASE deleteCategory - Atualizando ${postsUpdated} posts via Supabase`);
+            
+            const { error: updateError } = await supabase
               .from('posts')
-              .select('id')
+              .update({ category_id: null })
               .eq('category_id', id);
               
-            if (!supabaseCheckError && postsWithCategory && postsWithCategory.length > 0) {
-              console.warn(`DATABASE deleteCategory - Existem ${postsWithCategory.length} posts usando esta categoria via Supabase`);
-              throw new Error(`Não é possível excluir: existem ${postsWithCategory.length} posts usando esta categoria. Você deve primeiro atribuir esses posts a outra categoria ou excluí-los.`);
+            if (updateError) {
+              console.error(`DATABASE deleteCategory - Erro ao atualizar posts via Supabase: ${updateError.message}`);
+              throw new Error(`Erro ao atualizar os posts relacionados: ${updateError.message}`);
             }
-          } catch (supabaseCheckError) {
-            console.warn("DATABASE deleteCategory - Também falhou ao verificar posts via Supabase:", supabaseCheckError);
-            // Se os dois métodos de verificação falharem, prosseguir com cautela
+            
+            console.log(`DATABASE deleteCategory - Posts atualizados com sucesso via Supabase`);
           }
-        } else {
-          // Se for o erro que nós mesmos lançamos sobre posts existentes, propagar
-          throw checkError;
+        } catch (supabaseError) {
+          console.warn("DATABASE deleteCategory - Também falhou ao verificar/atualizar posts via Supabase:", supabaseError);
+          // Se os dois métodos de verificação/atualização falharem, prosseguir com cautela
         }
       }
       
-      // Tudo verificado, agora vamos tentar excluir via PostgreSQL direto primeiro
-      // (mais confiável para operações destrutivas)
+      // Com os posts já atualizados, agora podemos excluir a categoria
       try {
         console.log("DATABASE deleteCategory - Tentando excluir via PostgreSQL direto");
         await pool.query('DELETE FROM categories WHERE id = $1', [id]);
@@ -1021,12 +1061,12 @@ export class DatabaseStorage implements IStorage {
           console.warn("DATABASE deleteCategory - Não foi possível sincronizar exclusão com Supabase:", syncError);
         }
         
-        return;
+        return { success: true, postsUpdated };
       } catch (pgError: any) {
-        // Verificar se é um erro de restrição de chave estrangeira
+        // Mesmo com os posts atualizados para null, ainda pode haver restrição
         if (pgError.message && pgError.message.includes('violates foreign key constraint')) {
-          console.error("DATABASE deleteCategory - Erro de restrição de chave estrangeira no PostgreSQL");
-          throw new Error(`Não é possível excluir a categoria pois existem posts associados a ela.`);
+          console.error("DATABASE deleteCategory - Erro de restrição de chave estrangeira no PostgreSQL:", pgError.message);
+          throw new Error(`Não foi possível excluir a categoria devido a restrições de chave estrangeira.`);
         }
         
         console.error("DATABASE deleteCategory - Erro ao excluir via PostgreSQL:", pgError);
@@ -1043,6 +1083,7 @@ export class DatabaseStorage implements IStorage {
         }
         
         console.log(`DATABASE deleteCategory - Categoria excluída com sucesso via Supabase`);
+        return { success: true, postsUpdated };
       }
     } catch (error) {
       console.error("DATABASE deleteCategory - Exceção:", error);
