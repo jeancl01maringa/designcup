@@ -816,23 +816,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/admin/categories/:id', async (req, res) => {
     try {
+      // Registrar detalhes da requisição para depuração
+      console.log(`DELETE /api/admin/categories/${req.params.id} - Iniciando exclusão`);
+      
       const id = parseInt(req.params.id);
-      await storage.deleteCategory(id);
-      res.status(204).end();
-    } catch (error: any) {
-      // Verificar se é um erro de restrição de chave estrangeira ou categoria em uso
-      if (error.message && (
-        error.message.includes('violates foreign key constraint') ||
-        error.message.includes('posts usando esta categoria')
-      )) {
+      
+      if (isNaN(id)) {
         return res.status(400).json({ 
-          message: error.message || 'Não é possível excluir esta categoria porque existem posts associados a ela'
+          message: 'ID da categoria inválido'
         });
       }
       
-      // Outro tipo de erro
-      console.error('Error deleting category:', error);
-      res.status(500).json({ message: 'Error deleting category' });
+      await storage.deleteCategory(id);
+      console.log(`DELETE /api/admin/categories/${id} - Categoria excluída com sucesso`);
+      
+      // Enviar resposta de sucesso
+      res.status(204).end();
+    } catch (error: any) {
+      // Capturar a mensagem de erro para análise
+      const errorMessage = error.message || 'Erro desconhecido ao excluir categoria';
+      console.error(`DELETE /api/admin/categories/${req.params.id} - Erro:`, errorMessage);
+      
+      // Verificar se é um erro de restrição de chave estrangeira ou categoria em uso
+      if (
+        errorMessage.includes('violates foreign key constraint') ||
+        errorMessage.includes('posts usando esta categoria') ||
+        errorMessage.includes('não é possível excluir')
+      ) {
+        // Erro de negócio - categoria em uso
+        return res.status(400).json({ 
+          message: errorMessage,
+          error: 'CATEGORIA_EM_USO'
+        });
+      }
+      
+      // Erro técnico - problema no servidor
+      console.error('Detalhes completos do erro:', error);
+      res.status(500).json({ 
+        message: 'Erro ao excluir categoria',
+        details: errorMessage
+      });
     }
   });
 
