@@ -991,82 +991,167 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getPosts - Buscando posts com filtros:", JSON.stringify(filters || {}));
       
-      // Construir a query base para o Supabase
-      let query = supabase
-        .from('posts')
-        .select(`
-          id,
-          title,
-          description,
-          image_url,
-          unique_code,
-          category_id,
-          status,
-          created_at,
-          published_at
-        `)
-        .order('created_at', { ascending: false });
+      // Definir variável para armazenar posts
+      let postsData: any[] = [];
       
-      // Aplicar filtros se existirem
-      if (filters) {
-        if (filters.searchTerm) {
-          // Usando ilike para busca case-insensitive
-          const searchTerm = `%${filters.searchTerm}%`;
-          query = query.or(
-            `title.ilike.${searchTerm},description.ilike.${searchTerm},unique_code.ilike.${searchTerm}`
-          );
+      // Tentar via Supabase primeiro
+      try {
+        // Construir a query base para o Supabase
+        // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
+        let query = supabase
+          .from('posts')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        // Aplicar filtros se existirem
+        if (filters) {
+          if (filters.searchTerm) {
+            // Usando ilike para busca case-insensitive
+            const searchTerm = `%${filters.searchTerm}%`;
+            query = query.or(
+              `title.ilike.${searchTerm},description.ilike.${searchTerm},unique_code.ilike.${searchTerm}`
+            );
+          }
+          
+          if (filters.categoryId) {
+            query = query.eq('category_id', filters.categoryId);
+          }
+          
+          if (filters.status) {
+            query = query.eq('status', filters.status);
+          }
+          
+          if (filters.month && filters.year) {
+            // Filtrar por mês e ano específicos (este filtro é mais complexo no Supabase REST API)
+            const startDate = new Date(filters.year, filters.month - 1, 1).toISOString();
+            const endDate = new Date(filters.year, filters.month, 0).toISOString();
+            query = query
+              .gte('created_at', startDate)
+              .lte('created_at', endDate);
+          } else if (filters.startDate && filters.endDate) {
+            // Filtrar por intervalo de datas
+            query = query
+              .gte('created_at', filters.startDate.toISOString())
+              .lte('created_at', filters.endDate.toISOString());
+          }
         }
         
-        if (filters.categoryId) {
-          query = query.eq('category_id', filters.categoryId);
-        }
+        // Executar a query
+        const { data, error } = await query;
         
-        if (filters.status) {
-          query = query.eq('status', filters.status);
+        if (error) {
+          console.warn("DATABASE getPosts - Erro ao buscar posts via Supabase:", error.message);
+          // Não retornar ainda, vamos tentar com PostgreSQL direto
+        } else if (data && data.length > 0) {
+          postsData = data;
+          console.log(`DATABASE getPosts - Encontrados ${data.length} posts via Supabase API`);
         }
-        
-        if (filters.month && filters.year) {
-          // Filtrar por mês e ano específicos (este filtro é mais complexo no Supabase REST API)
-          const startDate = new Date(filters.year, filters.month - 1, 1).toISOString();
-          const endDate = new Date(filters.year, filters.month, 0).toISOString();
-          query = query
-            .gte('created_at', startDate)
-            .lte('created_at', endDate);
-        } else if (filters.startDate && filters.endDate) {
-          // Filtrar por intervalo de datas
-          query = query
-            .gte('created_at', filters.startDate.toISOString())
-            .lte('created_at', filters.endDate.toISOString());
+      } catch (supabaseError) {
+        console.warn("DATABASE getPosts - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se não encontrou via Supabase, tentar com PostgreSQL direto
+      if (postsData.length === 0) {
+        try {
+          console.log("DATABASE getPosts - Tentando buscar via PostgreSQL direto");
+          
+          // Construir consulta SQL base
+          let sql = `SELECT * FROM posts`;
+          const sqlParams: any[] = [];
+          const conditions: string[] = [];
+          
+          // Aplicar filtros para PostgreSQL
+          if (filters) {
+            // Filtro de texto para pesquisa
+            if (filters.searchTerm) {
+              const searchTerm = `%${filters.searchTerm}%`;
+              conditions.push(`(title ILIKE $${sqlParams.length + 1} OR description ILIKE $${sqlParams.length + 1} OR unique_code ILIKE $${sqlParams.length + 1})`);
+              sqlParams.push(searchTerm);
+            }
+            
+            // Filtro de categoria
+            if (filters.categoryId) {
+              conditions.push(`category_id = $${sqlParams.length + 1}`);
+              sqlParams.push(filters.categoryId);
+            }
+            
+            // Filtro de status
+            if (filters.status) {
+              conditions.push(`status = $${sqlParams.length + 1}`);
+              sqlParams.push(filters.status);
+            }
+            
+            // Filtro de data
+            if (filters.month && filters.year) {
+              const startDate = new Date(filters.year, filters.month - 1, 1);
+              const endDate = new Date(filters.year, filters.month, 0);
+              conditions.push(`created_at >= $${sqlParams.length + 1} AND created_at <= $${sqlParams.length + 2}`);
+              sqlParams.push(startDate, endDate);
+            } else if (filters.startDate && filters.endDate) {
+              conditions.push(`created_at >= $${sqlParams.length + 1} AND created_at <= $${sqlParams.length + 2}`);
+              sqlParams.push(filters.startDate, filters.endDate);
+            }
+          }
+          
+          // Adicionar as condições à consulta SQL se houver alguma
+          if (conditions.length > 0) {
+            sql += ` WHERE ${conditions.join(' AND ')}`;
+          }
+          
+          // Adicionar ordenação
+          sql += ` ORDER BY created_at DESC`;
+          
+          // Executar a consulta
+          const result = await pool.query(sql, sqlParams);
+          
+          if (result.rows && result.rows.length > 0) {
+            postsData = result.rows;
+            console.log(`DATABASE getPosts - Encontrados ${result.rows.length} posts via PostgreSQL direto`);
+          }
+        } catch (pgError) {
+          console.error("DATABASE getPosts - Erro ao buscar via PostgreSQL:", pgError);
         }
       }
       
-      // Executar a query
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error("DATABASE getPosts - Erro ao buscar posts:", error.message);
-        return [];
-      }
-      
-      if (!data || data.length === 0) {
+      // Se não encontrou posts por nenhum método
+      if (postsData.length === 0) {
         console.log("DATABASE getPosts - Nenhum post encontrado com os filtros especificados");
         return [];
       }
       
-      // Mapear os dados do Supabase para o formato esperado pela aplicação
-      const result = data.map(post => ({
-        id: post.id,
-        title: post.title,
-        description: post.description || "",
-        imageUrl: post.image_url,
-        uniqueCode: post.unique_code,
-        categoryId: post.category_id,
-        status: post.status,
-        createdAt: new Date(post.created_at),
-        publishedAt: post.published_at ? new Date(post.published_at) : null
-      }));
+      // Mapear os dados para o formato esperado pela aplicação
+      // e normalizar os campos premium
+      const result = postsData.map(post => {
+        // Mapear campos básicos
+        const rawPost = {
+          id: post.id,
+          title: post.title,
+          description: post.description || "",
+          imageUrl: post.image_url,
+          uniqueCode: post.unique_code,
+          categoryId: post.category_id,
+          status: post.status,
+          createdAt: new Date(post.created_at),
+          publishedAt: post.published_at ? new Date(post.published_at) : null,
+          // Campos adicionais com fallbacks
+          formato: post.formato || null,
+          groupId: post.group_id || null,
+          tituloBase: post.titulo_base || post.title, // Usar o título como fallback
+          isPro: post.is_pro,
+          licenseType: post.license_type,
+          canvaUrl: post.canva_url || null,
+          formatoData: post.formato_data || null,
+          tags: post.tags || [],
+          formats: post.formats || [],
+          formatData: post.format_data || null,
+          isVisible: post.is_visible !== false // se for null ou undefined, assume true
+        };
+        
+        // Normalizar campos premium
+        return ensurePremiumFields(rawPost);
+      });
       
-      console.log(`DATABASE getPosts - Encontrados ${result.length} posts`);
+      console.log(`DATABASE getPosts - Normalizados ${result.length} posts`);
       return result;
     } catch (error) {
       console.error("DATABASE getPosts - Exceção:", error);
@@ -1078,51 +1163,82 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getPostById - Buscando post com ID:", id);
       
-      // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
-      // Caso o schema ainda não tenha sido atualizado
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (error) {
-        console.error("DATABASE getPostById - Erro ao buscar post:", error.message);
-        return undefined;
+      // Tentar via Supabase primeiro
+      let post: any;
+      try {
+        // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) {
+          console.warn("DATABASE getPostById - Erro ao buscar post via Supabase:", error.message);
+          // Não retornar ainda, vamos tentar com PostgreSQL direto
+        } else if (data) {
+          post = data;
+          console.log("DATABASE getPostById - Post encontrado via Supabase API");
+        }
+      } catch (supabaseError) {
+        console.warn("DATABASE getPostById - Exceção ao acessar Supabase:", supabaseError);
       }
       
-      if (!data) {
+      // Se não encontrou via Supabase, tentar com PostgreSQL direto
+      if (!post) {
+        try {
+          console.log("DATABASE getPostById - Tentando buscar via PostgreSQL direto");
+          
+          // Conexão direta com PostgreSQL
+          const result = await pool.query(`
+            SELECT * FROM posts WHERE id = $1 LIMIT 1
+          `, [id]);
+          
+          if (result.rows && result.rows.length > 0) {
+            post = result.rows[0];
+            console.log("DATABASE getPostById - Post encontrado via PostgreSQL direto");
+          }
+        } catch (pgError) {
+          console.error("DATABASE getPostById - Erro ao buscar via PostgreSQL:", pgError);
+        }
+      }
+      
+      // Se não encontrou por nenhum método
+      if (!post) {
         console.log(`DATABASE getPostById - Post com ID ${id} não encontrado`);
         return undefined;
       }
       
       // Mapear para o formato esperado pela aplicação com valores padrão 
-      // para os campos que podem não existir ainda no banco
-      const result: Post = {
-        id: data.id,
-        title: data.title,
-        description: data.description || "",
-        imageUrl: data.image_url,
-        uniqueCode: data.unique_code,
-        categoryId: data.category_id,
-        status: data.status,
-        createdAt: new Date(data.created_at),
-        publishedAt: data.published_at ? new Date(data.published_at) : null,
+      const rawPost = {
+        id: post.id,
+        title: post.title,
+        description: post.description || "",
+        imageUrl: post.image_url,
+        uniqueCode: post.unique_code,
+        categoryId: post.category_id,
+        status: post.status,
+        createdAt: new Date(post.created_at),
+        publishedAt: post.published_at ? new Date(post.published_at) : null,
         // Novos campos com fallbacks
-        formato: data.formato || null,
-        groupId: data.group_id || null,
-        tituloBase: data.titulo_base || data.title, // Usar o título como fallback
-        isPro: data.is_pro !== undefined ? !!data.is_pro : false,
-        licenseType: data.license_type || 'free',
-        canvaUrl: data.canva_url || null,
-        formatoData: data.formato_data || null,
-        tags: data.tags || [],
-        formats: data.formats || [],
-        formatData: data.format_data || null,
-        isVisible: data.is_visible !== false // se for null ou undefined, assume true
+        formato: post.formato || null,
+        groupId: post.group_id || null,
+        tituloBase: post.titulo_base || post.title, // Usar o título como fallback
+        // Campos premium serão normalizados pelo utilitário
+        isPro: post.is_pro,
+        licenseType: post.license_type,
+        canvaUrl: post.canva_url || null,
+        formatoData: post.formato_data || null,
+        tags: post.tags || [],
+        formats: post.formats || [],
+        formatData: post.format_data || null,
+        isVisible: post.is_visible !== false // se for null ou undefined, assume true
       };
       
-      console.log(`DATABASE getPostById - Post encontrado: ${result.title}`);
+      // Normalizar os campos premium do post (garante consistência)
+      const result = ensurePremiumFields(rawPost);
+      
+      console.log(`DATABASE getPostById - Post normalizado: ${result.title}, Premium: ${isPostPremium(result)}`);
       return result;
     } catch (error) {
       console.error("DATABASE getPostById - Exceção:", error);
@@ -1139,51 +1255,88 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
-      // Caso o schema ainda não tenha sido atualizado
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('group_id', groupId)
-        .order('id', { ascending: true });
+      // Definir variável para armazenar posts
+      let postsData: any[] = [];
       
-      if (error) {
-        console.error("DATABASE getPostsByGroupId - Erro ao buscar posts do grupo:", error.message);
-        return [];
+      // Tentar via Supabase primeiro
+      try {
+        // Usar select('*') em vez de selecionar campos específicos
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('group_id', groupId)
+          .order('id', { ascending: true });
+          
+        if (error) {
+          console.warn("DATABASE getPostsByGroupId - Erro ao buscar posts via Supabase:", error.message);
+          // Não retornar ainda, vamos tentar com PostgreSQL direto
+        } else if (data && data.length > 0) {
+          postsData = data;
+          console.log(`DATABASE getPostsByGroupId - Encontrados ${data.length} posts via Supabase API`);
+        }
+      } catch (supabaseError) {
+        console.warn("DATABASE getPostsByGroupId - Exceção ao acessar Supabase:", supabaseError);
       }
       
-      if (!data || data.length === 0) {
+      // Se não encontrou via Supabase, tentar com PostgreSQL direto
+      if (postsData.length === 0) {
+        try {
+          console.log("DATABASE getPostsByGroupId - Tentando buscar via PostgreSQL direto");
+          
+          // Conexão direta com PostgreSQL
+          const result = await pool.query(`
+            SELECT * FROM posts WHERE group_id = $1 ORDER BY id ASC
+          `, [groupId]);
+          
+          if (result.rows && result.rows.length > 0) {
+            postsData = result.rows;
+            console.log(`DATABASE getPostsByGroupId - Encontrados ${result.rows.length} posts via PostgreSQL direto`);
+          }
+        } catch (pgError) {
+          console.error("DATABASE getPostsByGroupId - Erro ao buscar via PostgreSQL:", pgError);
+        }
+      }
+      
+      // Se não encontrou posts por nenhum método
+      if (postsData.length === 0) {
         console.log(`DATABASE getPostsByGroupId - Nenhum post encontrado no grupo ${groupId}`);
         return [];
       }
       
-      // Mapear os dados do Supabase para o formato esperado pela aplicação
-      // com valores padrão para os campos que podem não existir ainda no banco
-      const result = data.map(post => ({
-        id: post.id,
-        title: post.title,
-        description: post.description || "",
-        imageUrl: post.image_url,
-        uniqueCode: post.unique_code,
-        categoryId: post.category_id,
-        status: post.status,
-        createdAt: new Date(post.created_at),
-        publishedAt: post.published_at ? new Date(post.published_at) : null,
-        // Novos campos com fallbacks
-        formato: post.formato || null,
-        groupId: post.group_id || null,
-        tituloBase: post.titulo_base || post.title, // Usar title como fallback
-        isPro: post.is_pro !== undefined ? !!post.is_pro : false,
-        licenseType: post.license_type || 'free',
-        canvaUrl: post.canva_url || null,
-        formatoData: post.formato_data || null,
-        tags: post.tags || [],
-        formats: post.formats || [],
-        formatData: post.format_data || null,
-        isVisible: post.is_visible !== false // se for null ou undefined, assume true
-      }));
+      // Mapear os dados para o formato esperado pela aplicação
+      // e aplicar o utilitário para normalizar os campos premium
+      const result = postsData.map(post => {
+        // Mapear campos básicos
+        const rawPost = {
+          id: post.id,
+          title: post.title,
+          description: post.description || "",
+          imageUrl: post.image_url,
+          uniqueCode: post.unique_code,
+          categoryId: post.category_id,
+          status: post.status,
+          createdAt: new Date(post.created_at),
+          publishedAt: post.published_at ? new Date(post.published_at) : null,
+          // Novos campos com fallbacks
+          formato: post.formato || null,
+          groupId: post.group_id || null,
+          tituloBase: post.titulo_base || post.title, // Usar title como fallback
+          // Campos premium serão normalizados pelo utilitário
+          isPro: post.is_pro,
+          licenseType: post.license_type,
+          canvaUrl: post.canva_url || null,
+          formatoData: post.formato_data || null,
+          tags: post.tags || [],
+          formats: post.formats || [],
+          formatData: post.format_data || null,
+          isVisible: post.is_visible !== false // se for null ou undefined, assume true
+        };
+        
+        // Normalizar campos premium
+        return ensurePremiumFields(rawPost);
+      });
       
-      console.log(`DATABASE getPostsByGroupId - Encontrados ${result.length} posts no grupo ${groupId}`);
+      console.log(`DATABASE getPostsByGroupId - Normalizados ${result.length} posts do grupo ${groupId}`);
       return result;
     } catch (error) {
       console.error("DATABASE getPostsByGroupId - Exceção:", error);
