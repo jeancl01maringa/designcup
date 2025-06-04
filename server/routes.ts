@@ -952,14 +952,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'ID de post inválido' });
       }
 
-      // Buscar diretamente do Supabase com cache otimizado
+      console.log(`Preview - Buscando post com ID: ${postId}`);
+
+      // Tentar buscar diretamente do Supabase primeiro
       const { data: post, error } = await supabase
         .from('posts')
-        .select('id, title, description, image_url, unique_code, category_id, status, created_at, format_data, formats, license_type, is_pro, tags')
+        .select('*')
         .eq('id', postId)
         .single();
 
+      console.log(`Preview - Resultado Supabase:`, { error: error?.message, found: !!post });
+
       if (error || !post) {
+        // Se não encontrar no Supabase, tentar pelo sistema interno
+        console.log(`Preview - Post ${postId} não encontrado no Supabase, tentando sistema interno`);
+        try {
+          const internalPost = await storage.getPostById(postId);
+          if (internalPost) {
+            console.log(`Preview - Post ${postId} encontrado no sistema interno`);
+            
+            // Cache headers para melhor performance
+            res.set('Cache-Control', 'public, max-age=300');
+            return res.json(internalPost);
+          }
+        } catch (internalError) {
+          console.error(`Preview - Erro no sistema interno:`, internalError);
+        }
+        
+        console.log(`Preview - Post ${postId} não encontrado em nenhum sistema`);
         return res.status(404).json({ message: 'Post não encontrado' });
       }
 
@@ -979,6 +999,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPro: post.is_pro || false,
         tags: post.tags || []
       };
+
+      console.log(`Preview - Post ${postId} normalizado com sucesso`);
 
       // Cache headers para melhor performance
       res.set('Cache-Control', 'public, max-age=300'); // 5 minutos de cache

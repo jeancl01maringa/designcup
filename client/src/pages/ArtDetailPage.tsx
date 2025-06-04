@@ -65,13 +65,13 @@ export default function ArtDetailPage() {
                      (user?.plano_id !== undefined && user?.plano_id !== null && 
                       typeof user?.plano_id === 'number' && user?.plano_id !== 1);
   
-  // Buscar os dados da arte com API otimizada de preview
+  // Buscar os dados da arte usando a API admin existente (mais confiável)
   const { data: post, isLoading, error } = useQuery({
-    queryKey: ['/api/posts/preview', postId],
+    queryKey: ['/api/admin/posts', postId],
     queryFn: async () => {
       if (!postId) throw new Error('ID inválido');
       
-      const response = await fetch(`/api/posts/preview/${postId}`);
+      const response = await fetch(`/api/admin/posts/${postId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -84,10 +84,10 @@ export default function ArtDetailPage() {
     },
     retry: 1,
     enabled: !!postId,
-    staleTime: 5 * 60 * 1000, // 5 minutos em cache
-    gcTime: 10 * 60 * 1000, // 10 minutos no cache (gcTime substitui cacheTime no v5)
-    refetchOnWindowFocus: false, // Não refetch ao focar janela
-    refetchOnMount: false // Não refetch ao montar se tem cache válido
+    staleTime: 2 * 60 * 1000, // 2 minutos em cache
+    gcTime: 5 * 60 * 1000, // 5 minutos no cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
   
   // Extrair formatos do post a partir dos dados gravados no banco
