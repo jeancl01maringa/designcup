@@ -171,7 +171,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
             !isOpen && "justify-center"
           )}>
             <Avatar className="h-8 w-8">
-              <AvatarImage src="" alt={userData?.username || "Admin"} />
+              <AvatarImage src={userData?.profileImage || ""} alt={userData?.username || "Admin"} />
               <AvatarFallback>
                 {userData?.username?.slice(0, 2)?.toUpperCase() || "AD"}
               </AvatarFallback>

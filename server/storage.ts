@@ -1230,50 +1230,55 @@ export class DatabaseStorage implements IStorage {
       // Definir variável para armazenar posts
       let postsData: any[] = [];
       
-      // Tentar via Supabase primeiro
+      // Usar PostgreSQL direto para melhor performance
       try {
-        // Construir a query base para o Supabase
-        // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
-        let query = supabase
-          .from('posts')
-          .select('*')
-          .order('created_at', { ascending: false });
+        let whereConditions = [];
+        let queryParams = [];
+        let paramIndex = 1;
         
         // Aplicar filtros se existirem
         if (filters) {
           if (filters.searchTerm) {
-            // Usando ilike para busca case-insensitive
-            const searchTerm = `%${filters.searchTerm}%`;
-            query = query.or(
-              `title.ilike.${searchTerm},description.ilike.${searchTerm},unique_code.ilike.${searchTerm}`
-            );
+            whereConditions.push(`(title ILIKE $${paramIndex} OR description ILIKE $${paramIndex} OR unique_code ILIKE $${paramIndex})`);
+            queryParams.push(`%${filters.searchTerm}%`);
+            paramIndex++;
           }
           
           if (filters.categoryId) {
-            query = query.eq('category_id', filters.categoryId);
+            whereConditions.push(`category_id = $${paramIndex}`);
+            queryParams.push(filters.categoryId);
+            paramIndex++;
           }
           
           if (filters.status) {
-            query = query.eq('status', filters.status);
+            whereConditions.push(`status = $${paramIndex}`);
+            queryParams.push(filters.status);
+            paramIndex++;
           }
           
           if (filters.month && filters.year) {
-            // Filtrar por mês e ano específicos (este filtro é mais complexo no Supabase REST API)
-            const startDate = new Date(filters.year, filters.month - 1, 1).toISOString();
-            const endDate = new Date(filters.year, filters.month, 0).toISOString();
-            query = query
-              .gte('created_at', startDate)
-              .lte('created_at', endDate);
-          } else if (filters.startDate && filters.endDate) {
-            // Filtrar por intervalo de datas
-            query = query
-              .gte('created_at', filters.startDate.toISOString())
-              .lte('created_at', filters.endDate.toISOString());
+            whereConditions.push(`EXTRACT(MONTH FROM created_at) = $${paramIndex} AND EXTRACT(YEAR FROM created_at) = $${paramIndex + 1}`);
+            queryParams.push(filters.month, filters.year);
+            paramIndex += 2;
           }
         }
         
-        // Executar a query
-        const { data, error } = await query;
+        // Construir query SQL otimizada
+        const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+        const pgQuery = `
+          SELECT * FROM posts 
+          ${whereClause}
+          ORDER BY created_at DESC
+          LIMIT 50
+        `;
+        
+        console.log("DATABASE getPosts - Query PostgreSQL otimizada:", pgQuery);
+        console.log("DATABASE getPosts - Parâmetros:", queryParams);
+        
+        const result = await pool.query(pgQuery, queryParams);
+        postsData = result.rows;
+        
+        console.log(`DATABASE getPosts - Encontrados ${postsData.length} posts via PostgreSQL otimizado`);
         
         if (error) {
           console.warn("DATABASE getPosts - Erro ao buscar posts via Supabase:", error.message);
