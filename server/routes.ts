@@ -874,6 +874,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para alternar status da categoria (ativar/desativar)
+  app.patch('/api/admin/categories/:id/status', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { isActive } = req.body;
+
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID de categoria inválido' });
+      }
+
+      if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ message: 'Status isActive deve ser um boolean' });
+      }
+
+      console.log(`Alterando status da categoria ${id} para isActive=${isActive}`);
+
+      const updatedCategory = await storage.updateCategory(id, { isActive });
+      
+      res.json({
+        success: true,
+        category: updatedCategory,
+        message: `Categoria ${isActive ? 'ativada' : 'desativada'} com sucesso`
+      });
+    } catch (error) {
+      console.error('Erro ao alterar status da categoria:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      res.status(500).json({ 
+        message: 'Erro ao alterar status da categoria',
+        error: errorMessage
+      });
+    }
+  });
+
   // API endpoints for admin panel - Posts
   // Endpoint público para obter posts aprovados
   app.get('/api/admin/posts/approved', async (req, res) => {

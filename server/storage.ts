@@ -847,6 +847,48 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  async getActiveCategories(): Promise<Category[]> {
+    try {
+      console.log("DATABASE getActiveCategories - Buscando apenas categorias ativas");
+      
+      // Usar a API do Supabase para buscar apenas categorias ativas
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (error) {
+        console.error("DATABASE getActiveCategories - Erro ao buscar categorias ativas:", error.message);
+        return [];
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("DATABASE getActiveCategories - Nenhuma categoria ativa encontrada");
+        return [];
+      }
+      
+      // Mapear os dados do Supabase para o formato esperado pela aplicação
+      const categories: Category[] = data.map(item => {
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          slug: item.slug || slugify(item.name),
+          imageUrl: item.image_url,
+          isActive: true, // Todos são ativos nesta query
+          createdAt: new Date(item.created_at)
+        };
+      });
+      
+      console.log(`DATABASE getActiveCategories - Encontradas ${categories.length} categorias ativas`);
+      return categories;
+    } catch (error) {
+      console.error("DATABASE getActiveCategories - Exceção:", error);
+      return [];
+    }
+  }
   
   async getCategoryById(id: number): Promise<Category | undefined> {
     try {
