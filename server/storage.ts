@@ -151,62 +151,43 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getUserByUsername - Buscando usuário com username:", username);
       
-      // Tentar primeiro verificar quantos registros existem com esse username
-      const { data: checkData, error: checkError } = await supabase
-        .from('users')
-        .select('username')
-        .eq('username', username);
-        
-      if (checkError) {
-        console.error("DATABASE getUserByUsername - Erro ao verificar usuário:", checkError.message);
+      // Usar PostgreSQL direto (mesma fonte que getUser)
+      const result = await pool.query(`
+        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+        FROM users 
+        WHERE username = $1
+        LIMIT 1
+      `, [username]);
+
+      if (!result.rows || result.rows.length === 0) {
+        console.log(`DATABASE getUserByUsername - Nenhum usuário encontrado com username ${username} no PostgreSQL`);
         return undefined;
       }
-      
-      if (!checkData || checkData.length === 0) {
-        console.log(`DATABASE getUserByUsername - Nenhum usuário encontrado com username ${username}`);
-        return undefined;
-      }
-      
-      if (checkData.length > 1) {
-        console.warn(`DATABASE getUserByUsername - Múltiplos usuários encontrados com username ${username}, usando o primeiro`);
-      }
-      
-      // Pegar o primeiro registro encontrado
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .limit(1)
-        .maybeSingle();
-        
-      if (error) {
-        console.error("DATABASE getUserByUsername - Erro ao buscar dados do usuário:", error.message);
-        return undefined;
-      }
-      
-      if (!data) {
-        console.log("DATABASE getUserByUsername - Dados do usuário não encontrados");
-        return undefined;
-      }
+
+      const data = result.rows[0];
       
       // Log para depuração
       console.log("DATABASE getUserByUsername - Dados brutos do usuário:", JSON.stringify(data));
       
-      // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
-      // Convertendo explicitamente para boolean
-      const isAdmin = data.is_admin === true || data.is_admin === 't';
-      console.log("DATABASE getUserByUsername - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin); 
-      console.log("DATABASE getUserByUsername - isAdmin convertido:", isAdmin);
+      console.log("DATABASE getUserByUsername - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin);
       
-      // Criar um objeto User no formato esperado pela aplicação
+      // Converter os dados para o formato do User
       const user: User = {
         id: data.id,
         username: data.username,
         email: data.email,
         password: data.password,
-        isAdmin: isAdmin,
-        createdAt: new Date(data.created_at)
+        isAdmin: Boolean(data.is_admin),
+        telefone: data.telefone || null,
+        profileImage: data.profile_image || null,
+        createdAt: new Date(data.created_at),
+        tipo: data.tipo || 'free',
+        plano_id: data.plano_id || null,
+        data_vencimento: data.data_vencimento ? new Date(data.data_vencimento) : null,
+        active: Boolean(data.active)
       };
+
+      console.log("DATABASE getUserByUsername - isAdmin convertido:", user.isAdmin);
       
       return user;
     } catch (error) {
@@ -219,62 +200,43 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getUserByEmail - Buscando usuário com email:", email);
       
-      // Tentar primeiro verificar quantos registros existem com esse email
-      const { data: checkData, error: checkError } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', email);
-        
-      if (checkError) {
-        console.error("DATABASE getUserByEmail - Erro ao verificar usuário:", checkError.message);
+      // Usar PostgreSQL direto (mesma fonte que getUser)
+      const result = await pool.query(`
+        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+        FROM users 
+        WHERE email = $1
+        LIMIT 1
+      `, [email]);
+
+      if (!result.rows || result.rows.length === 0) {
+        console.log(`DATABASE getUserByEmail - Nenhum usuário encontrado com email ${email} no PostgreSQL`);
         return undefined;
       }
-      
-      if (!checkData || checkData.length === 0) {
-        console.log(`DATABASE getUserByEmail - Nenhum usuário encontrado com email ${email}`);
-        return undefined;
-      }
-      
-      if (checkData.length > 1) {
-        console.warn(`DATABASE getUserByEmail - Múltiplos usuários encontrados com email ${email}, usando o primeiro`);
-      }
-      
-      // Pegar o primeiro registro encontrado
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .limit(1)
-        .maybeSingle();
-        
-      if (error) {
-        console.error("DATABASE getUserByEmail - Erro ao buscar dados do usuário:", error.message);
-        return undefined;
-      }
-      
-      if (!data) {
-        console.log("DATABASE getUserByEmail - Dados do usuário não encontrados");
-        return undefined;
-      }
+
+      const data = result.rows[0];
       
       // Log para depuração
       console.log("DATABASE getUserByEmail - Dados brutos do usuário:", JSON.stringify(data));
       
-      // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
-      // Convertendo explicitamente para boolean
-      const isAdmin = data.is_admin === true || data.is_admin === 't';
-      console.log("DATABASE getUserByEmail - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin); 
-      console.log("DATABASE getUserByEmail - isAdmin convertido:", isAdmin);
+      console.log("DATABASE getUserByEmail - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin);
       
-      // Criar um objeto User no formato esperado pela aplicação
+      // Converter os dados para o formato do User
       const user: User = {
         id: data.id,
         username: data.username,
         email: data.email,
         password: data.password,
-        isAdmin: isAdmin,
-        createdAt: new Date(data.created_at)
+        isAdmin: Boolean(data.is_admin),
+        telefone: data.telefone || null,
+        profileImage: data.profile_image || null,
+        createdAt: new Date(data.created_at),
+        tipo: data.tipo || 'free',
+        plano_id: data.plano_id || null,
+        data_vencimento: data.data_vencimento ? new Date(data.data_vencimento) : null,
+        active: Boolean(data.active)
       };
+
+      console.log("DATABASE getUserByEmail - isAdmin convertido:", user.isAdmin);
       
       return user;
     } catch (error) {
