@@ -34,15 +34,24 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function ArtDetailPage() {
   const [location, setLocation] = useLocation();
-  const params = useParams<{ slug: string }>();
-  const { slug } = params;
+  const params = useParams<{ slug?: string; id?: string }>();
+  const { slug, id } = params;
   const { user, isLoading: isLoadingAuth } = useAuth();
   
-  // Extrair o ID numérico do slug (por exemplo, "10-xxxxx" => 10)
-  const postId = slug ? parseInt(slug.split('-')[0] || '0', 10) : 0;
+  // Determinar o ID do post baseado na rota
+  let postId: number;
+  if (id) {
+    // Rota /preview/:id - usar ID diretamente
+    postId = parseInt(id, 10);
+  } else if (slug) {
+    // Rota /artes/:slug - extrair ID do slug (por exemplo, "10-xxxxx" => 10)
+    postId = parseInt(slug.split('-')[0] || '0', 10);
+  } else {
+    postId = 0;
+  }
   
-  console.log('Slug recebido:', slug);
-  console.log('ID extraído:', postId);
+  console.log('Parâmetros recebidos:', { slug, id });
+  console.log('ID do post determinado:', postId);
   
   // Estado para controlar a exibição do tooltip no botão
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
