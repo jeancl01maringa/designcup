@@ -2093,6 +2093,14 @@ export class DatabaseStorage implements IStorage {
             if (!pgPost.status) pgPost.status = 'aprovado';
             if (!pgPost.created_at) pgPost.created_at = new Date().toISOString();
             
+            // Garantir que unique_code existe (campo obrigatório)
+            if (!pgPost.unique_code && !existingPost.unique_code) {
+              // Gerar um unique_code baseado no ID e timestamp
+              pgPost.unique_code = `${id}-${Date.now().toString(36)}`;
+            } else if (!pgPost.unique_code && existingPost.unique_code) {
+              pgPost.unique_code = existingPost.unique_code;
+            }
+            
             // Definir explicitamente os campos de licença premium
             pgPost.license_type = dbPost.license_type || (existingPost.is_pro ? 'premium' : 'free');
             pgPost.is_pro = dbPost.is_pro !== undefined ? dbPost.is_pro : !!existingPost.is_pro;
