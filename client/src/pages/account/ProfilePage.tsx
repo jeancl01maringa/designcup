@@ -234,44 +234,59 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle>Foto do Perfil</CardTitle>
               <CardDescription>
-                Sua foto será exibida em todo o sistema, incluindo no painel administrativo.
+                Clique na foto para alterar. Sua foto será exibida em todo o sistema.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row items-start gap-6">
-                {/* Avatar atual */}
+                {/* Avatar clicável */}
                 <div className="flex flex-col items-center space-y-4">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage 
-                      src={imagePreview || (profileData as any)?.profileImage || ""} 
-                      alt="Foto do perfil" 
-                    />
-                    <AvatarFallback className="text-lg">
-                      {user?.username?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p className="text-sm text-gray-600 text-center">
-                    {(profileData as any)?.profileImage ? "Foto atual" : "Nenhuma foto"}
+                  <div 
+                    className="relative group cursor-pointer"
+                    onClick={() => document.getElementById('profile-image-input')?.click()}
+                  >
+                    <Avatar className="h-24 w-24 transition-all group-hover:brightness-75">
+                      <AvatarImage 
+                        src={imagePreview || user?.profileImage || ""} 
+                        alt="Foto do perfil"
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-lg bg-gray-200">
+                        {user?.username?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 text-center max-w-24">
+                    {user?.profileImage || imagePreview ? "Clique para alterar" : "Clique para adicionar foto"}
                   </p>
                 </div>
 
-                {/* Upload de foto */}
-                <div className="flex-1 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-image">Escolher nova foto</Label>
-                    <div className="flex items-center gap-4">
-                      <Input
-                        id="profile-image"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageSelect}
-                        className="flex-1"
-                      />
-                      {selectedImage && (
+                {/* Upload invisível */}
+                <input
+                  id="profile-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+
+                {/* Preview e botão de upload */}
+                {selectedImage && (
+                  <div className="flex-1 space-y-4">
+                    <div className="space-y-2">
+                      <Label>Nova foto selecionada</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="text-sm text-gray-600">
+                          {selectedImage.name} ({(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
+                        </div>
                         <Button 
                           onClick={handleImageUpload}
                           disabled={uploadPhotoMutation.isPending}
                           size="sm"
+                          className="bg-[#1f4ed8] hover:bg-[#1d4ed8]/90"
                         >
                           {uploadPhotoMutation.isPending ? (
                             <>
@@ -285,13 +300,24 @@ export default function ProfilePage() {
                             </>
                           )}
                         </Button>
-                      )}
+                      </div>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB.
-                  </p>
-                </div>
+                )}
+
+                {!selectedImage && (
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm text-gray-500">
+                      • Formatos aceitos: JPG, PNG, GIF
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      • Tamanho máximo: 5MB
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      • Recomendado: imagens quadradas
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
