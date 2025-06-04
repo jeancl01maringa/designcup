@@ -2402,6 +2402,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoints para perfil do usuário (Minha Conta)
+  app.patch('/api/user/profile', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const userId = req.user.id;
+      const { username, email, telefone, biografia, site, localizacao } = req.body;
+      
+      console.log(`Atualizando perfil do usuário #${userId}:`, req.body);
+      
+      // Construir a query SQL de atualização
+      let setClauses = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      
+      if (username !== undefined) {
+        setClauses.push(`username = $${paramIndex}`);
+        queryParams.push(username);
+        paramIndex++;
+      }
+      
+      if (email !== undefined) {
+        setClauses.push(`email = $${paramIndex}`);
+        queryParams.push(email);
+        paramIndex++;
+      }
+      
+      if (telefone !== undefined) {
+        if (telefone === "") {
+          setClauses.push(`telefone = NULL`);
+        } else {
+          setClauses.push(`telefone = $${paramIndex}`);
+          queryParams.push(telefone);
+          paramIndex++;
+        }
+      }
+      
+      if (setClauses.length === 0) {
+        return res.status(400).json({ message: 'Nenhum campo fornecido para atualização' });
+      }
+      
+      queryParams.push(userId); // ID vai por último
+      
+      const updateQuery = `
+        UPDATE users 
+        SET ${setClauses.join(', ')} 
+        WHERE id = $${paramIndex}
+        RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt"
+      `;
+      
+      try {
+        const result = await pool.query(updateQuery, queryParams);
+        
+        if (result.rows && result.rows.length > 0) {
+          const updatedUser = result.rows[0];
+          console.log(`Perfil do usuário #${userId} atualizado com sucesso`);
+          return res.json({
+            id: updatedUser.id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            telefone: updatedUser.telefone,
+            isAdmin: updatedUser.isAdmin,
+            createdAt: updatedUser.createdAt
+          });
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar perfil do usuário #${userId}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar perfil',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating user profile:', error);
+      res.status(500).json({ 
+        message: 'Erro ao atualizar perfil',
+        error: error.message
+      });
+    }
+  });
+
+  app.patch('/api/user/password', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const userId = req.user.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Senha atual e nova senha são obrigatórias' });
+      }
+      
+      console.log(`Alterando senha do usuário #${userId}`);
+      
+      try {
+        // Buscar a senha atual do usuário
+        const userQuery = 'SELECT password FROM users WHERE id = $1';
+        const userResult = await pool.query(userQuery, [userId]);
+        
+        if (!userResult.rows || userResult.rows.length === 0) {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+        
+        const currentHashedPassword = userResult.rows[0].password;
+        
+        // Verificar se a senha atual está correta
+        const { scrypt, randomBytes, timingSafeEqual } = await import('crypto');
+        const { promisify } = await import('util');
+        const scryptAsync = promisify(scrypt);
+        
+        const [hashed, salt] = currentHashedPassword.split('.');
+        const hashedBuf = Buffer.from(hashed, 'hex');
+        const suppliedBuf = (await scryptAsync(currentPassword, salt, 64)) as Buffer;
+        
+        if (!timingSafeEqual(hashedBuf, suppliedBuf)) {
+          return res.status(400).json({ message: 'Senha atual incorreta' });
+        }
+        
+        // Gerar hash para a nova senha
+        const newSalt = randomBytes(16).toString('hex');
+        const newHashedBuf = (await scryptAsync(newPassword, newSalt, 64)) as Buffer;
+        const newHashedPassword = `${newHashedBuf.toString('hex')}.${newSalt}`;
+        
+        // Atualizar a senha no banco
+        const updateQuery = 'UPDATE users SET password = $1 WHERE id = $2';
+        await pool.query(updateQuery, [newHashedPassword, userId]);
+        
+        console.log(`Senha do usuário #${userId} alterada com sucesso`);
+        return res.json({ message: 'Senha alterada com sucesso' });
+        
+      } catch (dbError: any) {
+        console.error(`Erro ao alterar senha do usuário #${userId}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao alterar senha',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error changing user password:', error);
+      res.status(500).json({ 
+        message: 'Erro ao alterar senha',
+        error: error.message
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
