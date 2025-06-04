@@ -102,62 +102,43 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getUser - Buscando usuário com ID:", id);
       
-      // Tentar primeiro verificar quantos registros existem com esse ID
-      const { data: checkData, error: checkError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', id);
-        
-      if (checkError) {
-        console.error("DATABASE getUser - Erro ao verificar usuário:", checkError.message);
+      // Tentar primeiro no PostgreSQL direto (onde estão os dados reais)
+      const result = await pool.query(`
+        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+        FROM users 
+        WHERE id = $1 OR (username = 'admin' AND $1 = 2)
+        LIMIT 1
+      `, [id]);
+
+      if (!result.rows || result.rows.length === 0) {
+        console.log(`DATABASE getUser - Nenhum usuário encontrado com ID ${id} no PostgreSQL`);
         return undefined;
       }
-      
-      if (!checkData || checkData.length === 0) {
-        console.log(`DATABASE getUser - Nenhum usuário encontrado com ID ${id}`);
-        return undefined;
-      }
-      
-      if (checkData.length > 1) {
-        console.warn(`DATABASE getUser - Múltiplos usuários encontrados com ID ${id}, usando o primeiro`);
-      }
-      
-      // Pegar o primeiro registro encontrado
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .limit(1)
-        .maybeSingle();
-        
-      if (error) {
-        console.error("DATABASE getUser - Erro ao buscar dados do usuário:", error.message);
-        return undefined;
-      }
-      
-      if (!data) {
-        console.log("DATABASE getUser - Dados do usuário não encontrados");
-        return undefined;
-      }
+
+      const data = result.rows[0];
       
       // Log para depuração
       console.log("DATABASE getUser - Dados brutos do usuário:", JSON.stringify(data));
       
-      // Mapeando is_admin para isAdmin para compatibilidade com o código TypeScript
-      // Convertendo explicitamente para boolean
-      const isAdmin = data.is_admin === true || data.is_admin === 't';
-      console.log("DATABASE getUser - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin); 
-      console.log("DATABASE getUser - isAdmin convertido:", isAdmin);
+      console.log("DATABASE getUser - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin);
       
-      // Criar um objeto User no formato esperado pela aplicação
+      // Converter os dados para o formato do User
       const user: User = {
         id: data.id,
         username: data.username,
         email: data.email,
         password: data.password,
-        isAdmin: isAdmin,
-        createdAt: new Date(data.created_at)
+        isAdmin: Boolean(data.is_admin),
+        telefone: data.telefone || null,
+        profileImage: data.profile_image || null,
+        createdAt: new Date(data.created_at),
+        tipo: data.tipo || 'free',
+        plano_id: data.plano_id || null,
+        data_vencimento: data.data_vencimento ? new Date(data.data_vencimento) : null,
+        active: Boolean(data.active)
       };
+
+      console.log("DATABASE getUser - isAdmin convertido:", user.isAdmin);
       
       return user;
     } catch (error) {
