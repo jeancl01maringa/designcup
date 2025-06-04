@@ -31,6 +31,7 @@ import PostFormatsPage from "@/pages/admin/gerenciamento/PostFormatsPage";
 import TagsPage from "@/pages/admin/gerenciamento/TagsPage";
 import UsuariosPage from "@/pages/admin/gerenciamento/UsuariosPage";
 import AssinantesPage from "@/pages/admin/gerenciamento/AssinantesPage";
+import ProfilePage from "@/pages/account/ProfilePage";
 
 function Router() {
   const [location] = useLocation();
@@ -49,6 +50,11 @@ function Router() {
       <Route path="/planos" component={PlansPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
+      
+      {/* Rotas de Conta do Usuário */}
+      <Route path="/perfil">
+        <ProtectedRoute path="/perfil" component={ProfilePage} requireAdmin={false} />
+      </Route>
       
       {/* Rotas Administrativas */}
       <Route path="/admin/postagens">
