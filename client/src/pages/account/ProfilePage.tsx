@@ -18,7 +18,6 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("perfil");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -29,19 +28,15 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
-  // Dados do perfil para edição (inicializar com dados do usuário e perfil)
+  // Dados do perfil para edição
   const [editableData, setEditableData] = useState({
     username: user?.username || "",
     email: user?.email || "",
-    telefone: "",
+    telefone: (profileData as any)?.telefone || "",
     biografia: "",
     site: "",
     localizacao: "",
   });
-
-  // Estado para upload de imagem
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Dados para alteração de senha
   const [passwordData, setPasswordData] = useState({
@@ -50,30 +45,50 @@ export default function ProfilePage() {
     confirmPassword: ""
   });
 
-  // Salvar alterações do perfil
-  const handleSaveProfile = async () => {
-    try {
-      setIsLoading(true);
+  // Mutation para upload de foto
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
       
-      const response = await apiRequest('PATCH', '/api/user/profile', profileData);
+      const response = await fetch('/api/profile/upload-photo', {
+        method: 'POST',
+        body: formData,
+      });
       
-      if (response.ok) {
-        toast({
-          title: "Perfil atualizado",
-          description: "Suas informações foram salvas com sucesso.",
-        });
-      } else {
-        throw new Error('Erro ao atualizar perfil');
+      if (!response.ok) {
+        throw new Error('Erro ao fazer upload da imagem');
       }
-    } catch (error) {
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
       toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível atualizar seu perfil. Tente novamente.",
+        title: "Foto atualizada",
+        description: "Sua foto de perfil foi atualizada com sucesso.",
+      });
+      
+      // Invalidar cache para recarregar dados do usuário
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      
+      // Limpar preview
+      setSelectedImage(null);
+      setImagePreview(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro no upload",
+        description: error.message || "Não foi possível fazer upload da imagem.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+  });
+
+  // Função para fazer upload da imagem
+  const handleImageUpload = async () => {
+    if (!selectedImage) return;
+    uploadPhotoMutation.mutate(selectedImage);
   };
 
   // Função para lidar com seleção de imagem
@@ -90,16 +105,17 @@ export default function ProfilePage() {
         return;
       }
 
-      // Verificar tamanho (máximo 5MB)
+      // Verificar tamanho do arquivo (5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "Arquivo muito grande",
-          description: "A imagem deve ter no máximo 5MB.",
+          description: "Por favor, selecione uma imagem menor que 5MB.",
           variant: "destructive",
         });
         return;
       }
 
+      // Definir arquivo selecionado
       setSelectedImage(file);
       
       // Criar preview da imagem
@@ -111,59 +127,40 @@ export default function ProfilePage() {
     }
   };
 
-  // Função para fazer upload da imagem
-  const handleImageUpload = async () => {
-    if (!selectedImage) return;
-
+  // Salvar alterações do perfil
+  const handleSaveProfile = async () => {
     try {
-      setIsLoading(true);
+      const response = await apiRequest('PATCH', '/api/user/profile', editableData);
       
-      const formData = new FormData();
-      formData.append('profileImage', selectedImage);
-
-      const response = await fetch('/api/user/profile-image', {
-        method: 'POST',
-        body: formData,
-      });
-
       if (response.ok) {
-        const data = await response.json();
-        setProfileData(prev => ({ ...prev, profileImage: data.imageUrl }));
-        setSelectedImage(null);
-        setImagePreview(null);
-        
         toast({
-          title: "Foto atualizada",
-          description: "Sua foto de perfil foi atualizada com sucesso.",
+          title: "Perfil atualizado",
+          description: "Suas informações foram salvas com sucesso.",
         });
       } else {
-        throw new Error('Erro ao fazer upload da imagem');
+        throw new Error('Erro ao atualizar perfil');
       }
     } catch (error) {
       toast({
-        title: "Erro no upload",
-        description: "Não foi possível atualizar sua foto. Tente novamente.",
+        title: "Erro ao salvar",
+        description: "Não foi possível atualizar seu perfil. Tente novamente.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // Alterar senha
-  const handleChangePassword = async () => {
+  const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "Senhas não coincidem",
-        description: "A nova senha e a confirmação devem ser iguais.",
+        description: "A nova senha e confirmação devem ser iguais.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      setIsLoading(true);
-      
       const response = await apiRequest('PATCH', '/api/user/password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
@@ -188,323 +185,310 @@ export default function ProfilePage() {
         description: "Não foi possível alterar sua senha. Verifique a senha atual.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Cabeçalho */}
-        <div className="flex items-center gap-4 mb-8">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src="" alt={user?.username || "Usuário"} />
-            <AvatarFallback className="text-2xl">
-              {user?.username?.slice(0, 2)?.toUpperCase() || "DA"}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">Meu Perfil</h1>
-            <p className="text-gray-600 mt-1">
-              Atualize suas informações pessoais e preferências de conta
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge variant={user?.isAdmin ? "default" : "secondary"}>
-                {user?.isAdmin ? "Administrador" : "Usuário"}
-              </Badge>
-            </div>
-          </div>
+  if (profileLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Carregando perfil...</div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Tabs de navegação */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="perfil" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Perfil
-            </TabsTrigger>
-            <TabsTrigger value="seguranca" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Segurança
-            </TabsTrigger>
-            <TabsTrigger value="assinatura" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Assinatura
-            </TabsTrigger>
-            <TabsTrigger value="preferencias" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Preferências
-            </TabsTrigger>
-          </TabsList>
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Meu Perfil</h1>
+        <p className="text-muted-foreground">
+          Gerencie suas informações pessoais e configurações de conta
+        </p>
+      </div>
 
-          {/* Aba Perfil */}
-          <TabsContent value="perfil" className="space-y-6">
-            {/* Seção de Foto do Perfil */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Foto do Perfil</CardTitle>
-                <CardDescription>
-                  Sua foto será exibida em todo o sistema, incluindo no painel administrativo.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col md:flex-row items-start gap-6">
-                  {/* Avatar atual */}
-                  <div className="flex flex-col items-center space-y-4">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage 
-                        src={imagePreview || profileData.profileImage || ""} 
-                        alt="Foto do perfil" 
-                      />
-                      <AvatarFallback className="text-lg">
-                        {user?.username?.charAt(0)?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="text-sm text-gray-600 text-center">
-                      {profileData.profileImage ? "Foto atual" : "Nenhuma foto"}
-                    </p>
-                  </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="perfil" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Perfil
+          </TabsTrigger>
+          <TabsTrigger value="seguranca" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Segurança
+          </TabsTrigger>
+          <TabsTrigger value="assinatura" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Assinatura
+          </TabsTrigger>
+          <TabsTrigger value="preferencias" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Preferências
+          </TabsTrigger>
+        </TabsList>
 
-                  {/* Upload de foto */}
-                  <div className="flex-1 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="profile-image">Escolher nova foto</Label>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          id="profile-image"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageSelect}
-                          className="flex-1"
-                        />
-                        {selectedImage && (
-                          <Button 
-                            onClick={handleImageUpload}
-                            disabled={isLoading}
-                            size="sm"
-                          >
-                            {isLoading ? (
-                              <>
-                                <Upload className="h-4 w-4 mr-2 animate-spin" />
-                                Enviando...
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="h-4 w-4 mr-2" />
-                                Salvar Foto
-                              </>
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações Pessoais</CardTitle>
-                <CardDescription>
-                  Atualize suas informações básicas que serão visíveis para outros usuários.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Nome Completo</Label>
-                    <Input
-                      id="username"
-                      value={profileData.username}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
-                      placeholder="Seu nome completo"
+        {/* Aba Perfil */}
+        <TabsContent value="perfil" className="space-y-6">
+          {/* Seção de Foto do Perfil */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Foto do Perfil</CardTitle>
+              <CardDescription>
+                Sua foto será exibida em todo o sistema, incluindo no painel administrativo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row items-start gap-6">
+                {/* Avatar atual */}
+                <div className="flex flex-col items-center space-y-4">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage 
+                      src={imagePreview || (profileData as any)?.profileImage || ""} 
+                      alt="Foto do perfil" 
                     />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profileData.email}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="telefone">Telefone</Label>
-                    <Input
-                      id="telefone"
-                      type="tel"
-                      value={profileData.telefone}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, telefone: e.target.value }))}
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="localizacao">Localização</Label>
-                    <Input
-                      id="localizacao"
-                      value={profileData.localizacao}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, localizacao: e.target.value }))}
-                      placeholder="Cidade, Estado"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="biografia">Biografia</Label>
-                  <textarea
-                    id="biografia"
-                    className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md"
-                    value={profileData.biografia}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, biografia: e.target.value }))}
-                    placeholder="Uma breve descrição sobre você..."
-                    maxLength={300}
-                  />
-                  <p className="text-sm text-gray-500">
-                    Máximo de 300 caracteres
+                    <AvatarFallback className="text-lg">
+                      {user?.username?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="text-sm text-gray-600 text-center">
+                    {(profileData as any)?.profileImage ? "Foto atual" : "Nenhuma foto"}
                   </p>
                 </div>
 
+                {/* Upload de foto */}
+                <div className="flex-1 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="profile-image">Escolher nova foto</Label>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        id="profile-image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="flex-1"
+                      />
+                      {selectedImage && (
+                        <Button 
+                          onClick={handleImageUpload}
+                          disabled={uploadPhotoMutation.isPending}
+                          size="sm"
+                        >
+                          {uploadPhotoMutation.isPending ? (
+                            <>
+                              <Upload className="h-4 w-4 mr-2 animate-spin" />
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              Salvar Foto
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações Pessoais</CardTitle>
+              <CardDescription>
+                Atualize suas informações básicas que serão visíveis para outros usuários.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Nome Completo</Label>
+                  <Input
+                    id="username"
+                    value={editableData.username}
+                    onChange={(e) => setEditableData(prev => ({ ...prev, username: e.target.value }))}
+                    placeholder="Seu nome completo"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={editableData.email}
+                    onChange={(e) => setEditableData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="seu.email@exemplo.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telefone">Telefone</Label>
+                  <Input
+                    id="telefone"
+                    value={editableData.telefone}
+                    onChange={(e) => setEditableData(prev => ({ ...prev, telefone: e.target.value }))}
+                    placeholder="(11) 99999-9999"
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="site">Site</Label>
                   <Input
                     id="site"
-                    type="url"
-                    value={profileData.site}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, site: e.target.value }))}
-                    placeholder="https://seusite.com"
+                    value={editableData.site}
+                    onChange={(e) => setEditableData(prev => ({ ...prev, site: e.target.value }))}
+                    placeholder="www.seusite.com"
                   />
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="biografia">Biografia</Label>
+                <Textarea
+                  id="biografia"
+                  value={editableData.biografia}
+                  onChange={(e) => setEditableData(prev => ({ ...prev, biografia: e.target.value }))}
+                  placeholder="Conte um pouco sobre você e sua experiência..."
+                  rows={4}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="localizacao">Localização</Label>
+                <Input
+                  id="localizacao"
+                  value={editableData.localizacao}
+                  onChange={(e) => setEditableData(prev => ({ ...prev, localizacao: e.target.value }))}
+                  placeholder="Cidade, Estado"
+                />
+              </div>
 
-                <Separator />
+              <Button onClick={handleSaveProfile} className="w-full">
+                Salvar Alterações
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleSaveProfile}
-                    disabled={isLoading}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {isLoading ? "Salvando..." : "Salvar Perfil"}
-                  </Button>
+        {/* Aba Segurança */}
+        <TabsContent value="seguranca" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Alterar Senha</CardTitle>
+              <CardDescription>
+                Mantenha sua conta segura com uma senha forte.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-password">Senha Atual</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova Senha</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                />
+              </div>
+              <Button onClick={handlePasswordChange} className="w-full">
+                <Key className="h-4 w-4 mr-2" />
+                Alterar Senha
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Aba Assinatura */}
+        <TabsContent value="assinatura" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Plano Atual</CardTitle>
+              <CardDescription>
+                Informações sobre sua assinatura e benefícios.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-semibold">Plano Free</h3>
+                  <p className="text-sm text-muted-foreground">Acesso básico à plataforma</p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <Badge variant="secondary">Gratuito</Badge>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-medium">Benefícios inclusos:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Acesso a templates básicos</li>
+                  <li>• Download em baixa resolução</li>
+                  <li>• Suporte por email</li>
+                </ul>
+              </div>
 
-          {/* Aba Segurança */}
-          <TabsContent value="seguranca" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Alterar Senha</CardTitle>
-                <CardDescription>
-                  Mantenha sua conta segura com uma senha forte.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Senha Atual</Label>
-                  <Input
-                    id="currentPassword"
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    placeholder="Digite sua senha atual"
-                  />
+              <Button className="w-full">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Fazer Upgrade
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Aba Preferências */}
+        <TabsContent value="preferencias" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações Gerais</CardTitle>
+              <CardDescription>
+                Personalize sua experiência na plataforma.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="font-medium">Notificações por email</h4>
+                  <p className="text-sm text-muted-foreground">Receba updates sobre novos templates</p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">Nova Senha</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                    placeholder="Digite sua nova senha"
-                  />
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="email-notifications" className="rounded" />
+                  <label htmlFor="email-notifications" className="text-sm">Ativo</label>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    placeholder="Confirme sua nova senha"
-                  />
+              </div>
+              
+              <Separator />
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="font-medium">Downloads automáticos</h4>
+                  <p className="text-sm text-muted-foreground">Baixar automaticamente após personalizar</p>
                 </div>
-
-                <Separator />
-
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleChangePassword}
-                    disabled={isLoading || !passwordData.currentPassword || !passwordData.newPassword}
-                    variant="outline"
-                  >
-                    {isLoading ? "Alterando..." : "Alterar Senha"}
-                  </Button>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="auto-download" className="rounded" />
+                  <label htmlFor="auto-download" className="text-sm">Ativo</label>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Aba Assinatura */}
-          <TabsContent value="assinatura" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Status da Assinatura</CardTitle>
-                <CardDescription>
-                  Gerencie sua assinatura e planos.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <CreditCard className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Plano Gratuito</h3>
-                  <p className="text-gray-600 mb-4">
-                    Você está usando o plano gratuito. Faça upgrade para acessar recursos premium.
-                  </p>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    Ver Planos Disponíveis
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Aba Preferências */}
-          <TabsContent value="preferencias" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Preferências da Conta</CardTitle>
-                <CardDescription>
-                  Configure suas preferências de uso da plataforma.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Em Desenvolvimento</h3>
-                  <p className="text-gray-600">
-                    As configurações de preferências estarão disponíveis em breve.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
