@@ -150,9 +150,17 @@ const UserMenu = () => {
         onClick={() => setIsDropdownOpen(true)}
       >
         <div className="rounded-full overflow-hidden w-8 h-8 p-0">
-          <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
-            <User className="h-4 w-4" />
-          </div>
+          {user.profileImage ? (
+            <img 
+              src={user.profileImage} 
+              alt={user.username}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
+              <User className="h-4 w-4" />
+            </div>
+          )}
         </div>
         <span className="max-w-[100px] truncate">{user.username}</span>
         <ChevronDown className="h-4 w-4" />

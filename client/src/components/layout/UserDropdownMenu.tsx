@@ -69,7 +69,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         <div className="bg-black pt-8 pb-4 px-6 text-center">
           <div className="w-20 h-20 mx-auto mb-2 rounded-full border-4 border-white overflow-hidden">
             <img 
-              src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=1D1D1D&color=fff`} 
+              src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=1D1D1D&color=fff`} 
               alt={user.username}
               className="w-full h-full object-cover"
             />
