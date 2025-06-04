@@ -170,8 +170,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
             "flex items-center gap-3 p-4 border-b",
             !isOpen && "justify-center"
           )}>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={userData?.profileImage || ""} alt={userData?.username || "Admin"} />
+            <Avatar className="h-10 w-10">
+              <AvatarImage 
+                src={userData?.profileImage || ""} 
+                alt={userData?.username || "Admin"}
+                className="object-cover"
+              />
               <AvatarFallback>
                 {userData?.username?.slice(0, 2)?.toUpperCase() || "AD"}
               </AvatarFallback>
