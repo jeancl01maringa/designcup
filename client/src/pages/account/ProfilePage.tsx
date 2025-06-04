@@ -9,8 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Calendar, Shield, Key, CreditCard, Download, Heart, Settings } from "lucide-react";
+import { User, Mail, Phone, Calendar, Shield, Key, CreditCard, Download, Heart, Settings, Camera, Upload } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -25,8 +26,13 @@ export default function ProfilePage() {
     telefone: "",
     biografia: "",
     site: "",
-    localizacao: ""
+    localizacao: "",
+    profileImage: ""
   });
+
+  // Estado para upload de imagem
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Dados para alteração de senha
   const [passwordData, setPasswordData] = useState({
@@ -54,6 +60,80 @@ export default function ProfilePage() {
       toast({
         title: "Erro ao salvar",
         description: "Não foi possível atualizar seu perfil. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Função para lidar com seleção de imagem
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Verificar se é uma imagem
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Arquivo inválido",
+          description: "Por favor, selecione apenas arquivos de imagem.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Verificar tamanho (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter no máximo 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSelectedImage(file);
+      
+      // Criar preview da imagem
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Função para fazer upload da imagem
+  const handleImageUpload = async () => {
+    if (!selectedImage) return;
+
+    try {
+      setIsLoading(true);
+      
+      const formData = new FormData();
+      formData.append('profileImage', selectedImage);
+
+      const response = await fetch('/api/user/profile-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData(prev => ({ ...prev, profileImage: data.imageUrl }));
+        setSelectedImage(null);
+        setImagePreview(null);
+        
+        toast({
+          title: "Foto atualizada",
+          description: "Sua foto de perfil foi atualizada com sucesso.",
+        });
+      } else {
+        throw new Error('Erro ao fazer upload da imagem');
+      }
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível atualizar sua foto. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -152,6 +232,73 @@ export default function ProfilePage() {
 
           {/* Aba Perfil */}
           <TabsContent value="perfil" className="space-y-6">
+            {/* Seção de Foto do Perfil */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Foto do Perfil</CardTitle>
+                <CardDescription>
+                  Sua foto será exibida em todo o sistema, incluindo no painel administrativo.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col md:flex-row items-start gap-6">
+                  {/* Avatar atual */}
+                  <div className="flex flex-col items-center space-y-4">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage 
+                        src={imagePreview || profileData.profileImage || ""} 
+                        alt="Foto do perfil" 
+                      />
+                      <AvatarFallback className="text-lg">
+                        {user?.username?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="text-sm text-gray-600 text-center">
+                      {profileData.profileImage ? "Foto atual" : "Nenhuma foto"}
+                    </p>
+                  </div>
+
+                  {/* Upload de foto */}
+                  <div className="flex-1 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="profile-image">Escolher nova foto</Label>
+                      <div className="flex items-center gap-4">
+                        <Input
+                          id="profile-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="flex-1"
+                        />
+                        {selectedImage && (
+                          <Button 
+                            onClick={handleImageUpload}
+                            disabled={isLoading}
+                            size="sm"
+                          >
+                            {isLoading ? (
+                              <>
+                                <Upload className="h-4 w-4 mr-2 animate-spin" />
+                                Enviando...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 mr-2" />
+                                Salvar Foto
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Informações Pessoais</CardTitle>
