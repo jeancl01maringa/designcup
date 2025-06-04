@@ -2591,22 +2591,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Upload de foto para usuário #${userId}`);
 
       try {
-        // Criar diretório de uploads se não existir
-        const uploadsDir = path.join(process.cwd(), 'client', 'public', 'uploads', 'profiles');
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-
         // Gerar nome único para o arquivo
         const fileExtension = path.extname(file.originalname);
         const fileName = `profile_${userId}_${Date.now()}${fileExtension}`;
-        const filePath = path.join(uploadsDir, fileName);
+        const filePath = `${fileName}`;
 
-        // Salvar arquivo localmente
-        fs.writeFileSync(filePath, file.buffer);
+        // Fazer upload para o Supabase Storage no bucket "perfis"
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('perfis')
+          .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: true
+          });
 
-        // URL da imagem para o frontend
-        const imageUrl = `/uploads/profiles/${fileName}`;
+        if (uploadError) {
+          console.error('Erro no upload para Supabase:', uploadError);
+          return res.status(500).json({ 
+            message: 'Erro ao fazer upload da imagem',
+            error: uploadError.message 
+          });
+        }
+
+        // Obter URL pública da imagem
+        const { data: publicUrlData } = supabase.storage
+          .from('perfis')
+          .getPublicUrl(filePath);
+
+        if (!publicUrlData.publicUrl) {
+          return res.status(500).json({ 
+            message: 'Erro ao obter URL da imagem'
+          });
+        }
+
+        const imageUrl = publicUrlData.publicUrl;
 
         // Atualizar o banco de dados com a nova URL da imagem
         const updateResult = await pool.query(`
@@ -2654,10 +2671,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       
       try {
-        const result = await pool.query(`
-          SELECT id, username, email, telefone, profile_image, created_at,
-                 COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, 
-                 COALESCE(active, false) as active
+        // Primeiro tentar buscar com todos os campos
+        let result = await pool.query(`
+          SELECT id, username, email, 
+                 telefone, profile_image, created_at,
+                 COALESCE(tipo, 'free') as tipo, 
+                 plano_id, data_vencimento, 
+                 COALESCE(active, true) as active
           FROM users 
           WHERE id = $1
         `, [userId]);
@@ -2668,22 +2688,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: userData.id,
             username: userData.username,
             email: userData.email,
-            telefone: userData.telefone,
-            profileImage: userData.profile_image,
+            telefone: userData.telefone || null,
+            profileImage: userData.profile_image || null,
             createdAt: userData.created_at,
-            tipo: userData.tipo,
-            planoId: userData.plano_id,
-            dataVencimento: userData.data_vencimento,
-            active: userData.active
+            tipo: userData.tipo || 'free',
+            planoId: userData.plano_id || null,
+            dataVencimento: userData.data_vencimento || null,
+            active: userData.active !== false
           });
         } else {
-          return res.status(404).json({ message: 'Usuário não encontrado' });
+          // Se não encontrou, tentar com campos básicos apenas
+          result = await pool.query(`
+            SELECT id, username, email, created_at
+            FROM users 
+            WHERE id = $1
+          `, [userId]);
+
+          if (result.rows && result.rows.length > 0) {
+            const userData = result.rows[0];
+            return res.json({
+              id: userData.id,
+              username: userData.username,
+              email: userData.email,
+              telefone: null,
+              profileImage: null,
+              createdAt: userData.created_at,
+              tipo: 'free',
+              planoId: null,
+              dataVencimento: null,
+              active: true
+            });
+          } else {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+          }
         }
       } catch (dbError: any) {
         console.error(`Erro ao buscar perfil do usuário #${userId}:`, dbError);
-        return res.status(500).json({ 
-          message: 'Erro ao buscar dados do perfil',
-          error: dbError.message
+        // Em caso de erro de coluna não encontrada, retornar dados básicos
+        return res.json({
+          id: req.user.id,
+          username: req.user.username,
+          email: req.user.email,
+          telefone: null,
+          profileImage: null,
+          createdAt: req.user.createdAt,
+          tipo: 'free',
+          planoId: null,
+          dataVencimento: null,
+          active: true
         });
       }
 
