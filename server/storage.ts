@@ -985,44 +985,71 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE updateCategory - Atualizando categoria:", id, JSON.stringify(category));
       
-      // Mapear campos para formato do Supabase (snake_case)
-      const dbCategory: any = {};
+      // Usar PostgreSQL direto para evitar problemas de cache do Supabase
+      const setParts: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
       
-      if (category.name !== undefined) dbCategory.name = category.name;
-      if (category.description !== undefined) dbCategory.description = category.description;
-      if (category.imageUrl !== undefined) dbCategory.image_url = category.imageUrl;
-      if (category.slug !== undefined) dbCategory.slug = category.slug;
-      if (category.isActive !== undefined) dbCategory.is_active = category.isActive;
-      
-      // Usar a API do Supabase para atualizar a categoria
-      const { data, error } = await supabase
-        .from('categories')
-        .update(dbCategory)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error("DATABASE updateCategory - Erro ao atualizar categoria:", error.message);
-        throw new Error(`Erro ao atualizar categoria: ${error.message}`);
+      if (category.name !== undefined) {
+        setParts.push(`name = $${paramIndex++}`);
+        values.push(category.name);
+      }
+      if (category.description !== undefined) {
+        setParts.push(`description = $${paramIndex++}`);
+        values.push(category.description);
+      }
+      if (category.imageUrl !== undefined) {
+        setParts.push(`image_url = $${paramIndex++}`);
+        values.push(category.imageUrl);
+      }
+      if (category.slug !== undefined) {
+        setParts.push(`slug = $${paramIndex++}`);
+        values.push(category.slug);
+      }
+      if (category.isActive !== undefined) {
+        setParts.push(`is_active = $${paramIndex++}`);
+        values.push(category.isActive);
       }
       
+      if (setParts.length === 0) {
+        throw new Error('Nenhum campo fornecido para atualização');
+      }
+      
+      values.push(id); // ID vai por último
+      
+      const query = `
+        UPDATE categories 
+        SET ${setParts.join(', ')} 
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+      
+      console.log("DATABASE updateCategory - Query SQL:", query);
+      console.log("DATABASE updateCategory - Valores:", values);
+      
+      const result = await pool.query(query, values);
+      
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error(`Categoria com ID ${id} não encontrada`);
+      }
+      
+      const data = result.rows[0];
+      
       // Mapear para o formato esperado pela aplicação
-      // Converter is_active para boolean explicitamente
       const isActive = data.is_active === true || data.is_active === 't';
       
-      const result: Category = {
+      const updatedCategory: Category = {
         id: data.id,
         name: data.name,
         description: data.description,
-        slug: data.slug || slugify(data.name), // Gera slug se não existir
+        slug: data.slug || slugify(data.name),
         imageUrl: data.image_url,
         isActive: isActive,
         createdAt: new Date(data.created_at)
       };
       
-      console.log(`DATABASE updateCategory - Categoria atualizada com sucesso: ${result.name}`);
-      return result;
+      console.log(`DATABASE updateCategory - Categoria atualizada com sucesso: ${updatedCategory.name}`);
+      return updatedCategory;
     } catch (error) {
       console.error("DATABASE updateCategory - Exceção:", error);
       throw error;
