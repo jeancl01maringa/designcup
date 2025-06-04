@@ -120,7 +120,12 @@ export function PostManager() {
       const endpoint = `/api/admin/posts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await apiRequest('GET', endpoint);
       return await response.json();
-    }
+    },
+    staleTime: 3 * 1000, // 3 segundos em cache 
+    gcTime: 15 * 1000, // 15 segundos no cache
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 5 * 1000 // Atualiza a cada 5 segundos automaticamente
   });
   
   // Query para buscar categorias (necessárias para o formulário e filtros)

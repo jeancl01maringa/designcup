@@ -259,7 +259,15 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         description: "Postagem criada com sucesso.",
         variant: "default",
       });
+      // Invalidar todos os caches relacionados a posts para atualização imediata
       queryClient.invalidateQueries({ queryKey: ["/api/admin/posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/posts/feed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/posts/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/artworks"] });
+      // Forçar refetch dos dados mais importantes
+      queryClient.refetchQueries({ queryKey: ["/api/admin/posts"] });
+      queryClient.refetchQueries({ queryKey: ["/api/posts"] });
       onOpenChange(false);
     },
     onError: (error: Error) => {

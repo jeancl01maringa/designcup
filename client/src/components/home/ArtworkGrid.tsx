@@ -137,10 +137,11 @@ export default function ArtworkGrid() {
         return [];
       }
     },
-    staleTime: 3 * 60 * 1000, // 3 minutos em cache
-    gcTime: 10 * 60 * 1000, // 10 minutos no cache
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
+    staleTime: 5 * 1000, // 5 segundos em cache
+    gcTime: 30 * 1000, // 30 segundos no cache
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 10 * 1000 // Atualiza a cada 10 segundos automaticamente
   });
 
   // Converter posts do Supabase para o formato esperado
