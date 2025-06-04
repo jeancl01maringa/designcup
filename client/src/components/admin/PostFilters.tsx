@@ -90,16 +90,16 @@ export function PostFilters({ filters, onFilterChange, onClearFilters, categorie
               <div className="space-y-2">
                 <Label htmlFor="status-filter">Status</Label>
                 <Select
-                  value={filters.status || ""}
+                  value={filters.status || "all"}
                   onValueChange={(value) => 
-                    onFilterChange({ status: value || undefined })
+                    onFilterChange({ status: value === "all" ? undefined : value })
                   }
                 >
                   <SelectTrigger id="status-filter">
                     <SelectValue placeholder="Todos os status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="all">Todos os status</SelectItem>
                     <SelectItem value="aprovado">Aprovado</SelectItem>
                     <SelectItem value="rascunho">Rascunho</SelectItem>
                     <SelectItem value="rejeitado">Rejeitado</SelectItem>
@@ -111,16 +111,16 @@ export function PostFilters({ filters, onFilterChange, onClearFilters, categorie
               <div className="space-y-2">
                 <Label htmlFor="category-filter">Categoria</Label>
                 <Select
-                  value={filters.categoryId?.toString() || ""}
+                  value={filters.categoryId?.toString() || "all"}
                   onValueChange={(value) => 
-                    onFilterChange({ categoryId: value ? parseInt(value) : undefined })
+                    onFilterChange({ categoryId: value === "all" ? undefined : parseInt(value) })
                   }
                 >
                   <SelectTrigger id="category-filter">
                     <SelectValue placeholder="Todas as categorias" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as categorias</SelectItem>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
@@ -134,16 +134,16 @@ export function PostFilters({ filters, onFilterChange, onClearFilters, categorie
               <div className="space-y-2">
                 <Label htmlFor="month-filter">Mês</Label>
                 <Select
-                  value={filters.month?.toString() || ""}
+                  value={filters.month?.toString() || "all"}
                   onValueChange={(value) => 
-                    onFilterChange({ month: value ? parseInt(value) : undefined })
+                    onFilterChange({ month: value === "all" ? undefined : parseInt(value) })
                   }
                 >
                   <SelectTrigger id="month-filter">
                     <SelectValue placeholder="Todos os meses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os meses</SelectItem>
+                    <SelectItem value="all">Todos os meses</SelectItem>
                     <SelectItem value="1">Janeiro</SelectItem>
                     <SelectItem value="2">Fevereiro</SelectItem>
                     <SelectItem value="3">Março</SelectItem>
@@ -164,16 +164,16 @@ export function PostFilters({ filters, onFilterChange, onClearFilters, categorie
               <div className="space-y-2">
                 <Label htmlFor="year-filter">Ano</Label>
                 <Select
-                  value={filters.year?.toString() || ""}
+                  value={filters.year?.toString() || "all"}
                   onValueChange={(value) => 
-                    onFilterChange({ year: value ? parseInt(value) : undefined })
+                    onFilterChange({ year: value === "all" ? undefined : parseInt(value) })
                   }
                 >
                   <SelectTrigger id="year-filter">
                     <SelectValue placeholder="Todos os anos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os anos</SelectItem>
+                    <SelectItem value="all">Todos os anos</SelectItem>
                     <SelectItem value="2024">2024</SelectItem>
                     <SelectItem value="2025">2025</SelectItem>
                   </SelectContent>
