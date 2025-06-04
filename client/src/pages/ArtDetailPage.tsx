@@ -65,14 +65,13 @@ export default function ArtDetailPage() {
                      (user?.plano_id !== undefined && user?.plano_id !== null && 
                       typeof user?.plano_id === 'number' && user?.plano_id !== 1);
   
-  // Buscar os dados da arte
+  // Buscar os dados da arte com API otimizada de preview
   const { data: post, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/posts', postId],
+    queryKey: ['/api/posts/preview', postId],
     queryFn: async () => {
       if (!postId) throw new Error('ID inválido');
       
-      // Usar nossa API em vez do Supabase diretamente
-      const response = await fetch(`/api/admin/posts/${postId}`);
+      const response = await fetch(`/api/posts/preview/${postId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -81,26 +80,14 @@ export default function ArtDetailPage() {
         throw new Error('Erro ao buscar arte');
       }
       
-      const data = await response.json();
-      console.log("Dados do post recebidos:", data);
-      
-      // Verificar se existem formatos ou formato_data
-      if (data.formato_data || data.format_data) {
-        console.log("Formato data encontrado:", data.formato_data || data.format_data);
-        try {
-          const formatData = JSON.parse(data.formato_data || data.format_data || '{}');
-          console.log("Formato data parseado:", formatData);
-        } catch (err) {
-          console.error("Erro ao fazer parse do formato data:", err);
-        }
-      } else {
-        console.log("Post não possui dados de formato");
-      }
-      
-      return data;
+      return response.json();
     },
     retry: 1,
-    enabled: !!postId
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000, // 5 minutos em cache
+    gcTime: 10 * 60 * 1000, // 10 minutos no cache (gcTime substitui cacheTime no v5)
+    refetchOnWindowFocus: false, // Não refetch ao focar janela
+    refetchOnMount: false // Não refetch ao montar se tem cache válido
   });
   
   // Extrair formatos do post a partir dos dados gravados no banco

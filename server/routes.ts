@@ -943,6 +943,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API endpoints for admin panel - Posts
+  // Endpoint otimizado para preview rápido de posts
+  app.get('/api/posts/preview/:id', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      
+      if (!postId || isNaN(postId)) {
+        return res.status(400).json({ message: 'ID de post inválido' });
+      }
+
+      // Buscar diretamente do Supabase com cache otimizado
+      const { data: post, error } = await supabase
+        .from('posts')
+        .select('id, title, description, image_url, unique_code, category_id, status, created_at, format_data, formats, license_type, is_pro, tags')
+        .eq('id', postId)
+        .single();
+
+      if (error || !post) {
+        return res.status(404).json({ message: 'Post não encontrado' });
+      }
+
+      // Normalizar campos para consistência
+      const normalizedPost = {
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.image_url,
+        uniqueCode: post.unique_code,
+        categoryId: post.category_id,
+        status: post.status,
+        createdAt: post.created_at,
+        formatData: post.format_data,
+        formats: post.formats || [],
+        licenseType: post.license_type || 'free',
+        isPro: post.is_pro || false,
+        tags: post.tags || []
+      };
+
+      // Cache headers para melhor performance
+      res.set('Cache-Control', 'public, max-age=300'); // 5 minutos de cache
+      res.json(normalizedPost);
+
+    } catch (error) {
+      console.error('Erro ao buscar preview do post:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   // Endpoint público para obter posts aprovados
   app.get('/api/admin/posts/approved', async (req, res) => {
     try {
