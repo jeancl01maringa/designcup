@@ -807,24 +807,22 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getCategories - Buscando todas as categorias");
       
-      // Usar a API do Supabase para buscar todas as categorias
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
+      // Usar PostgreSQL direto para evitar problemas de cache
+      const query = `
+        SELECT id, name, description, slug, image_url, is_active, created_at
+        FROM categories
+        ORDER BY name
+      `;
       
-      if (error) {
-        console.error("DATABASE getCategories - Erro ao buscar categorias:", error.message);
-        return [];
-      }
+      const result = await pool.query(query);
       
-      if (!data || data.length === 0) {
+      if (!result.rows || result.rows.length === 0) {
         console.log("DATABASE getCategories - Nenhuma categoria encontrada");
         return [];
       }
       
-      // Mapear os dados do Supabase para o formato esperado pela aplicação
-      const categories: Category[] = data.map(item => {
+      // Mapear os dados para o formato esperado pela aplicação
+      const categories: Category[] = result.rows.map(item => {
         // Converter is_active para boolean explicitamente (pode vir como 't' do PostgreSQL)
         const isActive = item.is_active === true || item.is_active === 't';
         console.log(`Categoria ${item.id} (${item.name}): is_active = ${item.is_active}, isActive = ${isActive}`);

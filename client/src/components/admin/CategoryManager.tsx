@@ -41,6 +41,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -146,6 +147,30 @@ export function CategoryManager() {
     onError: (error) => {
       toast({
         title: "Erro ao atualizar categoria",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para alternar status da categoria
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      const response = await apiRequest("PATCH", `/api/admin/categories/${id}/status`, {
+        isActive: !isActive
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/categories'] });
+      toast({
+        title: "Status alterado",
+        description: "O status da categoria foi atualizado com sucesso.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao alterar status",
         description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       });
@@ -281,15 +306,21 @@ export function CategoryManager() {
                       {category.description || "-"}
                     </TableCell>
                     <TableCell>
-                      {category.isActive ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Ativa
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={category.isActive}
+                          onCheckedChange={() => 
+                            toggleStatusMutation.mutate({ 
+                              id: category.id, 
+                              isActive: category.isActive 
+                            })
+                          }
+                          disabled={toggleStatusMutation.isPending}
+                        />
+                        <span className={`text-sm ${category.isActive ? 'text-green-600' : 'text-gray-500'}`}>
+                          {category.isActive ? 'Ativo' : 'Inativo'}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          Inativa
-                        </span>
-                      )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right space-x-1">
                       <Button
