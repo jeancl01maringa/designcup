@@ -1269,7 +1269,6 @@ export class DatabaseStorage implements IStorage {
           SELECT * FROM posts 
           ${whereClause}
           ORDER BY created_at DESC
-          LIMIT 50
         `;
         
         console.log("DATABASE getPosts - Query PostgreSQL otimizada:", pgQuery);
