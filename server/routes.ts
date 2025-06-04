@@ -2608,6 +2608,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // URL da imagem para o frontend
         const imageUrl = `/uploads/profiles/${fileName}`;
 
+        // Verificar se o usuário existe primeiro
+        const checkUser = await pool.query(`
+          SELECT id, username, email FROM users WHERE id = $1
+        `, [userId]);
+
+        console.log(`Verificando usuário #${userId}:`, checkUser.rows);
+
+        if (!checkUser.rows || checkUser.rows.length === 0) {
+          return res.status(404).json({ message: 'Usuário não encontrado na verificação' });
+        }
+
         // Atualizar o banco de dados com a nova URL da imagem
         const updateResult = await pool.query(`
           UPDATE users 
@@ -2615,6 +2626,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           WHERE id = $2
           RETURNING id, username, email, profile_image
         `, [imageUrl, userId]);
+
+        console.log(`Resultado da atualização:`, updateResult.rows);
 
         if (updateResult.rows && updateResult.rows.length > 0) {
           console.log(`Foto de perfil atualizada para usuário #${userId}: ${imageUrl}`);
@@ -2744,6 +2757,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Atualizando perfil do usuário #${userId}:`, req.body);
 
       try {
+        // Verificar se o usuário existe primeiro
+        const checkUser = await pool.query(`
+          SELECT id, username, email FROM users WHERE id = $1
+        `, [userId]);
+
+        console.log(`Verificando usuário para atualização #${userId}:`, checkUser.rows);
+
+        if (!checkUser.rows || checkUser.rows.length === 0) {
+          return res.status(404).json({ message: 'Usuário não encontrado na verificação de perfil' });
+        }
+
         // Atualizar apenas os campos básicos que existem na tabela
         const updateResult = await pool.query(`
           UPDATE users 
@@ -2751,6 +2775,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           WHERE id = $3
           RETURNING id, username, email, created_at
         `, [username, email, userId]);
+
+        console.log(`Resultado da atualização de perfil:`, updateResult.rows);
 
         if (updateResult.rows && updateResult.rows.length > 0) {
           console.log(`Perfil atualizado para usuário #${userId}`);
