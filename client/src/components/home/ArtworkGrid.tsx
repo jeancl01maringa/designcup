@@ -124,24 +124,23 @@ const mockArtworks: MockArtwork[] = [
 ];
 
 export default function ArtworkGrid() {
-  // Buscar posts aprovados do Supabase para usar no feed
+  // Buscar posts aprovados com cache otimizado para melhor performance
   const { data: posts = [], isLoading: isPostsLoading, error } = useQuery<any[]>({
-    queryKey: ['/api/supabase/posts'],
+    queryKey: ['/api/admin/posts/approved'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('status', 'aprovado')
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        return data || [];
+        const response = await fetch('/api/admin/posts/approved');
+        if (!response.ok) throw new Error('Falha ao carregar posts');
+        return await response.json();
       } catch (err) {
         console.error('Erro ao buscar posts:', err);
         return [];
       }
-    }
+    },
+    staleTime: 3 * 60 * 1000, // 3 minutos em cache
+    gcTime: 10 * 60 * 1000, // 10 minutos no cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
 
   // Converter posts do Supabase para o formato esperado

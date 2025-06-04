@@ -1012,9 +1012,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint público para obter posts aprovados
+  // Endpoint público para obter posts aprovados com cache otimizado
   app.get('/api/admin/posts/approved', async (req, res) => {
     try {
+      // Cache headers para melhor performance do feed público
+      res.set('Cache-Control', 'public, max-age=180'); // 3 minutos de cache
+      
       // Usar a implementação com Supabase para maior velocidade em acesso público
       const { data, error } = await supabase
         .from('posts')
