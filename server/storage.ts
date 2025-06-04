@@ -36,6 +36,8 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(id: number, data: { username: string; email: string }): Promise<User>;
+  updateUserProfileImage(id: number, imageUrl: string): Promise<User>;
   
   // Artwork methods
   getArtworks(): Promise<Artwork[]>;
@@ -345,6 +347,86 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error("DATABASE createUser - Exceção:", error);
+      throw error;
+    }
+  }
+
+  async updateUserProfile(id: number, data: { username: string; email: string }): Promise<User> {
+    try {
+      console.log(`DATABASE updateUserProfile - Atualizando perfil do usuário ID: ${id}`);
+      
+      // Usar a mesma conexão que funciona na autenticação
+      const result = await pool.query(`
+        UPDATE users 
+        SET username = $1, email = $2
+        WHERE id = $3
+        RETURNING id, username, email, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+      `, [data.username, data.email, id]);
+
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error('Usuário não encontrado para atualização');
+      }
+
+      const userData = result.rows[0];
+      const user: User = {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        password: '', // Não retornar senha
+        isAdmin: userData.is_admin || false,
+        telefone: userData.telefone || null,
+        profileImage: userData.profile_image || null,
+        createdAt: new Date(userData.created_at),
+        tipo: userData.tipo || 'free',
+        plano_id: userData.plano_id || null,
+        data_vencimento: userData.data_vencimento ? new Date(userData.data_vencimento) : null,
+        active: userData.active || true
+      };
+
+      console.log(`DATABASE updateUserProfile - Perfil atualizado com sucesso para usuário ID: ${id}`);
+      return user;
+    } catch (error) {
+      console.error("DATABASE updateUserProfile - Erro:", error);
+      throw error;
+    }
+  }
+
+  async updateUserProfileImage(id: number, imageUrl: string): Promise<User> {
+    try {
+      console.log(`DATABASE updateUserProfileImage - Atualizando foto do usuário ID: ${id}`);
+      
+      // Usar a mesma conexão que funciona na autenticação
+      const result = await pool.query(`
+        UPDATE users 
+        SET profile_image = $1
+        WHERE id = $2
+        RETURNING id, username, email, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+      `, [imageUrl, id]);
+
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error('Usuário não encontrado para atualização de foto');
+      }
+
+      const userData = result.rows[0];
+      const user: User = {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        password: '', // Não retornar senha
+        isAdmin: userData.is_admin || false,
+        telefone: userData.telefone || null,
+        profileImage: userData.profile_image || null,
+        createdAt: new Date(userData.created_at),
+        tipo: userData.tipo || 'free',
+        plano_id: userData.plano_id || null,
+        data_vencimento: userData.data_vencimento ? new Date(userData.data_vencimento) : null,
+        active: userData.active || true
+      };
+
+      console.log(`DATABASE updateUserProfileImage - Foto atualizada com sucesso para usuário ID: ${id}`);
+      return user;
+    } catch (error) {
+      console.error("DATABASE updateUserProfileImage - Erro:", error);
       throw error;
     }
   }

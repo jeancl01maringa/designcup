@@ -2608,37 +2608,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // URL da imagem para o frontend
         const imageUrl = `/uploads/profiles/${fileName}`;
 
-        // Verificar se o usuário existe primeiro
-        const checkUser = await pool.query(`
-          SELECT id, username, email FROM users WHERE id = $1
-        `, [userId]);
+        // Verificar se o usuário existe usando o storage (mesma forma da autenticação)
+        const currentUser = await storage.getUser(userId);
+        
+        console.log(`Verificando usuário #${userId}:`, currentUser);
 
-        console.log(`Verificando usuário #${userId}:`, checkUser.rows);
-
-        if (!checkUser.rows || checkUser.rows.length === 0) {
+        if (!currentUser) {
           return res.status(404).json({ message: 'Usuário não encontrado na verificação' });
         }
 
-        // Atualizar o banco de dados com a nova URL da imagem
-        const updateResult = await pool.query(`
-          UPDATE users 
-          SET profile_image = $1 
-          WHERE id = $2
-          RETURNING id, username, email, profile_image
-        `, [imageUrl, userId]);
+        // Atualizar usando a mesma estrutura do storage
+        const updatedUser = await storage.updateUserProfileImage(userId, imageUrl);
 
-        console.log(`Resultado da atualização:`, updateResult.rows);
+        console.log(`Resultado da atualização:`, updatedUser);
 
-        if (updateResult.rows && updateResult.rows.length > 0) {
-          console.log(`Foto de perfil atualizada para usuário #${userId}: ${imageUrl}`);
-          return res.json({ 
-            message: 'Foto de perfil atualizada com sucesso',
-            profileImage: imageUrl,
-            user: updateResult.rows[0]
-          });
-        } else {
-          return res.status(404).json({ message: 'Usuário não encontrado' });
-        }
+        console.log(`Foto de perfil atualizada para usuário #${userId}: ${imageUrl}`);
+        return res.json({ 
+          message: 'Foto de perfil atualizada com sucesso',
+          profileImage: imageUrl,
+          user: updatedUser
+        });
 
       } catch (storageError: any) {
         console.error('Erro ao processar upload:', storageError);
@@ -2757,36 +2746,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Atualizando perfil do usuário #${userId}:`, req.body);
 
       try {
-        // Verificar se o usuário existe primeiro
-        const checkUser = await pool.query(`
-          SELECT id, username, email FROM users WHERE id = $1
-        `, [userId]);
+        // Verificar se o usuário existe usando o storage (mesma forma da autenticação)
+        const currentUser = await storage.getUser(userId);
+        
+        console.log(`Verificando usuário para atualização #${userId}:`, currentUser);
 
-        console.log(`Verificando usuário para atualização #${userId}:`, checkUser.rows);
-
-        if (!checkUser.rows || checkUser.rows.length === 0) {
+        if (!currentUser) {
           return res.status(404).json({ message: 'Usuário não encontrado na verificação de perfil' });
         }
 
-        // Atualizar apenas os campos básicos que existem na tabela
-        const updateResult = await pool.query(`
-          UPDATE users 
-          SET username = $1, email = $2
-          WHERE id = $3
-          RETURNING id, username, email, created_at
-        `, [username, email, userId]);
+        // Atualizar usando a mesma estrutura do storage
+        const updatedUser = await storage.updateUserProfile(userId, { username, email });
 
-        console.log(`Resultado da atualização de perfil:`, updateResult.rows);
+        console.log(`Resultado da atualização de perfil:`, updatedUser);
 
-        if (updateResult.rows && updateResult.rows.length > 0) {
-          console.log(`Perfil atualizado para usuário #${userId}`);
-          return res.json({ 
-            message: 'Perfil atualizado com sucesso',
-            user: updateResult.rows[0]
-          });
-        } else {
-          return res.status(404).json({ message: 'Usuário não encontrado' });
-        }
+        console.log(`Perfil atualizado para usuário #${userId}`);
+        return res.json({ 
+          message: 'Perfil atualizado com sucesso',
+          user: updatedUser
+        });
 
       } catch (dbError: any) {
         console.error(`Erro ao atualizar perfil do usuário #${userId}:`, dbError);
