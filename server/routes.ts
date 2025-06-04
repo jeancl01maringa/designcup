@@ -658,6 +658,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public API endpoint for active categories only
+  app.get('/api/categories', async (req, res) => {
+    try {
+      const categories = await storage.getActiveCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error('Error fetching active categories:', error);
+      res.status(500).json({ message: 'Error fetching categories' });
+    }
+  });
+
   // API endpoints for artworks
   app.get('/api/artworks', async (req, res) => {
     try {

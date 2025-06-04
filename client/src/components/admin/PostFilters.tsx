@@ -121,7 +121,9 @@ export function PostFilters({ filters, onFilterChange, onClearFilters, categorie
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as categorias</SelectItem>
-                    {categories.map((category) => (
+                    {categories
+                      .filter(category => category.isActive)
+                      .map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
                       </SelectItem>
