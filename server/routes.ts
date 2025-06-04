@@ -9,6 +9,26 @@ import * as schema from "@shared/schema";
 import { db, pool } from "./db";
 import { supabase } from "./supabase-client";
 import * as crypto from "crypto";
+import multer from "multer";
+import * as path from "path";
+import * as fs from "fs";
+
+// Configurar multer para upload de imagens
+const storage_multer = multer.memoryStorage();
+const upload = multer({
+  storage: storage_multer,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF ou WebP.'));
+    }
+  },
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
@@ -2549,6 +2569,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error changing user password:', error);
       res.status(500).json({ 
         message: 'Erro ao alterar senha',
+        error: error.message
+      });
+    }
+  });
+
+  // Rota para upload de foto de perfil
+  app.post('/api/profile/upload-photo', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'Nenhuma imagem enviada' });
+      }
+
+      const userId = req.user.id;
+      const file = req.file;
+      
+      console.log(`Upload de foto para usuário #${userId}`);
+
+      try {
+        // Gerar nome único para o arquivo
+        const fileExtension = path.extname(file.originalname);
+        const fileName = `profile_${userId}_${Date.now()}${fileExtension}`;
+        const filePath = `profile-images/${fileName}`;
+
+        // Fazer upload para o Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('profile-images')
+          .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('Erro no upload para Supabase:', uploadError);
+          return res.status(500).json({ 
+            message: 'Erro ao fazer upload da imagem',
+            error: uploadError.message 
+          });
+        }
+
+        // Obter URL pública da imagem
+        const { data: publicUrlData } = supabase.storage
+          .from('profile-images')
+          .getPublicUrl(filePath);
+
+        if (!publicUrlData.publicUrl) {
+          return res.status(500).json({ 
+            message: 'Erro ao obter URL da imagem'
+          });
+        }
+
+        const imageUrl = publicUrlData.publicUrl;
+
+        // Atualizar o banco de dados com a nova URL da imagem
+        const updateResult = await pool.query(`
+          UPDATE users 
+          SET profile_image = $1 
+          WHERE id = $2
+          RETURNING id, username, email, profile_image
+        `, [imageUrl, userId]);
+
+        if (updateResult.rows && updateResult.rows.length > 0) {
+          console.log(`Foto de perfil atualizada para usuário #${userId}: ${imageUrl}`);
+          return res.json({ 
+            message: 'Foto de perfil atualizada com sucesso',
+            profileImage: imageUrl,
+            user: updateResult.rows[0]
+          });
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+      } catch (storageError: any) {
+        console.error('Erro ao processar upload:', storageError);
+        return res.status(500).json({ 
+          message: 'Erro ao processar upload da imagem',
+          error: storageError.message
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Erro no upload de foto de perfil:', error);
+      res.status(500).json({ 
+        message: 'Erro interno do servidor',
+        error: error.message
+      });
+    }
+  });
+
+  // Rota para obter dados do perfil do usuário
+  app.get('/api/profile', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const userId = req.user.id;
+      
+      try {
+        const result = await pool.query(`
+          SELECT id, username, email, telefone, profile_image, created_at,
+                 COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, 
+                 COALESCE(active, false) as active
+          FROM users 
+          WHERE id = $1
+        `, [userId]);
+
+        if (result.rows && result.rows.length > 0) {
+          const userData = result.rows[0];
+          return res.json({
+            id: userData.id,
+            username: userData.username,
+            email: userData.email,
+            telefone: userData.telefone,
+            profileImage: userData.profile_image,
+            createdAt: userData.created_at,
+            tipo: userData.tipo,
+            planoId: userData.plano_id,
+            dataVencimento: userData.data_vencimento,
+            active: userData.active
+          });
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao buscar perfil do usuário #${userId}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar dados do perfil',
+          error: dbError.message
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Erro ao obter perfil:', error);
+      res.status(500).json({ 
+        message: 'Erro interno do servidor',
         error: error.message
       });
     }

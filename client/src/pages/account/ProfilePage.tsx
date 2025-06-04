@@ -12,22 +12,31 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Mail, Phone, Calendar, Shield, Key, CreditCard, Download, Heart, Settings, Camera, Upload } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("perfil");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Dados do perfil para edição
-  const [profileData, setProfileData] = useState({
+  // Buscar dados do perfil
+  const { data: profileData = {}, isLoading: profileLoading } = useQuery({
+    queryKey: ["/api/profile"],
+    enabled: !!user,
+  });
+
+  // Dados do perfil para edição (inicializar com dados do usuário e perfil)
+  const [editableData, setEditableData] = useState({
     username: user?.username || "",
     email: user?.email || "",
     telefone: "",
     biografia: "",
     site: "",
     localizacao: "",
-    profileImage: ""
   });
 
   // Estado para upload de imagem
