@@ -1798,6 +1798,36 @@ export class DatabaseStorage implements IStorage {
         };
         
         console.log(`DATABASE createPost - Post criado com ID: ${postResult.id} via PostgreSQL direto`);
+        
+        // Tentar sincronizar com Supabase imediatamente
+        try {
+          const supabaseData = {
+            id: postResult.id,
+            title: postResult.title,
+            description: postResult.description,
+            image_url: postResult.imageUrl,
+            unique_code: postResult.uniqueCode,
+            category_id: postResult.categoryId,
+            status: postResult.status,
+            created_at: postResult.createdAt,
+            license_type: postResult.licenseType || 'free',
+            is_pro: postResult.isPro || false,
+            is_visible: postResult.isVisible !== false,
+            tags: postResult.tags || [],
+            formats: postResult.formats || []
+          };
+
+          const { error: syncError } = await supabase
+            .from('posts')
+            .upsert(supabaseData, { onConflict: 'id' });
+
+          if (!syncError) {
+            console.log(`DATABASE createPost - Post ${postResult.id} sincronizado com Supabase`);
+          }
+        } catch (syncError) {
+          console.log(`DATABASE createPost - Aviso: Sincronização com Supabase falhou:`, syncError);
+        }
+        
         return postResult;
       } catch (pgError) {
         console.error("DATABASE createPost - Erro PostgreSQL:", pgError);
