@@ -2591,39 +2591,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Upload de foto para usuário #${userId}`);
 
       try {
+        // Criar diretório de uploads se não existir
+        const uploadsDir = path.join(process.cwd(), 'client', 'public', 'uploads', 'profiles');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
         // Gerar nome único para o arquivo
         const fileExtension = path.extname(file.originalname);
         const fileName = `profile_${userId}_${Date.now()}${fileExtension}`;
-        const filePath = `${fileName}`;
+        const filePath = path.join(uploadsDir, fileName);
 
-        // Fazer upload para o Supabase Storage no bucket "perfis"
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('perfis')
-          .upload(filePath, file.buffer, {
-            contentType: file.mimetype,
-            upsert: true
-          });
+        // Salvar arquivo localmente
+        fs.writeFileSync(filePath, file.buffer);
 
-        if (uploadError) {
-          console.error('Erro no upload para Supabase:', uploadError);
-          return res.status(500).json({ 
-            message: 'Erro ao fazer upload da imagem',
-            error: uploadError.message 
-          });
-        }
-
-        // Obter URL pública da imagem
-        const { data: publicUrlData } = supabase.storage
-          .from('perfis')
-          .getPublicUrl(filePath);
-
-        if (!publicUrlData.publicUrl) {
-          return res.status(500).json({ 
-            message: 'Erro ao obter URL da imagem'
-          });
-        }
-
-        const imageUrl = publicUrlData.publicUrl;
+        // URL da imagem para o frontend
+        const imageUrl = `/uploads/profiles/${fileName}`;
 
         // Atualizar o banco de dados com a nova URL da imagem
         const updateResult = await pool.query(`
@@ -2741,6 +2724,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('Erro ao obter perfil:', error);
+      res.status(500).json({ 
+        message: 'Erro interno do servidor',
+        error: error.message
+      });
+    }
+  });
+
+  // Rota para atualizar dados do perfil do usuário
+  app.patch('/api/user/profile', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const userId = req.user.id;
+      const { username, email, telefone, biografia, site, localizacao } = req.body;
+      
+      console.log(`Atualizando perfil do usuário #${userId}:`, req.body);
+
+      try {
+        // Atualizar apenas os campos básicos que existem na tabela
+        const updateResult = await pool.query(`
+          UPDATE users 
+          SET username = $1, email = $2
+          WHERE id = $3
+          RETURNING id, username, email, created_at
+        `, [username, email, userId]);
+
+        if (updateResult.rows && updateResult.rows.length > 0) {
+          console.log(`Perfil atualizado para usuário #${userId}`);
+          return res.json({ 
+            message: 'Perfil atualizado com sucesso',
+            user: updateResult.rows[0]
+          });
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+      } catch (dbError: any) {
+        console.error(`Erro ao atualizar perfil do usuário #${userId}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao atualizar dados do perfil',
+          error: dbError.message
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Erro ao atualizar perfil:', error);
       res.status(500).json({ 
         message: 'Erro interno do servidor',
         error: error.message
