@@ -15,6 +15,8 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(artwork.imageUrl);
   const { toast } = useToast();
 
   const handleLike = (e: React.MouseEvent) => {
