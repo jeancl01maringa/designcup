@@ -1279,16 +1279,9 @@ export class DatabaseStorage implements IStorage {
         postsData = result.rows;
         
         console.log(`DATABASE getPosts - Encontrados ${postsData.length} posts via PostgreSQL otimizado`);
-        
-        if (error) {
-          console.warn("DATABASE getPosts - Erro ao buscar posts via Supabase:", error.message);
-          // Não retornar ainda, vamos tentar com PostgreSQL direto
-        } else if (data && data.length > 0) {
-          postsData = data;
-          console.log(`DATABASE getPosts - Encontrados ${data.length} posts via Supabase API`);
-        }
-      } catch (supabaseError) {
-        console.warn("DATABASE getPosts - Exceção ao acessar Supabase:", supabaseError);
+      } catch (pgError) {
+        console.error("DATABASE getPosts - Erro PostgreSQL:", pgError);
+        throw pgError;
       }
       
       // Se não encontrou via Supabase, tentar com PostgreSQL direto
