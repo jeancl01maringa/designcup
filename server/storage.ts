@@ -2042,8 +2042,8 @@ export class DatabaseStorage implements IStorage {
             throw new Error(`Post com ID ${id} não encontrado em nenhuma base de dados`);
           }
           
-          // Se encontrou no Supabase, criar no PostgreSQL
-          console.log(`DATABASE updatePost - Post com ID ${id} encontrado no Supabase, criando no PostgreSQL`);
+          // Se encontrou no Supabase, sincronizar com PostgreSQL usando INSERT ON CONFLICT
+          console.log(`DATABASE updatePost - Post com ID ${id} encontrado no Supabase, sincronizando com PostgreSQL`);
           
           // Obter a estrutura correta da tabela posts no PostgreSQL primeiro
           try {
@@ -2094,11 +2094,14 @@ export class DatabaseStorage implements IStorage {
             if (!pgPost.created_at) pgPost.created_at = new Date().toISOString();
             
             // Garantir que unique_code existe (campo obrigatório)
-            if (!pgPost.unique_code && !existingPost.unique_code) {
-              // Gerar um unique_code baseado no ID e timestamp
-              pgPost.unique_code = `${id}-${Date.now().toString(36)}`;
-            } else if (!pgPost.unique_code && existingPost.unique_code) {
-              pgPost.unique_code = existingPost.unique_code;
+            if (!pgPost.unique_code) {
+              if (existingPost.unique_code) {
+                pgPost.unique_code = existingPost.unique_code;
+              } else {
+                // Gerar um unique_code baseado no ID e timestamp
+                pgPost.unique_code = `${id}-${Date.now().toString(36)}`;
+                console.log(`DATABASE updatePost - Gerando unique_code: ${pgPost.unique_code} para post ${id}`);
+              }
             }
             
             // Definir explicitamente os campos de licença premium
@@ -2113,20 +2116,25 @@ export class DatabaseStorage implements IStorage {
               }
             }
             
-            // Construir consulta SQL para inserção
+            // Construir consulta SQL para inserção com ON CONFLICT para evitar duplicatas
             const insertFields = Object.keys(validPgPost);
             const insertValues = Object.values(validPgPost);
             const insertPlaceholders = insertFields.map((_, i) => `$${i + 1}`).join(', ');
             
+            // Campos para atualização em caso de conflito (exceto id e unique_code)
+            const updateFields = insertFields.filter(field => field !== 'id' && field !== 'unique_code');
+            const updateClauses = updateFields.map(field => `${field} = EXCLUDED.${field}`).join(', ');
+            
             const insertSql = `
               INSERT INTO posts (${insertFields.join(', ')})
               VALUES (${insertPlaceholders})
+              ON CONFLICT (unique_code) DO UPDATE SET ${updateClauses}
               RETURNING *
             `;
             
-            console.log(`DATABASE updatePost - Campos a inserir no PostgreSQL:`, insertFields);
+            console.log(`DATABASE updatePost - Campos a inserir/atualizar no PostgreSQL:`, insertFields);
             
-            // Executar a inserção
+            // Executar a inserção/atualização
             const insertResult = await pool.query(insertSql, insertValues);
             const data = insertResult.rows[0];
             
