@@ -1018,11 +1018,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Cache headers para melhor performance do feed público
       res.set('Cache-Control', 'public, max-age=180'); // 3 minutos de cache
       
+      console.log('Buscando posts aprovados via Supabase...');
+      
       // Usar a implementação com Supabase para maior velocidade em acesso público
       const { data, error } = await supabase
         .from('posts')
         .select('*')
         .eq('status', 'aprovado')
+        .eq('is_visible', true) // Apenas posts visíveis
         .order('created_at', { ascending: false });
         
       if (error) {
@@ -1030,24 +1033,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw error;
       }
       
-      // Normalizar os dados para o formato esperado pelo frontend
-      const normalizedPosts = (data || []).map(post => ({
-        id: post.id,
-        title: post.title,
-        description: post.description,
-        imageUrl: post.image_url, // Mapear image_url para imageUrl
-        categoryId: post.category_id, // Mapear category_id para categoryId
-        status: post.status,
-        isVisible: post.is_visible !== false, // Mapear is_visible para isVisible
-        isPro: post.is_pro || false, // Mapear is_pro para isPro
-        formato: post.formato,
-        createdAt: post.created_at,
-        updatedAt: post.updated_at,
-        uniqueCode: post.unique_code,
-        groupId: post.group_id,
-        licenseType: post.license_type
-      }));
+      console.log(`Encontrados ${data?.length || 0} posts aprovados no Supabase`);
       
+      // Normalizar os dados para o formato esperado pelo frontend
+      const normalizedPosts = (data || []).map(post => {
+        console.log(`Post ${post.id}: ${post.title} - URL: ${post.image_url}`);
+        
+        return {
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          imageUrl: post.image_url, // Usar diretamente o image_url do Supabase
+          categoryId: post.category_id,
+          status: post.status,
+          isVisible: post.is_visible !== false,
+          isPro: post.is_pro || false,
+          formato: post.formato,
+          createdAt: post.created_at,
+          updatedAt: post.updated_at,
+          uniqueCode: post.unique_code,
+          groupId: post.group_id,
+          licenseType: post.license_type
+        };
+      });
+      
+      console.log(`Retornando ${normalizedPosts.length} posts normalizados`);
       res.json(normalizedPosts);
     } catch (error) {
       console.error('Error fetching approved posts:', error);
