@@ -5,6 +5,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+// Verificar se as variáveis de ambiente estão definidas
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+  throw new Error(
+    'As variáveis de ambiente SUPABASE_URL e SUPABASE_KEY devem estar definidas'
+  );
+}
+
 function isValidUrl(urlString: string): boolean {
   try {
     new URL(urlString);
@@ -15,42 +22,25 @@ function isValidUrl(urlString: string): boolean {
 }
 
 function createSupabaseClient() {
-  let supabaseUrl = process.env.SUPABASE_URL || '';
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
-  const projectRef = process.env.SUPABASE_PROJECT_REF || '';
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
   
-  // If we have a project reference but no full URL, construct the URL
-  if (projectRef && (!supabaseUrl || !isValidUrl(supabaseUrl))) {
-    supabaseUrl = `https://${projectRef}.supabase.co`;
-    console.log('Construindo URL do Supabase a partir do project ref:', supabaseUrl);
-  }
+  // Definir URL e chave de fallback para desenvolvimento (não usadas em produção)
+  const fallbackUrl = 'https://mysupabase.supabase.co';
+  const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
   
-  // If still no valid URL, try to extract project ref from existing URL-like string
-  if (!isValidUrl(supabaseUrl) && supabaseUrl) {
-    // Clean the URL string and reconstruct
-    const cleanRef = supabaseUrl.replace(/[^a-zA-Z0-9]/g, '');
-    if (cleanRef.length > 10) { // Supabase project refs are typically 20+ chars
-      supabaseUrl = `https://${cleanRef}.supabase.co`;
-      console.log('URL reconstruída:', supabaseUrl);
-    }
-  }
+  const url = supabaseUrl || fallbackUrl;
+  const key = supabaseKey || fallbackKey;
   
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('Credenciais do Supabase não encontradas');
-    console.error('SUPABASE_URL:', supabaseUrl);
-    console.error('SUPABASE_KEY exists:', Boolean(supabaseKey));
-    throw new Error('Credenciais do Supabase não configuradas');
-  }
-  
-  if (!isValidUrl(supabaseUrl)) {
-    console.error('SUPABASE_URL inválida após processamento:', supabaseUrl);
+  if (!isValidUrl(url)) {
+    console.error('SUPABASE_URL inválida:', url);
     throw new Error('SUPABASE_URL inválida');
   }
   
-  console.log('Inicializando cliente Supabase do servidor com URL:', supabaseUrl);
-  console.log('Chave Supabase válida:', Boolean(supabaseKey));
+  console.log('Inicializando cliente Supabase do servidor com URL:', url);
+  console.log('Chave Supabase válida:', Boolean(key));
   
-  return createClient(supabaseUrl, supabaseKey);
+  return createClient(url, key);
 }
 
 export const supabase = createSupabaseClient();

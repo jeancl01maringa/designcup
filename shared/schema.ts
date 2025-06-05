@@ -4,31 +4,18 @@ import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // User schema
-export const userTipoEnum = pgEnum('user_tipo', ['free', 'premium']);
-
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
-  telefone: text("telefone"),
-  profileImage: text("profile_image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  // Campos para gerenciar assinantes
-  tipo: userTipoEnum("tipo").default('free').notNull(),
-  plano_id: text("plano_id"),
-  data_vencimento: timestamp("data_vencimento"),
-  active: boolean("active").default(false).notNull(),
 });
 
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   favorites: many(favorites),
   userArtworks: many(userArtworks),
-  plan: one(plans, {
-    fields: [users.plano_id],
-    references: [plans.codigoHotmart],
-  }),
 }));
 
 // Extendemos o schema para incluir isAdmin para consistência com o código TypeScript
@@ -129,8 +116,7 @@ export const postStatusEnum = pgEnum('post_status', ['aprovado', 'rascunho', 're
 // Posts/Postagens para o painel administrativo
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(), // título completo com formato para SEO
-  tituloBase: text("titulo_base"), // título original sem formato
+  title: text("title").notNull(),
   description: text("description"),
   imageUrl: text("image_url").notNull(),
   uniqueCode: text("unique_code").notNull().unique(), // código hash único
@@ -140,14 +126,10 @@ export const posts = pgTable("posts", {
   publishedAt: timestamp("published_at"),
   licenseType: text("license_type").default('free'), // premium ou free
   tags: text("tags").array(), // array de tags
-  formato: text("formato"), // formato específico (feed, stories, cartaz)
-  formats: text("formats").array(), // array de formatos (feed, stories, cartaz) - legado
+  formats: text("formats").array(), // array de formatos (feed, stories, cartaz)
   formatData: text("format_data"), // dados de formato em JSON
-  formatoData: text("formato_data"), // novo campo em português para dados de formato em JSON
-  canvaUrl: text("canva_url"), // URL do Canva específica para este formato
-  groupId: text("group_id"), // ID para agrupar artes relacionadas (UUID)
+  groupId: text("group_id"), // ID para agrupar artes relacionadas
   isVisible: boolean("is_visible").default(true).notNull(), // controle de visibilidade no feed
-  isPro: boolean("is_pro").default(false), // campo is_pro para manter compatibilidade
 });
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -172,51 +154,6 @@ export const insertPostSchema = createInsertSchema(posts).omit({
   publishedAt: true,
 });
 
-// Tags para o sistema de SEO
-export const tags = pgTable("tags", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  slug: text("slug").notNull().unique(),
-  description: text("description"),
-  isActive: boolean("is_active").default(true).notNull(),
-  count: integer("count").default(0), // contador de uso
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Relacionamento Many-to-Many entre Posts e Tags
-export const postTags = pgTable("post_tags", {
-  id: serial("id").primaryKey(),
-  postId: integer("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
-  tagId: integer("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const tagsRelations = relations(tags, ({ many }) => ({
-  postTags: many(postTags)
-}));
-
-export const postTagsRelations = relations(postTags, ({ one }) => ({
-  post: one(posts, {
-    fields: [postTags.postId],
-    references: [posts.id],
-  }),
-  tag: one(tags, {
-    fields: [postTags.tagId],
-    references: [tags.id],
-  })
-}));
-
-export const insertTagSchema = createInsertSchema(tags).omit({
-  id: true,
-  createdAt: true,
-  count: true,
-});
-
-export const insertPostTagSchema = createInsertSchema(postTags).omit({
-  id: true,
-  createdAt: true,
-});
-
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -233,38 +170,5 @@ export type UserArtwork = typeof userArtworks.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
 
-export type InsertTag = z.infer<typeof insertTagSchema>;
-export type Tag = typeof tags.$inferSelect;
-
-export type InsertPostTag = z.infer<typeof insertPostTagSchema>;
-export type PostTag = typeof postTags.$inferSelect;
-
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Post = typeof posts.$inferSelect;
-
-// Planos para o painel administrativo
-export const plans = pgTable("plans", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  periodo: text("periodo").notNull(), // Mensal, Anual, etc.
-  valor: text("valor").notNull(), // Formato monetário (R$ XX,XX)
-  isActive: boolean("is_active").default(true).notNull(),
-  isPrincipal: boolean("is_principal").default(false), // Indica se é o plano principal
-  isGratuito: boolean("is_gratuito").default(false), // Indica se é o plano gratuito
-  codigoHotmart: text("codigo_hotmart").unique(), // Código do plano na Hotmart
-  urlHotmart: text("url_hotmart"), // URL de checkout do Hotmart
-  beneficios: text("beneficios"), // Lista de benefícios, um por linha
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const plansRelations = relations(plans, ({ many }) => ({
-  users: many(users)
-}));
-
-export const insertPlanSchema = createInsertSchema(plans).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertPlan = z.infer<typeof insertPlanSchema>;
-export type Plan = typeof plans.$inferSelect;

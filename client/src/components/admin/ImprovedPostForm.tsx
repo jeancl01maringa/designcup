@@ -18,12 +18,12 @@ import {
   ChevronLeft, Crown, Plus,
   ImageIcon, Trash, Circle, 
   ExternalLink, FileImage,
-  Clock, XCircle, Tag
+  Clock, XCircle
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { uploadToSupabase } from "@/lib/admin/uploadToSupabase";
-import { Post, Category, Tag as TagType } from "@shared/schema";
+import { Post, Category } from "@shared/schema";
 import { nanoid, cn } from "@/lib/utils";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { useToast } from "@/hooks/use-toast";
@@ -39,27 +39,7 @@ interface PostFormProps {
   isEdit?: boolean;
 }
 
-// Tipo para formato de postagem que vem do banco de dados
-interface DbPostFormat {
-  id: number;
-  name: string;
-  size: string;
-  orientation: string;
-  is_active: boolean;
-  created_at?: string;
-}
-
-// Tipo para formato de arquivo que vem do banco de dados
-interface DbFileFormat {
-  id: number;
-  name: string;
-  type: string;
-  icon: string | null;
-  is_active: boolean;
-  created_at?: string;
-}
-
-type PostFormat = string;
+type PostFormat = 'feed' | 'cartaz' | 'stories';
 
 interface FormatFile {
   imageFile: File | null;
@@ -73,6 +53,7 @@ interface PostFormData {
   status: 'aprovado' | 'rascunho' | 'rejeitado';
   description: string | null;
   licenseType: string;
+  tags: string[];
   formats: PostFormat[];
   formatFiles: Record<PostFormat, FormatFile>;
   uniqueCode: string;
@@ -84,6 +65,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [activeTab, setActiveTab] = useState<string>("feed");
+  const [newTag, setNewTag] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Definir o formato padrão para arquivos
@@ -100,6 +82,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     status: "aprovado",
     description: null,
     licenseType: "premium",
+    tags: [],
     formats: [], // Não selecionar nenhum formato inicialmente
     formatFiles: {
       feed: { ...defaultFormatFile },
@@ -115,57 +98,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const openRef = useRef(open);
   const initialRender = useRef(true);
   
-  // Buscar formatos de post
-  const { data: postFormats = [] } = useQuery<DbPostFormat[]>({
-    queryKey: ["/api/admin/post-formats"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/post-formats");
-      if (!res.ok) throw new Error("Falha ao buscar formatos de post");
-      return res.json();
-    }
-  });
-  
-  // Buscar formatos de arquivo
-  const { data: fileFormats = [] } = useQuery<DbFileFormat[]>({
-    queryKey: ["/api/admin/file-formats"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/file-formats");
-      if (!res.ok) throw new Error("Falha ao buscar formatos de arquivo");
-      return res.json();
-    }
-  });
-
-  // Buscar categorias
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/admin/categories"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/categories");
-      if (!res.ok) throw new Error("Falha ao buscar categorias");
-      return res.json();
-    }
-  });
-  
-  // Criar objeto formatFiles inicial com todos os formatos disponíveis
-  const createDefaultFormatFiles = () => {
-    const defaultFiles: Record<string, FormatFile> = {};
-    
-    // Adicionando formatos dinâmicos do banco
-    if (postFormats.length > 0) {
-      postFormats.forEach(format => {
-        if (format.is_active) {
-          defaultFiles[format.name] = { ...defaultFormatFile };
-        }
-      });
-    } else {
-      // Fallback para formatos básicos enquanto os dados são carregados
-      defaultFiles['feed'] = { ...defaultFormatFile };
-      defaultFiles['stories'] = { ...defaultFormatFile };
-      defaultFiles['cartaz'] = { ...defaultFormatFile };
-    }
-    
-    return defaultFiles;
-  };
-
+  // Resetar o formulário ou preencher com dados de edição apenas quando o modal é aberto
   useEffect(() => {
     // Pular a primeira renderização
     if (initialRender.current) {
@@ -177,7 +110,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     if (open && !openRef.current) {
       // Caso 1: Edição de postagem existente
       if (isEdit && initialData) {
-        const formatFiles = createDefaultFormatFiles();
+        const formatFiles: Record<PostFormat, FormatFile> = {
+          feed: { ...defaultFormatFile },
+          cartaz: { ...defaultFormatFile },
+          stories: { ...defaultFormatFile }
+        };
 
         setFormData({
           title: initialData.title,
@@ -185,6 +122,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           status: initialData.status as 'aprovado' | 'rascunho' | 'rejeitado',
           description: initialData.description,
           licenseType: initialData.licenseType || "premium",
+          tags: initialData.tags || [],
           formats: (initialData.formats as PostFormat[]) || [],
           formatFiles: formatFiles,
           uniqueCode: initialData.uniqueCode || nanoid(),
@@ -203,8 +141,13 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           status: "aprovado",
           description: null,
           licenseType: "premium",
+          tags: [],
           formats: [],
-          formatFiles: createDefaultFormatFiles(),
+          formatFiles: {
+            feed: { ...defaultFormatFile },
+            cartaz: { ...defaultFormatFile },
+            stories: { ...defaultFormatFile }
+          },
           uniqueCode: newUniquePostId,
           groupId: nanoid(),
           isVisible: true
@@ -213,13 +156,14 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         // Resetar também o passo e a aba ativa
         setStep(1);
         setActiveTab("feed");
+        setNewTag("");
         setHasUnsavedChanges(false);
       }
     }
     
     // Atualizar a referência
     openRef.current = open;
-  }, [open, isEdit, initialData, defaultFormatFile, postFormats]);
+  }, [open, isEdit, initialData, defaultFormatFile]);
   
   // Rastrear mudanças no formulário quando esses valores específicos mudarem
   useEffect(() => {
@@ -231,7 +175,15 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     }
   }, [formData.title, formData.categoryId, hasUnsavedChanges]);
 
-  // Tags removidas - SEO baseado apenas no título
+  // Buscar categorias
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/admin/categories"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/categories");
+      if (!res.ok) throw new Error("Falha ao buscar categorias");
+      return res.json();
+    }
+  });
 
   // Criar nova postagem
   const createPostMutation = useMutation({
@@ -245,15 +197,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         description: "Postagem criada com sucesso.",
         variant: "default",
       });
-      // Invalidar todos os caches relacionados a posts para atualização imediata
       queryClient.invalidateQueries({ queryKey: ["/api/admin/posts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/posts/feed"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/posts/recent"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/artworks"] });
-      // Forçar refetch dos dados mais importantes
-      queryClient.refetchQueries({ queryKey: ["/api/admin/posts"] });
-      queryClient.refetchQueries({ queryKey: ["/api/posts"] });
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -299,13 +243,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const handleSelectChange = (name: string, value: string) => {
     if (name === "categoryId") {
       // Converter para número, já que o categoryId é um número no formData
-      const categoryId = parseInt(value, 10);
-      console.log("CATEGORY SELECTION DEBUG:", {
-        selectedValue: value,
-        convertedId: categoryId,
-        availableCategories: categories.map(c => ({ id: c.id, name: c.name }))
-      });
-      setFormData(prev => ({ ...prev, [name]: categoryId }));
+      setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -313,32 +251,29 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
   const handleFormatToggle = (format: PostFormat) => {
     setFormData(prev => {
-      // Verificar se o formato já está selecionado
-      const isSelected = prev.formats.includes(format);
-      
-      // Se o formato está sendo adicionado, garantir que ele tenha uma entrada em formatFiles
-      if (!isSelected) {
-        // Adicionar o formato aos selecionados
-        const formats = [...prev.formats, format];
-        
-        // Garantir que o formato tenha uma entrada em formatFiles
-        return { 
-          ...prev, 
-          formats,
-          formatFiles: {
-            ...prev.formatFiles,
-            [format]: prev.formatFiles[format] || { ...defaultFormatFile }
-          }
-        };
-      } else {
-        // Remover o formato dos selecionados
-        const formats = prev.formats.filter(f => f !== format);
-        return { ...prev, formats };
-      }
+      const formats = prev.formats.includes(format)
+        ? prev.formats.filter(f => f !== format)
+        : [...prev.formats, format];
+      return { ...prev, formats };
     });
   };
 
-  // Tag-related functions removed - SEO baseado apenas no título
+  const handleAddTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }));
+      setNewTag("");
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, format: PostFormat) => {
     const file = e.target.files?.[0];
@@ -554,6 +489,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         status: "rascunho" as "aprovado" | "rascunho" | "rejeitado", // Forçar como rascunho com type assertion
         description: formData.description,
         licenseType: formData.licenseType,
+        tags: formData.tags,
         formats: formats,
         formatData: formatDataJson,
         uniqueCode: formData.uniqueCode,
@@ -615,28 +551,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         return;
       }
       
-      // Preparar dados dos formatos para criação de múltiplas entradas
-      const formatos = formData.formats.map(format => {
+      // Preparar dados para envio
+      const formatDataJson = JSON.stringify(formData.formats.map(format => {
+        // Usar type assertion para o tipo PostFormat
         const typedFormat = format as PostFormat;
-        const formatFile = formData.formatFiles[typedFormat];
-        
-        // Extrair o primeiro link do Canva se existir
-        const canvaLink = formatFile.links.find(link => link.provider === 'canva');
-        
-        // Cada formato deve usar sua própria imagem específica
-        const formatImageUrl = formatFile.imagePreview;
-        
-        if (!formatImageUrl) {
-          throw new Error(`Imagem não encontrada para o formato ${format}. Faça upload da imagem para este formato.`);
-        }
-        
         return {
-          formato: format,
-          imageUrl: formatImageUrl, // Usar a imagem específica deste formato
-          canvaUrl: canvaLink?.url || "",
-          links: formatFile.links
+          type: format,
+          imageUrl: formData.formatFiles[typedFormat].imagePreview || "",
+          links: formData.formatFiles[typedFormat].links
         };
-      });
+      }));
       
       const post = {
         title: formData.title,
@@ -644,10 +568,13 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         status: formData.status,
         description: formData.description,
         licenseType: formData.licenseType,
+        tags: formData.tags,
+        formats: formData.formats,
+        formatData: formatDataJson, // Enviar como string JSON
         uniqueCode: formData.uniqueCode,
+        groupId: formData.groupId,
         imageUrl: mainImageUrl, // Adicionar imageUrl que é obrigatório
-        isVisible: formData.isVisible, // Controle de visibilidade no feed
-        formatos: formatos // Enviar formatos para criação de múltiplas entradas
+        isVisible: formData.isVisible // Controle de visibilidade no feed
       };
       
       // Enviar para o servidor
@@ -904,43 +831,66 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                 </p>
               </div>
               
-              {/* Tags removidas - SEO baseado apenas no título */}
+              {/* Tags */}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label htmlFor="tags">Tags</Label>
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto py-0 px-2 text-blue-600 text-sm"
+                    onClick={handleAddTag}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Nova Tag
+                  </Button>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Input
+                    id="newTag"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Adicionar tag"
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  />
+                </div>
+                
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {formData.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                      #{tag}
+                      <X
+                        className="h-3 w-3 cursor-pointer"
+                        onClick={() => handleRemoveTag(tag)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              </div>
               
               {/* Formatos */}
               <div className="space-y-2">
                 <Label>Formatos da Postagem</Label>
-                {postFormats.length === 0 ? (
-                  <div className="text-sm text-muted-foreground mb-2">
-                    Carregando formatos...
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {postFormats.filter(format => format.is_active).map((format) => (
-                      <Button
-                        key={format.id}
-                        type="button"
-                        variant={formData.formats.includes(format.name) ? "default" : "outline"}
-                        className={cn(
-                          "h-10 capitalize flex items-center gap-2",
-                          formData.formats.includes(format.name) && "bg-blue-50 text-blue-800 hover:bg-blue-100"
-                        )}
-                        onClick={() => handleFormatToggle(format.name)}
-                      >
-                        {formData.formats.includes(format.name) && (
-                          <Check className="h-4 w-4 text-blue-600" />
-                        )}
-                        <span className="capitalize">{format.name}</span>
-                        <Badge 
-                          variant="secondary" 
-                          className="ml-1 text-xs"
-                          title={`${format.size} - ${format.orientation}`}
-                        >
-                          {format.size}
-                        </Badge>
-                      </Button>
-                    ))}
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {(['feed', 'cartaz', 'stories'] as PostFormat[]).map((format) => (
+                    <Button
+                      key={format}
+                      type="button"
+                      variant={formData.formats.includes(format) ? "default" : "outline"}
+                      className={cn(
+                        "h-10 capitalize flex items-center gap-2",
+                        formData.formats.includes(format) && "bg-blue-50 text-blue-800 hover:bg-blue-100"
+                      )}
+                      onClick={() => handleFormatToggle(format)}
+                    >
+                      {formData.formats.includes(format) && (
+                        <Check className="h-4 w-4 text-blue-600" />
+                      )}
+                      <span className="capitalize">{format}</span>
+                      <Badge variant="secondary" className="ml-1">Essencial</Badge>
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
             
@@ -1067,18 +1017,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                             <Label>Extensão do Arquivo</Label>
                             <Select defaultValue="canva">
                               <SelectTrigger id={`provider-${format}`}>
-                                <SelectValue placeholder="Selecione um formato" />
+                                <SelectValue placeholder="Canva" />
                               </SelectTrigger>
                               <SelectContent>
-                                {fileFormats.length === 0 ? (
-                                  <SelectItem value="canva">Carregando...</SelectItem>
-                                ) : (
-                                  fileFormats.filter(format => format.is_active).map(fileFormat => (
-                                    <SelectItem key={fileFormat.id} value={fileFormat.name.toLowerCase()}>
-                                      {fileFormat.name}
-                                    </SelectItem>
-                                  ))
-                                )}
+                                <SelectItem value="canva">Canva</SelectItem>
+                                <SelectItem value="photoshop">Adobe Photoshop</SelectItem>
+                                <SelectItem value="figma">Figma</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -1216,7 +1160,17 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                       )}
                     </p>
                   </div>
-                  {/* Tags removidas - SEO baseado apenas no título */}
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Tags</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {formData.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">#{tag}</Badge>
+                      ))}
+                      {formData.tags.length === 0 && (
+                        <p className="text-sm text-muted-foreground">Nenhuma tag adicionada</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -1246,7 +1200,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                         <div className="flex justify-between items-center mb-1">
                           <p className="font-medium capitalize">{format}</p>
                           <Badge variant="secondary" className="capitalize py-0 px-2 text-xs">
-                            {postFormats.find(fmt => fmt.name === format)?.size || 'Personalizado'}
+                            {format === 'feed' ? '1:1' : format === 'cartaz' ? '4:5' : '9:16'}
                           </Badge>
                         </div>
                         

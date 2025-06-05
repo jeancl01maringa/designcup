@@ -54,7 +54,7 @@ export default function SearchSection() {
                   onClick={() => setShowFormatDropdown(!showFormatDropdown)}
                 >
                   <span>{selectedFormat}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 text-black" />
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </button>
                 
                 {showFormatDropdown && (
@@ -64,10 +64,7 @@ export default function SearchSection() {
                         <button
                           key={format.id}
                           type="button"
-                          className={`w-full text-left px-4 py-2 text-sm 
-                            ${format.name === selectedFormat 
-                              ? 'bg-black text-white font-medium' 
-                              : 'hover:bg-gray-100'}`}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${format.id === 'feed' ? 'text-[#dc2626] font-medium' : ''}`}
                           onClick={() => selectFormat(format.name)}
                         >
                           {format.name}
