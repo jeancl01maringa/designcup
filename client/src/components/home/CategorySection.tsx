@@ -83,11 +83,11 @@ export default function CategorySection() {
   const categoriesWithPosts: CategoryWithPosts[] = dbCategories.map(category => {
     // Filtrar posts para esta categoria
     const categoryPosts = dbPosts
-      .filter(post => post.categoryId === category.id)
+      .filter(post => post.category_id === category.id)
       .map(post => ({
         id: post.id,
         title: post.title,
-        imageUrl: post.imageUrl
+        imageUrl: post.image_url
       }));
     
     return {
@@ -101,12 +101,27 @@ export default function CategorySection() {
   
   // Calcular a largura máxima de rolagem quando os dados são carregados
   useEffect(() => {
-    if (scrollRef.current && categoriesWithPosts.length > 0) {
-      const containerWidth = containerRef.current?.clientWidth || 0;
-      const scrollWidth = scrollRef.current.scrollWidth;
-      setMaxScroll(Math.max(0, scrollWidth - containerWidth));
-    }
-  }, [categoriesWithPosts, scrollRef.current?.scrollWidth]);
+    const updateScrollDimensions = () => {
+      if (scrollRef.current && containerRef.current && categoriesWithPosts.length > 0) {
+        // Aguardar um frame para garantir que o DOM foi atualizado
+        requestAnimationFrame(() => {
+          const containerWidth = containerRef.current?.clientWidth || 0;
+          const scrollWidth = scrollRef.current?.scrollWidth || 0;
+          const newMaxScroll = Math.max(0, scrollWidth - containerWidth);
+          setMaxScroll(newMaxScroll);
+          
+          // Log para debug
+          console.log('Scroll dimensions:', { containerWidth, scrollWidth, newMaxScroll });
+        });
+      }
+    };
+
+    updateScrollDimensions();
+    
+    // Adicionar listener para resize da janela
+    window.addEventListener('resize', updateScrollDimensions);
+    return () => window.removeEventListener('resize', updateScrollDimensions);
+  }, [categoriesWithPosts]);
   
   // Manipular o scroll para a esquerda
   const handleScrollLeft = () => {
@@ -186,8 +201,10 @@ export default function CategorySection() {
   }
 
   // Verifica se pode rolar para esquerda ou direita
-  const canScrollLeft = scrollPosition > 0;
-  const canScrollRight = scrollPosition < maxScroll;
+  // Forçar exibição das setas se houver mais de 3 categorias ou se maxScroll > 50
+  const shouldShowArrows = categoriesWithPosts.length > 3 || maxScroll > 50;
+  const canScrollLeft = shouldShowArrows && scrollPosition > 0;
+  const canScrollRight = shouldShowArrows && (scrollPosition < maxScroll || maxScroll === 0);
   
   return (
     <section className="py-8 bg-white border-b border-gray-100">
@@ -232,9 +249,9 @@ export default function CategorySection() {
               msOverflowStyle: 'none'  // IE/Edge
             }}
           >
-            <div className="flex space-x-4 w-max">
+            <div className="flex space-x-6 w-max">
               {categoriesWithPosts.map((category) => (
-                <div key={category.id} className="flex-none w-64">
+                <div key={category.id} className="flex-none w-80">
                   <Link 
                     href={`/categorias/${category.slug || category.id}`} 
                     className="block group cursor-pointer"
