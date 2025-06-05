@@ -48,8 +48,6 @@ function useMasonryLayout(posts: Post[], columns: number) {
 }
 
 export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) {
-  const columns = useResponsiveColumns();
-  
   const {
     data: posts,
     isLoading,
@@ -57,6 +55,8 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
   } = useQuery<Post[]>({
     queryKey: ["/api/posts/visible"],
   });
+
+  const columns = useResponsiveColumns();
 
   if (isLoading) {
     return (
@@ -135,7 +135,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
   console.log(`Post #${posts[0]?.id}: "${posts[0]?.title}" - isPremium:`, posts[0]?.isPro);
 
   // Organizar posts em colunas para layout masonry
-  const columnArrays = useMasonryLayout(filteredPosts, columns);
+  const columnArrays = useMasonryLayout(filteredPosts || [], columns);
 
   return (
     <div className="space-y-6">
