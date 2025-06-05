@@ -615,16 +615,21 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         return;
       }
       
-      // Preparar dados para envio
-      const formatDataJson = JSON.stringify(formData.formats.map(format => {
-        // Usar type assertion para o tipo PostFormat
+      // Preparar dados dos formatos para criação de múltiplas entradas
+      const formatos = formData.formats.map(format => {
         const typedFormat = format as PostFormat;
+        const formatFile = formData.formatFiles[typedFormat];
+        
+        // Extrair o primeiro link do Canva se existir
+        const canvaLink = formatFile.links.find(link => link.provider === 'canva');
+        
         return {
-          type: format,
-          imageUrl: formData.formatFiles[typedFormat].imagePreview || "",
-          links: formData.formatFiles[typedFormat].links
+          formato: format,
+          imageUrl: formatFile.imagePreview || mainImageUrl,
+          canvaUrl: canvaLink?.url || "",
+          links: formatFile.links
         };
-      }));
+      });
       
       const post = {
         title: formData.title,
@@ -632,12 +637,10 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         status: formData.status,
         description: formData.description,
         licenseType: formData.licenseType,
-        formats: formData.formats,
-        formatData: formatDataJson, // Enviar como string JSON
         uniqueCode: formData.uniqueCode,
-        groupId: formData.groupId,
         imageUrl: mainImageUrl, // Adicionar imageUrl que é obrigatório
-        isVisible: formData.isVisible // Controle de visibilidade no feed
+        isVisible: formData.isVisible, // Controle de visibilidade no feed
+        formatos: formatos // Enviar formatos para criação de múltiplas entradas
       };
       
       // Enviar para o servidor
