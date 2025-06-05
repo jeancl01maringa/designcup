@@ -83,17 +83,17 @@ export default function CategorySection() {
   const categoriesWithPosts: CategoryWithPosts[] = dbCategories.map(category => {
     // Filtrar posts para esta categoria
     const categoryPosts = dbPosts
-      .filter(post => post.category_id === category.id)
+      .filter(post => post.categoryId === category.id)
       .map(post => ({
         id: post.id,
         title: post.title,
-        imageUrl: post.image_url
+        imageUrl: post.imageUrl
       }));
     
     return {
       id: category.id,
       name: category.name,
-      slug: category.slug,
+      slug: category.slug || null,
       description: category.description,
       posts: categoryPosts
     };
