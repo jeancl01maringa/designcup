@@ -425,13 +425,86 @@ export default function ArtDetailPage() {
             </div>
           )}
           
-          {/* Imagem principal */}
+          {/* Imagem principal otimizada */}
           <div className="overflow-hidden rounded-lg shadow-md">
-            <img 
-              src={post.imageUrl || post.image_url} 
-              alt={post.title} 
-              className="w-full h-auto object-cover"
-            />
+            {(() => {
+              // Função para obter a URL da imagem principal
+              const getMainImageUrl = () => {
+                // 1. Verificar se tem imageUrl direto
+                if (post?.imageUrl) return post.imageUrl;
+                if (post?.image_url) return post.image_url;
+                
+                // 2. Verificar nos dados de formato
+                const formatDataString = post?.formatData || post?.format_data;
+                if (formatDataString) {
+                  try {
+                    const formatData = typeof formatDataString === 'string' 
+                      ? JSON.parse(formatDataString) 
+                      : formatDataString;
+                    
+                    // Se é array, procurar pelo formato atual ou primeiro disponível
+                    if (Array.isArray(formatData) && formatData.length > 0) {
+                      // Procurar formato correspondente ao atual
+                      const currentFormat = formatData.find((f: any) => 
+                        f.type?.toLowerCase() === post.formato?.toLowerCase()
+                      );
+                      
+                      if (currentFormat?.imageUrl) {
+                        return currentFormat.imageUrl;
+                      }
+                      
+                      // Se não encontrou, usar o primeiro com imagem
+                      const firstWithImage = formatData.find((f: any) => f.imageUrl);
+                      if (firstWithImage?.imageUrl) {
+                        return firstWithImage.imageUrl;
+                      }
+                    }
+                  } catch (error) {
+                    console.warn('Erro ao parsear format_data:', error);
+                  }
+                }
+                
+                return '';
+              };
+
+              const mainImageUrl = getMainImageUrl();
+              console.log('URL da imagem principal determinada:', mainImageUrl);
+              
+              if (!mainImageUrl) {
+                return (
+                  <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <ImageIcon className="h-16 w-16 mx-auto mb-2" />
+                      <p>Imagem não disponível</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <img 
+                  src={mainImageUrl}
+                  alt={post.title}
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('Erro ao carregar imagem:', mainImageUrl);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    // Mostrar placeholder de erro
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center';
+                    errorDiv.innerHTML = `
+                      <div class="text-center text-gray-500">
+                        <div class="text-4xl mb-2">📷</div>
+                        <p>Erro ao carregar imagem</p>
+                      </div>
+                    `;
+                    target.parentNode?.appendChild(errorDiv);
+                  }}
+                />
+              );
+            })()}
           </div>
         </div>
         
