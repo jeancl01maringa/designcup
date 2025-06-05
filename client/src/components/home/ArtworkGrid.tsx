@@ -17,7 +17,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
     isLoading,
     error,
   } = useQuery<Post[]>({
-    queryKey: ["/api/admin/posts/approved"],
+    queryKey: ["/api/posts/visible"],
   });
 
   if (isLoading) {
@@ -102,10 +102,10 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
           </Badge>
           <Badge variant="secondary" className="bg-yellow-50 text-yellow-700">
             <Crown className="w-3 h-3 mr-1" />
-            {filteredPosts.filter(p => p.isPro).length} premium
+            {filteredPosts.filter(p => p.isPro === true || p.licenseType === 'premium').length} premium
           </Badge>
           <Badge variant="secondary" className="bg-green-50 text-green-700">
-            {filteredPosts.filter(p => !p.isPro).length} gratuitos
+            {filteredPosts.filter(p => p.isPro !== true && p.licenseType !== 'premium').length} gratuitos
           </Badge>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
               imageUrl: post.imageUrl || "/placeholder.jpg",
               category: post.categoryId?.toString() || "outros",
               createdAt: new Date(post.createdAt),
-              isPro: post.isPro || false,
+              isPro: post.isPro === true || post.licenseType === 'premium',
               format: post.formato || "1:1"
             }}
           />

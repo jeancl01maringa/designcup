@@ -689,6 +689,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public API endpoint for visible posts (for the feed)
+  app.get('/api/posts/visible', async (req, res) => {
+    try {
+      const posts = await storage.getVisiblePosts();
+      res.json(posts);
+    } catch (error) {
+      console.error('Error fetching visible posts:', error);
+      res.status(500).json({ message: 'Error fetching visible posts' });
+    }
+  });
+
   // API endpoints for artworks
   app.get('/api/artworks', async (req, res) => {
     try {

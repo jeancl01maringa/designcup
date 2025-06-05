@@ -78,6 +78,7 @@ export interface IStorage {
   updatePost(id: number, post: Partial<InsertPost>): Promise<Post>;
   deletePost(id: number): Promise<void>;
   updatePostStatus(ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado'): Promise<void>;
+  getVisiblePosts(): Promise<Post[]>;
   
   // Plan methods (for admin panel)
   getPlans(showInactive?: boolean): Promise<Plan[]>; 
