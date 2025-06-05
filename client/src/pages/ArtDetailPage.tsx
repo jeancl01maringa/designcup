@@ -227,8 +227,9 @@ export default function ArtDetailPage() {
   const getCanvaUrl = (): string => {
     try {
       console.log("Verificando URL do Canva no post:", post);
+      console.log("Dados do formatData:", post?.formatData || post?.format_data);
       
-      // 1. Verificar se temos URL do Canva diretamente no post (prioridade máxima)
+      // 1. Verificar se temos URL do Canva diretamente no post
       if (post?.canvaUrl) {
         console.log("Usando canvaUrl diretamente do post:", post.canvaUrl);
         return post.canvaUrl;
@@ -240,40 +241,58 @@ export default function ArtDetailPage() {
         return post.canva_url;
       }
       
-      // 3. Verificar se temos dados de formato em formato JSON
-      if (post?.format_data || post?.formato_data) {
-        const formatDataString = post?.format_data || post?.formato_data || '{}';
-        console.log("Verificando formatData:", formatDataString);
+      // 3. Verificar dados de formato tanto no camelCase quanto snake_case
+      const formatDataString = post?.formatData || post?.format_data;
+      
+      if (formatDataString) {
+        console.log("FormatData encontrado:", formatDataString);
         
         try {
-          const formatData = JSON.parse(formatDataString);
-        
-          // Se tem a URL diretamente no formato_data
-          if (formatData.canvaUrl) {
-            console.log("Usando canvaUrl do format_data:", formatData.canvaUrl);
-            return formatData.canvaUrl;
-          }
+          // Se já é um objeto, usar diretamente
+          const formatData = typeof formatDataString === 'string' 
+            ? JSON.parse(formatDataString) 
+            : formatDataString;
           
-          // Se temos um array de formatos, procurar pelo formato atual
+          console.log("FormatData parseado:", formatData);
+          
+          // Se é um array de formatos (estrutura normal)
           if (Array.isArray(formatData) && formatData.length > 0) {
-            // Encontrar o formato correto baseado no formato atual
-            const currentFormat = formatData.find(
-              (f: any) => f.type?.toLowerCase() === availableFormats[0]?.toLowerCase()
-            );
+            console.log("Procurando em array de formatos, total:", formatData.length);
             
-            // Se encontrar o formato e tiver links
-            if (currentFormat && Array.isArray(currentFormat.links) && currentFormat.links.length > 0) {
+            // Pegar o primeiro formato (geralmente o principal)
+            const firstFormat = formatData[0];
+            console.log("Primeiro formato:", firstFormat);
+            
+            // Verificar se tem links no formato
+            if (firstFormat && Array.isArray(firstFormat.links) && firstFormat.links.length > 0) {
+              console.log("Links encontrados:", firstFormat.links);
+              
               // Procurar por um link do Canva
-              const canvaLink = currentFormat.links.find(
+              const canvaLink = firstFormat.links.find(
                 (link: any) => link.provider?.toLowerCase() === 'canva'
               );
               
               if (canvaLink && canvaLink.url) {
-                console.log("Usando URL do Canva dos links do formato:", canvaLink.url);
+                console.log("URL do Canva encontrada:", canvaLink.url);
                 return canvaLink.url;
               }
             }
+            
+            // Se não encontrou links, verificar se tem canvaUrl direto no formato
+            if (firstFormat && firstFormat.canvaUrl) {
+              console.log("CanvaUrl direto no formato:", firstFormat.canvaUrl);
+              return firstFormat.canvaUrl;
+            }
           }
+          
+          // Se não é array, verificar se é objeto com canvaUrl direto
+          if (formatData && typeof formatData === 'object' && !Array.isArray(formatData)) {
+            if (formatData.canvaUrl) {
+              console.log("CanvaUrl direto no formatData:", formatData.canvaUrl);
+              return formatData.canvaUrl;
+            }
+          }
+          
         } catch (parseErr) {
           console.error("Erro ao analisar dados de formato:", parseErr);
         }
