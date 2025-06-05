@@ -1504,45 +1504,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Buscando estatísticas do painel admin...");
       
-      // Usar a implementação com Supabase
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
-        .select('id');
+      // Usar PostgreSQL direto para dados reais
+      const postsCountQuery = `SELECT COUNT(*) as count FROM posts`;
+      const approvedPostsQuery = `SELECT COUNT(*) as count FROM posts WHERE status = 'aprovado'`;
+      const categoriesQuery = `SELECT COUNT(*) as count FROM categories`;
+      const usersQuery = `SELECT COUNT(*) as count FROM users`;
+      const recentPostsQuery = `
+        SELECT id, title, status, created_at 
+        FROM posts 
+        ORDER BY created_at DESC 
+        LIMIT 5
+      `;
       
-      if (postsError) {
-        console.error("Erro ao buscar posts:", postsError);
-        throw postsError;
-      }
+      const [
+        postsResult,
+        approvedPostsResult,
+        categoriesResult,
+        usersResult,
+        recentPostsResult
+      ] = await Promise.all([
+        pool.query(postsCountQuery),
+        pool.query(approvedPostsQuery),
+        pool.query(categoriesQuery),
+        pool.query(usersQuery),
+        pool.query(recentPostsQuery)
+      ]);
       
-      const { data: approvedPostsData, error: approvedPostsError } = await supabase
-        .from('posts')
-        .select('id')
-        .eq('status', 'aprovado');
-        
-      if (approvedPostsError) {
-        console.error("Erro ao buscar posts aprovados:", approvedPostsError);
-        throw approvedPostsError;
-      }
+      const postsCount = parseInt(postsResult.rows[0]?.count || 0);
+      const approvedPostsCount = parseInt(approvedPostsResult.rows[0]?.count || 0);
+      const categoriesCount = parseInt(categoriesResult.rows[0]?.count || 0);
+      const usersCount = parseInt(usersResult.rows[0]?.count || 0);
+      const recentPosts = recentPostsResult.rows.map(post => ({
+        id: post.id,
+        title: post.title,
+        status: post.status,
+        createdAt: post.created_at
+      }));
       
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('categories')
-        .select('id');
-        
-      if (categoriesError) {
-        console.error("Erro ao buscar categorias:", categoriesError);
-        throw categoriesError;
-      }
+      console.log(`Estatísticas: ${postsCount} posts, ${approvedPostsCount} aprovados, ${categoriesCount} categorias, ${usersCount} usuários`);
       
-      // Contagem de itens
-      const postsCount = postsData?.length || 0;
-      const approvedPostsCount = approvedPostsData?.length || 0;
-      const categoriesCount = categoriesData?.length || 0;
-      
-      // Retornar estatísticas
+      // Retornar estatísticas reais
       res.json({
         postsCount,
         approvedPostsCount,
         categoriesCount,
+        usersCount,
+        artworksCount: postsCount, // Posts são as artes na plataforma
+        recentPosts,
         lastUpdate: new Date()
       });
     } catch (error) {
