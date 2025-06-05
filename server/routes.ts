@@ -1030,7 +1030,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw error;
       }
       
-      res.json(data || []);
+      // Normalizar os dados para o formato esperado pelo frontend
+      const normalizedPosts = (data || []).map(post => ({
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.image_url, // Mapear image_url para imageUrl
+        categoryId: post.category_id, // Mapear category_id para categoryId
+        status: post.status,
+        isVisible: post.is_visible !== false, // Mapear is_visible para isVisible
+        isPro: post.is_pro || false, // Mapear is_pro para isPro
+        formato: post.formato,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+        uniqueCode: post.unique_code,
+        groupId: post.group_id,
+        licenseType: post.license_type
+      }));
+      
+      res.json(normalizedPosts);
     } catch (error) {
       console.error('Error fetching approved posts:', error);
       res.status(500).json({ message: 'Error fetching approved posts' });
