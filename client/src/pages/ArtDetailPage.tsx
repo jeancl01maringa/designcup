@@ -155,17 +155,18 @@ export default function ArtDetailPage() {
     is_pro?: boolean;
   }
   
-  // Buscar outros formatos da mesma arte usando o novo endpoint específico
+  // Buscar outros formatos da mesma arte usando o groupId
   const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery<RelatedFormat[]>({
-    queryKey: ['/api/posts/formats', post?.groupId],
+    queryKey: ['/api/admin/posts/related', post?.groupId],
     queryFn: async () => {
       // Só buscar se temos um groupId válido
       if (!post?.groupId) return [];
       
-      // Usar o novo endpoint que filtra por grupo_id
-      const response = await fetch(`/api/posts/formats/${post.groupId}`);
+      // Usar o endpoint correto do admin que busca por group_id
+      const response = await fetch(`/api/admin/posts/related/${post.groupId}`);
       if (!response.ok) {
-        throw new Error('Falha ao buscar formatos relacionados');
+        console.warn('Falha ao buscar formatos relacionados:', response.status);
+        return [];
       }
       
       const data = await response.json();
@@ -174,7 +175,8 @@ export default function ArtDetailPage() {
       return data.filter((item: RelatedFormat) => item.id !== post.id);
     },
     // Habilitar a query apenas se temos um groupId válido
-    enabled: !!post?.groupId
+    enabled: !!post?.groupId,
+    retry: false // Não repetir se falhar
   });
   
   // Formatar objetos para exibição

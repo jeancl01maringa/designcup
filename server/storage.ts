@@ -1512,23 +1512,21 @@ export class DatabaseStorage implements IStorage {
         console.warn("DATABASE getPostsByGroupId - Exceção ao acessar Supabase:", supabaseError);
       }
       
-      // Se não encontrou via Supabase, tentar com PostgreSQL direto
-      if (postsData.length === 0) {
-        try {
-          console.log("DATABASE getPostsByGroupId - Tentando buscar via PostgreSQL direto");
-          
-          // Conexão direta com PostgreSQL
-          const result = await pool.query(`
-            SELECT * FROM posts WHERE group_id = $1 ORDER BY id ASC
-          `, [groupId]);
-          
-          if (result.rows && result.rows.length > 0) {
-            postsData = result.rows;
-            console.log(`DATABASE getPostsByGroupId - Encontrados ${result.rows.length} posts via PostgreSQL direto`);
-          }
-        } catch (pgError) {
-          console.error("DATABASE getPostsByGroupId - Erro ao buscar via PostgreSQL:", pgError);
+      // Sempre usar PostgreSQL direto porque o Supabase não tem group_id
+      try {
+        console.log("DATABASE getPostsByGroupId - Tentando buscar via PostgreSQL direto");
+        
+        // Conexão direta com PostgreSQL
+        const result = await pool.query(`
+          SELECT * FROM posts WHERE group_id = $1 ORDER BY id ASC
+        `, [groupId]);
+        
+        if (result.rows && result.rows.length > 0) {
+          postsData = result.rows;
+          console.log(`DATABASE getPostsByGroupId - Encontrados ${result.rows.length} posts via PostgreSQL direto`);
         }
+      } catch (pgError) {
+        console.error("DATABASE getPostsByGroupId - Erro ao buscar via PostgreSQL:", pgError);
       }
       
       // Se não encontrou posts por nenhum método
