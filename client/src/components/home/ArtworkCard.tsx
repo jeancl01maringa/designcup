@@ -46,16 +46,31 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   const handleImageError = () => {
     console.log(`Imagem falhou ao carregar: ${imageSrc}`);
     
-    // Try alternative URL formats
-    if (imageSrc.includes('supabase.co') && !imageSrc.includes('?download=')) {
+    // If it's a Supabase URL and we haven't tried alternatives yet
+    if (imageSrc.includes('supabase.co') && !imageSrc.includes('?download=') && !imageError) {
       const altUrl = `${imageSrc}?download=public`;
       console.log(`Tentando URL alternativa: ${altUrl}`);
       setImageSrc(altUrl);
-    } else if (!imageError) {
-      // Final fallback - use placeholder
-      console.log('Usando placeholder como fallback');
+      return;
+    }
+    
+    // If still failing, try to convert to a local path
+    if (imageSrc.includes('supabase.co') && !imageError) {
+      // Extract filename from Supabase URL
+      const urlParts = imageSrc.split('/');
+      const filename = urlParts[urlParts.length - 1]?.split('?')[0];
+      if (filename) {
+        const localUrl = `/uploads/posts/${filename}`;
+        console.log(`Tentando caminho local: ${localUrl}`);
+        setImageSrc(localUrl);
+        return;
+      }
+    }
+    
+    // Final fallback - show placeholder
+    if (!imageError) {
+      console.log('Usando placeholder como fallback final');
       setImageError(true);
-      setImageSrc('/placeholder.jpg');
     }
   };
 
