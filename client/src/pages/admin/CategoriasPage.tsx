@@ -106,38 +106,16 @@ export default function CategoriasPage() {
     }
   }, [isCreateDialogOpen, isEditDialogOpen, selectedCategory, form]);
 
-  // Buscar categorias
-  const { data: categories = [], isLoading, refetch } = useQuery<Category[]>({
-    queryKey: ['/api/admin/categories'],
+  // Buscar estatísticas das categorias (incluindo contagem de posts)
+  const { data: categoryStats = [], isLoading, refetch } = useQuery<(Category & { postCount: number })[]>({
+    queryKey: ['/api/admin/category-stats'],
     queryFn: async () => {
       try {
-        const response = await apiRequest('GET', '/api/admin/categories');
+        const response = await apiRequest('GET', '/api/admin/category-stats');
         return await response.json();
       } catch (error) {
-        console.error("Erro ao buscar categorias:", error);
-        // Consulta direta ao Supabase como fallback
-        try {
-          const { data, error } = await supabase
-            .from('categories')
-            .select('*')
-            .order('name');
-            
-          if (error) throw error;
-          
-          // Transformar os dados do formato do Supabase para o formato esperado
-          return data.map(cat => ({
-            id: cat.id,
-            name: cat.name,
-            description: cat.description,
-            slug: cat.slug,
-            imageUrl: cat.image_url,
-            isActive: cat.is_active !== false, // Se não existir, assume true
-            createdAt: new Date(cat.created_at)
-          }));
-        } catch (supabaseError) {
-          console.error("Erro ao buscar do Supabase:", supabaseError);
-          return [];
-        }
+        console.error("Erro ao buscar estatísticas das categorias:", error);
+        return [];
       }
     },
     refetchOnWindowFocus: false

@@ -804,6 +804,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get category statistics with post counts
+  app.get('/api/admin/category-stats', async (req, res) => {
+    try {
+      console.log("Buscando estatísticas das categorias...");
+      
+      // Buscar todas as categorias
+      const categories = await storage.getCategories();
+      
+      // Para cada categoria, contar quantos posts ela tem
+      const categoryStats = await Promise.all(
+        categories.map(async (category) => {
+          try {
+            // Contar posts ativos para esta categoria
+            const query = `
+              SELECT COUNT(*) as post_count 
+              FROM posts 
+              WHERE category_id = $1
+            `;
+            
+            const result = await pool.query(query, [category.id]);
+            const postCount = parseInt(result.rows[0]?.post_count || 0);
+            
+            return {
+              ...category,
+              postCount
+            };
+          } catch (error) {
+            console.error(`Erro ao contar posts da categoria ${category.id}:`, error);
+            return {
+              ...category,
+              postCount: 0
+            };
+          }
+        })
+      );
+      
+      console.log(`Estatísticas calculadas para ${categoryStats.length} categorias`);
+      res.json(categoryStats);
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas das categorias:', error);
+      res.status(500).json({ message: 'Error fetching category statistics' });
+    }
+  });
+
   app.get('/api/admin/categories/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
