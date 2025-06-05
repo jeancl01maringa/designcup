@@ -623,9 +623,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         // Extrair o primeiro link do Canva se existir
         const canvaLink = formatFile.links.find(link => link.provider === 'canva');
         
+        // Cada formato deve usar sua própria imagem específica
+        const formatImageUrl = formatFile.imagePreview;
+        
+        if (!formatImageUrl) {
+          throw new Error(`Imagem não encontrada para o formato ${format}. Faça upload da imagem para este formato.`);
+        }
+        
         return {
           formato: format,
-          imageUrl: formatFile.imagePreview || mainImageUrl,
+          imageUrl: formatImageUrl, // Usar a imagem específica deste formato
           canvaUrl: canvaLink?.url || "",
           links: formatFile.links
         };

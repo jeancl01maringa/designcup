@@ -1318,6 +1318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             formato: formatoData.formato,
             formatoData: JSON.stringify(formatoData),
             canvaUrl: formatoData.canvaUrl || '',
+            imageUrl: formatoData.imageUrl, // Usar a imagem específica deste formato
           };
           
           // Criando o post para este formato
