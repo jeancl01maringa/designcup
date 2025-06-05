@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Post } from "@shared/schema";
 import { ArtworkCard } from "./ArtworkCard";
@@ -33,20 +33,6 @@ function useResponsiveColumns() {
   return columns;
 }
 
-// Hook para organizar posts em colunas para layout masonry
-function useMasonryLayout(posts: Post[], columns: number) {
-  return React.useMemo(() => {
-    const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
-    
-    posts.forEach((post, index) => {
-      const columnIndex = index % columns;
-      columnArrays[columnIndex].push(post);
-    });
-    
-    return columnArrays;
-  }, [posts, columns]);
-}
-
 export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) {
   const {
     data: posts,
@@ -58,9 +44,49 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
 
   const columns = useResponsiveColumns();
 
+  // Filtrar posts e organizar em colunas usando useMemo
+  const { filteredPosts, columnArrays } = useMemo(() => {
+    const allPosts = posts || [];
+    
+    let filtered = allPosts.filter(post => 
+      post.status === 'aprovado' && 
+      post.isVisible !== false
+    );
+
+    if (category && category !== "todos") {
+      filtered = filtered.filter((post) => {
+        if (!post.categoryId) return false;
+        const categoryMap: { [key: number]: string } = {
+          1: "facial",
+          2: "corporal", 
+          3: "procedimentos",
+          4: "marketing",
+          5: "outros"
+        };
+        return categoryMap[post.categoryId] === category;
+      });
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter((post) =>
+        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (post.description && post.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Organizar posts em colunas para layout masonry
+    const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
+    filtered.forEach((post, index) => {
+      const columnIndex = index % columns;
+      columnArrays[columnIndex].push(post);
+    });
+
+    return { filteredPosts: filtered, columnArrays };
+  }, [posts, category, searchTerm, columns]);
+
   if (isLoading) {
     return (
-      <div className={`grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`}>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {Array.from({ length: columns }).map((_, colIndex) => (
           <div key={colIndex} className="space-y-4">
             {Array.from({ length: 3 }).map((_, itemIndex) => (
@@ -104,38 +130,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
     );
   }
 
-  // Filtrar posts por categoria e termo de busca
-  let filteredPosts = posts.filter(post => 
-    post.status === 'aprovado' && 
-    post.isVisible !== false
-  );
-
-  if (category && category !== "todos") {
-    filteredPosts = filteredPosts.filter((post) => {
-      if (!post.categoryId) return false;
-      // Converter categoryId para string de categoria para comparação
-      const categoryMap: { [key: number]: string } = {
-        1: "facial",
-        2: "corporal", 
-        3: "procedimentos",
-        4: "marketing",
-        5: "outros"
-      };
-      return categoryMap[post.categoryId] === category;
-    });
-  }
-
-  if (searchTerm) {
-    filteredPosts = filteredPosts.filter((post) =>
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (post.description && post.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }
-
   console.log(`Post #${posts[0]?.id}: "${posts[0]?.title}" - isPremium:`, posts[0]?.isPro);
-
-  // Organizar posts em colunas para layout masonry
-  const columnArrays = useMasonryLayout(filteredPosts || [], columns);
 
   return (
     <div className="space-y-6">
