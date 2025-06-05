@@ -431,8 +431,12 @@ export default function ArtDetailPage() {
               // Função para obter a URL da imagem principal
               const getMainImageUrl = () => {
                 // 1. Verificar se tem imageUrl direto
-                if (post?.imageUrl) return post.imageUrl;
-                if (post?.image_url) return post.image_url;
+                if (post?.imageUrl) {
+                  return post.imageUrl;
+                }
+                if (post?.image_url) {
+                  return post.image_url;
+                }
                 
                 // 2. Verificar nos dados de formato
                 const formatDataString = post?.formatData || post?.format_data;
@@ -468,7 +472,6 @@ export default function ArtDetailPage() {
               };
 
               const mainImageUrl = getMainImageUrl();
-              console.log('URL da imagem principal determinada:', mainImageUrl);
               
               if (!mainImageUrl) {
                 return (
