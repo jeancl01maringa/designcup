@@ -134,6 +134,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       return res.json();
     }
   });
+
+  // Buscar categorias
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/admin/categories"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/categories");
+      if (!res.ok) throw new Error("Falha ao buscar categorias");
+      return res.json();
+    }
+  });
   
   // Criar objeto formatFiles inicial com todos os formatos disponíveis
   const createDefaultFormatFiles = () => {
@@ -221,16 +231,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     }
   }, [formData.title, formData.categoryId, hasUnsavedChanges]);
 
-  // Buscar categorias
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/admin/categories"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/categories");
-      if (!res.ok) throw new Error("Falha ao buscar categorias");
-      return res.json();
-    }
-  });
-  
   // Tags removidas - SEO baseado apenas no título
 
   // Criar nova postagem
