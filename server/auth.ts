@@ -19,7 +19,7 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string) {
+export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
@@ -118,15 +118,7 @@ export function setupAuth(app: Express) {
     try {
       console.log("PASSPORT deserializeUser - Buscando usuário com ID:", id);
       
-      // Sabemos que há um problema com o ID 3, que não existe mais
-      // Se o ID for 3, vamos tentar obter o usuário administrativo que tem ID 2
-      let user;
-      if (id === 3) {
-        console.log("PASSPORT deserializeUser - Detectado ID 3 inválido, tentando buscar admin (ID 2)");
-        user = await storage.getUser(2);
-      } else {
-        user = await storage.getUser(id);
-      }
+      const user = await storage.getUser(id);
       
       if (!user) {
         console.error("PASSPORT deserializeUser - Usuário não encontrado com ID:", id);

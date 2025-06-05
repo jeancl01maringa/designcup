@@ -16,7 +16,9 @@ import {
   FileType,
   Database,
   Globe,
-  ExternalLink
+  ExternalLink,
+  Hash,
+  Tag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -72,7 +74,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       id: "gerenciamento",
       label: "Gerenciamento",
       path: "/admin/gerenciamento",
-      icon: <Database className="h-4 w-4" />,
+      icon: <Settings className="h-4 w-4" />,
       separator: false,
     },
     {
@@ -82,10 +84,28 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       icon: <Users className="h-4 w-4" />,
     },
     {
+      id: "assinantes",
+      label: "Assinantes",
+      path: "/admin/gerenciamento/assinantes",
+      icon: <Users className="h-4 w-4 text-blue-500" />,
+    },
+    {
       id: "formatos",
       label: "Formatos de Arquivo",
       path: "/admin/gerenciamento/formatos",
       icon: <FileType className="h-4 w-4" />,
+    },
+    {
+      id: "formatos-post",
+      label: "Formatos de Post",
+      path: "/admin/gerenciamento/formatos-post",
+      icon: <LayoutTemplate className="h-4 w-4" />,
+    },
+    {
+      id: "tags",
+      label: "Gerenciar Tags",
+      path: "/admin/gerenciamento/tags",
+      icon: <Tag className="h-4 w-4" />,
       separator: true,
     },
     {
@@ -150,8 +170,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
             "flex items-center gap-3 p-4 border-b",
             !isOpen && "justify-center"
           )}>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="" alt={userData?.username || "Admin"} />
+            <Avatar className="h-10 w-10">
+              <AvatarImage 
+                src={userData?.profileImage || ""} 
+                alt={userData?.username || "Admin"}
+                className="object-cover"
+              />
               <AvatarFallback>
                 {userData?.username?.slice(0, 2)?.toUpperCase() || "AD"}
               </AvatarFallback>

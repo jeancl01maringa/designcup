@@ -21,11 +21,11 @@ interface DbPost {
   id: number;
   title: string;
   description: string | null;
-  image_url: string;
-  category_id: number;
+  imageUrl: string;
+  categoryId: number;
   status: string;
-  unique_code: string;
-  created_at: string;
+  uniqueCode: string;
+  createdAt: string;
 }
 
 // Interface para categoria com suas imagens de posts associadas
@@ -47,37 +47,30 @@ export default function CategorySection() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [maxScroll, setMaxScroll] = useState(0);
   
-  // Buscar categorias do Supabase
+  // Buscar apenas categorias que têm posts
   const { data: dbCategories = [], isLoading: isCategoriesLoading } = useQuery<DbCategory[]>({
-    queryKey: ['/api/admin/categories'],
+    queryKey: ['/api/categories/with-posts'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('categories')
-          .select('*')
-          .order('name');
-        
-        if (error) throw error;
+        const response = await fetch('/api/categories/with-posts');
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
         return data || [];
       } catch (err) {
-        console.error('Erro ao buscar categorias:', err);
+        console.error('Erro ao buscar categorias com posts:', err);
         return [];
       }
     }
   });
   
-  // Buscar posts aprovados do Supabase
+  // Buscar posts aprovados do PostgreSQL (dados reais)
   const { data: dbPosts = [], isLoading: isPostsLoading } = useQuery<DbPost[]>({
-    queryKey: ['/api/admin/posts/approved'],
+    queryKey: ['/api/posts/visible'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('status', 'aprovado')
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
+        const response = await fetch('/api/posts/visible');
+        if (!response.ok) throw new Error('Failed to fetch posts');
+        const data = await response.json();
         return data || [];
       } catch (err) {
         console.error('Erro ao buscar posts:', err);
@@ -90,17 +83,17 @@ export default function CategorySection() {
   const categoriesWithPosts: CategoryWithPosts[] = dbCategories.map(category => {
     // Filtrar posts para esta categoria
     const categoryPosts = dbPosts
-      .filter(post => post.category_id === category.id)
+      .filter(post => post.categoryId === category.id)
       .map(post => ({
         id: post.id,
         title: post.title,
-        imageUrl: post.image_url
+        imageUrl: post.imageUrl
       }));
     
     return {
       id: category.id,
       name: category.name,
-      slug: category.slug,
+      slug: category.slug || null,
       description: category.description,
       posts: categoryPosts
     };
@@ -108,12 +101,27 @@ export default function CategorySection() {
   
   // Calcular a largura máxima de rolagem quando os dados são carregados
   useEffect(() => {
-    if (scrollRef.current && categoriesWithPosts.length > 0) {
-      const containerWidth = containerRef.current?.clientWidth || 0;
-      const scrollWidth = scrollRef.current.scrollWidth;
-      setMaxScroll(Math.max(0, scrollWidth - containerWidth));
-    }
-  }, [categoriesWithPosts, scrollRef.current?.scrollWidth]);
+    const updateScrollDimensions = () => {
+      if (scrollRef.current && containerRef.current && categoriesWithPosts.length > 0) {
+        // Aguardar um frame para garantir que o DOM foi atualizado
+        requestAnimationFrame(() => {
+          const containerWidth = containerRef.current?.clientWidth || 0;
+          const scrollWidth = scrollRef.current?.scrollWidth || 0;
+          const newMaxScroll = Math.max(0, scrollWidth - containerWidth);
+          setMaxScroll(newMaxScroll);
+          
+          // Log para debug
+          console.log('Scroll dimensions:', { containerWidth, scrollWidth, newMaxScroll });
+        });
+      }
+    };
+
+    updateScrollDimensions();
+    
+    // Adicionar listener para resize da janela
+    window.addEventListener('resize', updateScrollDimensions);
+    return () => window.removeEventListener('resize', updateScrollDimensions);
+  }, [categoriesWithPosts]);
   
   // Manipular o scroll para a esquerda
   const handleScrollLeft = () => {
@@ -193,21 +201,30 @@ export default function CategorySection() {
   }
 
   // Verifica se pode rolar para esquerda ou direita
-  const canScrollLeft = scrollPosition > 0;
-  const canScrollRight = scrollPosition < maxScroll;
+  // Forçar exibição das setas se houver mais de 3 categorias ou se maxScroll > 50
+  const shouldShowArrows = categoriesWithPosts.length > 3 || maxScroll > 50;
+  const canScrollLeft = shouldShowArrows && scrollPosition > 0;
+  const canScrollRight = shouldShowArrows && (scrollPosition < maxScroll || maxScroll === 0);
   
   return (
     <section className="py-8 bg-white border-b border-gray-100">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-6">
-          <h3 className="text-[#1d1d1f] font-semibold text-xl font-inter mb-1 flex items-center">
+          <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
             <span className="mr-2">📁</span>
             Escolha sua categoria
           </h3>
           <p className="text-[#5c3a2d] text-sm font-light">
             Encontre recursos ideais para sua clínica de estética
           </p>
+          <div className="flex items-center mt-2">
+            <div className="flex mt-1">
+              <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
+              <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
+            </div>
+          </div>
         </div>
         
         {/* Container com referência para controle de scroll */}
@@ -232,9 +249,9 @@ export default function CategorySection() {
               msOverflowStyle: 'none'  // IE/Edge
             }}
           >
-            <div className="flex space-x-4 w-max">
+            <div className="flex space-x-6 w-max">
               {categoriesWithPosts.map((category) => (
-                <div key={category.id} className="flex-none w-64">
+                <div key={category.id} className="flex-none w-80">
                   <Link 
                     href={`/categorias/${category.slug || category.id}`} 
                     className="block group cursor-pointer"

@@ -1,224 +1,189 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Artwork } from "@shared/schema";
+import { Post } from "@shared/schema";
 import { ArtworkCard } from "./ArtworkCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Star, ImageIcon, Crown } from "lucide-react";
 
-// Interface simplificada para dados de mock
-interface MockArtwork {
-  id: number;
-  title: string;
-  description: string;
-  imageUrl: string;
-  category: string;
-  createdAt: Date;
-  isPro: boolean;
-  format: string; // "1:1", "9:16", "16:9", "1080:1350"
+interface ArtworkGridProps {
+  category?: string;
+  searchTerm?: string;
 }
 
-// Mock de dados com as imagens enviadas e diferentes formatos
-const mockArtworks: MockArtwork[] = [
-  {
-    id: 1,
-    title: "Segredos de uma Pele Radiante",
-    description: "Descubra os segredos para conseguir uma pele bonita e saudável.",
-    imageUrl: "/attached_assets/9005ba19-a309-43d3-a40d-80557466a094.png",
-    category: "facial",
-    createdAt: new Date(),
-    isPro: true,
-    format: "1:1" // quadrado
-  },
-  {
-    id: 2,
-    title: "5 mitos sobre o uso de protetor solar",
-    description: "Conheça os principais mitos sobre protetor solar e como usá-lo corretamente.",
-    imageUrl: "/attached_assets/atualização estética 01.png",
-    category: "facial",
-    createdAt: new Date(),
-    isPro: false,
-    format: "9:16" // stories
-  },
-  {
-    id: 3,
-    title: "Seu primeiro Botox?",
-    description: "Tudo o que você precisa saber antes do seu primeiro procedimento de Botox.",
-    imageUrl: "/attached_assets/atualização estética 04 (1).png",
-    category: "procedimentos",
-    createdAt: new Date(),
-    isPro: true,
-    format: "9:16" // stories
-  },
-  {
-    id: 4,
-    title: "Lábios dos sonhos sem fazer cirurgia",
-    description: "Confira como conseguir lábios perfeitos sem procedimentos cirúrgicos.",
-    imageUrl: "/attached_assets/atualização estética 05 (1).png",
-    category: "procedimentos",
-    createdAt: new Date(),
-    isPro: true,
-    format: "1:1" // quadrado
-  },
-  {
-    id: 5,
-    title: "Drenagem linfática",
-    description: "Os benefícios da drenagem linfática para uma silhueta perfeita.",
-    imageUrl: "/attached_assets/atualização estética 06 (1).png",
-    category: "corporal",
-    createdAt: new Date(),
-    isPro: false,
-    format: "9:16" // stories
-  },
-  {
-    id: 6,
-    title: "Pele firme e Viçosa",
-    description: "O segredo para uma pele iluminada e saudável está aqui.",
-    imageUrl: "/attached_assets/atualização estética 10.jpg",
-    category: "corporal",
-    createdAt: new Date(),
-    isPro: true,
-    format: "1:1" // quadrado
-  },
-  {
-    id: 7,
-    title: "Pele sem manchas",
-    description: "Clareadores e laser fazem a diferença.",
-    imageUrl: "/attached_assets/Captura de tela 2025-04-03 233106.png",
-    category: "facial",
-    createdAt: new Date(),
-    isPro: false,
-    format: "16:9" // paisagem
-  },
-  {
-    id: 8,
-    title: "Preenchimento labial sem exageros",
-    description: "Realce e dê volume com naturalidade.",
-    imageUrl: "/attached_assets/Captura de tela 2025-04-03 233140.png",
-    category: "procedimentos",
-    createdAt: new Date(),
-    isPro: true,
-    format: "1080:1350" // retrato
-  },
-  {
-    id: 9,
-    title: "Relaxamento e rejuvenescimento em uma única sessão!",
-    description: "Agende seu horário e sinta a diferença!",
-    imageUrl: "/attached_assets/Captura de tela 2025-04-03 231324.png",
-    category: "facial",
-    createdAt: new Date(),
-    isPro: true,
-    format: "1:1" // quadrado
-  },
-  {
-    id: 10,
-    title: "Beleza atemporal é um investimento",
-    description: "Protocolos de alta performance para uma pele jovem e saudável.",
-    imageUrl: "/attached_assets/Captura de tela 2025-04-03 232355.png",
-    category: "facial",
-    createdAt: new Date(),
-    isPro: true,
-    format: "1:1" // quadrado
-  }
-];
+// Hook para calcular o número de colunas baseado na largura da tela
+function useResponsiveColumns() {
+  const [columns, setColumns] = useState(4);
 
-export default function ArtworkGrid() {
-  // Usando mock de dados enquanto a API não está pronta
-  const { data: apiArtworks = [], isLoading, error } = useQuery<MockArtwork[]>({
-    queryKey: ['/api/artworks'],
-    // Mockamos os dados mas mantemos a chamada API para futuro
-    initialData: mockArtworks
+  useEffect(() => {
+    const updateColumns = () => {
+      const width = window.innerWidth;
+      if (width < 640) setColumns(1);      // mobile
+      else if (width < 768) setColumns(2); // sm
+      else if (width < 1024) setColumns(3); // md
+      else if (width < 1280) setColumns(4); // lg
+      else setColumns(5);                   // xl+
+    };
+
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
+
+  return columns;
+}
+
+export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) {
+  const {
+    data: posts,
+    isLoading,
+    error,
+  } = useQuery<Post[]>({
+    queryKey: ["/api/posts/visible"],
   });
 
-  // Usamos os dados do mock para apresentação
-  const artworks = mockArtworks;
+  const columns = useResponsiveColumns();
+
+  // Filtrar posts e organizar em colunas usando useMemo
+  const { filteredPosts, columnArrays } = useMemo(() => {
+    const allPosts = posts || [];
+    
+    let filtered = allPosts.filter(post => 
+      post.status === 'aprovado' && 
+      post.isVisible !== false
+    );
+
+    if (category && category !== "todos") {
+      filtered = filtered.filter((post) => {
+        if (!post.categoryId) return false;
+        const categoryMap: { [key: number]: string } = {
+          1: "facial",
+          2: "corporal", 
+          3: "procedimentos",
+          4: "marketing",
+          5: "outros"
+        };
+        return categoryMap[post.categoryId] === category;
+      });
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter((post) =>
+        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (post.description && post.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Organizar posts em colunas para layout masonry
+    const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
+    filtered.forEach((post, index) => {
+      const columnIndex = index % columns;
+      columnArrays[columnIndex].push(post);
+    });
+
+    return { filteredPosts: filtered, columnArrays };
+  }, [posts, category, searchTerm, columns]);
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-4">
-        <div className="mb-6">
-          <Skeleton className="h-8 w-72 mb-2" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="mb-4 break-inside-avoid rounded-lg overflow-hidden">
-              <Skeleton className={`w-full ${i % 2 === 0 ? 'aspect-square' : 'aspect-[9/16]'}`} />
-            </div>
-          ))}
-        </div>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {Array.from({ length: columns }).map((_, colIndex) => (
+          <div key={colIndex} className="space-y-4">
+            {Array.from({ length: 3 }).map((_, itemIndex) => (
+              <div key={itemIndex} className="space-y-3">
+                <Skeleton className={`w-full rounded-lg ${itemIndex % 3 === 0 ? 'h-80' : itemIndex % 3 === 1 ? 'h-64' : 'h-72'}`} />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <div className="text-red-500 p-4 border border-red-200 rounded-lg bg-red-50">
-          Erro ao carregar as artes. Por favor, tente novamente mais tarde.
-        </div>
+      <div className="text-center py-12">
+        <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Erro ao carregar posts
+        </h3>
+        <p className="text-gray-600">
+          Tente recarregar a página ou entre em contato com o suporte.
+        </p>
       </div>
     );
   }
 
-  // Separe os artworks por formato
-  const storiesArtworks = artworks.filter(art => art.format === "9:16");
-  const otherArtworks = artworks.filter(art => art.format !== "9:16");
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Nenhum post encontrado
+        </h3>
+        <p className="text-gray-600">
+          Não há posts disponíveis no momento.
+        </p>
+      </div>
+    );
+  }
+
+  console.log(`Post #${posts[0]?.id}: "${posts[0]?.title}" - isPremium:`, posts[0]?.isPro);
 
   return (
-    <section className="py-8 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="text-[#AA5E2F]">
-              <ImageIcon className="h-5 w-5" />
-            </div>
-            <h2 className="font-semibold text-lg text-[#1D1D1D]">Artes editáveis para sua Clínica</h2>
-            <Badge variant="outline" className="bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
-              <Crown className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
-              <span className="text-xs">Premium</span>
-            </Badge>
-          </div>
-          <p className="text-sm text-[#4B4B4B] ml-7">
-            Explore artes exclusivas de altíssima qualidade premium para sua clínica.
-          </p>
-        </div>
-
-        {/* Grid no estilo Pinterest - responsivo para diferentes formatos */}
-        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 mb-10">
-          {otherArtworks.map((artwork: MockArtwork) => (
-            <div key={artwork.id} className="mb-4 break-inside-avoid">
-              <ArtworkCard artwork={artwork as any} />
-            </div>
-          ))}
-        </div>
-        
-        {/* Stories Section */}
-        <div className="mb-6 mt-10">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="text-[#AA5E2F]">
-              <ImageIcon className="h-5 w-5" />
-            </div>
-            <h2 className="font-semibold text-lg text-[#1D1D1D]">Stories para Estética</h2>
-            <Badge variant="outline" className="bg-[#FFF4E9] text-[#AA5E2F] border-[#FAF3EC]">
-              <Star className="h-3 w-3 fill-[#AA5E2F] text-[#AA5E2F] mr-1" />
-              <span className="text-xs">Novo</span>
-            </Badge>
-          </div>
-          <p className="text-sm text-[#4B4B4B] ml-7">
-            Templates para Stories no formato 9:16 otimizados para Instagram.
-          </p>
-        </div>
-
-        {/* Grid para stories */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {storiesArtworks.map((artwork: MockArtwork) => (
-            <div key={artwork.id} className="aspect-[9/16] relative">
-              <ArtworkCard artwork={artwork as any} />
-            </div>
-          ))}
+    <div className="space-y-6">
+      {/* Estatísticas dos posts */}
+      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+            {filteredPosts.length} posts encontrados
+          </Badge>
+          <Badge variant="secondary" className="bg-yellow-50 text-yellow-700">
+            <Crown className="w-3 h-3 mr-1" />
+            {filteredPosts.filter(p => p.isPro === true || p.licenseType === 'premium').length} premium
+          </Badge>
+          <Badge variant="secondary" className="bg-green-50 text-green-700">
+            {filteredPosts.filter(p => p.isPro !== true && p.licenseType !== 'premium').length} gratuitos
+          </Badge>
         </div>
       </div>
-    </section>
+
+      {/* Grid masonry Pinterest-style */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {columnArrays.map((columnPosts, columnIndex) => (
+          <div key={columnIndex} className="space-y-4">
+            {columnPosts.map((post) => (
+              <ArtworkCard
+                key={post.id}
+                artwork={{
+                  id: post.id,
+                  title: post.title,
+                  description: post.description || "",
+                  imageUrl: post.imageUrl || "/placeholder.jpg",
+                  category: post.categoryId?.toString() || "outros",
+                  createdAt: new Date(post.createdAt),
+                  isPro: post.isPro === true || post.licenseType === 'premium',
+                  format: post.formato || "1:1"
+                }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {filteredPosts.length === 0 && (
+        <div className="text-center py-12">
+          <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Nenhum resultado encontrado
+          </h3>
+          <p className="text-gray-600">
+            Tente ajustar os filtros ou termo de busca.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

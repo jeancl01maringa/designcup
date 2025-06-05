@@ -10,6 +10,7 @@ import {
   UserPlus,
   ChevronDown
 } from "lucide-react";
+import { UserDropdownMenu } from "./UserDropdownMenu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,7 @@ const NavLinks = () => {
     { name: "Categorias", path: "/categorias" },
     { name: "Designers", path: "/designers" },
     { name: "Formatos", path: "/formatos" },
+    { name: "Planos", path: "/planos" },
     { name: "Tutoriais", path: "/tutoriais" },
     { name: "Suporte", path: "/suporte" }
   ];
@@ -62,6 +64,7 @@ const NavLinks = () => {
 const UserMenu = () => {
   const { user, logoutMutation } = useAuth();
   const [location, navigate] = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   // Debug para verificar a propriedade isAdmin
   console.log("[HEADER] UserMenu renderizado");
@@ -136,62 +139,38 @@ const UserMenu = () => {
             <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-          <span>admin</span>
+          <span>Painel Admin</span>
         </Button>
       )}
       
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2 font-normal hover:bg-muted/60">
-            <div className="rounded-full overflow-hidden w-8 h-8 p-0">
-              <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
-                <User className="h-4 w-4" />
-              </div>
+      {/* Botão que abre nosso dropdown novo */}
+      <Button 
+        variant="ghost" 
+        className="flex items-center gap-2 font-normal hover:bg-muted/60"
+        onClick={() => setIsDropdownOpen(true)}
+      >
+        <div className="rounded-full overflow-hidden w-8 h-8 p-0">
+          {user.profileImage ? (
+            <img 
+              src={user.profileImage} 
+              alt={user.username}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
+              <User className="h-4 w-4" />
             </div>
-            <span className="max-w-[100px] truncate">{user.username}</span>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => navigate("/perfil")}>
-            <User className="mr-2 h-4 w-4" />
-            <span>Meu Perfil</span>
-          </DropdownMenuItem>
-          
-          {Boolean(user.isAdmin) && (
-            <DropdownMenuItem onClick={() => navigate("/admin")}>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                className="mr-2"
-              >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span>Painel Admin</span>
-            </DropdownMenuItem>
           )}
-          
-          <DropdownMenuSeparator />
-          
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => logoutMutation.mutate()}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Sair</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </div>
+        <span className="max-w-[100px] truncate">{user.username}</span>
+        <ChevronDown className="h-4 w-4" />
+      </Button>
+      
+      {/* Novo componente de dropdown menu personalizado */}
+      <UserDropdownMenu 
+        isOpen={isDropdownOpen} 
+        onClose={() => setIsDropdownOpen(false)} 
+      />
     </div>
   );
 };
@@ -206,6 +185,7 @@ const MobileMenu = () => {
     { name: "Categorias", path: "/categorias" },
     { name: "Designers", path: "/designers" },
     { name: "Formatos", path: "/formatos" },
+    { name: "Planos", path: "/planos" },
     { name: "Tutoriais", path: "/tutoriais" },
     { name: "Suporte", path: "/suporte" }
   ];

@@ -1,0 +1,837 @@
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { 
+  ArrowLeft, 
+  Download, 
+  Heart, 
+  Bookmark, 
+  Share2, 
+  Check, 
+  ChevronsDown,
+  Eye,
+  ExternalLink,
+  ChevronDown,
+  Crown
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { supabase } from "@/lib/supabase";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/use-auth";
+
+export default function ArtDetailPage() {
+  const [location, setLocation] = useLocation();
+  const params = useParams<{ slug?: string; id?: string }>();
+  const { slug, id } = params;
+  const { user, isLoading: isLoadingAuth } = useAuth();
+  
+  // Determinar o ID do post baseado na rota
+  let postId: number;
+  if (id) {
+    // Rota /preview/:id - usar ID diretamente
+    postId = parseInt(id, 10);
+  } else if (slug) {
+    // Rota /artes/:slug - extrair ID do slug (por exemplo, "10-xxxxx" => 10)
+    postId = parseInt(slug.split('-')[0] || '0', 10);
+  } else {
+    postId = 0;
+  }
+  
+  console.log('Parâmetros recebidos:', { slug, id });
+  console.log('ID do post determinado:', postId);
+  
+  // Estado para controlar a exibição do tooltip no botão
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  
+  // Verifica se o usuário é premium baseado no tipo/plano
+  const isUserPremium = user?.tipo === 'premium' || 
+                     (user?.plano_id !== undefined && user?.plano_id !== null && 
+                      typeof user?.plano_id === 'number' && user?.plano_id !== 1);
+  
+  // Buscar os dados da arte usando a API admin existente (mais confiável)
+  const { data: post, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/posts', postId],
+    queryFn: async () => {
+      if (!postId) throw new Error('ID inválido');
+      
+      const response = await fetch(`/api/admin/posts/${postId}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Arte não encontrada');
+        }
+        throw new Error('Erro ao buscar arte');
+      }
+      
+      return response.json();
+    },
+    retry: 1,
+    enabled: !!postId,
+    staleTime: 2 * 60 * 1000, // 2 minutos em cache
+    gcTime: 5 * 60 * 1000, // 5 minutos no cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
+  });
+  
+  // Extrair formatos do post a partir dos dados gravados no banco
+  const availableFormats = React.useMemo(() => {
+    // Verificar primeiro formato diretamente no post
+    if (post?.formato) {
+      return [post.formato];
+    }
+    
+    // Verificar array de formatos
+    if (post?.formats && Array.isArray(post.formats) && post.formats.length > 0) {
+      return post.formats;
+    }
+    
+    // Tentar extrair formatos do formato_data ou format_data (formato JSON)
+    if (post?.formato_data || post?.format_data) {
+      try {
+        const formatDataString = post?.formato_data || post?.format_data || '{}';
+        if (typeof formatDataString === 'string') {
+          const formatData = JSON.parse(formatDataString);
+          
+          // Se temos formatos definidos diretamente no formato_data
+          if (formatData.formats && Array.isArray(formatData.formats)) {
+            return formatData.formats;
+          }
+          
+          // Verificar se temos opções de formatos
+          if (formatData.options && Array.isArray(formatData.options)) {
+            return formatData.options.map((opt: { format?: string }) => opt.format || 'FEED');
+          }
+          
+          // Se temos apenas um formato
+          if (formatData.format) {
+            return [formatData.format];
+          }
+          
+          // Se temos o formato como propriedade direta
+          if (formatData.formato) {
+            return [formatData.formato];
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao processar formato_data:', err);
+      }
+    }
+    
+    // Valor padrão se nada for encontrado
+    return ['FEED'];
+  }, [post]);
+  
+  // Interface para formatos relacionados
+  interface RelatedFormat {
+    id: number;
+    title: string;
+    imageUrl?: string;
+    image_url?: string;
+    uniqueCode?: string;
+    unique_code?: string;
+    formato?: string;
+    format?: string;
+    formats?: string[];
+    licenseType?: string;
+    license_type?: string;
+    isPro?: boolean;
+    is_pro?: boolean;
+  }
+  
+  // Buscar outros formatos da mesma arte usando o groupId
+  const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery<RelatedFormat[]>({
+    queryKey: ['/api/admin/posts/related', post?.groupId],
+    queryFn: async () => {
+      // Só buscar se temos um groupId válido
+      if (!post?.groupId) return [];
+      
+      // Usar o endpoint correto do admin que busca por group_id
+      const response = await fetch(`/api/admin/posts/related/${post.groupId}`);
+      if (!response.ok) {
+        console.warn('Falha ao buscar formatos relacionados:', response.status);
+        return [];
+      }
+      
+      const data = await response.json();
+      
+      // Filtrar para não incluir o post atual
+      return data.filter((item: RelatedFormat) => item.id !== post.id);
+    },
+    // Habilitar a query apenas se temos um groupId válido
+    enabled: !!post?.groupId,
+    retry: false // Não repetir se falhar
+  });
+  
+  // Formatar objetos para exibição
+  const formatLabel = (format: string | null | undefined) => {
+    if (!format) return 'FEED'; // Valor padrão se não houver formato
+
+    const formatMap: Record<string, string> = {
+      'feed': 'FEED',
+      'stories': 'STORIES',
+      'post': 'POST',
+      'reels': 'REELS',
+      'carousel': 'CARROSSEL'
+    };
+    
+    return formatMap[format.toLowerCase()] || format.toUpperCase();
+  };
+  
+  // Obter dimensões do formato
+  const getFormatDimensions = (format: string | null | undefined): string => {
+    if (!format) return '1080×1080px • Quadrado'; // Valor padrão se não houver formato
+    
+    const dimensionsMap: Record<string, string> = {
+      'feed': '1080×1080px • Quadrado',
+      'stories': '1080×1920px • Vertical',
+      'reels': '1080×1920px • Vertical',
+      'carousel': '1080×1080px • Quadrado',
+      'post': '1080×1350px • Retrato'
+    };
+    
+    return dimensionsMap[format.toLowerCase()] || '1080×1080px';
+  };
+  
+  // Determinar se é premium (verificar todos os possíveis campos)
+  const isPremium = post?.licenseType === 'premium' || post?.is_pro || post?.isPro;
+  
+  // Handlers para ações
+  const handleFavorite = () => setIsFavorite(!isFavorite);
+  const handleSave = () => setIsSaved(!isSaved);
+  const handleFollow = () => setIsFollowing(!isFollowing);
+  const handleShare = () => {
+    // Implementar compartilhamento
+    navigator.share?.({
+      title: post?.title || 'Arte para Estética',
+      text: post?.description || 'Confira esta arte para seus conteúdos de estética',
+      url: window.location.href
+    }).catch(err => console.error('Erro ao compartilhar:', err));
+  };
+  
+  // Extrair o Link do Canva dos dados do post
+  const getCanvaUrl = (): string => {
+    try {
+      console.log("Verificando URL do Canva no post:", post);
+      console.log("Dados do formatData:", post?.formatData || post?.format_data);
+      
+      // 1. Verificar se temos URL do Canva diretamente no post
+      if (post?.canvaUrl) {
+        console.log("Usando canvaUrl diretamente do post:", post.canvaUrl);
+        return post.canvaUrl;
+      }
+      
+      // 2. Verificar se tem o campo no snake_case
+      if (post?.canva_url) {
+        console.log("Usando canva_url do post:", post.canva_url);
+        return post.canva_url;
+      }
+      
+      // 3. Verificar dados de formato tanto no camelCase quanto snake_case
+      const formatDataString = post?.formatData || post?.format_data;
+      
+      if (formatDataString) {
+        console.log("FormatData encontrado:", formatDataString);
+        
+        try {
+          // Se já é um objeto, usar diretamente
+          const formatData = typeof formatDataString === 'string' 
+            ? JSON.parse(formatDataString) 
+            : formatDataString;
+          
+          console.log("FormatData parseado:", formatData);
+          
+          // Se é um array de formatos (estrutura normal)
+          if (Array.isArray(formatData) && formatData.length > 0) {
+            console.log("Procurando em array de formatos, total:", formatData.length);
+            
+            // Pegar o primeiro formato (geralmente o principal)
+            const firstFormat = formatData[0];
+            console.log("Primeiro formato:", firstFormat);
+            
+            // Verificar se tem links no formato
+            if (firstFormat && Array.isArray(firstFormat.links) && firstFormat.links.length > 0) {
+              console.log("Links encontrados:", firstFormat.links);
+              
+              // Procurar por um link do Canva
+              const canvaLink = firstFormat.links.find(
+                (link: any) => link.provider?.toLowerCase() === 'canva'
+              );
+              
+              if (canvaLink && canvaLink.url) {
+                console.log("URL do Canva encontrada:", canvaLink.url);
+                return canvaLink.url;
+              }
+            }
+            
+            // Se não encontrou links, verificar se tem canvaUrl direto no formato
+            if (firstFormat && firstFormat.canvaUrl) {
+              console.log("CanvaUrl direto no formato:", firstFormat.canvaUrl);
+              return firstFormat.canvaUrl;
+            }
+          }
+          
+          // Se não é array, verificar se é objeto com canvaUrl direto
+          if (formatData && typeof formatData === 'object' && !Array.isArray(formatData)) {
+            if (formatData.canvaUrl) {
+              console.log("CanvaUrl direto no formatData:", formatData.canvaUrl);
+              return formatData.canvaUrl;
+            }
+          }
+          
+        } catch (parseErr) {
+          console.error("Erro ao analisar dados de formato:", parseErr);
+        }
+      }
+      
+      // Log quando nenhuma URL é encontrada
+      console.warn("Nenhuma URL do Canva encontrada, usando valor padrão");
+      
+      // Valor padrão se não encontrar nada
+      return 'https://www.canva.com/design/new';
+    } catch (err) {
+      console.error('Erro ao extrair URL do Canva:', err);
+      return 'https://www.canva.com/design/new';
+    }
+  };
+  
+  // Determinar se o usuário pode editar esta arte
+  const canEditArt = (): boolean => {
+    // Se não está logado, não pode editar
+    if (!user) return false;
+    
+    // Se a arte é gratuita, qualquer usuário logado pode editar
+    if (!isPremium) return true;
+    
+    // Se a arte é premium, apenas usuários premium podem editar
+    return isUserPremium === true;
+  };
+  
+  const handleEditCanva = () => {
+    // Se não pode editar, não faz nada (o botão já deve estar desabilitado ou ser apenas visual)
+    if (!canEditArt()) return;
+    
+    // Obter a URL do Canva e abrir em nova janela
+    const canvaUrl = getCanvaUrl();
+    window.open(canvaUrl, '_blank');
+  };
+  
+  // Skeletons para loading
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Button 
+          variant="ghost" 
+          className="mb-6"
+          onClick={() => setLocation('/')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Skeleton className="w-full h-[500px] rounded-lg" />
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <div className="space-y-2 mt-4">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-2/3" />
+            </div>
+            <Skeleton className="h-12 w-full mt-4" />
+            <div className="flex gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Mensagem de erro
+  if (error || !post) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Button 
+          variant="ghost" 
+          className="mb-6"
+          onClick={() => setLocation('/')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        
+        <div className="text-center p-12 bg-white rounded-lg shadow-sm">
+          <h2 className="text-2xl font-bold text-red-500 mb-4">Arte não encontrada</h2>
+          <p className="text-gray-600 mb-4">
+            Não foi possível encontrar a arte solicitada. Ela pode ter sido removida ou o link está incorreto.
+          </p>
+          <Button onClick={() => setLocation('/')}>
+            Voltar para a galeria
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <Button 
+        variant="ghost" 
+        className="mb-6"
+        onClick={() => setLocation('/')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Button>
+      
+      {/* Layout principal em duas colunas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Coluna da esquerda - Imagem da arte */}
+        <div className="relative">
+          {/* Label do formato */}
+          <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
+            {formatLabel(availableFormats[0])}
+          </span>
+          
+          {/* Selo premium */}
+          {isPremium && (
+            <div className="absolute top-4 right-4 bg-amber-400 text-white rounded-full p-2 z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
+              </svg>
+            </div>
+          )}
+          
+          {/* Imagem principal otimizada */}
+          <div className="overflow-hidden rounded-lg shadow-md">
+            {(() => {
+              // Função para obter a URL da imagem principal
+              const getMainImageUrl = () => {
+                // 1. Verificar se tem imageUrl direto
+                if (post?.imageUrl) {
+                  return post.imageUrl;
+                }
+                if (post?.image_url) {
+                  return post.image_url;
+                }
+                
+                // 2. Verificar nos dados de formato
+                const formatDataString = post?.formatData || post?.format_data;
+                if (formatDataString) {
+                  try {
+                    const formatData = typeof formatDataString === 'string' 
+                      ? JSON.parse(formatDataString) 
+                      : formatDataString;
+                    
+                    // Se é array, procurar pelo formato atual ou primeiro disponível
+                    if (Array.isArray(formatData) && formatData.length > 0) {
+                      // Procurar formato correspondente ao atual
+                      const currentFormat = formatData.find((f: any) => 
+                        f.type?.toLowerCase() === post.formato?.toLowerCase()
+                      );
+                      
+                      if (currentFormat?.imageUrl) {
+                        return currentFormat.imageUrl;
+                      }
+                      
+                      // Se não encontrou, usar o primeiro com imagem
+                      const firstWithImage = formatData.find((f: any) => f.imageUrl);
+                      if (firstWithImage?.imageUrl) {
+                        return firstWithImage.imageUrl;
+                      }
+                    }
+                  } catch (error) {
+                    console.warn('Erro ao parsear format_data:', error);
+                  }
+                }
+                
+                return '';
+              };
+
+              const mainImageUrl = getMainImageUrl();
+              
+              if (!mainImageUrl) {
+                return (
+                  <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <ImageIcon className="h-16 w-16 mx-auto mb-2" />
+                      <p>Imagem não disponível</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <img 
+                  src={mainImageUrl}
+                  alt={post.title}
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('Erro ao carregar imagem:', mainImageUrl);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    // Mostrar placeholder de erro
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center';
+                    errorDiv.innerHTML = `
+                      <div class="text-center text-gray-500">
+                        <div class="text-4xl mb-2">📷</div>
+                        <p>Erro ao carregar imagem</p>
+                      </div>
+                    `;
+                    target.parentNode?.appendChild(errorDiv);
+                  }}
+                />
+              );
+            })()}
+          </div>
+        </div>
+        
+        {/* Coluna da direita - Informações */}
+        <div className="space-y-5 border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
+          {/* Título e selo premium */}
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                {post.title}
+                {isPremium && (
+                  <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 h-6 py-0 px-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
+                    </svg>
+                    <span className="text-xs">Premium</span>
+                  </Badge>
+                )}
+              </h1>
+            </div>
+          </div>
+          
+          {/* Checklist de vantagens */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Editável no Canva gratuito</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Para projetos comerciais e pessoais</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Não precisa atribuir o autor</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Qualidade profissional</span>
+              </li>
+            </ul>
+          </div>
+          
+          {/* Especificações do arquivo */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Especificações do Arquivo</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Formato:</span>
+                  <span className="text-sm">{formatLabel(availableFormats[0])}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Tipo:</span>
+                  <span className="text-sm">Canva</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 flex items-center justify-center">
+                  <Eye size={13} className="text-gray-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Visualizações:</span>
+                  <span className="text-sm">{post.views || 3}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 flex items-center justify-center">
+                  <Download size={13} className="text-gray-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Downloads:</span>
+                  <span className="text-sm">{post.downloads || 0}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center mt-3">
+              <button className="text-xs text-gray-500 flex items-center gap-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="16"></line>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Ver mais detalhes
+              </button>
+            </div>
+          </div>
+          
+          {/* Formatos disponíveis */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Formatos disponíveis</h3>
+            {availableFormats.length > 1 ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="border border-gray-200 rounded-md p-3 bg-white cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
+                          <img 
+                            src={post.imageUrl || post.image_url} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium">{formatLabel(availableFormats[0])}</div>
+                          <div className="text-[10px] text-gray-500">{getFormatDimensions(availableFormats[0])}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-blue-600">{availableFormats.length} opções</span>
+                        <ChevronDown size={14} className="text-gray-500" />
+                      </div>
+                    </div>
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[250px] p-0">
+                  <div className="p-1">
+                    {availableFormats.map((format: string, index: number) => (
+                      <div 
+                        key={index} 
+                        className="p-2 hover:bg-gray-50 rounded-md cursor-pointer flex items-center gap-2"
+                      >
+                        <div className="w-8 h-8 rounded overflow-hidden border border-gray-100">
+                          <img 
+                            src={post.imageUrl || post.image_url} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium">{formatLabel(format)}</div>
+                          <div className="text-[10px] text-gray-500">{getFormatDimensions(format)}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <div className="border border-gray-200 rounded-md p-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
+                      <img 
+                        src={post.imageUrl || post.image_url} 
+                        alt={post.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium">{formatLabel(availableFormats[0])}</div>
+                      <div className="text-[10px] text-gray-500">{getFormatDimensions(availableFormats[0])}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-gray-500">1 opção</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Botão principal de ação */}
+          {isPremium && !isUserPremium && user ? (
+            // Botão premium para usuários gratuitos logados
+            <TooltipProvider>
+              <Tooltip open={isTooltipOpen}>
+                <TooltipTrigger asChild
+                  onMouseEnter={() => setIsTooltipOpen(true)}
+                  onMouseLeave={() => setIsTooltipOpen(false)}
+                >
+                  <Button 
+                    className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+                    disabled={true}
+                  >
+                    <Crown size={16} className="text-white" />
+                    <span className="font-medium text-sm">EDITAR NO CANVA</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-800 text-white border-none p-2 text-xs">
+                  <p>Torne-se premium para editar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : !user ? (
+            // Botão desabilitado para usuários não logados
+            <Button 
+              className="w-full bg-gray-400 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md cursor-not-allowed"
+              disabled={true}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
+            </Button>
+          ) : (
+            // Botão normal para usuários com permissão (premium ou arte gratuita)
+            <Button 
+              onClick={handleEditCanva} 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span className="font-medium text-sm">EDITAR NO CANVA</span>
+            </Button>
+          )}
+          
+          {/* Linha de ações */}
+          <div className="flex items-center justify-center gap-3 pt-5">
+            <Button 
+              onClick={handleFavorite}
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+            >
+              <Heart size={16} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
+              <span>Favoritar</span>
+            </Button>
+            
+            <Button 
+              onClick={handleSave}
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+            >
+              <Bookmark size={16} className={isSaved ? "fill-blue-500 text-blue-500" : ""} />
+              <span>Salvar</span>
+            </Button>
+            
+            <Button 
+              onClick={handleShare}
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+            >
+              <Share2 size={16} />
+              <span>Compartilhar</span>
+            </Button>
+          </div>
+          
+          {/* Informações do criador */}
+          <div className="flex items-center justify-between border-t pt-4 mt-2">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src="/assets/designer-avatar.png" />
+                <AvatarFallback className="bg-gray-100 text-gray-500">DE</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium">Design para Estética</p>
+                <p className="text-sm text-gray-500">100+ artes postadas</p>
+              </div>
+            </div>
+            <Button
+              variant={isFollowing ? "outline" : "default"}
+              size="sm"
+              onClick={handleFollow}
+              className={isFollowing 
+                ? "border-gray-300 hover:bg-gray-100" 
+                : "bg-black hover:bg-black/90 text-white"
+              }
+            >
+              {isFollowing ? "Seguindo" : "Seguir"}
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Seção de outros formatos */}
+      {relatedFormats && relatedFormats.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-xl font-bold mb-4">Outros formatos</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {relatedFormats.map((format: RelatedFormat, index: number) => (
+              <div key={format.id} className="relative rounded-lg overflow-hidden shadow-sm">
+                <a 
+                  href={`/artes/${format.uniqueCode || format.unique_code || format.id}`}
+                  className="block"
+                >
+                  <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
+                    {formatLabel(format.formato || (format.formats && format.formats[0]) || format.format)}
+                  </div>
+                  
+                  {/* Selo premium nos relacionados */}
+                  {(format.licenseType === 'premium' || format.license_type === 'premium' || format.isPro || format.is_pro) && (
+                    <div className="absolute top-2 right-2 bg-amber-400 text-white rounded-full p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <img 
+                    src={format.imageUrl || format.image_url} 
+                    alt={format.title} 
+                    className="w-full h-[180px] object-cover"
+                  />
+                  <div className="p-2 bg-white">
+                    <p className="text-xs font-medium truncate">{format.title}</p>
+                  </div>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

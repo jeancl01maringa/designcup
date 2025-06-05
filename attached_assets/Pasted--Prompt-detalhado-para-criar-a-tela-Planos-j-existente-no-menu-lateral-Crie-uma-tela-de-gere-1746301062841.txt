@@ -1,0 +1,73 @@
+🧠 Prompt detalhado para criar a tela "Planos" (já existente no menu lateral)
+
+Crie uma tela de gerenciamento de planos no painel administrativo conforme os seguintes critérios:
+
+🧾 Tela de Listagem de Planos
+A tela deve ser exibida ao clicar no item "Planos" do menu lateral.
+
+Layout em card ou tabela (conforme o print enviado), com os seguintes campos:
+
+#: ID do plano
+
+Nome: Nome do plano. Se for um plano gratuito ou principal, mostrar um selo (ex: ícone de estrela amarela ao lado do nome do plano principal)
+
+Período: Texto simples (Mensal, Anual, etc)
+
+Valor: Em formato monetário (R$ XX,XX)
+
+Ativo: Mostrar um toggle para ativar/desativar o plano diretamente
+
+Ações: ícones de editar e excluir
+
+No topo da tabela:
+
+Campo de busca por nome do plano
+
+Filtros “Ativos” e “Inativos”
+
+Botão + Novo Plano no topo direito
+
+🧾 Modal: Cadastro e Edição de Plano
+Ao clicar em + Novo Plano ou no botão de edição:
+
+Modal com título: Novo Plano (ou Editar Plano se aplicável)
+
+Campos obrigatórios:
+
+Nome do Plano (input)
+
+Toggle Ativo (indica se o plano está visível para uso)
+
+Toggle Plano Gratuito (define se é grátis ou pago)
+
+Código do Plano (Hotmart) (input)
+
+URL do Hotmart (input)
+
+Período: dropdown com opções pré-definidas (Mensal, Anual, etc)
+
+Valor: campo numérico com R$ (formato decimal)
+
+Benefícios: textarea onde cada linha representa um item da lista de benefícios
+
+Botões:
+
+Salvar (azul)
+
+Cancelar (borda cinza)
+
+🧩 Comportamentos e Validações
+Ao desativar um plano com o toggle, ele deve ser ocultado da listagem principal (caso esteja com filtro "Ativos")
+
+Plano gratuito deve obrigatoriamente ter valor R$ 0,00
+
+Exibir mensagens de erro caso campos obrigatórios não sejam preenchidos
+
+A listagem deve ser atualizada em tempo real após criar, editar ou excluir
+
+📝 Observações finais
+A navegação "Planos" já existe no sidebar. Apenas implementar o conteúdo da tela.
+
+O layout deve seguir o padrão visual já aplicado nas outras telas: ícones modernos, padding confortável, toggles estilizados e botões com visual limpo.
+
+Importante manter o toggle como padrão para ativação/desativação, e não botões de texto como “Ativar” / “Desativar”.
