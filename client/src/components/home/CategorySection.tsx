@@ -21,11 +21,11 @@ interface DbPost {
   id: number;
   title: string;
   description: string | null;
-  image_url: string;
-  category_id: number;
+  imageUrl: string;
+  categoryId: number;
   status: string;
-  unique_code: string;
-  created_at: string;
+  uniqueCode: string;
+  createdAt: string;
 }
 
 // Interface para categoria com suas imagens de posts associadas
@@ -83,11 +83,11 @@ export default function CategorySection() {
   const categoriesWithPosts: CategoryWithPosts[] = dbCategories.map(category => {
     // Filtrar posts para esta categoria
     const categoryPosts = dbPosts
-      .filter(post => post.category_id === category.id)
+      .filter(post => post.categoryId === category.id)
       .map(post => ({
         id: post.id,
         title: post.title,
-        imageUrl: post.image_url
+        imageUrl: post.imageUrl
       }));
     
     return {
