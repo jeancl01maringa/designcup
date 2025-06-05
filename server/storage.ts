@@ -2414,6 +2414,62 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  async getVisiblePosts(): Promise<Post[]> {
+    try {
+      console.log("DATABASE getVisiblePosts - Buscando posts visíveis para o feed");
+      
+      // Buscar posts que estão aprovados e visíveis
+      const query = `
+        SELECT * FROM posts 
+        WHERE status = 'aprovado' 
+        AND (is_visible IS NULL OR is_visible = true)
+        ORDER BY created_at DESC
+      `;
+      
+      const result = await pool.query(query);
+      
+      if (!result.rows || result.rows.length === 0) {
+        console.log("DATABASE getVisiblePosts - Nenhum post visível encontrado");
+        return [];
+      }
+      
+      // Mapear os dados para o formato esperado pela aplicação
+      const posts: Post[] = result.rows.map(item => {
+        const rawPost = {
+          id: item.id,
+          title: item.title,
+          description: item.description || "",
+          imageUrl: item.image_url,
+          uniqueCode: item.unique_code,
+          categoryId: item.category_id,
+          status: item.status,
+          createdAt: new Date(item.created_at),
+          publishedAt: item.published_at ? new Date(item.published_at) : null,
+          formato: item.formato || null,
+          groupId: item.group_id || null,
+          tituloBase: item.titulo_base || item.title,
+          isPro: item.is_pro,
+          licenseType: item.license_type,
+          canvaUrl: item.canva_url || null,
+          formatoData: item.formato_data || null,
+          tags: item.tags || [],
+          formats: item.formats || [],
+          formatData: item.format_data || null,
+          isVisible: item.is_visible !== false
+        };
+        
+        // Normalizar os campos premium
+        return ensurePremiumFields(rawPost);
+      });
+      
+      console.log(`DATABASE getVisiblePosts - Encontrados ${posts.length} posts visíveis`);
+      return posts;
+    } catch (error) {
+      console.error("DATABASE getVisiblePosts - Erro:", error);
+      return [];
+    }
+  }
   
   // Seed the database with sample artworks
   async seedDatabase() {
