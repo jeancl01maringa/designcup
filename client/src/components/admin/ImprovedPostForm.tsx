@@ -299,7 +299,13 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   const handleSelectChange = (name: string, value: string) => {
     if (name === "categoryId") {
       // Converter para número, já que o categoryId é um número no formData
-      setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) }));
+      const categoryId = parseInt(value, 10);
+      console.log("CATEGORY SELECTION DEBUG:", {
+        selectedValue: value,
+        convertedId: categoryId,
+        availableCategories: categories.map(c => ({ id: c.id, name: c.name }))
+      });
+      setFormData(prev => ({ ...prev, [name]: categoryId }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
