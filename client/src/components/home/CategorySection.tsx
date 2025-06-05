@@ -47,20 +47,17 @@ export default function CategorySection() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [maxScroll, setMaxScroll] = useState(0);
   
-  // Buscar categorias do Supabase
+  // Buscar apenas categorias que têm posts
   const { data: dbCategories = [], isLoading: isCategoriesLoading } = useQuery<DbCategory[]>({
-    queryKey: ['/api/admin/categories'],
+    queryKey: ['/api/categories/with-posts'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('categories')
-          .select('*')
-          .order('name');
-        
-        if (error) throw error;
+        const response = await fetch('/api/categories/with-posts');
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
         return data || [];
       } catch (err) {
-        console.error('Erro ao buscar categorias:', err);
+        console.error('Erro ao buscar categorias com posts:', err);
         return [];
       }
     }

@@ -850,6 +850,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get only categories that have posts (for public feed)
+  app.get('/api/categories/with-posts', async (req, res) => {
+    try {
+      console.log("Buscando categorias com posts para o feed público...");
+      
+      // Buscar apenas categorias que têm pelo menos 1 post
+      const query = `
+        SELECT DISTINCT c.*, COUNT(p.id) as post_count
+        FROM categories c
+        INNER JOIN posts p ON c.id = p.category_id
+        WHERE c.is_active = true
+        GROUP BY c.id, c.name, c.description, c.is_active, c.created_at
+        HAVING COUNT(p.id) > 0
+        ORDER BY c.name
+      `;
+      
+      const result = await pool.query(query);
+      const categoriesWithPosts = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        postCount: parseInt(row.post_count)
+      }));
+      
+      console.log(`Encontradas ${categoriesWithPosts.length} categorias com posts:`, 
+        categoriesWithPosts.map(c => `${c.name} (${c.postCount} posts)`));
+      
+      res.json(categoriesWithPosts);
+    } catch (error) {
+      console.error('Error fetching categories with posts:', error);
+      res.status(500).json({ message: 'Error fetching categories with posts' });
+    }
+  });
+
   app.get('/api/admin/categories/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
