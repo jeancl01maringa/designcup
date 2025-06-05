@@ -175,7 +175,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           status: initialData.status as 'aprovado' | 'rascunho' | 'rejeitado',
           description: initialData.description,
           licenseType: initialData.licenseType || "premium",
-          tags: initialData.tags || [],
           formats: (initialData.formats as PostFormat[]) || [],
           formatFiles: formatFiles,
           uniqueCode: initialData.uniqueCode || nanoid(),
@@ -194,7 +193,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           status: "aprovado",
           description: null,
           licenseType: "premium",
-          tags: [],
           formats: [],
           formatFiles: createDefaultFormatFiles(),
           uniqueCode: newUniquePostId,
@@ -205,7 +203,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         // Resetar também o passo e a aba ativa
         setStep(1);
         setActiveTab("feed");
-        setNewTag("");
         setHasUnsavedChanges(false);
       }
     }
@@ -551,7 +548,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         status: "rascunho" as "aprovado" | "rascunho" | "rejeitado", // Forçar como rascunho com type assertion
         description: formData.description,
         licenseType: formData.licenseType,
-        tags: formData.tags,
         formats: formats,
         formatData: formatDataJson,
         uniqueCode: formData.uniqueCode,
@@ -630,7 +626,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         status: formData.status,
         description: formData.description,
         licenseType: formData.licenseType,
-        tags: formData.tags,
         formats: formData.formats,
         formatData: formatDataJson, // Enviar como string JSON
         uniqueCode: formData.uniqueCode,
@@ -1205,17 +1200,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                       )}
                     </p>
                   </div>
-                  <div className="col-span-2">
-                    <p className="text-sm text-muted-foreground">Tags</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {formData.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary">#{tag}</Badge>
-                      ))}
-                      {formData.tags.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Nenhuma tag adicionada</p>
-                      )}
-                    </div>
-                  </div>
+                  {/* Tags removidas - SEO baseado apenas no título */}
                 </div>
               </div>
               
