@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "wouter";
-import { Heart, Bookmark, ExternalLink, Crown, ImageDown, Lock } from "lucide-react";
+import { Heart, Bookmark, ExternalLink, Crown, ImageDown, Lock, Image as ImageIcon } from "lucide-react";
 import type { Artwork } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,22 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
     });
   };
 
+  const handleImageError = () => {
+    console.log(`Imagem falhou ao carregar: ${imageSrc}`);
+    
+    // Try alternative URL formats
+    if (imageSrc.includes('supabase.co') && !imageSrc.includes('?download=')) {
+      const altUrl = `${imageSrc}?download=public`;
+      console.log(`Tentando URL alternativa: ${altUrl}`);
+      setImageSrc(altUrl);
+    } else if (!imageError) {
+      // Final fallback - use placeholder
+      console.log('Usando placeholder como fallback');
+      setImageError(true);
+      setImageSrc('/placeholder.jpg');
+    }
+  };
+
   const handleEditClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -66,12 +82,19 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             Esta imagem mantém sua proporção original e natural sem qualquer transformação
             Não estamos forçando nenhum aspect-ratio via CSS
           */}
-          <img 
-            src={artwork.imageUrl} 
-            alt={artwork.title}
-            className="w-full h-auto object-cover display-block"
-            loading="lazy"
-          />
+          {imageError ? (
+            <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
+              <ImageIcon className="w-12 h-12 text-gray-400" />
+            </div>
+          ) : (
+            <img 
+              src={imageSrc} 
+              alt={artwork.title}
+              className="w-full h-auto object-cover display-block"
+              loading="lazy"
+              onError={handleImageError}
+            />
+          )}
           
           {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
           {artwork.isPro && (
