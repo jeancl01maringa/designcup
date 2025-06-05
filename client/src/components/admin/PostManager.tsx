@@ -62,9 +62,11 @@ import {
   Search,
   Trash2,
   X,
-  Loader2
+  Loader2,
+  ImageIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ImageRestoreManager } from "./ImageRestoreManager";
 
 export function PostManager() {
   const { toast } = useToast();
@@ -76,6 +78,7 @@ export function PostManager() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isBatchDeleteModalOpen, setIsBatchDeleteModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isImageRestoreOpen, setIsImageRestoreOpen] = useState(false);
   
   // Estado para filtros
   const [filters, setFilters] = useState({
@@ -347,6 +350,10 @@ export function PostManager() {
               <Filter className="h-4 w-4 mr-2" />
               Filtros
               {isFilterOpen ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+            </Button>
+            <Button onClick={() => setIsImageRestoreOpen(true)} variant="outline" size="sm">
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Gerenciar Imagens
             </Button>
             <Button onClick={() => {
               setSelectedPost(null);
@@ -759,6 +766,12 @@ export function PostManager() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Gerenciamento de Imagens */}
+      <ImageRestoreManager 
+        open={isImageRestoreOpen} 
+        onOpenChange={setIsImageRestoreOpen} 
+      />
     </Card>
   );
 }
