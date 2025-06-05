@@ -962,43 +962,43 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE createCategory - Criando categoria:", JSON.stringify(category));
       
-      // Mapear campos para formato do Supabase (snake_case)
-      const dbCategory = {
-        name: category.name,
-        slug: category.slug || slugify(category.name),
-        description: category.description,
-        image_url: category.imageUrl,
-        is_active: category.isActive !== undefined ? category.isActive : true
-      };
+      // Usar PostgreSQL direto para criar a categoria
+      const slug = category.slug || slugify(category.name);
+      const isActive = category.isActive !== undefined ? category.isActive : true;
       
-      // Usar a API do Supabase para criar a categoria
-      const { data, error } = await supabase
-        .from('categories')
-        .insert(dbCategory)
-        .select()
-        .single();
+      const query = `
+        INSERT INTO categories (name, slug, description, image_url, is_active, created_at)
+        VALUES ($1, $2, $3, $4, $5, NOW())
+        RETURNING id, name, slug, description, image_url, is_active, created_at
+      `;
       
-      if (error) {
-        console.error("DATABASE createCategory - Erro ao criar categoria:", error.message);
-        throw new Error(`Erro ao criar categoria: ${error.message}`);
+      const values = [
+        category.name,
+        slug,
+        category.description || '',
+        category.imageUrl || null,
+        isActive
+      ];
+      
+      const result = await pool.query(query, values);
+      const data = result.rows[0];
+      
+      if (!data) {
+        throw new Error('Falha ao criar categoria');
       }
       
-      // Mapear para o formato esperado pela aplicação
-      // Converter is_active para boolean explicitamente
-      const isActive = data.is_active === true || data.is_active === 't';
-      
-      const result: Category = {
+      const categoryResult: Category = {
         id: data.id,
         name: data.name,
         description: data.description,
-        slug: data.slug || slugify(data.name), // Gera slug se não existir
+        slug: data.slug,
         imageUrl: data.image_url,
-        isActive: isActive,
+        isActive: data.is_active,
         createdAt: new Date(data.created_at)
       };
       
-      console.log(`DATABASE createCategory - Categoria criada com sucesso: ${result.name}`);
-      return result;
+      console.log(`DATABASE createCategory - Categoria criada com sucesso: ${categoryResult.name}`);
+      return categoryResult;
     } catch (error) {
       console.error("DATABASE createCategory - Exceção:", error);
       throw error;
