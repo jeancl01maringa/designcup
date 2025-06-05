@@ -826,6 +826,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const result = await pool.query(query, [category.id]);
             const postCount = parseInt(result.rows[0]?.post_count || 0);
             
+            console.log(`Categoria ${category.id} (${category.name}): ${postCount} posts`);
+            
             return {
               ...category,
               postCount
