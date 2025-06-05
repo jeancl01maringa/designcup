@@ -1582,71 +1582,21 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE createPost - Criando novo post:", JSON.stringify(post));
       
-      // Verificar se a categoria existe no Supabase antes de continuar
+      // Verificar se a categoria existe no PostgreSQL direto
       if (post.categoryId) {
-        console.log(`DATABASE createPost - Verificando se a categoria com ID ${post.categoryId} existe`);
+        console.log(`DATABASE createPost - Verificando se a categoria com ID ${post.categoryId} existe no PostgreSQL`);
         try {
-          const { data: categoryData, error: categoryError } = await supabase
-            .from('categories')
-            .select('*')
-            .eq('id', post.categoryId)
-            .single();
-            
-          if (categoryError || !categoryData) {
-            console.warn(`DATABASE createPost - Categoria com ID ${post.categoryId} não encontrada no Supabase`);
-            console.log("DATABASE createPost - Tentando usar categoria padrão (ID 6 - Corporal)");
+          const checkResult = await pool.query('SELECT id, name FROM categories WHERE id = $1', [post.categoryId]);
+          
+          if (checkResult.rows.length === 0) {
+            console.warn(`DATABASE createPost - Categoria com ID ${post.categoryId} não encontrada no PostgreSQL`);
+            console.log("DATABASE createPost - Usando categoria padrão (ID 6 - Corporal)");
             post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
           } else {
-            console.log(`DATABASE createPost - Categoria com ID ${post.categoryId} encontrada no Supabase:`, categoryData);
-            
-            // Verificar se a categoria existe no PostgreSQL direto e criar se não existir
-            try {
-              console.log(`DATABASE createPost - Verificando se categoria ID ${post.categoryId} existe no PostgreSQL`);
-              const checkResult = await pool.query('SELECT id FROM categories WHERE id = $1', [post.categoryId]);
-              
-              if (checkResult.rows.length === 0) {
-                console.log(`DATABASE createPost - Categoria ID ${post.categoryId} não existe no PostgreSQL, criando...`);
-                
-                // Criar tabela categories se não existir
-                await pool.query(`
-                  CREATE TABLE IF NOT EXISTS categories (
-                    id SERIAL PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    slug TEXT,
-                    description TEXT,
-                    image_url TEXT,
-                    is_active BOOLEAN DEFAULT true,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                  )
-                `);
-                
-                // Inserir a categoria no PostgreSQL
-                await pool.query(`
-                  INSERT INTO categories (id, name, slug, description, image_url, is_active, created_at)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7)
-                  ON CONFLICT (id) DO NOTHING
-                `, [
-                  categoryData.id,
-                  categoryData.name,
-                  categoryData.slug || '',
-                  categoryData.description || '',
-                  categoryData.image_url || null,
-                  categoryData.is_active !== false, // Se for null ou undefined, assume true
-                  categoryData.created_at || new Date()
-                ]);
-                
-                console.log(`DATABASE createPost - Categoria ID ${post.categoryId} criada no PostgreSQL`);
-              } else {
-                console.log(`DATABASE createPost - Categoria ID ${post.categoryId} já existe no PostgreSQL`);
-              }
-            } catch (pgCategoryError) {
-              console.error(`DATABASE createPost - Erro ao verificar/criar categoria ID ${post.categoryId} no PostgreSQL:`, pgCategoryError);
-              console.log("DATABASE createPost - Usando categoria padrão (ID 6 - Corporal)");
-              post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
-            }
+            console.log(`DATABASE createPost - Categoria com ID ${post.categoryId} encontrada no PostgreSQL:`, checkResult.rows[0]);
           }
         } catch (categoryCheckError) {
-          console.error("DATABASE createPost - Erro ao verificar categoria:", categoryCheckError);
+          console.error("DATABASE createPost - Erro ao verificar categoria no PostgreSQL:", categoryCheckError);
           console.log("DATABASE createPost - Usando categoria padrão (ID 6 - Corporal)");
           post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
         }
