@@ -252,8 +252,8 @@ export default function ArtDetailPage() {
   // Estados de carregamento e erro
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-white via-orange-50 to-amber-50">
+        <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex items-center gap-4 mb-6">
             <Skeleton className="h-10 w-10 rounded-full" />
             <Skeleton className="h-6 w-32" />
@@ -261,7 +261,7 @@ export default function ArtDetailPage() {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <Skeleton className="h-[400px] w-full rounded-lg" />
+              <Skeleton className="h-[500px] w-full rounded-2xl" />
             </div>
             <div className="space-y-6">
               <Skeleton className="h-8 w-3/4" />
@@ -277,7 +277,7 @@ export default function ArtDetailPage() {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white via-orange-50 to-amber-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Arte não encontrada</h1>
           <p className="text-gray-600 mb-4">
@@ -295,85 +295,86 @@ export default function ArtDetailPage() {
   const isPremiumContent = post.isPro || post.licenseType === 'premium';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-white via-orange-50 to-amber-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header com navegação */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center mb-8">
           <Button 
             variant="ghost" 
-            size="sm" 
             onClick={() => setLocation('/')}
-            className="text-gray-600 hover:text-gray-900"
+            className="mr-4 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
           
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{post.formato || 'FEED'}</Badge>
-            {isPremiumContent && (
-              <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
-                <Crown className="h-3 w-3 mr-1" />
-                Premium
-              </Badge>
-            )}
-          </div>
+          <Badge variant="secondary" className="mr-2">{post.formato || 'FEED'}</Badge>
+          
+          {isPremiumContent && (
+            <Badge variant="default" className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+              <Crown className="h-3 w-3 mr-1" />
+              ESTÉTICA PREMIUM
+            </Badge>
+          )}
         </div>
 
         {/* Conteúdo principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Coluna da imagem */}
-          <div className="space-y-4">
-            {/* Imagem principal */}
-            <div className="overflow-hidden rounded-lg shadow-md">
+          <div className="space-y-6">
+            {/* Imagem principal otimizada */}
+            <div className="overflow-hidden rounded-2xl shadow-2xl bg-white">
               {mainImageUrl ? (
                 <img
                   src={mainImageUrl}
                   alt={post.title}
                   className="w-full h-auto object-cover"
-                  style={{ maxHeight: '600px' }}
+                  style={{ maxHeight: '700px' }}
                   onError={(e) => {
                     console.error('Erro ao carregar imagem:', mainImageUrl);
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               ) : (
-                <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="w-full h-[500px] bg-gray-100 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <FileImage className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Erro ao carregar imagem</p>
+                    <FileImage className="h-20 w-20 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg">Erro ao carregar imagem</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Seção de formatos disponíveis */}
+            {/* Seção de formatos disponíveis - NOVA FUNCIONALIDADE */}
             {availableFormats.length > 1 && (
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Formatos disponíveis</h3>
-                <div className="space-y-2">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-orange-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileImage className="h-5 w-5 mr-2 text-orange-500" />
+                  Formatos disponíveis
+                </h3>
+                <div className="space-y-3">
                   {availableFormats.map((format, index) => (
                     <div
                       key={index}
-                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                      className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
                         activeFormat === format.type 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-blue-500 bg-blue-50 shadow-md' 
+                          : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
                       }`}
                       onClick={() => setActiveFormat(format.type)}
                     >
-                      <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center">
-                        <FileImage className="h-5 w-5 text-gray-500" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-amber-100 rounded-lg flex items-center justify-center">
+                        <FileImage className="h-6 w-6 text-orange-600" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{format.type}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-semibold text-base text-gray-900">{format.type}</div>
+                        <div className="text-sm text-gray-500">
                           {format.type === 'Feed' && '1080×1080px • Quadrado'}
                           {format.type === 'Cartaz' && '1080×1350px • Vertical'}
                           {format.type === 'Stories' && '1080×1920px • Stories'}
                         </div>
                       </div>
-                      <div className="text-xs text-gray-400">1 opção</div>
+                      <div className="text-sm text-gray-400 font-medium">1 opção</div>
                     </div>
                   ))}
                 </div>
@@ -382,64 +383,81 @@ export default function ArtDetailPage() {
           </div>
 
           {/* Coluna das informações */}
-          <div className="space-y-6">
-            {/* Título e descrição */}
+          <div className="space-y-8">
+            {/* Título e principais características */}
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6 leading-tight">
                 {post.title}
               </h1>
               
-              {/* Benefícios */}
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-green-600">
-                  <Check className="h-4 w-4" />
-                  <span className="text-sm">Editável no Canva gratuito</span>
+              {/* Lista de benefícios com ícones de check */}
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center gap-3 text-green-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3" />
+                  </div>
+                  <span className="text-sm font-medium">Editável no Canva gratuito</span>
                 </div>
-                <div className="flex items-center gap-2 text-green-600">
-                  <Check className="h-4 w-4" />
-                  <span className="text-sm">Para projetos comerciais e pessoais</span>
+                <div className="flex items-center gap-3 text-green-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3" />
+                  </div>
+                  <span className="text-sm font-medium">Para projetos comerciais e pessoais</span>
                 </div>
-                <div className="flex items-center gap-2 text-green-600">
-                  <Check className="h-4 w-4" />
-                  <span className="text-sm">Não precisa atribuir o autor</span>
+                <div className="flex items-center gap-3 text-green-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3" />
+                  </div>
+                  <span className="text-sm font-medium">Não precisa atribuir o autor</span>
                 </div>
-                <div className="flex items-center gap-2 text-green-600">
-                  <Check className="h-4 w-4" />
-                  <span className="text-sm">Qualidade profissional</span>
+                <div className="flex items-center gap-3 text-green-600">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3" />
+                  </div>
+                  <span className="text-sm font-medium">Qualidade profissional</span>
                 </div>
               </div>
             </div>
 
-            {/* Especificações */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h3 className="font-medium text-gray-900 mb-3">Especificações do Arquivo</h3>
+            {/* Card de especificações */}
+            <div className="bg-white rounded-xl p-6 shadow-lg border border-orange-100">
+              <h3 className="font-semibold text-gray-900 mb-4">Especificações do Arquivo</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Formato:</span>
-                  <div className="font-medium">{post.formato || 'FEED'}</div>
+                  <span className="text-gray-500 block">Formato:</span>
+                  <span className="font-semibold text-gray-900">{post.formato || 'FEED'}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Tipo:</span>
-                  <div className="font-medium">Canva</div>
+                  <span className="text-gray-500 block">Tipo:</span>
+                  <span className="font-semibold text-gray-900">Canva</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Visualizações:</span>
-                  <div className="font-medium">0</div>
+                  <span className="text-gray-500 block">Visualizações:</span>
+                  <span className="font-semibold text-gray-900 flex items-center">
+                    <Eye className="h-4 w-4 mr-1" />
+                    0
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Downloads:</span>
-                  <div className="font-medium">0</div>
+                  <span className="text-gray-500 block">Downloads:</span>
+                  <span className="font-semibold text-gray-900 flex items-center">
+                    <Download className="h-4 w-4 mr-1" />
+                    0
+                  </span>
                 </div>
+              </div>
+              <div className="mt-4 text-xs text-gray-500">
+                Ver mais detalhes
               </div>
             </div>
 
             {/* Botão principal de ação */}
             <Button 
               onClick={handleCanvaEdit}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 text-lg font-semibold shadow-lg"
               size="lg"
             >
-              <ExternalLink className="h-4 w-4 mr-2" />
+              <ExternalLink className="h-5 w-5 mr-3" />
               EDITAR NO CANVA
             </Button>
 
@@ -454,7 +472,7 @@ export default function ArtDetailPage() {
                       onClick={handleToggleActions}
                       onMouseEnter={() => setIsTooltipOpen(true)}
                       onMouseLeave={() => setIsTooltipOpen(false)}
-                      className="flex-1"
+                      className="flex-1 border-orange-200 hover:bg-orange-50"
                     >
                       <Heart className={`h-4 w-4 mr-2 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
                       Favoritar
@@ -470,7 +488,7 @@ export default function ArtDetailPage() {
                 variant="outline" 
                 size="sm"
                 onClick={handleToggleActions}
-                className="flex-1"
+                className="flex-1 border-orange-200 hover:bg-orange-50"
               >
                 <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? 'fill-blue-500 text-blue-500' : ''}`} />
                 Salvar
@@ -480,21 +498,21 @@ export default function ArtDetailPage() {
                 variant="outline" 
                 size="sm"
                 onClick={handleShare}
-                className="flex-1"
+                className="flex-1 border-orange-200 hover:bg-orange-50"
               >
                 <Share2 className="h-4 w-4 mr-2" />
                 Compartilhar
               </Button>
             </div>
 
-            {/* Informações do criador */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                  <span className="text-amber-700 font-semibold text-sm">DE</span>
+            {/* Card do criador */}
+            <div className="bg-white rounded-xl p-6 shadow-lg border border-orange-100">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">DE</span>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">Design para Estética</div>
+                  <div className="font-semibold text-gray-900">Design para Estética</div>
                   <div className="text-sm text-gray-500">100+ artes postadas</div>
                 </div>
               </div>
@@ -502,7 +520,7 @@ export default function ArtDetailPage() {
               <Button 
                 variant="secondary" 
                 size="sm" 
-                className="w-full"
+                className="w-full bg-gradient-to-r from-orange-100 to-amber-100 hover:from-orange-200 hover:to-amber-200 text-orange-800"
                 onClick={handleToggleActions}
               >
                 {isFollowing ? 'Seguindo' : 'Seguir'}
