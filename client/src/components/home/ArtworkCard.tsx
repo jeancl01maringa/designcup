@@ -46,6 +46,18 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   const handleImageError = () => {
     console.log(`Imagem falhou ao carregar: ${imageSrc}`);
     
+    // First, try the correct path in Supabase Storage: images/uploads/
+    if (imageSrc.includes('supabase.co') && !imageSrc.includes('uploads/') && !imageError) {
+      const filename = imageSrc.split('/').pop()?.split('?')[0];
+      if (filename) {
+        const baseUrl = imageSrc.split('/storage/v1/object/public/images/')[0];
+        const correctUrl = `${baseUrl}/storage/v1/object/public/images/uploads/${filename}`;
+        console.log(`Tentando caminho correto do storage: ${correctUrl}`);
+        setImageSrc(correctUrl);
+        return;
+      }
+    }
+    
     // If it's a Supabase URL and we haven't tried alternatives yet
     if (imageSrc.includes('supabase.co') && !imageSrc.includes('?download=') && !imageError) {
       const altUrl = `${imageSrc}?download=public`;
@@ -113,7 +125,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
           
           {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
           {artwork.isPro && (
-            <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-8 h-8 flex items-center justify-center shadow-md">
+            <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-8 h-8 flex items-center justify-center shadow-md relative">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#FFC107" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-crown">
                 <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
               </svg>
