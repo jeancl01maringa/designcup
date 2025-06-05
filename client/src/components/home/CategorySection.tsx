@@ -63,18 +63,14 @@ export default function CategorySection() {
     }
   });
   
-  // Buscar posts aprovados do Supabase
+  // Buscar posts aprovados do PostgreSQL (dados reais)
   const { data: dbPosts = [], isLoading: isPostsLoading } = useQuery<DbPost[]>({
-    queryKey: ['/api/admin/posts/approved'],
+    queryKey: ['/api/posts/visible'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('status', 'aprovado')
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
+        const response = await fetch('/api/posts/visible');
+        if (!response.ok) throw new Error('Failed to fetch posts');
+        const data = await response.json();
         return data || [];
       } catch (err) {
         console.error('Erro ao buscar posts:', err);
