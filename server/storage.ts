@@ -1568,6 +1568,7 @@ export class DatabaseStorage implements IStorage {
           imageUrl: post.image_url,
           uniqueCode: post.unique_code,
           categoryId: post.category_id,
+          userId: post.user_id, // Incluir o ID do usuário
           status: post.status,
           createdAt: new Date(post.created_at),
           publishedAt: post.published_at ? new Date(post.published_at) : null,
