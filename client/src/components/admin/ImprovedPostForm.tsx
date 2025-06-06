@@ -377,12 +377,40 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
   // Atualizar postagem existente
   const updatePostMutation = useMutation({
-    mutationFn: async (postData: Partial<Post>) => {
+    mutationFn: async (postData: any) => {
       if (!initialData?.id) throw new Error("ID da postagem é necessário para atualização");
-      const res = await apiRequest("PATCH", `/api/admin/posts/${initialData.id}`, postData);
-      return await res.json();
+      
+      console.log("UPDATE MUTATION: Sending data to API:", {
+        id: initialData.id,
+        url: `/api/admin/posts/${initialData.id}`,
+        dataKeys: Object.keys(postData),
+        hasFormatos: !!postData.formatos,
+        formatosLength: postData.formatos?.length || 0
+      });
+      
+      try {
+        const res = await apiRequest("PATCH", `/api/admin/posts/${initialData.id}`, postData);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("UPDATE MUTATION: API Error Response:", {
+            status: res.status,
+            statusText: res.statusText,
+            errorText
+          });
+          throw new Error(`Erro na API: ${res.status} - ${errorText}`);
+        }
+        
+        const result = await res.json();
+        console.log("UPDATE MUTATION: Success response:", result);
+        return result;
+      } catch (apiError) {
+        console.error("UPDATE MUTATION: Request failed:", apiError);
+        throw apiError;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log("UPDATE MUTATION: onSuccess called with:", result);
       toast({
         title: "Sucesso!",
         description: "Postagem atualizada com sucesso.",
@@ -391,10 +419,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       queryClient.invalidateQueries({ queryKey: ["/api/admin/posts"] });
       onOpenChange(false);
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error("UPDATE MUTATION: onError called with:", error);
       toast({
         title: "Erro ao atualizar postagem",
-        description: error.message,
+        description: error.message || "Erro desconhecido",
         variant: "destructive",
       });
     },
