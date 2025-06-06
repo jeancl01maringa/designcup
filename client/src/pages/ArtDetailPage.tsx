@@ -927,7 +927,11 @@ export default function ArtDetailPage() {
             >
               <Avatar className="h-10 w-10">
                 {author?.profileImage ? (
-                  <AvatarImage src={author.profileImage} alt={author.username} />
+                  <AvatarImage 
+                    src={author.profileImage} 
+                    alt={author.username}
+                    className="object-cover w-full h-full rounded-full"
+                  />
                 ) : (
                   <AvatarFallback className="bg-gray-100 text-gray-500">
                     {author?.username ? author.username.charAt(0).toUpperCase() : 'DE'}
