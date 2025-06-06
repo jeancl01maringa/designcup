@@ -219,85 +219,100 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     return { formatFiles, allFormats };
   };
 
+  // Effect para carregar dados quando o diálogo abre
   useEffect(() => {
-    // Pular a primeira renderização
-    if (initialRender.current) {
-      initialRender.current = false;
-      return;
-    }
+    if (!open) return;
     
-    // Verificar se o estado mudou de fechado para aberto
-    if (open && !openRef.current) {
-      // Caso 1: Edição de postagem existente
-      if (isEdit && initialData) {
-        console.log("EDIT MODE: Carregando dados da postagem", initialData.id);
-        console.log("Group posts:", groupPosts);
+    if (isEdit && initialData) {
+      console.log("EDIT MODE: Carregando dados da postagem", initialData.id);
+      console.log("Group posts disponíveis:", groupPosts.length);
+      console.log("Post formats disponíveis:", postFormats.length);
+      
+      // Se temos posts do grupo, usar para carregar format data completo
+      let formatFiles = createDefaultFormatFiles();
+      let allFormats: PostFormat[] = [];
+      
+      if (groupPosts.length > 0) {
+        const loadedData = loadFormatDataFromPosts(groupPosts);
+        formatFiles = loadedData.formatFiles;
+        allFormats = loadedData.allFormats;
+        console.log("EDIT MODE: Dados carregados do grupo", { 
+          formatFiles: Object.keys(formatFiles), 
+          allFormats,
+          groupPostsCount: groupPosts.length 
+        });
+      } else {
+        // Fallback: usar apenas os dados do post atual
+        console.log("EDIT MODE: Usando dados do post atual como fallback");
+        allFormats = (initialData.formats as PostFormat[]) || [];
         
-        // Se temos posts do grupo, usar para carregar format data completo
-        let formatFiles = createDefaultFormatFiles();
-        let allFormats: PostFormat[] = [];
+        // Se não há formatos no post, tentar extrair do campo formato
+        if (allFormats.length === 0 && initialData.formato) {
+          allFormats = [initialData.formato as PostFormat];
+          console.log("EDIT MODE: Formato extraído do campo formato:", initialData.formato);
+        }
         
-        if (groupPosts.length > 0) {
-          const loadedData = loadFormatDataFromPosts(groupPosts);
-          formatFiles = loadedData.formatFiles;
-          allFormats = loadedData.allFormats;
-          console.log("EDIT MODE: Dados carregados do grupo", { formatFiles, allFormats });
-        } else {
-          // Fallback: usar apenas os dados do post atual
-          allFormats = (initialData.formats as PostFormat[]) || [];
-          if (initialData.imageUrl && allFormats.length > 0) {
-            const firstFormat = allFormats[0];
+        // Se ainda não há formatos, usar "feed" como padrão
+        if (allFormats.length === 0) {
+          allFormats = ["feed"];
+          console.log("EDIT MODE: Usando formato padrão 'feed'");
+        }
+        
+        // Se há imagem URL, adicionar ao primeiro formato
+        if (initialData.imageUrl && allFormats.length > 0) {
+          const firstFormat = allFormats[0];
+          if (formatFiles[firstFormat]) {
             formatFiles[firstFormat].imagePreview = initialData.imageUrl;
+            console.log("EDIT MODE: Imagem adicionada ao formato:", firstFormat, initialData.imageUrl);
           }
         }
-
-        setFormData({
-          title: initialData.title,
-          categoryId: initialData.categoryId,
-          status: initialData.status as 'aprovado' | 'rascunho' | 'rejeitado',
-          description: initialData.description,
-          licenseType: initialData.licenseType || "premium",
-          formats: allFormats,
-          formatFiles: formatFiles,
-          uniqueCode: initialData.uniqueCode || nanoid(),
-          groupId: initialData.groupId || nanoid(),
-          isVisible: initialData.isVisible !== undefined ? initialData.isVisible : true
-        });
-        
-        // Definir aba ativa para o primeiro formato se houver
-        if (allFormats.length > 0) {
-          setActiveTab(allFormats[0]);
-        }
-      } 
-      // Caso 2: Nova postagem (resetar para o estado inicial)
-      else if (!isEdit) {
-        console.log("NEW POST MODE: Resetando formulário");
-        // Gerar um novo ID único para cada nova postagem
-        const newUniquePostId = nanoid();
-        
-        setFormData({
-          title: "",
-          categoryId: null,
-          status: "aprovado",
-          description: null,
-          licenseType: "premium",
-          formats: [],
-          formatFiles: createDefaultFormatFiles(),
-          uniqueCode: newUniquePostId,
-          groupId: nanoid(),
-          isVisible: true
-        });
-        
-        // Resetar também o passo e a aba ativa
-        setStep(1);
-        setActiveTab("feed");
-        setHasUnsavedChanges(false);
       }
+
+      const newFormData = {
+        title: initialData.title || "",
+        categoryId: initialData.categoryId || null,
+        status: (initialData.status as 'aprovado' | 'rascunho' | 'rejeitado') || "aprovado",
+        description: initialData.description || null,
+        licenseType: (initialData.licenseType as 'premium' | 'free') || "premium",
+        formats: allFormats,
+        formatFiles: formatFiles,
+        uniqueCode: initialData.uniqueCode || nanoid(),
+        groupId: initialData.groupId || nanoid(),
+        isVisible: initialData.isVisible !== undefined ? initialData.isVisible : true
+      };
+      
+      console.log("EDIT MODE: Definindo form data:", newFormData);
+      setFormData(newFormData);
+      
+      // Definir aba ativa para o primeiro formato se houver
+      if (allFormats.length > 0) {
+        setActiveTab(allFormats[0]);
+        console.log("EDIT MODE: Aba ativa definida para:", allFormats[0]);
+      }
+    } else if (!isEdit) {
+      console.log("NEW POST MODE: Resetando formulário");
+      // Gerar um novo ID único para cada nova postagem
+      const newUniquePostId = nanoid();
+      
+      setFormData({
+        title: "",
+        categoryId: null,
+        status: "aprovado",
+        description: null,
+        licenseType: "premium",
+        formats: [],
+        formatFiles: createDefaultFormatFiles(),
+        uniqueCode: newUniquePostId,
+        groupId: nanoid(),
+        isVisible: true
+      });
+      
+      // Resetar também o passo e a aba ativa
+      setStep(1);
+      setActiveTab("feed");
+      setHasUnsavedChanges(false);
     }
-    
-    // Atualizar a referência
-    openRef.current = open;
-  }, [open, isEdit, initialData, defaultFormatFile, postFormats, groupPosts]);
+  }, [open, isEdit, initialData, groupPosts, postFormats]);
   
   // Rastrear mudanças no formulário quando esses valores específicos mudarem
   useEffect(() => {
