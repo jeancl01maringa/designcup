@@ -176,14 +176,11 @@ export default function ArtDetailPage() {
     }
   }, [followStatus]);
   
-  // Combinar post atual com posts relacionados para exibir todos os formatos disponíveis
+  // Pré-carregar e cachear dados de todos os formatos do grupo
   const allGroupPosts = React.useMemo(() => {
     if (!post) return [];
     
-    // Usar todos os posts relacionados do grupo (sem filtrar)
     const allPosts = relatedPosts || [];
-    
-    // Remover duplicatas baseado no ID e ordenar
     const uniquePosts = allPosts
       .filter((item: any, index: number, self: any[]) => 
         index === self.findIndex((p: any) => p.id === item.id)
@@ -195,8 +192,56 @@ export default function ArtDetailPage() {
         return (aIndex !== -1 ? aIndex : 999) - (bIndex !== -1 ? bIndex : 999);
       });
     
+    // Atualizar cache local com todos os formatos
+    const newCache: Record<string, any> = {};
+    uniquePosts.forEach((formatPost: any) => {
+      const formatKey = formatPost.formato?.toLowerCase() || 'feed';
+      newCache[formatKey] = {
+        id: formatPost.id,
+        imageUrl: formatPost.imageUrl || formatPost.image_url,
+        canvaUrl: formatPost.canvaUrl || formatPost.canva_url,
+        title: formatPost.title,
+        formato: formatPost.formato,
+        uniqueCode: formatPost.uniqueCode || formatPost.unique_code
+      };
+    });
+    
+    // Atualizar cache apenas se mudou
+    if (JSON.stringify(newCache) !== JSON.stringify(formatCache)) {
+      setFormatCache(newCache);
+    }
+    
+    // Definir formato atual se ainda não foi definido
+    if (!currentFormat && uniquePosts.length > 0) {
+      const currentPost = uniquePosts.find((p: any) => p.id === postId);
+      setCurrentFormat(currentPost?.formato?.toLowerCase() || 'feed');
+    }
+    
     return uniquePosts;
-  }, [post, relatedPosts, postId]);
+  }, [post, relatedPosts, postId, formatCache]);
+
+  // Função otimizada para alternar formato instantaneamente
+  const switchFormat = React.useCallback((newFormat: string) => {
+    const formatKey = newFormat.toLowerCase();
+    
+    if (formatCache[formatKey] && formatKey !== currentFormat) {
+      setIsTransitioning(true);
+      
+      // Transição suave e instantânea
+      setTimeout(() => {
+        setCurrentFormat(formatKey);
+        setIsTransitioning(false);
+      }, 150); // Delay mínimo para transição visual suave
+    }
+  }, [formatCache, currentFormat]);
+
+  // Obter dados do formato atual do cache
+  const getCurrentFormatData = React.useCallback(() => {
+    if (!currentFormat || !formatCache[currentFormat]) {
+      return post; // Fallback para post original
+    }
+    return formatCache[currentFormat];
+  }, [currentFormat, formatCache, post]);
 
   // Extrair formatos do post a partir dos dados gravados no banco (fallback para compatibilidade)
   const availableFormats = React.useMemo(() => {
@@ -565,53 +610,12 @@ export default function ArtDetailPage() {
             </div>
           )}
           
-          {/* Imagem principal otimizada */}
-          <div className="overflow-hidden rounded-lg shadow-md">
+          {/* Imagem principal otimizada com cache */}
+          <div className={`overflow-hidden rounded-lg shadow-md transition-opacity duration-300 ${isTransitioning ? 'opacity-75' : 'opacity-100'}`}>
             {(() => {
-              // Função para obter a URL da imagem principal
-              const getMainImageUrl = () => {
-                // 1. Verificar se tem imageUrl direto
-                if (post?.imageUrl) {
-                  return post.imageUrl;
-                }
-                if (post?.image_url) {
-                  return post.image_url;
-                }
-                
-                // 2. Verificar nos dados de formato
-                const formatDataString = post?.formatData || post?.format_data;
-                if (formatDataString) {
-                  try {
-                    const formatData = typeof formatDataString === 'string' 
-                      ? JSON.parse(formatDataString) 
-                      : formatDataString;
-                    
-                    // Se é array, procurar pelo formato atual ou primeiro disponível
-                    if (Array.isArray(formatData) && formatData.length > 0) {
-                      // Procurar formato correspondente ao atual
-                      const currentFormat = formatData.find((f: any) => 
-                        f.type?.toLowerCase() === post.formato?.toLowerCase()
-                      );
-                      
-                      if (currentFormat?.imageUrl) {
-                        return currentFormat.imageUrl;
-                      }
-                      
-                      // Se não encontrou, usar o primeiro com imagem
-                      const firstWithImage = formatData.find((f: any) => f.imageUrl);
-                      if (firstWithImage?.imageUrl) {
-                        return firstWithImage.imageUrl;
-                      }
-                    }
-                  } catch (error) {
-                    console.warn('Erro ao parsear format_data:', error);
-                  }
-                }
-                
-                return '';
-              };
-
-              const mainImageUrl = getMainImageUrl();
+              // Usar dados do cache se disponível
+              const currentData = getCurrentFormatData();
+              const mainImageUrl = currentData?.imageUrl || currentData?.image_url || '';
               
               if (!mainImageUrl) {
                 return (
@@ -626,24 +630,15 @@ export default function ArtDetailPage() {
 
               return (
                 <img 
+                  key={`${currentFormat}-${currentData?.id}`}
                   src={mainImageUrl}
-                  alt={post.title}
-                  className="w-full h-auto object-cover"
+                  alt={currentData?.title || post?.title || 'Arte'}
+                  className="w-full h-auto object-cover transition-all duration-300"
                   loading="lazy"
                   onError={(e) => {
                     console.error('Erro ao carregar imagem:', mainImageUrl);
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    // Mostrar placeholder de erro
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center';
-                    errorDiv.innerHTML = `
-                      <div class="text-center text-gray-500">
-                        <div class="text-4xl mb-2">📷</div>
-                        <p>Erro ao carregar imagem</p>
-                      </div>
-                    `;
-                    target.parentNode?.appendChild(errorDiv);
                   }}
                 />
               );
@@ -805,8 +800,8 @@ export default function ArtDetailPage() {
                     
                     const slug = `${groupPost.id}-${cleanTitle}`;
                     
-                    // Forçar recarregamento da página para garantir estado limpo
-                    window.location.href = `/artes/${slug}`;
+                    // Navegação otimizada sem recarregamento
+                    setLocation(`/artes/${slug}`);
                   }}
                 >
                   <div className="flex items-center justify-between">
@@ -833,7 +828,7 @@ export default function ArtDetailPage() {
                     <ChevronRight size={16} className="text-gray-400" />
                   </div>
                 </div>
-              ))}
+              ))}}
 
               {/* Mensagem quando há apenas um formato */}
               {allGroupPosts.length === 1 && (
