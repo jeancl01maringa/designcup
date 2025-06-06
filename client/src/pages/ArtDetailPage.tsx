@@ -590,11 +590,14 @@ export default function ArtDetailPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 flex items-center justify-center">
-                  <Download size={13} className="text-gray-400" />
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-xs">Downloads:</span>
-                  <span className="text-sm">{post.downloads || 0}</span>
+                  <span className="text-gray-500 text-xs">Número ID:</span>
+                  <span className="text-sm">{post.id}</span>
                 </div>
               </div>
             </div>
