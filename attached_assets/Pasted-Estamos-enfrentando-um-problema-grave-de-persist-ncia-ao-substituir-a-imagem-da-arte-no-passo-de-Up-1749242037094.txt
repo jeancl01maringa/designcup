@@ -1,0 +1,38 @@
+Estamos enfrentando um problema grave de persistência ao substituir a imagem da arte no passo de "Uploads" durante a criação ou edição de uma postagem.
+
+---
+
+🧩 Problema:
+- Quando trocamos a imagem de um formato (ex: Feed), a imagem:
+  ✅ Atualiza corretamente no preview da listagem de postagens.
+  ✅ Atualiza corretamente na página da arte (ID).
+  ❌ Mas **no formulário da etapa “Uploads”**, a imagem continua sendo a **primeira enviada originalmente**, mesmo após salvar ou atualizar a postagem.
+  
+---
+
+🔎 O que isso indica:
+- O sistema não está atualizando o valor da thumbnail na **base de dados do formato**.
+- Provavelmente está sendo salvo em cache local ou está buscando o caminho da imagem de forma fixa sem refletir a atualização real.
+
+---
+
+✅ O que precisa ser corrigido:
+
+1. **Persistência correta da imagem**:
+   - Quando a imagem de um formato é substituída (ex: Cartaz, Feed, Story), essa nova imagem deve **atualizar imediatamente a entrada correspondente no banco de dados** (ou storage).
+   - Essa imagem atualizada deve ser a que aparece em **todos os lugares da plataforma**, inclusive na tela de edição.
+
+2. **Recarregamento correto no modal de edição**:
+   - Ao clicar novamente para editar uma postagem existente, o modal deve **carregar a imagem mais recente** vinculada ao formato, e **não a imagem original**.
+   - Nada deve ser mantido em cache local ou memória do frontend que ignore o valor atual do banco.
+
+3. **Evitar efeito de “imagem fantasma”**:
+   - A imagem anterior (original) não pode continuar sendo exibida por fallback.
+   - Verificar se o ID ou `group_id` da arte está vinculado corretamente à nova imagem para cada formato.
+
+---
+
+📌 Observação:
+Esse problema está afetando diretamente a clareza da edição e causando erros visuais sérios, já que o usuário acredita que a imagem foi trocada (e foi mesmo), mas o formulário continua mostrando a versão errada.
+
+Essa lógica deve ser revisada com urgência, mantendo consistência em **todos os pontos onde a imagem do formato aparece.**

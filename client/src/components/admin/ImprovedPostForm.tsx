@@ -805,7 +805,9 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           ...post,
           formatData: JSON.stringify(formatos), // Serializar os dados dos formatos
           // Garantir que a imageUrl principal seja atualizada com a primeira imagem disponível
-          imageUrl: mainImageUrl
+          imageUrl: mainImageUrl,
+          // Incluir todos os dados de formatos para atualização completa
+          formatFiles: formData.formatFiles
         };
         
         console.log("EDIT MODE: Dados serializados para API:", editData);
