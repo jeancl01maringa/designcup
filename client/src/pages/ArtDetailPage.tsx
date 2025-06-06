@@ -967,57 +967,23 @@ export default function ArtDetailPage() {
       {/* Seção de artes relacionadas */}
       {relatedArtworks && relatedArtworks.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-xl font-bold mb-4">Artes relacionadas</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {relatedArtworks.map((item: RelatedFormat) => {
-              const isPremium = item.licenseType === 'premium' || item.isPro;
-              const slug = item.uniqueCode || `${item.id}-${item.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-              
-              return (
-                <div key={item.id} className="relative rounded-lg overflow-hidden shadow-sm bg-white border border-gray-200 hover:shadow-md transition-shadow">
-                  <Link href={`/artes/${slug}`}>
-                    <div className="relative">
-                      {/* Selo premium */}
-                      {isPremium && (
-                        <div className="absolute top-2 right-2 z-10 bg-yellow-100 text-yellow-800 rounded-full p-1.5">
-                          <Crown className="h-3 w-3" fill="currentColor" />
-                        </div>
-                      )}
-                      
-                      {/* Badge do formato */}
-                      {item.formato && (
-                        <div className="absolute top-2 left-2 z-10 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
-                          {formatLabel(item.formato)}
-                        </div>
-                      )}
-                      
-                      {/* Imagem */}
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.title} 
-                        className="w-full h-[180px] object-cover hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/api/placeholder/180/180';
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Título */}
-                    <div className="p-3">
-                      <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
-                        {item.title}
-                      </h3>
-                      {item.categoryName && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {item.categoryName}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                </div>
-              );
-            })}
+          <h2 className="text-xl font-bold mb-6 text-center">Artes relacionadas</h2>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {relatedArtworks.map((item: RelatedFormat) => (
+              <ArtworkCard
+                key={item.id}
+                artwork={{
+                  id: item.id,
+                  title: item.title,
+                  description: "",
+                  imageUrl: item.imageUrl || "/placeholder.jpg",
+                  category: "outros",
+                  createdAt: new Date(item.createdAt || Date.now()),
+                  isPro: item.licenseType === 'premium' || item.isPro,
+                  format: item.formato || "1:1"
+                }}
+              />
+            ))}
           </div>
         </div>
       )}
