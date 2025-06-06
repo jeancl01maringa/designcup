@@ -12,7 +12,9 @@ import {
   Eye,
   ExternalLink,
   ChevronDown,
-  Crown
+  ChevronRight,
+  Crown,
+  Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -520,7 +522,7 @@ export default function ArtDetailPage() {
                 return (
                   <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
                     <div className="text-center text-gray-500">
-                      <ImageIcon className="h-16 w-16 mx-auto mb-2" />
+                      <Image className="h-16 w-16 mx-auto mb-2" />
                       <p>Imagem não disponível</p>
                     </div>
                   </div>
@@ -646,96 +648,87 @@ export default function ArtDetailPage() {
             </div>
           </div>
           
-          {/* Formatos disponíveis */}
+          {/* Formatos disponíveis - Novo design inspirado na referência */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Formatos disponíveis</h3>
-            {allGroupPosts.length > 1 ? (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <div className="border border-gray-200 rounded-md p-3 bg-white cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
-                          <img 
-                            src={post.imageUrl || post.image_url} 
-                            alt={post.title} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-xs font-medium">{formatLabel(post?.formato || 'FEED')}</div>
-                          <div className="text-[10px] text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-blue-600">{allGroupPosts.length} opções</span>
-                        <ChevronDown size={14} className="text-gray-500" />
-                      </div>
-                    </div>
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-[280px] p-0">
-                  <div className="p-1">
-                    {allGroupPosts.map((groupPost: any) => (
-                      <div 
-                        key={groupPost.id} 
-                        className={`p-2 hover:bg-gray-50 rounded-md cursor-pointer flex items-center gap-2 ${
-                          groupPost.id === postId ? 'bg-blue-50 border border-blue-200' : ''
-                        }`}
-                        onClick={() => {
-                          if (groupPost.id !== postId) {
-                            // Navegar para a página da variação
-                            const slug = `${groupPost.id}-${groupPost.title.toLowerCase()
-                              .replace(/[^\w\s-]/g, '')
-                              .replace(/\s+/g, '-')
-                              .replace(/-+/g, '-')
-                              .trim()}`;
-                            setLocation(`/artes/${slug}`);
-                          }
-                        }}
-                      >
-                        <div className="w-8 h-8 rounded overflow-hidden border border-gray-100">
-                          <img 
-                            src={groupPost.imageUrl || groupPost.image_url} 
-                            alt={groupPost.title} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-xs font-medium flex items-center gap-1">
-                            {formatLabel(groupPost.formato || 'FEED')}
-                            {groupPost.id === postId && <span className="text-blue-600 text-[8px]">(atual)</span>}
-                          </div>
-                          <div className="text-[10px] text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
-                        </div>
-                        {groupPost.id !== postId && (
-                          <ExternalLink size={12} className="text-gray-400" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            ) : (
-              <div className="border border-gray-200 rounded-md p-3 bg-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded overflow-hidden border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-gray-700">Formatos disponíveis</h3>
+              {allGroupPosts.length > 1 && (
+                <span className="text-xs text-blue-600 font-medium">{allGroupPosts.length} opções</span>
+              )}
+            </div>
+            
+            <div className="space-y-3">
+              {allGroupPosts.map((groupPost: any, index: number) => (
+                <div 
+                  key={`format-card-${groupPost.id}-${index}`}
+                  className={`relative bg-white rounded-lg border transition-all duration-200 ${
+                    groupPost.id === Number(postId) 
+                      ? 'border-blue-500 ring-2 ring-blue-100 shadow-sm' 
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-sm cursor-pointer'
+                  }`}
+                  onClick={() => {
+                    if (groupPost.id !== Number(postId)) {
+                      const slug = `${groupPost.id}-${groupPost.title.toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .replace(/\s+/g, '-')
+                        .replace(/-+/g, '-')
+                        .trim()}`;
+                      setLocation(`/artes/${slug}`);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-3 p-3">
+                    {/* Thumbnail da arte */}
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
                       <img 
-                        src={post.imageUrl || post.image_url} 
-                        alt={post.title} 
+                        src={groupPost.imageUrl || groupPost.image_url} 
+                        alt={groupPost.title} 
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div>
-                      <div className="text-xs font-medium">{formatLabel(post?.formato || 'FEED')}</div>
-                      <div className="text-[10px] text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
+                    
+                    {/* Informações do formato */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium text-gray-900">
+                          {formatLabel(groupPost.formato || 'FEED')}
+                        </span>
+                        {groupPost.id === Number(postId) && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Atual
+                          </span>
+                        )}
+                        {groupPost.isPro && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            Premium
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {getFormatDimensions(groupPost.formato || 'FEED')}
+                      </div>
                     </div>
+                    
+                    {/* Ícone de navegação */}
+                    {groupPost.id !== Number(postId) && (
+                      <div className="flex-shrink-0">
+                        <ChevronRight size={16} className="text-gray-400" />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-500">1 opção</span>
-                  </div>
+                  
+                  {/* Indicador visual para o item atual */}
+                  {groupPost.id === Number(postId) && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg"></div>
+                  )}
                 </div>
+              ))}
+            </div>
+            
+            {/* Mensagem quando há apenas um formato */}
+            {allGroupPosts.length === 1 && (
+              <div className="text-center py-2">
+                <p className="text-xs text-gray-500">Este design possui apenas um formato disponível</p>
               </div>
             )}
           </div>
