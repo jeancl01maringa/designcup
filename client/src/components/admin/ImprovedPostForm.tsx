@@ -783,12 +783,17 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         status: formData.status,
         description: formData.description,
         licenseType: formData.licenseType,
-        uniqueCode: formData.uniqueCode,
         imageUrl: mainImageUrl, // Adicionar imageUrl que é obrigatório
         isVisible: formData.isVisible, // Controle de visibilidade no feed
         groupId: formData.groupId, // Incluir groupId para edit mode
         formatos: formatos // Enviar formatos para criação de múltiplas entradas
+        // uniqueCode removido para evitar conflitos na atualização em grupo
       };
+      
+      // Adicionar uniqueCode apenas para novos posts (não edição)
+      if (!isEdit) {
+        post.uniqueCode = formData.uniqueCode;
+      }
       
       // Enviar para o servidor
       if (isEdit && initialData?.id) {

@@ -16,6 +16,7 @@ import {
   Crown,
   Image
 } from "lucide-react";
+import { ArtworkCard } from "@/components/home/ArtworkCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -262,28 +263,23 @@ export default function ArtDetailPage() {
     is_pro?: boolean;
   }
   
-  // Buscar outros formatos da mesma arte usando o groupId
-  const { data: relatedFormats, isLoading: isLoadingRelated } = useQuery<RelatedFormat[]>({
-    queryKey: ['/api/admin/posts/related', post?.groupId],
+  // Buscar artes relacionadas baseado em categoria e similaridade de título
+  const { data: relatedArtworks, isLoading: isLoadingRelated } = useQuery<RelatedFormat[]>({
+    queryKey: ['/api/posts', postId, 'related'],
     queryFn: async () => {
-      // Só buscar se temos um groupId válido
-      if (!post?.groupId) return [];
+      if (!postId) return [];
       
-      // Usar o endpoint correto do admin que busca por group_id
-      const response = await fetch(`/api/admin/posts/related/${post.groupId}`);
+      const response = await fetch(`/api/posts/${postId}/related?limit=8`);
       if (!response.ok) {
-        console.warn('Falha ao buscar formatos relacionados:', response.status);
+        console.warn('Falha ao buscar artes relacionadas:', response.status);
         return [];
       }
       
-      const data = await response.json();
-      
-      // Filtrar para não incluir o post atual
-      return data.filter((item: RelatedFormat) => item.id !== post.id);
+      return response.json();
     },
-    // Habilitar a query apenas se temos um groupId válido
-    enabled: !!post?.groupId,
-    retry: false // Não repetir se falhar
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000, // 5 minutos em cache
+    retry: false
   });
   
   // Formatar objetos para exibição
@@ -965,40 +961,23 @@ export default function ArtDetailPage() {
         </div>
       </div>
       
-      {/* Seção de outros formatos */}
-      {relatedFormats && relatedFormats.length > 0 && (
+      {/* Seção de artes relacionadas */}
+      {relatedArtworks && relatedArtworks.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-xl font-bold mb-4">Outros formatos</h2>
+          <h2 className="text-xl font-bold mb-4">Artes relacionadas</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {relatedFormats.map((format: RelatedFormat, index: number) => (
-              <div key={format.id} className="relative rounded-lg overflow-hidden shadow-sm">
-                <a 
-                  href={`/artes/${format.uniqueCode || format.unique_code || format.id}`}
-                  className="block"
-                >
-                  <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
-                    {formatLabel(format.formato || (format.formats && format.formats[0]) || format.format)}
-                  </div>
-                  
-                  {/* Selo premium nos relacionados */}
-                  {(format.licenseType === 'premium' || format.license_type === 'premium' || format.isPro || format.is_pro) && (
-                    <div className="absolute top-2 right-2 bg-amber-400 text-white rounded-full p-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
-                      </svg>
-                    </div>
-                  )}
-                  
-                  <img 
-                    src={format.imageUrl || format.image_url} 
-                    alt={format.title} 
-                    className="w-full h-[180px] object-cover"
-                  />
-                  <div className="p-2 bg-white">
-                    <p className="text-xs font-medium truncate">{format.title}</p>
-                  </div>
-                </a>
-              </div>
+            {relatedArtworks.map((artwork: RelatedFormat) => (
+              <ArtworkCard
+                key={artwork.id}
+                id={artwork.id}
+                title={artwork.title}
+                imageUrl={artwork.imageUrl}
+                uniqueCode={artwork.uniqueCode}
+                formato={artwork.formato}
+                isPremium={artwork.licenseType === 'premium' || artwork.isPro}
+                author=""
+                authorId={artwork.userId}
+              />
             ))}
           </div>
         </div>

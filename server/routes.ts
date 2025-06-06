@@ -3407,6 +3407,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint para buscar artes relacionadas baseado em categoria e similaridade de título
+  app.get('/api/posts/:id/related', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const limit = parseInt(req.query.limit as string) || 8;
+      
+      if (!postId) {
+        return res.status(400).json({ message: 'ID do post inválido' });
+      }
+
+      // Primeiro, buscar o post atual para obter sua categoria e título
+      const currentPostQuery = `
+        SELECT id, title, category_id, group_id 
+        FROM posts 
+        WHERE id = $1
+      `;
+      
+      const currentPostResult = await pool.query(currentPostQuery, [postId]);
+      
+      if (currentPostResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Post não encontrado' });
+      }
+      
+      const currentPost = currentPostResult.rows[0];
+      const { title, category_id, group_id } = currentPost;
+      
+      // Extrair palavras-chave do título (remover palavras comuns e manter as principais)
+      const titleWords = title
+        .toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => 
+          word.length > 3 && 
+          !['para', 'com', 'sem', 'que', 'uma', 'seu', 'sua', 'seus', 'suas', 'arte', 'canva', 'editável', 'social', 'media'].includes(word)
+        )
+        .slice(0, 5); // Máximo 5 palavras-chave
+      
+      // Construir query para buscar posts relacionados
+      let relatedQuery = `
+        SELECT DISTINCT ON (p.group_id) 
+          p.id, p.title, p.image_url as "imageUrl", p.unique_code as "uniqueCode", 
+          p.formato, p.license_type as "licenseType", p.is_pro as "isPro",
+          p.created_at as "createdAt", p.user_id as "userId", p.group_id as "groupId",
+          c.name as "categoryName"
+        FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.status = 'aprovado' 
+          AND p.is_visible = true 
+          AND p.id != $1
+          AND p.group_id != $2
+          AND (
+            p.category_id = $3
+      `;
+      
+      const queryParams = [postId, group_id || '', category_id];
+      let paramIndex = 4;
+      
+      // Adicionar condições de similaridade de título se temos palavras-chave
+      if (titleWords.length > 0) {
+        const titleConditions = titleWords.map(word => {
+          queryParams.push(`%${word}%`);
+          return `LOWER(p.title) LIKE $${paramIndex++}`;
+        }).join(' OR ');
+        
+        relatedQuery += ` OR (${titleConditions})`;
+      }
+      
+      relatedQuery += `
+          )
+        ORDER BY p.group_id, 
+          CASE WHEN p.category_id = $3 THEN 1 ELSE 2 END,
+          p.created_at DESC
+        LIMIT $${paramIndex}
+      `;
+      
+      queryParams.push(limit);
+      
+      const result = await pool.query(relatedQuery, queryParams);
+      
+      return res.json(result.rows);
+      
+    } catch (error: any) {
+      console.error('Erro ao buscar artes relacionadas:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar artes relacionadas',
+        error: error.message
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
