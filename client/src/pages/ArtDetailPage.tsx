@@ -693,7 +693,7 @@ export default function ArtDetailPage() {
                       .map((groupPost: any, index: number) => (
                       <div 
                         key={`dropdown-format-${groupPost.id}-${index}`}
-                        className="p-3 hover:bg-gray-50 rounded-lg cursor-pointer flex items-center gap-3 transition-colors"
+                        className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all mb-2 last:mb-0"
                         onClick={() => {
                           const slug = `${groupPost.id}-${groupPost.title.toLowerCase()
                             .replace(/[^\w\s-]/g, '')
@@ -703,25 +703,29 @@ export default function ArtDetailPage() {
                           setLocation(`/artes/${slug}`);
                         }}
                       >
-                        <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
-                          <img 
-                            src={groupPost.imageUrl || groupPost.image_url} 
-                            alt={groupPost.title} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                            {formatLabel(groupPost.formato || 'FEED')}
-                            {groupPost.isPro && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                                Premium
-                              </span>
-                            )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                              <img 
+                                src={groupPost.imageUrl || groupPost.image_url} 
+                                alt={groupPost.title} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                {formatLabel(groupPost.formato || 'FEED')}
+                                {groupPost.isPro && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                    Premium
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
+                          <ChevronRight size={14} className="text-gray-400" />
                         </div>
-                        <ChevronRight size={14} className="text-gray-400" />
                       </div>
                     ))}
                   </div>
