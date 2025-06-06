@@ -144,6 +144,18 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       return res.json();
     }
   });
+
+  // Buscar posts do mesmo grupo quando estiver editando
+  const { data: groupPosts = [] } = useQuery<Post[]>({
+    queryKey: ["/api/admin/posts/related", initialData?.groupId],
+    queryFn: async () => {
+      if (!initialData?.groupId) return [];
+      const res = await fetch(`/api/admin/posts/related/${initialData.groupId}`);
+      if (!res.ok) throw new Error("Falha ao buscar posts do grupo");
+      return res.json();
+    },
+    enabled: isEdit && !!initialData?.groupId
+  });
   
   // Criar objeto formatFiles inicial com todos os formatos disponíveis
   const createDefaultFormatFiles = () => {
@@ -166,6 +178,47 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     return defaultFiles;
   };
 
+  // Função para carregar dados de formatData quando disponível
+  const loadFormatDataFromPosts = (posts: Post[]) => {
+    const formatFiles = createDefaultFormatFiles();
+    const allFormats: PostFormat[] = [];
+
+    // Processar cada post do grupo para extrair format data
+    posts.forEach(post => {
+      if (post.formatData) {
+        try {
+          const formats = JSON.parse(post.formatData);
+          if (Array.isArray(formats)) {
+            formats.forEach((formatInfo: any) => {
+              const formatName = formatInfo.type;
+              if (formatName && !allFormats.includes(formatName)) {
+                allFormats.push(formatName);
+              }
+              
+              // Se existe imagem URL, adicionar ao preview
+              if (formatInfo.imageUrl && formatFiles[formatName]) {
+                formatFiles[formatName].imagePreview = formatInfo.imageUrl;
+                formatFiles[formatName].links = formatInfo.links || [];
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao parsear formatData:", error);
+        }
+      }
+      
+      // Fallback: usar o campo formato individual se não há formatData
+      if (post.formato && !allFormats.includes(post.formato)) {
+        allFormats.push(post.formato);
+        if (post.imageUrl && formatFiles[post.formato]) {
+          formatFiles[post.formato].imagePreview = post.imageUrl;
+        }
+      }
+    });
+
+    return { formatFiles, allFormats };
+  };
+
   useEffect(() => {
     // Pular a primeira renderização
     if (initialRender.current) {
@@ -177,7 +230,26 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     if (open && !openRef.current) {
       // Caso 1: Edição de postagem existente
       if (isEdit && initialData) {
-        const formatFiles = createDefaultFormatFiles();
+        console.log("EDIT MODE: Carregando dados da postagem", initialData.id);
+        console.log("Group posts:", groupPosts);
+        
+        // Se temos posts do grupo, usar para carregar format data completo
+        let formatFiles = createDefaultFormatFiles();
+        let allFormats: PostFormat[] = [];
+        
+        if (groupPosts.length > 0) {
+          const loadedData = loadFormatDataFromPosts(groupPosts);
+          formatFiles = loadedData.formatFiles;
+          allFormats = loadedData.allFormats;
+          console.log("EDIT MODE: Dados carregados do grupo", { formatFiles, allFormats });
+        } else {
+          // Fallback: usar apenas os dados do post atual
+          allFormats = (initialData.formats as PostFormat[]) || [];
+          if (initialData.imageUrl && allFormats.length > 0) {
+            const firstFormat = allFormats[0];
+            formatFiles[firstFormat].imagePreview = initialData.imageUrl;
+          }
+        }
 
         setFormData({
           title: initialData.title,
@@ -185,15 +257,21 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           status: initialData.status as 'aprovado' | 'rascunho' | 'rejeitado',
           description: initialData.description,
           licenseType: initialData.licenseType || "premium",
-          formats: (initialData.formats as PostFormat[]) || [],
+          formats: allFormats,
           formatFiles: formatFiles,
           uniqueCode: initialData.uniqueCode || nanoid(),
           groupId: initialData.groupId || nanoid(),
           isVisible: initialData.isVisible !== undefined ? initialData.isVisible : true
         });
+        
+        // Definir aba ativa para o primeiro formato se houver
+        if (allFormats.length > 0) {
+          setActiveTab(allFormats[0]);
+        }
       } 
       // Caso 2: Nova postagem (resetar para o estado inicial)
       else if (!isEdit) {
+        console.log("NEW POST MODE: Resetando formulário");
         // Gerar um novo ID único para cada nova postagem
         const newUniquePostId = nanoid();
         
@@ -219,7 +297,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     
     // Atualizar a referência
     openRef.current = open;
-  }, [open, isEdit, initialData, defaultFormatFile, postFormats]);
+  }, [open, isEdit, initialData, defaultFormatFile, postFormats, groupPosts]);
   
   // Rastrear mudanças no formulário quando esses valores específicos mudarem
   useEffect(() => {
