@@ -120,12 +120,16 @@ export default function ArtDetailPage() {
     queryKey: ['/api/admin/users', post?.user_id || post?.userId],
     queryFn: async () => {
       const userId = post?.user_id || post?.userId;
+      console.log('[AUTHOR FETCH] userId from post:', userId);
+      console.log('[AUTHOR FETCH] post data:', post);
       if (!userId) return null;
       
       const response = await fetch(`/api/admin/users/${userId}`);
       if (!response.ok) return null;
       
-      return response.json();
+      const authorData = await response.json();
+      console.log('[AUTHOR FETCH] author data received:', authorData);
+      return authorData;
     },
     enabled: !!(post?.user_id || post?.userId),
     staleTime: 10 * 60 * 1000, // 10 minutos em cache
