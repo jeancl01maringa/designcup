@@ -30,6 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PremiumBadge } from "@/components/ui/premium-badge";
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
@@ -561,11 +562,7 @@ export default function ArtDetailPage() {
           
           {/* Selo premium */}
           {isPremium && (
-            <div className="absolute top-4 right-4 bg-amber-400 text-white rounded-full p-2 z-10">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
-              </svg>
-            </div>
+            <PremiumBadge className="absolute top-4 right-4 z-10" size="lg" />
           )}
           
           {/* Imagem principal otimizada */}
@@ -982,11 +979,7 @@ export default function ArtDetailPage() {
                   
                   {/* Selo premium nos relacionados */}
                   {(format.licenseType === 'premium' || format.license_type === 'premium' || format.isPro || format.is_pro) && (
-                    <div className="absolute top-2 right-2 bg-amber-400 text-white rounded-full p-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
-                      </svg>
-                    </div>
+                    <PremiumBadge className="absolute top-2 right-2" size="sm" />
                   )}
                   
                   <img 

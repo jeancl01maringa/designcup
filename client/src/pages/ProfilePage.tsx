@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PremiumBadge } from '@/components/ui/premium-badge';
 import { useAuth } from '@/hooks/use-auth';
 import { Upload, Flag, Heart, Clock, TrendingUp, Filter, Camera, Bookmark, ExternalLink, Lock, ImageIcon } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
@@ -99,11 +100,7 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
         
         {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
         {post.isPro && (
-          <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-8 h-8 flex items-center justify-center shadow-md relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#FFC107" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-crown">
-              <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
-            </svg>
-          </div>
+          <PremiumBadge className="absolute top-2 right-2 z-10" />
         )}
         
         {/* Hover actions - botões de curtir e salvar */}
