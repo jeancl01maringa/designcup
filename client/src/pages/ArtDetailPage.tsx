@@ -828,7 +828,7 @@ export default function ArtDetailPage() {
                     <ChevronRight size={16} className="text-gray-400" />
                   </div>
                 </div>
-              ))}}
+              ))}
 
               {/* Mensagem quando há apenas um formato */}
               {allGroupPosts.length === 1 && (
