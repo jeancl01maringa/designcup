@@ -560,10 +560,8 @@ export default function ArtDetailPage() {
           
           {/* Selo premium */}
           {isPremium && (
-            <div className="absolute top-4 right-4 bg-amber-400 text-white rounded-full p-2 z-10">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
-              </svg>
+            <div className="absolute top-4 right-4 z-10 bg-[#fef3c8] rounded-full p-2 flex items-center justify-center">
+              <Crown size={16} className="text-[#e7b36a]" fill="currentColor" />
             </div>
           )}
           
@@ -967,7 +965,7 @@ export default function ArtDetailPage() {
       {/* Seção de artes relacionadas */}
       {relatedArtworks && relatedArtworks.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-xl font-bold mb-6 text-center">Artes relacionadas</h2>
+          <h2 className="text-xl font-bold mb-6">Artes relacionadas</h2>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {relatedArtworks.map((item: RelatedFormat) => (
               <ArtworkCard
