@@ -61,6 +61,7 @@ export default function ArtDetailPage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   
   // Verifica se o usuário é premium baseado no tipo/plano
   const isUserPremium = user?.tipo === 'premium' || 
@@ -113,6 +114,62 @@ export default function ArtDetailPage() {
     staleTime: 5 * 60 * 1000, // 5 minutos em cache
     refetchOnWindowFocus: false
   });
+
+  // Buscar dados do autor do post
+  const { data: author } = useQuery({
+    queryKey: ['/api/admin/users', post?.user_id || post?.userId],
+    queryFn: async () => {
+      const userId = post?.user_id || post?.userId;
+      if (!userId) return null;
+      
+      const response = await fetch(`/api/admin/users/${userId}`);
+      if (!response.ok) return null;
+      
+      return response.json();
+    },
+    enabled: !!(post?.user_id || post?.userId),
+    staleTime: 10 * 60 * 1000, // 10 minutos em cache
+  });
+
+  // Buscar quantidade de posts do autor
+  const { data: authorStats } = useQuery({
+    queryKey: ['/api/admin/users', post?.user_id || post?.userId, 'stats'],
+    queryFn: async () => {
+      const userId = post?.user_id || post?.userId;
+      if (!userId) return { postsCount: 0 };
+      
+      const response = await fetch(`/api/admin/posts?userId=${userId}`);
+      if (!response.ok) return { postsCount: 0 };
+      
+      const posts = await response.json();
+      return { postsCount: posts.length };
+    },
+    enabled: !!(post?.user_id || post?.userId),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Buscar status de seguir do autor
+  const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
+    queryKey: ['/api/users', post?.user_id || post?.userId, 'follow-status'],
+    queryFn: async () => {
+      const userId = post?.user_id || post?.userId;
+      if (!userId || !user) return { following: false };
+      
+      const response = await fetch(`/api/users/${userId}/follow-status`);
+      if (!response.ok) return { following: false };
+      
+      return response.json();
+    },
+    enabled: !!(post?.user_id || post?.userId) && !!user,
+    staleTime: 30 * 1000, // 30 segundos
+  });
+
+  // Sincronizar estado local com dados do servidor
+  React.useEffect(() => {
+    if (followStatus) {
+      setIsFollowing(followStatus.following);
+    }
+  }, [followStatus]);
   
   // Combinar post atual com posts relacionados para exibir todos os formatos disponíveis
   const allGroupPosts = React.useMemo(() => {
@@ -264,7 +321,43 @@ export default function ArtDetailPage() {
   // Handlers para ações
   const handleFavorite = () => setIsFavorite(!isFavorite);
   const handleSave = () => setIsSaved(!isSaved);
-  const handleFollow = () => setIsFollowing(!isFollowing);
+  
+  const handleFollow = async () => {
+    if (!user || !author || followLoading) return;
+    
+    // Não permitir seguir a si mesmo
+    if (user.id === author.id) return;
+    
+    setFollowLoading(true);
+    
+    try {
+      if (isFollowing) {
+        // Deixar de seguir
+        const response = await fetch(`/api/users/${author.id}/follow`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          setIsFollowing(false);
+          refetchFollowStatus();
+        }
+      } else {
+        // Seguir
+        const response = await fetch(`/api/users/${author.id}/follow`, {
+          method: 'POST',
+        });
+        
+        if (response.ok) {
+          setIsFollowing(true);
+          refetchFollowStatus();
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status de seguir:', error);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
   const handleShare = () => {
     // Implementar compartilhamento
     navigator.share?.({

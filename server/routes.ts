@@ -794,6 +794,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint for user data (for author information)
+  app.get('/api/admin/users/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      console.log(`DATABASE getUserById - Buscando usuário com ID: ${id}`);
+      
+      try {
+        // Buscar via PostgreSQL direto
+        const result = await pool.query(`
+          SELECT id, username, email, profile_image, telefone, tipo, created_at, is_admin
+          FROM users 
+          WHERE id = $1
+        `, [id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          const user = result.rows[0];
+          const normalizedUser = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            profileImage: user.profile_image,
+            telefone: user.telefone,
+            tipo: user.tipo,
+            isAdmin: user.is_admin,
+            createdAt: user.created_at,
+          };
+          
+          console.log(`DATABASE getUserById - Usuário encontrado: ${user.username}`);
+          return res.json(normalizedUser);
+        } else {
+          console.log(`DATABASE getUserById - Usuário ${id} não encontrado`);
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`DATABASE getUserById - Erro ao buscar usuário ${id}:`, dbError);
+        return res.status(500).json({ message: 'Erro ao buscar usuário' });
+      }
+    } catch (error: any) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ message: 'Erro ao buscar usuário' });
+    }
+  });
+
+  // API endpoint for following/unfollowing users
+  app.post('/api/users/:id/follow', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const targetUserId = parseInt(req.params.id);
+      const currentUserId = req.user!.id;
+
+      if (isNaN(targetUserId)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      if (targetUserId === currentUserId) {
+        return res.status(400).json({ message: 'Você não pode seguir a si mesmo' });
+      }
+
+      console.log(`Usuário ${currentUserId} tentando seguir usuário ${targetUserId}`);
+
+      // Verificar se já está seguindo
+      const checkResult = await pool.query(`
+        SELECT id FROM user_follows 
+        WHERE follower_id = $1 AND following_id = $2
+      `, [currentUserId, targetUserId]);
+
+      if (checkResult.rows && checkResult.rows.length > 0) {
+        return res.status(400).json({ message: 'Você já segue este usuário' });
+      }
+
+      // Adicionar seguidor
+      await pool.query(`
+        INSERT INTO user_follows (follower_id, following_id, created_at)
+        VALUES ($1, $2, NOW())
+      `, [currentUserId, targetUserId]);
+
+      console.log(`Usuário ${currentUserId} agora segue usuário ${targetUserId}`);
+      res.json({ following: true });
+    } catch (error: any) {
+      console.error('Error following user:', error);
+      res.status(500).json({ message: 'Erro ao seguir usuário' });
+    }
+  });
+
+  app.delete('/api/users/:id/follow', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const targetUserId = parseInt(req.params.id);
+      const currentUserId = req.user!.id;
+
+      if (isNaN(targetUserId)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      console.log(`Usuário ${currentUserId} tentando deixar de seguir usuário ${targetUserId}`);
+
+      // Remover seguidor
+      const result = await pool.query(`
+        DELETE FROM user_follows 
+        WHERE follower_id = $1 AND following_id = $2
+      `, [currentUserId, targetUserId]);
+
+      console.log(`Usuário ${currentUserId} deixou de seguir usuário ${targetUserId}`);
+      res.json({ following: false });
+    } catch (error: any) {
+      console.error('Error unfollowing user:', error);
+      res.status(500).json({ message: 'Erro ao deixar de seguir usuário' });
+    }
+  });
+
+  app.get('/api/users/:id/follow-status', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ following: false });
+      }
+
+      const targetUserId = parseInt(req.params.id);
+      const currentUserId = req.user!.id;
+
+      if (isNaN(targetUserId)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      if (targetUserId === currentUserId) {
+        return res.json({ following: false });
+      }
+
+      // Verificar se está seguindo
+      const result = await pool.query(`
+        SELECT id FROM user_follows 
+        WHERE follower_id = $1 AND following_id = $2
+      `, [currentUserId, targetUserId]);
+
+      const isFollowing = result.rows && result.rows.length > 0;
+      res.json({ following: isFollowing });
+    } catch (error: any) {
+      console.error('Error checking follow status:', error);
+      res.status(500).json({ message: 'Erro ao verificar status de seguir' });
+    }
+  });
+
   // API endpoints for admin panel - Categories
   app.get('/api/admin/categories', async (req, res) => {
     try {
