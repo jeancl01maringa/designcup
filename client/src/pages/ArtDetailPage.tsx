@@ -206,42 +206,8 @@ export default function ArtDetailPage() {
       };
     });
     
-    // Atualizar cache apenas se mudou
-    if (JSON.stringify(newCache) !== JSON.stringify(formatCache)) {
-      setFormatCache(newCache);
-    }
-    
-    // Definir formato atual se ainda não foi definido
-    if (!currentFormat && uniquePosts.length > 0) {
-      const currentPost = uniquePosts.find((p: any) => p.id === postId);
-      setCurrentFormat(currentPost?.formato?.toLowerCase() || 'feed');
-    }
-    
     return uniquePosts;
-  }, [post, relatedPosts, postId, formatCache]);
-
-  // Função otimizada para alternar formato instantaneamente
-  const switchFormat = React.useCallback((newFormat: string) => {
-    const formatKey = newFormat.toLowerCase();
-    
-    if (formatCache[formatKey] && formatKey !== currentFormat) {
-      setIsTransitioning(true);
-      
-      // Transição suave e instantânea
-      setTimeout(() => {
-        setCurrentFormat(formatKey);
-        setIsTransitioning(false);
-      }, 150); // Delay mínimo para transição visual suave
-    }
-  }, [formatCache, currentFormat]);
-
-  // Obter dados do formato atual do cache
-  const getCurrentFormatData = React.useCallback(() => {
-    if (!currentFormat || !formatCache[currentFormat]) {
-      return post; // Fallback para post original
-    }
-    return formatCache[currentFormat];
-  }, [currentFormat, formatCache, post]);
+  }, [post, relatedPosts, postId]);
 
   // Extrair formatos do post a partir dos dados gravados no banco (fallback para compatibilidade)
   const availableFormats = React.useMemo(() => {
@@ -611,38 +577,18 @@ export default function ArtDetailPage() {
           )}
           
           {/* Imagem principal otimizada com cache */}
-          <div className={`overflow-hidden rounded-lg shadow-md transition-opacity duration-300 ${isTransitioning ? 'opacity-75' : 'opacity-100'}`}>
-            {(() => {
-              // Usar dados do cache se disponível
-              const currentData = getCurrentFormatData();
-              const mainImageUrl = currentData?.imageUrl || currentData?.image_url || '';
-              
-              if (!mainImageUrl) {
-                return (
-                  <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <Image className="h-16 w-16 mx-auto mb-2" />
-                      <p>Imagem não disponível</p>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <img 
-                  key={`${currentFormat}-${currentData?.id}`}
-                  src={mainImageUrl}
-                  alt={currentData?.title || post?.title || 'Arte'}
-                  className="w-full h-auto object-cover transition-all duration-300"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error('Erro ao carregar imagem:', mainImageUrl);
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              );
-            })()}
+          <div className="overflow-hidden rounded-lg shadow-md">
+            <img 
+              src={post.imageUrl || "/placeholder.jpg"}
+              alt={post.title}
+              className="w-full h-auto object-cover"
+              loading="lazy"
+              onError={(e) => {
+                console.error('Erro ao carregar imagem:', post.imageUrl);
+                const target = e.target as HTMLImageElement;
+                target.src = "/placeholder.jpg";
+              }}
+            />
           </div>
         </div>
         

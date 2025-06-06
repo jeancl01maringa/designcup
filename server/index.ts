@@ -53,13 +53,12 @@ app.use((req, res, next) => {
     log('Verificando e criando tabelas de tags...');
     await ensureTagTablesExist();
     
-    // Configurar tabelas no Supabase
-    log('Configurando tabelas no Supabase...');
-    await setupSupabaseTables();
+    // Migração desabilitada temporariamente para evitar travamento
+    // log('Configurando tabelas no Supabase...');
+    // await setupSupabaseTables();
     
-    // Migrar dados locais para o Supabase
-    log('Migrando dados para o Supabase...');
-    await migrateLocalDataToSupabase(db);
+    // log('Migrando dados para o Supabase...');
+    // await migrateLocalDataToSupabase(db);
   } catch (error) {
     log(`Error initializing database: ${error}`);
   }
