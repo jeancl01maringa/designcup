@@ -89,8 +89,51 @@ export default function ArtDetailPage() {
     refetchOnWindowFocus: false,
     refetchOnMount: false
   });
+
+  // Buscar posts relacionados do mesmo grupo (variações de formato)
+  const { data: relatedPosts = [] } = useQuery({
+    queryKey: ['/api/admin/posts/related', post?.groupId],
+    queryFn: async () => {
+      if (!post?.groupId) return [];
+      
+      const response = await fetch(`/api/admin/posts/related/${post.groupId}`);
+      
+      if (!response.ok) {
+        console.warn('Erro ao buscar posts relacionados:', response.status);
+        return [];
+      }
+      
+      const posts = await response.json();
+      // Filtrar o post atual da lista de relacionados
+      return posts.filter((p: any) => p.id !== postId);
+    },
+    enabled: !!post?.groupId,
+    staleTime: 5 * 60 * 1000, // 5 minutos em cache
+    refetchOnWindowFocus: false
+  });
   
-  // Extrair formatos do post a partir dos dados gravados no banco
+  // Combinar post atual com posts relacionados para exibir todos os formatos disponíveis
+  const allGroupPosts = React.useMemo(() => {
+    if (!post) return [];
+    
+    // Sempre incluir o post atual
+    const posts = [post];
+    
+    // Adicionar posts relacionados se existirem
+    if (relatedPosts && relatedPosts.length > 0) {
+      posts.push(...relatedPosts);
+    }
+    
+    // Ordenar por formato para consistência
+    return posts.sort((a, b) => {
+      const formatOrder = ['feed', 'stories', 'cartaz', 'story', 'reels'];
+      const aIndex = formatOrder.indexOf(a.formato?.toLowerCase() || '');
+      const bIndex = formatOrder.indexOf(b.formato?.toLowerCase() || '');
+      return (aIndex !== -1 ? aIndex : 999) - (bIndex !== -1 ? bIndex : 999);
+    });
+  }, [post, relatedPosts]);
+
+  // Extrair formatos do post a partir dos dados gravados no banco (fallback para compatibilidade)
   const availableFormats = React.useMemo(() => {
     // Verificar primeiro formato diretamente no post
     if (post?.formato) {
@@ -606,7 +649,7 @@ export default function ArtDetailPage() {
           {/* Formatos disponíveis */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Formatos disponíveis</h3>
-            {availableFormats.length > 1 ? (
+            {allGroupPosts.length > 1 ? (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="border border-gray-200 rounded-md p-3 bg-white cursor-pointer">
@@ -620,35 +663,54 @@ export default function ArtDetailPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-xs font-medium">{formatLabel(availableFormats[0])}</div>
-                          <div className="text-[10px] text-gray-500">{getFormatDimensions(availableFormats[0])}</div>
+                          <div className="text-xs font-medium">{formatLabel(post?.formato || 'FEED')}</div>
+                          <div className="text-[10px] text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-blue-600">{availableFormats.length} opções</span>
+                        <span className="text-xs text-blue-600">{allGroupPosts.length} opções</span>
                         <ChevronDown size={14} className="text-gray-500" />
                       </div>
                     </div>
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-[250px] p-0">
+                <PopoverContent className="w-[280px] p-0">
                   <div className="p-1">
-                    {availableFormats.map((format: string, index: number) => (
+                    {allGroupPosts.map((groupPost: any) => (
                       <div 
-                        key={index} 
-                        className="p-2 hover:bg-gray-50 rounded-md cursor-pointer flex items-center gap-2"
+                        key={groupPost.id} 
+                        className={`p-2 hover:bg-gray-50 rounded-md cursor-pointer flex items-center gap-2 ${
+                          groupPost.id === postId ? 'bg-blue-50 border border-blue-200' : ''
+                        }`}
+                        onClick={() => {
+                          if (groupPost.id !== postId) {
+                            // Navegar para a página da variação
+                            const slug = `${groupPost.id}-${groupPost.title.toLowerCase()
+                              .replace(/[^\w\s-]/g, '')
+                              .replace(/\s+/g, '-')
+                              .replace(/-+/g, '-')
+                              .trim()}`;
+                            setLocation(`/artes/${slug}`);
+                          }
+                        }}
                       >
                         <div className="w-8 h-8 rounded overflow-hidden border border-gray-100">
                           <img 
-                            src={post.imageUrl || post.image_url} 
-                            alt={post.title} 
+                            src={groupPost.imageUrl || groupPost.image_url} 
+                            alt={groupPost.title} 
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div>
-                          <div className="text-xs font-medium">{formatLabel(format)}</div>
-                          <div className="text-[10px] text-gray-500">{getFormatDimensions(format)}</div>
+                        <div className="flex-1">
+                          <div className="text-xs font-medium flex items-center gap-1">
+                            {formatLabel(groupPost.formato || 'FEED')}
+                            {groupPost.id === postId && <span className="text-blue-600 text-[8px]">(atual)</span>}
+                          </div>
+                          <div className="text-[10px] text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
                         </div>
+                        {groupPost.id !== postId && (
+                          <ExternalLink size={12} className="text-gray-400" />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -666,8 +728,8 @@ export default function ArtDetailPage() {
                       />
                     </div>
                     <div>
-                      <div className="text-xs font-medium">{formatLabel(availableFormats[0])}</div>
-                      <div className="text-[10px] text-gray-500">{getFormatDimensions(availableFormats[0])}</div>
+                      <div className="text-xs font-medium">{formatLabel(post?.formato || 'FEED')}</div>
+                      <div className="text-[10px] text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
