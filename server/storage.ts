@@ -1894,11 +1894,17 @@ export class DatabaseStorage implements IStorage {
       
       // Campos para suporte a múltiplos formatos
       if (post.formato !== undefined) dbPost.formato = post.formato;
-      if (post.formatData !== undefined) dbPost.format_data = post.formatData;
+      if (post.formatData !== undefined) {
+        dbPost.format_data = post.formatData;
+        console.log(`DATABASE updatePost - Atualizando formatData: ${post.formatData}`);
+      }
       if (post.groupId !== undefined) dbPost.group_id = post.groupId;
       if (post.tituloBase !== undefined) dbPost.titulo_base = post.tituloBase;
       if (post.canvaUrl !== undefined) dbPost.canva_url = post.canvaUrl;
-      if (post.formatoData !== undefined) dbPost.formato_data = post.formatoData;
+      if (post.formatoData !== undefined) {
+        dbPost.formato_data = post.formatoData;
+        console.log(`DATABASE updatePost - Atualizando formatoData: ${post.formatoData}`);
+      }
       
       // Campos de array
       if (post.tags && Array.isArray(post.tags)) {

@@ -799,7 +799,15 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       if (isEdit && initialData?.id) {
         // No modo de edição, enviar dados completos para o endpoint PATCH
         console.log("EDIT MODE: Enviando dados completos para atualização:", post);
-        await updatePostMutation.mutateAsync(post);
+        
+        // Preparar dados específicos para o modo de edição com formatData completo
+        const editData = {
+          ...post,
+          formatData: JSON.stringify(formatos) // Serializar os dados dos formatos
+        };
+        
+        console.log("EDIT MODE: Dados serializados para API:", editData);
+        await updatePostMutation.mutateAsync(editData);
       } else {
         await createPostMutation.mutateAsync(post);
       }
