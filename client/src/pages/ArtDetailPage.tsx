@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation, Link } from "wouter";
 import { 
@@ -63,6 +63,11 @@ export default function ArtDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  
+  // Garantir que a página sempre inicie no topo
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [postId]); // Rola para o topo quando o postId muda
   
   // Verifica se o usuário é premium baseado no tipo/plano
   const isUserPremium = user?.tipo === 'premium' || 
