@@ -943,13 +943,12 @@ export default function ArtDetailPage() {
             {/* Só mostrar botão de seguir se não for o próprio usuário */}
             {user && author && user.id !== author.id && (
               <Button
-                variant={isFollowing ? "outline" : "default"}
                 size="sm"
                 onClick={handleFollow}
                 disabled={followLoading}
                 className={isFollowing 
-                  ? "border-gray-300 hover:bg-gray-100" 
-                  : "bg-black hover:bg-black/90 text-white"
+                  ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
+                  : "bg-black hover:bg-gray-800 text-white border-0"
                 }
               >
                 {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
