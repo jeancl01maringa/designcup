@@ -652,7 +652,7 @@ export default function ArtDetailPage() {
             </div>
           </div>
           
-          {/* Formatos disponíveis - Layout consistente */}
+          {/* Formatos disponíveis - Dropdown */}
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-700">Formatos disponíveis</h3>
@@ -661,96 +661,111 @@ export default function ArtDetailPage() {
               )}
             </div>
             
-            <div className="space-y-2">
-              {/* Post atual sempre visível */}
-              <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
-                      <img 
-                        src={post.imageUrl || post.image_url} 
-                        alt={post.title} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                        {formatLabel(post?.formato || 'FEED')}
-                        {post?.isPro && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                            Premium
-                          </span>
-                        )}
+            {allGroupPosts.length > 1 ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-gray-300 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                          <img 
+                            src={post.imageUrl || post.image_url} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                            {formatLabel(post?.formato || 'FEED')}
+                            {post?.isPro && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                Premium
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
+                      <ChevronDown size={16} className="text-gray-400" />
                     </div>
                   </div>
-                  {allGroupPosts.length > 1 && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-blue-600">Atual</span>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <div className="p-2 space-y-1">
+                    {allGroupPosts
+                      .filter((groupPost: any) => groupPost.id !== Number(postId))
+                      .map((groupPost: any, index: number) => (
+                      <div 
+                        key={`dropdown-format-${groupPost.id}-${index}`}
+                        className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
+                        onClick={() => {
+                          // Gerar slug limpo e consistente
+                          const cleanTitle = groupPost.title
+                            .toLowerCase()
+                            .normalize('NFD')
+                            .replace(/[\u0300-\u036f]/g, '')
+                            .replace(/[^\w\s-]/g, '')
+                            .replace(/\s+/g, '-')
+                            .replace(/-+/g, '-')
+                            .replace(/^-+|-+$/g, '');
+                          
+                          const slug = `${groupPost.id}-${cleanTitle}`;
+                          window.location.href = `/artes/${slug}`;
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                              <img 
+                                src={groupPost.imageUrl || groupPost.image_url} 
+                                alt={groupPost.title} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                {formatLabel(groupPost.formato || 'FEED')}
+                                {groupPost.isPro && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                    Premium
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
+                            </div>
+                          </div>
+                          <ChevronRight size={14} className="text-gray-400" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              // Quando há apenas um formato
+              <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                    <img 
+                      src={post.imageUrl || post.image_url} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                      {formatLabel(post?.formato || 'FEED')}
+                      {post?.isPro && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          Premium
+                        </span>
+                      )}
                     </div>
-                  )}
+                    <div className="text-xs text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
+                  </div>
                 </div>
               </div>
-
-              {/* Outras variações de formato */}
-              {allGroupPosts
-                .filter((groupPost: any) => groupPost.id !== Number(postId))
-                .map((groupPost: any, index: number) => (
-                <div 
-                  key={`format-option-${groupPost.id}-${index}`}
-                  className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
-                  onClick={() => {
-                    // Gerar slug limpo e consistente
-                    const cleanTitle = groupPost.title
-                      .toLowerCase()
-                      .normalize('NFD')
-                      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-                      .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
-                      .replace(/\s+/g, '-') // Substitui espaços por hífens
-                      .replace(/-+/g, '-') // Remove hífens múltiplos
-                      .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
-                    
-                    const slug = `${groupPost.id}-${cleanTitle}`;
-                    
-                    // Forçar recarregamento da página para garantir estado limpo
-                    window.location.href = `/artes/${slug}`;
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
-                        <img 
-                          src={groupPost.imageUrl || groupPost.image_url} 
-                          alt={groupPost.title} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                          {formatLabel(groupPost.formato || 'FEED')}
-                          {groupPost.isPro && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                              Premium
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
-                      </div>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-400" />
-                  </div>
-                </div>
-              ))}
-
-              {/* Mensagem quando há apenas um formato */}
-              {allGroupPosts.length === 1 && (
-                <div className="text-center py-2">
-                  <p className="text-xs text-gray-500">Este design possui apenas um formato disponível</p>
-                </div>
-              )}
-            </div>
+            )}
           </div>
           
           {/* Botão principal de ação */}
