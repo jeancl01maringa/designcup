@@ -1397,43 +1397,39 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getPostById - Buscando post com ID:", id);
       
-      // Tentar via Supabase primeiro
+      // Usar PostgreSQL direto como fonte primária para garantir consistência
       let post: any;
       try {
-        // Usar select('*') em vez de selecionar campos específicos para maior compatibilidade
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('id', id)
-          .single();
-          
-        if (error) {
-          console.warn("DATABASE getPostById - Erro ao buscar post via Supabase:", error.message);
-          // Não retornar ainda, vamos tentar com PostgreSQL direto
-        } else if (data) {
-          post = data;
-          console.log("DATABASE getPostById - Post encontrado via Supabase API");
+        console.log("DATABASE getPostById - Buscando via PostgreSQL direto (fonte primária)");
+        
+        const result = await pool.query(`
+          SELECT * FROM posts WHERE id = $1 LIMIT 1
+        `, [id]);
+        
+        if (result.rows && result.rows.length > 0) {
+          post = result.rows[0];
+          console.log("DATABASE getPostById - Post encontrado via PostgreSQL direto");
         }
-      } catch (supabaseError) {
-        console.warn("DATABASE getPostById - Exceção ao acessar Supabase:", supabaseError);
-      }
-      
-      // Se não encontrou via Supabase, tentar com PostgreSQL direto
-      if (!post) {
+      } catch (pgError) {
+        console.error("DATABASE getPostById - Erro ao buscar via PostgreSQL:", pgError);
+        
+        // Fallback para Supabase apenas se PostgreSQL falhar
         try {
-          console.log("DATABASE getPostById - Tentando buscar via PostgreSQL direto");
-          
-          // Conexão direta com PostgreSQL
-          const result = await pool.query(`
-            SELECT * FROM posts WHERE id = $1 LIMIT 1
-          `, [id]);
-          
-          if (result.rows && result.rows.length > 0) {
-            post = result.rows[0];
-            console.log("DATABASE getPostById - Post encontrado via PostgreSQL direto");
+          console.log("DATABASE getPostById - Fallback para Supabase");
+          const { data, error } = await supabase
+            .from('posts')
+            .select('*')
+            .eq('id', id)
+            .single();
+            
+          if (error) {
+            console.warn("DATABASE getPostById - Erro ao buscar post via Supabase:", error.message);
+          } else if (data) {
+            post = data;
+            console.log("DATABASE getPostById - Post encontrado via Supabase API");
           }
-        } catch (pgError) {
-          console.error("DATABASE getPostById - Erro ao buscar via PostgreSQL:", pgError);
+        } catch (supabaseError) {
+          console.warn("DATABASE getPostById - Exceção ao acessar Supabase:", supabaseError);
         }
       }
       
@@ -1443,12 +1439,36 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
       
+      // Limpar URL da imagem removendo parâmetros problemáticos
+      let cleanImageUrl = post.image_url;
+      if (cleanImageUrl && cleanImageUrl.includes('?download=')) {
+        cleanImageUrl = cleanImageUrl.split('?download=')[0];
+      }
+      
+      // Limpar dados de formato se existirem
+      let cleanFormatData = post.format_data;
+      if (cleanFormatData && typeof cleanFormatData === 'string') {
+        try {
+          const formatData = JSON.parse(cleanFormatData);
+          if (Array.isArray(formatData)) {
+            formatData.forEach(format => {
+              if (format.imageUrl && format.imageUrl.includes('?download=')) {
+                format.imageUrl = format.imageUrl.split('?download=')[0];
+              }
+            });
+            cleanFormatData = JSON.stringify(formatData);
+          }
+        } catch (e) {
+          // Manter original se não conseguir parsear
+        }
+      }
+
       // Mapear para o formato esperado pela aplicação com valores padrão 
       const rawPost = {
         id: post.id,
         title: post.title,
         description: post.description || "",
-        imageUrl: post.image_url,
+        imageUrl: cleanImageUrl,
         uniqueCode: post.unique_code,
         categoryId: post.category_id,
         status: post.status,
@@ -1465,7 +1485,7 @@ export class DatabaseStorage implements IStorage {
         formatoData: post.formato_data || null,
         tags: post.tags || [],
         formats: post.formats || [],
-        formatData: post.format_data || null,
+        formatData: cleanFormatData || null,
         isVisible: post.is_visible !== false // se for null ou undefined, assume true
       };
       
