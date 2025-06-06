@@ -3136,6 +3136,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoints para sistema de seguidores
+  app.get('/api/users/:id/follow-status', async (req, res) => {
+    try {
+      const targetUserId = parseInt(req.params.id);
+      const currentUserId = req.user?.id;
+      
+      if (!currentUserId) {
+        return res.json({ following: false });
+      }
+      
+      if (currentUserId === targetUserId) {
+        return res.json({ following: false }); // Não pode seguir a si mesmo
+      }
+      
+      try {
+        // Verificar se já está seguindo
+        const result = await pool.query(`
+          SELECT 1 FROM user_follows 
+          WHERE follower_id = $1 AND following_id = $2
+        `, [currentUserId, targetUserId]);
+        
+        return res.json({ 
+          following: result.rows && result.rows.length > 0 
+        });
+      } catch (dbError: any) {
+        // Se a tabela não existir, criar ela primeiro
+        if (dbError.code === '42P01') {
+          try {
+            await pool.query(`
+              CREATE TABLE IF NOT EXISTS user_follows (
+                id SERIAL PRIMARY KEY,
+                follower_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                following_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(follower_id, following_id)
+              )
+            `);
+            return res.json({ following: false });
+          } catch (createError: any) {
+            console.error('Erro ao criar tabela user_follows:', createError);
+            return res.json({ following: false });
+          }
+        }
+        throw dbError;
+      }
+    } catch (error: any) {
+      console.error('Erro ao verificar status de seguidor:', error);
+      res.json({ following: false });
+    }
+  });
+
+  app.post('/api/users/:id/follow', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const targetUserId = parseInt(req.params.id);
+      const currentUserId = req.user.id;
+      
+      if (currentUserId === targetUserId) {
+        return res.status(400).json({ message: 'Não é possível seguir a si mesmo' });
+      }
+      
+      try {
+        // Verificar se já está seguindo
+        const existingFollow = await pool.query(`
+          SELECT 1 FROM user_follows 
+          WHERE follower_id = $1 AND following_id = $2
+        `, [currentUserId, targetUserId]);
+        
+        if (existingFollow.rows && existingFollow.rows.length > 0) {
+          // Desseguir
+          await pool.query(`
+            DELETE FROM user_follows 
+            WHERE follower_id = $1 AND following_id = $2
+          `, [currentUserId, targetUserId]);
+          
+          return res.json({ 
+            following: false,
+            message: 'Usuário desseguido com sucesso'
+          });
+        } else {
+          // Seguir
+          await pool.query(`
+            INSERT INTO user_follows (follower_id, following_id)
+            VALUES ($1, $2)
+            ON CONFLICT (follower_id, following_id) DO NOTHING
+          `, [currentUserId, targetUserId]);
+          
+          return res.json({ 
+            following: true,
+            message: 'Usuário seguido com sucesso'
+          });
+        }
+      } catch (dbError: any) {
+        // Se a tabela não existir, criar ela primeiro
+        if (dbError.code === '42P01') {
+          try {
+            await pool.query(`
+              CREATE TABLE IF NOT EXISTS user_follows (
+                id SERIAL PRIMARY KEY,
+                follower_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                following_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(follower_id, following_id)
+              )
+            `);
+            
+            // Tentar novamente após criar a tabela
+            await pool.query(`
+              INSERT INTO user_follows (follower_id, following_id)
+              VALUES ($1, $2)
+            `, [currentUserId, targetUserId]);
+            
+            return res.json({ 
+              following: true,
+              message: 'Usuário seguido com sucesso'
+            });
+          } catch (createError: any) {
+            console.error('Erro ao criar tabela user_follows:', createError);
+            return res.status(500).json({ message: 'Erro ao processar seguidor' });
+          }
+        }
+        throw dbError;
+      }
+    } catch (error: any) {
+      console.error('Erro ao processar seguidor:', error);
+      res.status(500).json({ 
+        message: 'Erro ao processar seguidor',
+        error: error.message
+      });
+    }
+  });
+
+  app.get('/api/users/:id/followers', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      try {
+        // Contar seguidores
+        const result = await pool.query(`
+          SELECT COUNT(*) as count
+          FROM user_follows 
+          WHERE following_id = $1
+        `, [userId]);
+        
+        const count = result.rows && result.rows.length > 0 ? parseInt(result.rows[0].count) : 0;
+        
+        return res.json({ count });
+      } catch (dbError: any) {
+        // Se a tabela não existir, retornar 0
+        if (dbError.code === '42P01') {
+          return res.json({ count: 0 });
+        }
+        throw dbError;
+      }
+    } catch (error: any) {
+      console.error('Erro ao buscar seguidores:', error);
+      res.json({ count: 0 });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

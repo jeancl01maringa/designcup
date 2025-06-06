@@ -1,0 +1,68 @@
+Quero criar a página pública de perfil dos autores/designers que publicam artes na plataforma.
+
+---
+
+📌 **Objetivo da página:**
+Exibir o perfil do autor com:
+- Foto
+- Nome
+- Descrição (bio)
+- Data de criação da conta
+- Estatísticas (arquivos postados, visualizações, seguidores, downloads)
+- Botão de seguir/desseguir
+- Lista de artes postadas
+
+---
+
+🧩 **Estrutura da Página:**
+
+1. **Banner superior (capa do perfil)**  
+   - Manter estilo visual atual (gradiente, elementos gráficos padrão da plataforma).
+   - Personalizável no futuro (por enquanto pode usar padrão).
+
+2. **Bloco de perfil do autor**
+   - Foto do usuário (ou iniciais, se não tiver imagem).
+   - Nome completo ou nome de exibição.
+   - Data de entrada (ex: “Desde junho de 2025”).
+   - Texto de bio/descritivo (ex: “Bem-vindo ao nosso perfil oficial...”).
+   - Ícones de ação:
+     - Upload (se for o próprio perfil)
+     - Reportar (ícone para denunciar perfil, se for outro usuário)
+   - Estatísticas:
+     - `Arquivos postados`
+     - `Downloads`
+     - `Visualizações`
+     - `Seguidores`
+   - Botão de **Seguir / Seguindo**, com lógica condicional:
+     - Se já segue, botão mostra "Seguindo"
+     - Se não segue, botão mostra "Seguir"
+     - Ação atualiza sem recarregar a página.
+
+3. **Listagem de artes do autor**
+   - Título: `Artes do Designer (X)`
+   - Filtros disponíveis:
+     - Todos / Favoritas / Recentes / Em Alta
+   - Cada arte com:
+     - Imagem
+     - Formato
+     - Selo "Premium" se for o caso
+     - Botão/link que leva para a página de ID da arte
+
+---
+
+🎨 **Cores e estilo:**
+- Manter o padrão visual já utilizado na plataforma.
+- Tipografia, espaçamento, botões, bordas e cores devem seguir o mesmo estilo das páginas de arte.
+- Utilizar botões arredondados e hierarquia visual clara (como já existe no painel e preview).
+
+---
+
+🔗 **Funcionalidade de link com a página de arte:**
+- Quando clicarmos no nome ou avatar do autor dentro de uma arte (página ID), essa página de perfil deve ser aberta.
+- O perfil deve carregar dinamicamente com base no `user_id` do autor.
+
+---
+
+📁 **Rotas e dados:**
+- Página acessível por rota tipo: `/perfil/:username` ou `/autor/:id`
+- Deve buscar os dados do autor e das artes postadas por ele no carregamento inicial da página.

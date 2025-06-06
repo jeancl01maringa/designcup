@@ -32,6 +32,7 @@ import TagsPage from "@/pages/admin/gerenciamento/TagsPage";
 import UsuariosPage from "@/pages/admin/gerenciamento/UsuariosPage";
 import AssinantesPage from "@/pages/admin/gerenciamento/AssinantesPage";
 import ProfilePage from "@/pages/account/ProfilePage";
+import PublicProfilePage from "@/pages/ProfilePage";
 
 function Router() {
   const [location] = useLocation();
@@ -51,6 +52,9 @@ function Router() {
       <Route path="/planos" component={PlansPage} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
+      
+      {/* Rota pública de perfil */}
+      <Route path="/autor/:id" component={PublicProfilePage} />
       
       {/* Rotas de Conta do Usuário */}
       <Route path="/perfil">
