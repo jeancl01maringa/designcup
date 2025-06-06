@@ -921,7 +921,10 @@ export default function ArtDetailPage() {
           
           {/* Informações do criador */}
           <div className="flex items-center justify-between border-t pt-4 mt-2">
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => author?.id && setLocation(`/autor/${author.id}`)}
+            >
               <Avatar className="h-10 w-10">
                 {author?.profileImage ? (
                   <AvatarImage src={author.profileImage} alt={author.username} />
@@ -932,7 +935,7 @@ export default function ArtDetailPage() {
                 )}
               </Avatar>
               <div>
-                <p className="font-medium">
+                <p className="font-medium hover:text-blue-600 transition-colors">
                   {author?.username || 'Design para Estética'}
                 </p>
                 <p className="text-sm text-gray-500">
