@@ -690,7 +690,7 @@ export default function ArtDetailPage() {
                     </div>
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
+                <PopoverContent className="w-[320px] p-0" align="start">
                   <div className="p-2 space-y-1">
                     {allGroupPosts
                       .filter((groupPost: any) => groupPost.id !== Number(postId))
