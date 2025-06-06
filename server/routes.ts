@@ -1525,22 +1525,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Endpoint PATCH para atualizações parciais (como licenseType, isVisible, etc)
+  // Endpoint PATCH para atualizações completas de posts (edit mode)
   app.patch('/api/admin/posts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       console.log(`PATCH /api/admin/posts/${id} - Dados:`, req.body);
       
-      // Permitir campos específicos para atualização parcial
-      const { licenseType, isVisible } = req.body;
+      // Extrair todos os campos que podem ser atualizados
+      const { 
+        title, 
+        categoryId, 
+        status, 
+        description, 
+        licenseType, 
+        isVisible, 
+        formatData, 
+        imageUrl,
+        groupId,
+        uniqueCode,
+        formatos 
+      } = req.body;
       
       // Mapear para o formato do modelo
       const updateData: Partial<InsertPost> = {};
       
+      // Campos básicos
+      if (title !== undefined) {
+        updateData.title = title;
+        console.log(`Atualizando título para: ${title}`);
+      }
+      
+      if (categoryId !== undefined) {
+        updateData.categoryId = parseInt(categoryId);
+        console.log(`Atualizando categoria para: ${categoryId}`);
+      }
+      
+      if (status !== undefined) {
+        updateData.status = status;
+        console.log(`Atualizando status para: ${status}`);
+      }
+      
+      if (description !== undefined) {
+        updateData.description = description;
+        console.log(`Atualizando descrição`);
+      }
+      
       if (licenseType !== undefined) {
-        // Salvar como licenseType e também atualizar is_pro
         updateData.licenseType = licenseType;
-        // Será true se licenseType for 'premium'
         updateData.isPro = licenseType === 'premium';
         console.log(`Atualizando licenseType para ${licenseType} e isPro para ${updateData.isPro}`);
       }
@@ -1550,8 +1581,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Atualizando isVisible para ${isVisible}`);
       }
       
-      const post = await storage.updatePost(id, updateData);
-      res.json(post);
+      if (imageUrl !== undefined) {
+        updateData.imageUrl = imageUrl;
+        console.log(`Atualizando imageUrl`);
+      }
+      
+      if (formatData !== undefined) {
+        updateData.formatData = formatData;
+        console.log(`Atualizando formatData com ${formatData?.length || 0} caracteres`);
+      }
+      
+      if (groupId !== undefined) {
+        updateData.groupId = groupId;
+        console.log(`Atualizando groupId para: ${groupId}`);
+      }
+      
+      if (uniqueCode !== undefined) {
+        updateData.uniqueCode = uniqueCode;
+        console.log(`Atualizando uniqueCode para: ${uniqueCode}`);
+      }
+      
+      // Se há formatos múltiplos, atualizar todos os posts do grupo
+      if (formatos && Array.isArray(formatos) && formatos.length > 0) {
+        console.log(`Atualizando grupo de ${formatos.length} formatos`);
+        
+        const relatedPosts = await storage.getPostsByGroupId(groupId);
+        const updatedPosts = [];
+        
+        for (const formato of formatos) {
+          // Encontrar o post correspondente a este formato
+          const existingPost = relatedPosts.find(p => p.formato === formato.formato);
+          
+          if (existingPost) {
+            const formatUpdateData = {
+              ...updateData,
+              imageUrl: formato.imageUrl,
+              canvaUrl: formato.canvaUrl || '',
+              formatData: JSON.stringify(formato)
+            };
+            
+            console.log(`Atualizando post ${existingPost.id} (${formato.formato})`);
+            const updatedPost = await storage.updatePost(existingPost.id, formatUpdateData);
+            updatedPosts.push(updatedPost);
+          }
+        }
+        
+        res.json({
+          success: true,
+          message: `${updatedPosts.length} posts atualizados no grupo`,
+          posts: updatedPosts
+        });
+      } else {
+        // Atualização de post único
+        const post = await storage.updatePost(id, updateData);
+        res.json(post);
+      }
     } catch (error) {
       console.error('Error updating post:', error);
       res.status(500).json({ message: 'Error updating post' });

@@ -757,11 +757,14 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         uniqueCode: formData.uniqueCode,
         imageUrl: mainImageUrl, // Adicionar imageUrl que é obrigatório
         isVisible: formData.isVisible, // Controle de visibilidade no feed
+        groupId: formData.groupId, // Incluir groupId para edit mode
         formatos: formatos // Enviar formatos para criação de múltiplas entradas
       };
       
       // Enviar para o servidor
       if (isEdit && initialData?.id) {
+        // No modo de edição, enviar dados completos para o endpoint PATCH
+        console.log("EDIT MODE: Enviando dados completos para atualização:", post);
         await updatePostMutation.mutateAsync(post);
       } else {
         await createPostMutation.mutateAsync(post);
