@@ -1602,37 +1602,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Se há formatos múltiplos, atualizar todos os posts do grupo
-      if (formatos && Array.isArray(formatos) && formatos.length > 0) {
+      if (formatos && Array.isArray(formatos) && formatos.length > 0 && groupId) {
         console.log(`Atualizando grupo de ${formatos.length} formatos`);
         
-        const relatedPosts = await storage.getPostsByGroupId(groupId);
-        const updatedPosts = [];
-        
-        for (const formato of formatos) {
-          // Encontrar o post correspondente a este formato
-          const existingPost = relatedPosts.find(p => p.formato === formato.formato);
+        try {
+          const relatedPosts = await storage.getPostsByGroupId(groupId);
+          console.log(`Encontrados ${relatedPosts.length} posts no grupo ${groupId}`);
           
-          if (existingPost) {
-            const formatUpdateData = {
-              ...updateData,
-              imageUrl: formato.imageUrl,
-              canvaUrl: formato.canvaUrl || '',
-              formatData: JSON.stringify(formato)
-            };
-            
-            console.log(`Atualizando post ${existingPost.id} (${formato.formato})`);
-            const updatedPost = await storage.updatePost(existingPost.id, formatUpdateData);
-            updatedPosts.push(updatedPost);
+          const updatedPosts = [];
+          
+          for (const formato of formatos) {
+            try {
+              // Encontrar o post correspondente a este formato
+              const existingPost = relatedPosts.find(p => p.formato === formato.formato);
+              
+              if (existingPost) {
+                const formatUpdateData = {
+                  ...updateData,
+                  imageUrl: formato.imageUrl,
+                  canvaUrl: formato.canvaUrl || '',
+                  formatData: JSON.stringify(formato)
+                };
+                
+                console.log(`Atualizando post ${existingPost.id} (${formato.formato})`);
+                const updatedPost = await storage.updatePost(existingPost.id, formatUpdateData);
+                updatedPosts.push(updatedPost);
+                console.log(`Post ${existingPost.id} atualizado com sucesso`);
+              } else {
+                console.warn(`Post não encontrado para formato ${formato.formato} no grupo ${groupId}`);
+              }
+            } catch (formatError) {
+              console.error(`Erro ao atualizar formato ${formato.formato}:`, formatError);
+              throw formatError;
+            }
           }
+          
+          console.log(`Grupo atualizado com sucesso: ${updatedPosts.length} posts`);
+          
+          // Retornar o primeiro post atualizado para manter compatibilidade com o frontend
+          const mainPost = updatedPosts.find(p => p.id === id) || updatedPosts[0];
+          if (mainPost) {
+            res.json(mainPost);
+          } else {
+            throw new Error("Nenhum post foi atualizado com sucesso");
+          }
+        } catch (groupError) {
+          console.error("Erro ao atualizar grupo:", groupError);
+          throw groupError;
         }
-        
-        res.json({
-          success: true,
-          message: `${updatedPosts.length} posts atualizados no grupo`,
-          posts: updatedPosts
-        });
       } else {
         // Atualização de post único
+        console.log("Atualizando post único");
         const post = await storage.updatePost(id, updateData);
         res.json(post);
       }
