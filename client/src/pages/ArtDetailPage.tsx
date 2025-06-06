@@ -107,8 +107,8 @@ export default function ArtDetailPage() {
       }
       
       const posts = await response.json();
-      // Filtrar o post atual da lista de relacionados
-      return posts.filter((p: any) => p.id !== postId);
+      // Retornar todos os posts do grupo (incluindo o atual)
+      return posts;
     },
     enabled: !!post?.groupId,
     staleTime: 5 * 60 * 1000, // 5 minutos em cache
@@ -179,18 +179,15 @@ export default function ArtDetailPage() {
   const allGroupPosts = React.useMemo(() => {
     if (!post) return [];
     
-    // Criar array com posts relacionados filtrados
-    const relatedFiltered = relatedPosts?.filter((p: any) => p.id !== Number(postId)) || [];
-    
-    // Sempre incluir o post atual primeiro
-    const allPosts = [post, ...relatedFiltered];
+    // Usar todos os posts relacionados do grupo (sem filtrar)
+    const allPosts = relatedPosts || [];
     
     // Remover duplicatas baseado no ID e ordenar
     const uniquePosts = allPosts
-      .filter((item, index, self) => 
-        index === self.findIndex(p => p.id === item.id)
+      .filter((item: any, index: number, self: any[]) => 
+        index === self.findIndex((p: any) => p.id === item.id)
       )
-      .sort((a, b) => {
+      .sort((a: any, b: any) => {
         const formatOrder = ['feed', 'stories', 'cartaz', 'story', 'reels'];
         const aIndex = formatOrder.indexOf(a.formato?.toLowerCase() || '');
         const bIndex = formatOrder.indexOf(b.formato?.toLowerCase() || '');
