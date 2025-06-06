@@ -754,28 +754,7 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Botão principal de ação */}
-          {isPremium && !isUserPremium && user ? (
-            // Botão premium para usuários gratuitos logados
-            <TooltipProvider>
-              <Tooltip open={isTooltipOpen}>
-                <TooltipTrigger asChild
-                  onMouseEnter={() => setIsTooltipOpen(true)}
-                  onMouseLeave={() => setIsTooltipOpen(false)}
-                >
-                  <Button 
-                    className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
-                    disabled={true}
-                  >
-                    <Crown size={16} className="text-white" />
-                    <span className="font-medium text-sm">EDITAR NO CANVA</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-gray-800 text-white border-none p-2 text-xs">
-                  <p>Torne-se premium para editar</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : !user ? (
+          {!user ? (
             // Botão desabilitado para usuários não logados
             <Button 
               className="w-full bg-gray-400 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md cursor-not-allowed"
@@ -788,6 +767,16 @@ export default function ArtDetailPage() {
               </svg>
               <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
             </Button>
+          ) : isPremium && !isUserPremium ? (
+            // Arte premium para usuários gratuitos - botão amarelo que redireciona para planos
+            <Button 
+              onClick={() => setLocation('/planos')}
+              className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+            >
+              <Crown size={16} className="text-white" />
+              <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
+              <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
+            </Button>
           ) : (
             // Botão normal para usuários com permissão (premium ou arte gratuita)
             <Button 
@@ -795,7 +784,7 @@ export default function ArtDetailPage() {
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
