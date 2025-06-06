@@ -922,25 +922,38 @@ export default function ArtDetailPage() {
           <div className="flex items-center justify-between border-t pt-4 mt-2">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src="/assets/designer-avatar.png" />
-                <AvatarFallback className="bg-gray-100 text-gray-500">DE</AvatarFallback>
+                {author?.profileImage ? (
+                  <AvatarImage src={author.profileImage} alt={author.username} />
+                ) : (
+                  <AvatarFallback className="bg-gray-100 text-gray-500">
+                    {author?.username ? author.username.charAt(0).toUpperCase() : 'DE'}
+                  </AvatarFallback>
+                )}
               </Avatar>
               <div>
-                <p className="font-medium">Design para Estética</p>
-                <p className="text-sm text-gray-500">100+ artes postadas</p>
+                <p className="font-medium">
+                  {author?.username || 'Design para Estética'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}
+                </p>
               </div>
             </div>
-            <Button
-              variant={isFollowing ? "outline" : "default"}
-              size="sm"
-              onClick={handleFollow}
-              className={isFollowing 
-                ? "border-gray-300 hover:bg-gray-100" 
-                : "bg-black hover:bg-black/90 text-white"
-              }
-            >
-              {isFollowing ? "Seguindo" : "Seguir"}
-            </Button>
+            {/* Só mostrar botão de seguir se não for o próprio usuário */}
+            {user && author && user.id !== author.id && (
+              <Button
+                variant={isFollowing ? "outline" : "default"}
+                size="sm"
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={isFollowing 
+                  ? "border-gray-300 hover:bg-gray-100" 
+                  : "bg-black hover:bg-black/90 text-white"
+                }
+              >
+                {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
+              </Button>
+            )}
           </div>
         </div>
       </div>
