@@ -190,75 +190,71 @@ export default function ProfilePage() {
         {/* Card do perfil */}
         <Card className="bg-white shadow-lg border-0 mb-8">
           <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row items-start gap-6">
-              {/* Avatar e informações básicas */}
-              <div className="flex flex-col items-center md:items-start">
-                <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-                  {profile.profileImage ? (
-                    <AvatarImage src={profile.profileImage} alt={profile.username} />
-                  ) : (
-                    <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-bold">
-                      {profile.username.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                
-                <div className="mt-4 text-center md:text-left">
-                  <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
-                  <p className="text-gray-600">Desde {joinDate}</p>
-                  <p className="text-gray-700 mt-2 max-w-md">
-                    {profile.bio || "Bem-vindo ao nosso perfil oficial! Aqui você encontra conteúdos criativos que agregam valor aos seus projetos."}
-                  </p>
-                </div>
+            <div className="flex flex-col items-center text-center gap-6">
+              {/* Avatar centralizado */}
+              <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+                {profile.profileImage ? (
+                  <AvatarImage src={profile.profileImage} alt={profile.username} />
+                ) : (
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-bold">
+                    {profile.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              
+              {/* Informações básicas centralizadas */}
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
+                <p className="text-gray-600">Desde {joinDate}</p>
+                <p className="text-gray-700 mt-2 max-w-md mx-auto">
+                  {profile.bio || "Bem-vindo ao nosso perfil oficial! Aqui você encontra conteúdos criativos que agregam valor aos seus projetos."}
+                </p>
               </div>
 
-              {/* Ações e estatísticas */}
-              <div className="flex-1 w-full">
-                {/* Botões de ação */}
-                <div className="flex gap-3 mb-6 justify-center md:justify-end">
-                  {isOwnProfile ? (
-                    <Button variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload
+              {/* Botões de ação centralizados */}
+              <div className="flex gap-3 justify-center">
+                {isOwnProfile ? (
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={handleFollow}
+                      disabled={followLoading}
+                      className={isFollowing 
+                        ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
+                        : "bg-black hover:bg-gray-800 text-white border-0"
+                      }
+                    >
+                      {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
                     </Button>
-                  ) : (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={handleFollow}
-                        disabled={followLoading}
-                        className={isFollowing 
-                          ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
-                          : "bg-black hover:bg-gray-800 text-white border-0"
-                        }
-                      >
-                        {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Flag className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
+                    <Button variant="outline" size="sm">
+                      <Flag className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
 
-                {/* Estatísticas */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{stats?.postsCount || 0}</div>
-                    <div className="text-sm text-gray-600">Arquivos</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{stats?.downloads || 0}</div>
-                    <div className="text-sm text-gray-600">Downloads</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{stats?.views || 0}</div>
-                    <div className="text-sm text-gray-600">Visualizações</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{stats?.followers || 0}</div>
-                    <div className="text-sm text-gray-600">Seguidores</div>
-                  </div>
+              {/* Estatísticas centralizadas */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{stats?.postsCount || 0}</div>
+                  <div className="text-sm text-gray-600">Arquivos</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{stats?.downloads || 0}</div>
+                  <div className="text-sm text-gray-600">Downloads</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{stats?.views || 0}</div>
+                  <div className="text-sm text-gray-600">Visualizações</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{stats?.followers || 0}</div>
+                  <div className="text-sm text-gray-600">Seguidores</div>
                 </div>
               </div>
             </div>
@@ -293,50 +289,67 @@ export default function ProfilePage() {
               </Tabs>
             </div>
 
-            {/* Grid de artes */}
+            {/* Grid de artes no padrão do feed principal */}
             {filteredPosts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
                 {filteredPosts.map((post) => (
-                  <Card key={post.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
-                    <div className="relative aspect-square overflow-hidden rounded-t-lg">
-                      <img 
-                        src={post.imageUrl} 
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onClick={() => navigate(`/artes/${post.uniqueCode}`)}
-                      />
+                  <div
+                    key={post.id}
+                    className="break-inside-avoid mb-4 group cursor-pointer"
+                    onClick={() => navigate(`/artes/${post.uniqueCode}`)}
+                  >
+                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+                      <div className="relative">
+                        <img
+                          src={post.imageUrl}
+                          alt={post.title}
+                          className="w-full h-auto object-cover"
+                          loading="lazy"
+                        />
+                        
+                        {/* Overlay com informações */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-end p-3">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-full">
+                            <div className="flex items-center justify-between text-white text-sm">
+                              <span className="bg-black bg-opacity-50 px-2 py-1 rounded text-xs">
+                                {post.formato}
+                              </span>
+                              {post.isPro && (
+                                <span className="bg-amber-500 px-2 py-1 rounded text-xs font-medium">
+                                  PREMIUM
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       
-                      {/* Badges */}
-                      <div className="absolute top-2 left-2 flex gap-2">
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-                          {post.formato}
-                        </Badge>
-                        {post.isPro && (
-                          <Badge variant="default" className="bg-black text-white text-xs">
-                            Premium
-                          </Badge>
-                        )}
+                      {/* Informações da arte */}
+                      <div className="p-3">
+                        <h3 className="font-medium text-sm text-gray-900 line-clamp-2 leading-tight mb-1">
+                          {post.title}
+                        </h3>
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>{new Date(post.createdAt).toLocaleDateString('pt-BR')}</span>
+                          {post.views && <span>{post.views} views</span>}
+                        </div>
                       </div>
                     </div>
-                    
-                    <CardContent className="p-4">
-                      <h3 className="font-medium text-sm text-gray-900 line-clamp-2 leading-tight">
-                        {post.title}
-                      </h3>
-                      {post.views && (
-                        <p className="text-xs text-gray-500 mt-1">{post.views} visualizações</p>
-                      )}
-                    </CardContent>
-                  </Card>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-16">
                 <div className="text-gray-400 mb-4">
-                  <Filter className="h-12 w-12 mx-auto" />
+                  <Filter className="h-16 w-16 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900">Nenhuma arte encontrada</h3>
-                <p className="text-gray-600">Tente alterar os filtros ou volte mais tarde.</p>
+                <h3 className="text-xl font-medium text-gray-900 mb-2">Nenhuma arte encontrada</h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  {activeFilter === 'todos' 
+                    ? 'Este designer ainda não publicou nenhuma arte.' 
+                    : 'Nenhuma arte encontrada para este filtro. Tente selecionar "Todos" para ver todas as artes.'
+                  }
+                </p>
               </div>
             )}
           </CardContent>
