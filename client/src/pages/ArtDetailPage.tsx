@@ -520,7 +520,7 @@ export default function ArtDetailPage() {
                 {post.title}
               </h1>
               {isPremium && (
-                <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-2.5 py-1 rounded-full text-sm font-medium">
+                <div className="flex items-center gap-1.5 bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full text-sm font-medium">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/>
                   </svg>
