@@ -98,6 +98,11 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
           />
         )}
         
+        {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
+        {post.isPro && (
+          <PremiumBadge className="absolute top-2 right-2 z-10" />
+        )}
+        
         {/* Hover actions - botões de curtir e salvar */}
         <div 
           className={`hover-actions absolute bottom-3 right-3 flex gap-2 transition-opacity duration-300 ease-in-out z-20
@@ -119,11 +124,6 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
             <Bookmark className="h-4 w-4" />
           </button>
         </div>
-        
-        {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
-        {post.isPro && (
-          <PremiumBadge className="absolute top-2 right-2 z-10" />
-        )}
         
         {/* Botão de editar ao passar o mouse */}
         <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>

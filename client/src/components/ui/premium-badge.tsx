@@ -25,6 +25,7 @@ export function PremiumBadge({ className = "", size = "md" }: PremiumBadgeProps)
         ${sizeStyles[size]} 
         rounded-full 
         flex items-center justify-center 
+        shadow-md 
         relative
         ${className}
       `}
