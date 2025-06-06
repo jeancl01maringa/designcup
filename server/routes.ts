@@ -1617,11 +1617,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const existingPost = relatedPosts.find(p => p.formato === formato.formato);
               
               if (existingPost) {
+                // Criar uma cópia dos dados de atualização sem o uniqueCode
+                const { uniqueCode, ...baseUpdateData } = updateData;
+                
                 const formatUpdateData = {
-                  ...updateData,
+                  ...baseUpdateData,
                   imageUrl: formato.imageUrl,
                   canvaUrl: formato.canvaUrl || '',
                   formatData: JSON.stringify(formato)
+                  // Não incluir uniqueCode para manter o código único de cada post
                 };
                 
                 console.log(`Atualizando post ${existingPost.id} (${formato.formato})`);
