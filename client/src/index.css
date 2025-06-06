@@ -111,8 +111,7 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    z-index: 999 !important; /* Garantir prioridade máxima */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important; /* Sombra mais forte para destacar */
+    z-index: 10 !important; /* Z-index moderado apenas dentro do card */
     pointer-events: none !important; /* Evitar que bloqueie cliques */
   }
 
