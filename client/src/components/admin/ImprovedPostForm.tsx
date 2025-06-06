@@ -695,7 +695,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         licenseType: formData.licenseType,
         formats: formats,
         formatData: formatDataJson,
-        uniqueCode: formData.uniqueCode,
         groupId: formData.groupId,
         imageUrl: mainImageUrl || "/assets/placeholder.png", // Fallback para placeholder
         isVisible: formData.isVisible // Controle de visibilidade no feed
@@ -790,10 +789,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         // uniqueCode removido para evitar conflitos na atualização em grupo
       };
       
-      // Adicionar uniqueCode apenas para novos posts (não edição)
-      if (!isEdit) {
-        post.uniqueCode = formData.uniqueCode;
-      }
+      // uniqueCode será gerado automaticamente no servidor para novos posts
       
       // Enviar para o servidor
       if (isEdit && initialData?.id) {
@@ -1128,16 +1124,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="border-b">
                 <TabsList className="p-0 h-auto bg-transparent border-b-0">
-                  <TabsTrigger 
-                    value="postagem" 
-                    className="py-2 px-4 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none"
-                    onClick={() => {
-                      setStep(1);
-                      setActiveTab("postagem");
-                    }}
-                  >
-                    Postagem
-                  </TabsTrigger>
                   {formData.formats.map((format) => (
                     <TabsTrigger 
                       key={format} 
@@ -1151,7 +1137,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
               </div>
               
               <div className="p-6">
-                <TabsContent key="postagem" value="postagem" className="mt-0" />
                 {formData.formats.map((format) => (
                   <TabsContent key={format} value={format} className="mt-0">
                     <div className="grid grid-cols-2 gap-8">
