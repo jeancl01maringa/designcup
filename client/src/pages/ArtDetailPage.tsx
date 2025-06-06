@@ -1,28 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "wouter";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useParams, useLocation, Link } from "wouter";
 import { 
-  Heart, 
-  Share2, 
+  ArrowLeft, 
   Download, 
-  Eye, 
-  User, 
-  ChevronRight, 
-  ArrowLeft,
+  Heart, 
+  Bookmark, 
+  Share2, 
+  Check, 
+  ChevronsDown,
+  Eye,
   ExternalLink,
-  UserPlus,
-  Check
+  ChevronDown,
+  ChevronRight,
+  Crown,
+  Image
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
-import Header from "@/components/layout/Header";
 import { ArtworkCard } from "@/components/home/ArtworkCard";
-import { toast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
@@ -40,89 +48,125 @@ export default function ArtDetailPage() {
     postId = parseInt(id, 10);
   } else if (slug) {
     // Rota /artes/:slug - extrair ID do slug (por exemplo, "10-xxxxx" => 10)
-    const idFromSlug = slug.split('-')[0];
-    postId = parseInt(idFromSlug, 10);
-    
-    // Debug: verificar se o ID foi extraído corretamente
-    console.log('Slug recebido:', slug);
-    console.log('ID extraído:', idFromSlug);
-    console.log('postId final:', postId);
+    postId = parseInt(slug.split('-')[0] || '0', 10);
   } else {
     postId = 0;
   }
-
-  const { data: post, isLoading, error } = useQuery({
-    queryKey: [`/api/posts/${postId}`],
-    enabled: !!postId && !isNaN(postId),
-  });
-
-  const { data: relatedPosts } = useQuery({
-    queryKey: [`/api/posts/${postId}/related`],
-    enabled: !!postId,
-  });
-
-  const { data: relatedArtworks } = useQuery({
-    queryKey: [`/api/posts/${postId}/category-related`],
-    enabled: !!postId && !!(post as any)?.categoryId,
-  });
-
-  const { data: postAuthor } = useQuery({
-    queryKey: [`/api/users/${(post as any)?.userId}`],
-    enabled: !!(post as any)?.userId,
-  });
-
-  const { data: followStatus } = useQuery({
-    queryKey: [`/api/users/${(post as any)?.userId}/follow-status`],
-    enabled: !!user && !!(post as any)?.userId && user.id !== (post as any)?.userId,
-  });
-
+  
+  console.log('Parâmetros recebidos:', { slug, id });
+  console.log('ID do post determinado:', postId);
+  
+  // Estado para controlar a exibição do tooltip no botão
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  
   const [isFollowing, setIsFollowing] = useState(false);
-  const queryClient = useQueryClient();
-
-  const followMutation = useMutation({
-    mutationFn: async () => {
-      if (!(post as any)?.userId) throw new Error('User ID not found');
-      const response = await apiRequest('POST', `/api/users/${(post as any).userId}/follow`);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  
+  // Verifica se o usuário é premium baseado no tipo/plano
+  const isUserPremium = user?.tipo === 'premium' || 
+                     (user?.plano_id !== undefined && user?.plano_id !== null && 
+                      typeof user?.plano_id === 'number' && user?.plano_id !== 1);
+  
+  // Buscar os dados da arte usando a API admin existente (mais confiável)
+  const { data: post, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/posts', postId],
+    queryFn: async () => {
+      if (!postId) throw new Error('ID inválido');
+      
+      const response = await fetch(`/api/admin/posts/${postId}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Arte não encontrada');
+        }
+        throw new Error('Erro ao buscar arte');
+      }
+      
       return response.json();
     },
-    onSuccess: () => {
-      setIsFollowing(true);
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${(post as any)?.userId}/follow-status`] });
-      toast({
-        title: "Sucesso",
-        description: "Você agora está seguindo este usuário",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível seguir o usuário",
-        variant: "destructive",
-      });
-    },
+    retry: 1,
+    enabled: !!postId,
+    staleTime: 2 * 60 * 1000, // 2 minutos em cache
+    gcTime: 5 * 60 * 1000, // 5 minutos no cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
 
-  const unfollowMutation = useMutation({
-    mutationFn: async () => {
-      if (!(post as any)?.userId) throw new Error('User ID not found');
-      const response = await apiRequest('DELETE', `/api/users/${(post as any).userId}/follow`);
+  // Buscar posts relacionados do mesmo grupo (variações de formato)
+  const { data: relatedPosts = [] } = useQuery({
+    queryKey: ['/api/admin/posts/related', post?.groupId],
+    queryFn: async () => {
+      if (!post?.groupId) return [];
+      
+      const response = await fetch(`/api/admin/posts/related/${post.groupId}`);
+      
+      if (!response.ok) {
+        console.warn('Erro ao buscar posts relacionados:', response.status);
+        return [];
+      }
+      
+      const posts = await response.json();
+      // Retornar todos os posts do grupo (incluindo o atual)
+      return posts;
+    },
+    enabled: !!post?.groupId,
+    staleTime: 5 * 60 * 1000, // 5 minutos em cache
+    refetchOnWindowFocus: false
+  });
+
+  // Buscar dados do autor do post
+  const { data: author } = useQuery({
+    queryKey: ['/api/admin/users', post?.user_id || post?.userId],
+    queryFn: async () => {
+      const userId = post?.user_id || post?.userId;
+      console.log('[AUTHOR FETCH] userId from post:', userId);
+      console.log('[AUTHOR FETCH] post data:', post);
+      if (!userId) return null;
+      
+      const response = await fetch(`/api/admin/users/${userId}`);
+      if (!response.ok) return null;
+      
+      const authorData = await response.json();
+      console.log('[AUTHOR FETCH] author data received:', authorData);
+      return authorData;
+    },
+    enabled: !!(post?.user_id || post?.userId),
+    staleTime: 10 * 60 * 1000, // 10 minutos em cache
+  });
+
+  // Buscar quantidade de posts do autor
+  const { data: authorStats } = useQuery({
+    queryKey: ['/api/admin/users', post?.user_id || post?.userId, 'stats'],
+    queryFn: async () => {
+      const userId = post?.user_id || post?.userId;
+      if (!userId) return { postsCount: 0 };
+      
+      const response = await fetch(`/api/admin/posts?userId=${userId}`);
+      if (!response.ok) return { postsCount: 0 };
+      
+      const posts = await response.json();
+      return { postsCount: posts.length };
+    },
+    enabled: !!(post?.user_id || post?.userId),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Buscar status de seguir do autor
+  const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
+    queryKey: ['/api/users', post?.user_id || post?.userId, 'follow-status'],
+    queryFn: async () => {
+      const userId = post?.user_id || post?.userId;
+      if (!userId || !user) return { following: false };
+      
+      const response = await fetch(`/api/users/${userId}/follow-status`);
+      if (!response.ok) return { following: false };
+      
       return response.json();
     },
-    onSuccess: () => {
-      setIsFollowing(false);
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${(post as any)?.userId}/follow-status`] });
-      toast({
-        title: "Sucesso",
-        description: "Você deixou de seguir este usuário",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível deixar de seguir o usuário",
-        variant: "destructive",
-      });
-    },
+    enabled: !!(post?.user_id || post?.userId) && !!user,
+    staleTime: 30 * 1000, // 30 segundos
   });
 
   // Sincronizar estado local com dados do servidor
@@ -132,12 +176,12 @@ export default function ArtDetailPage() {
     }
   }, [followStatus]);
   
-  // Construir lista de posts do grupo
+  // Pré-carregar e cachear dados de todos os formatos do grupo
   const allGroupPosts = React.useMemo(() => {
     if (!post) return [];
     
     const allPosts = relatedPosts || [];
-    return allPosts
+    const uniquePosts = allPosts
       .filter((item: any, index: number, self: any[]) => 
         index === self.findIndex((p: any) => p.id === item.id)
       )
@@ -147,7 +191,57 @@ export default function ArtDetailPage() {
         const bIndex = formatOrder.indexOf(b.formato?.toLowerCase() || '');
         return (aIndex !== -1 ? aIndex : 999) - (bIndex !== -1 ? bIndex : 999);
       });
-  }, [post, relatedPosts]);
+    
+    // Atualizar cache local com todos os formatos
+    const newCache: Record<string, any> = {};
+    uniquePosts.forEach((formatPost: any) => {
+      const formatKey = formatPost.formato?.toLowerCase() || 'feed';
+      newCache[formatKey] = {
+        id: formatPost.id,
+        imageUrl: formatPost.imageUrl || formatPost.image_url,
+        canvaUrl: formatPost.canvaUrl || formatPost.canva_url,
+        title: formatPost.title,
+        formato: formatPost.formato,
+        uniqueCode: formatPost.uniqueCode || formatPost.unique_code
+      };
+    });
+    
+    // Atualizar cache apenas se mudou
+    if (JSON.stringify(newCache) !== JSON.stringify(formatCache)) {
+      setFormatCache(newCache);
+    }
+    
+    // Definir formato atual se ainda não foi definido
+    if (!currentFormat && uniquePosts.length > 0) {
+      const currentPost = uniquePosts.find((p: any) => p.id === postId);
+      setCurrentFormat(currentPost?.formato?.toLowerCase() || 'feed');
+    }
+    
+    return uniquePosts;
+  }, [post, relatedPosts, postId, formatCache]);
+
+  // Função otimizada para alternar formato instantaneamente
+  const switchFormat = React.useCallback((newFormat: string) => {
+    const formatKey = newFormat.toLowerCase();
+    
+    if (formatCache[formatKey] && formatKey !== currentFormat) {
+      setIsTransitioning(true);
+      
+      // Transição suave e instantânea
+      setTimeout(() => {
+        setCurrentFormat(formatKey);
+        setIsTransitioning(false);
+      }, 150); // Delay mínimo para transição visual suave
+    }
+  }, [formatCache, currentFormat]);
+
+  // Obter dados do formato atual do cache
+  const getCurrentFormatData = React.useCallback(() => {
+    if (!currentFormat || !formatCache[currentFormat]) {
+      return post; // Fallback para post original
+    }
+    return formatCache[currentFormat];
+  }, [currentFormat, formatCache, post]);
 
   // Extrair formatos do post a partir dos dados gravados no banco (fallback para compatibilidade)
   const availableFormats = React.useMemo(() => {
@@ -175,614 +269,717 @@ export default function ArtDetailPage() {
           
           // Verificar se temos opções de formatos
           if (formatData.options && Array.isArray(formatData.options)) {
-            return formatData.options.map((opt: any) => opt.formato || opt.format || opt.type).filter(Boolean);
+            return formatData.options.map((opt: { format?: string }) => opt.format || 'FEED');
+          }
+          
+          // Se temos apenas um formato
+          if (formatData.format) {
+            return [formatData.format];
+          }
+          
+          // Se temos o formato como propriedade direta
+          if (formatData.formato) {
+            return [formatData.formato];
           }
         }
-      } catch (error) {
-        console.warn('Erro ao parsear formato_data:', error);
+      } catch (err) {
+        console.error('Erro ao processar formato_data:', err);
       }
     }
     
-    // Fallback: retornar formato padrão
+    // Valor padrão se nada for encontrado
     return ['FEED'];
   }, [post]);
-
-  const favoritePostMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', `/api/posts/${postId}/favorite`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/posts/${postId}`] });
-      toast({
-        title: "Post favoritado!",
-        description: "O post foi adicionado aos seus favoritos.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível favoritar o post",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const unfavoritePostMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('DELETE', `/api/posts/${postId}/favorite`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/posts/${postId}`] });
-      toast({
-        title: "Post removido dos favoritos",
-        description: "O post foi removido dos seus favoritos.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o post dos favoritos",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleDownload = async () => {
-    try {
-      // Verificar se usuário está logado
-      if (!user) {
-        toast({
-          title: "Login necessário",
-          description: "Você precisa estar logado para baixar arquivos",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Verificar se é premium e usuário não é premium
-      if (post?.isPro && user?.tipo !== 'premium') {
-        toast({
-          title: "Conteúdo Premium",
-          description: "Este é um conteúdo premium. Faça upgrade da sua conta para acessar.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // URL de download direto do Supabase
-      const downloadUrl = post?.canvaUrl || post?.canva_url;
+  
+  // Interface para formatos relacionados
+  interface RelatedFormat {
+    id: number;
+    title: string;
+    imageUrl?: string;
+    image_url?: string;
+    uniqueCode?: string;
+    unique_code?: string;
+    formato?: string;
+    format?: string;
+    formats?: string[];
+    licenseType?: string;
+    license_type?: string;
+    isPro?: boolean;
+    is_pro?: boolean;
+    userId?: number;
+    createdAt?: string;
+    categoryName?: string;
+  }
+  
+  // Buscar artes relacionadas baseado em categoria e similaridade de título
+  const { data: relatedArtworks, isLoading: isLoadingRelated } = useQuery<RelatedFormat[]>({
+    queryKey: ['/api/posts', postId, 'related'],
+    queryFn: async () => {
+      if (!postId) return [];
       
-      if (!downloadUrl) {
-        toast({
-          title: "Arquivo não disponível",
-          description: "O arquivo de download não está disponível para este post",
-          variant: "destructive",
-        });
-        return;
+      const response = await fetch(`/api/posts/${postId}/related?limit=8`);
+      if (!response.ok) {
+        console.warn('Falha ao buscar artes relacionadas:', response.status);
+        return [];
       }
+      
+      return response.json();
+    },
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000, // 5 minutos em cache
+    retry: false
+  });
+  
+  // Formatar objetos para exibição
+  const formatLabel = (format: string | null | undefined) => {
+    if (!format) return 'FEED'; // Valor padrão se não houver formato
 
-      // Verificar se é uma URL do Canva
-      if (downloadUrl.includes('canva.com')) {
-        // Abrir Canva em nova aba
-        window.open(downloadUrl, '_blank');
-        toast({
-          title: "Redirecionando para o Canva",
-          description: "Você será redirecionado para editar o template no Canva",
+    const formatMap: Record<string, string> = {
+      'feed': 'FEED',
+      'stories': 'STORIES',
+      'post': 'POST',
+      'reels': 'REELS',
+      'carousel': 'CARROSSEL'
+    };
+    
+    return formatMap[format.toLowerCase()] || format.toUpperCase();
+  };
+  
+  // Obter dimensões do formato
+  const getFormatDimensions = (format: string | null | undefined): string => {
+    if (!format) return '1080×1080px • Quadrado'; // Valor padrão se não houver formato
+    
+    const dimensionsMap: Record<string, string> = {
+      'feed': '1080×1080px • Quadrado',
+      'stories': '1080×1920px • Vertical',
+      'reels': '1080×1920px • Vertical',
+      'carousel': '1080×1080px • Quadrado',
+      'post': '1080×1350px • Retrato'
+    };
+    
+    return dimensionsMap[format.toLowerCase()] || '1080×1080px';
+  };
+  
+  // Determinar se é premium (verificar todos os possíveis campos)
+  const isPremium = post?.licenseType === 'premium' || post?.is_pro || post?.isPro;
+  
+  // Handlers para ações
+  const handleFavorite = () => setIsFavorite(!isFavorite);
+  const handleSave = () => setIsSaved(!isSaved);
+  
+  const handleFollow = async () => {
+    if (!user || !author || followLoading) return;
+    
+    // Não permitir seguir a si mesmo
+    if (user.id === author.id) return;
+    
+    setFollowLoading(true);
+    
+    try {
+      if (isFollowing) {
+        // Deixar de seguir
+        const response = await fetch(`/api/users/${author.id}/follow`, {
+          method: 'DELETE',
         });
-      } else {
-        // Download direto
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = `${post?.title || 'arquivo'}.zip`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
         
-        toast({
-          title: "Download iniciado",
-          description: "O arquivo está sendo baixado",
+        if (response.ok) {
+          setIsFollowing(false);
+          refetchFollowStatus();
+        }
+      } else {
+        // Seguir
+        const response = await fetch(`/api/users/${author.id}/follow`, {
+          method: 'POST',
         });
+        
+        if (response.ok) {
+          setIsFollowing(true);
+          refetchFollowStatus();
+        }
       }
     } catch (error) {
-      console.error('Erro no download:', error);
-      toast({
-        title: "Erro no download",
-        description: "Ocorreu um erro ao tentar baixar o arquivo",
-        variant: "destructive",
-      });
+      console.error('Erro ao atualizar status de seguir:', error);
+    } finally {
+      setFollowLoading(false);
     }
   };
-
-  // Funções auxiliares
-  const formatLabel = (format: string) => {
-    const formatMap: Record<string, string> = {
-      'FEED': 'Feed Instagram',
-      'STORIES': 'Stories Instagram',
-      'STORY': 'Stories Instagram',
-      'CARTAZ': 'Cartaz/Pôster',
-      'REELS': 'Reels Instagram'
-    };
-    return formatMap[format?.toUpperCase()] || format;
+  const handleShare = () => {
+    // Implementar compartilhamento
+    navigator.share?.({
+      title: post?.title || 'Arte para Estética',
+      text: post?.description || 'Confira esta arte para seus conteúdos de estética',
+      url: window.location.href
+    }).catch(err => console.error('Erro ao compartilhar:', err));
   };
-
-  const getFormatDimensions = (format: string) => {
-    const dimensionsMap: Record<string, string> = {
-      'FEED': '1080x1080px',
-      'STORIES': '1080x1920px',
-      'STORY': '1080x1920px',
-      'CARTAZ': '2480x3508px',
-      'REELS': '1080x1920px'
-    };
-    return dimensionsMap[format?.toUpperCase()] || 'Dimensões variadas';
+  
+  // Extrair o Link do Canva dos dados do post
+  const getCanvaUrl = (): string => {
+    try {
+      console.log("Verificando URL do Canva no post:", post);
+      console.log("Dados do formatData:", post?.formatData || post?.format_data);
+      
+      // 1. Verificar se temos URL do Canva diretamente no post
+      if (post?.canvaUrl) {
+        console.log("Usando canvaUrl diretamente do post:", post.canvaUrl);
+        return post.canvaUrl;
+      }
+      
+      // 2. Verificar se tem o campo no snake_case
+      if (post?.canva_url) {
+        console.log("Usando canva_url do post:", post.canva_url);
+        return post.canva_url;
+      }
+      
+      // 3. Verificar dados de formato tanto no camelCase quanto snake_case
+      const formatDataString = post?.formatData || post?.format_data;
+      
+      if (formatDataString) {
+        console.log("FormatData encontrado:", formatDataString);
+        
+        try {
+          // Se já é um objeto, usar diretamente
+          const formatData = typeof formatDataString === 'string' 
+            ? JSON.parse(formatDataString) 
+            : formatDataString;
+          
+          console.log("FormatData parseado:", formatData);
+          
+          // Se é um array de formatos (estrutura normal)
+          if (Array.isArray(formatData) && formatData.length > 0) {
+            console.log("Procurando em array de formatos, total:", formatData.length);
+            
+            // Pegar o primeiro formato (geralmente o principal)
+            const firstFormat = formatData[0];
+            console.log("Primeiro formato:", firstFormat);
+            
+            // Verificar se tem links no formato
+            if (firstFormat && Array.isArray(firstFormat.links) && firstFormat.links.length > 0) {
+              console.log("Links encontrados:", firstFormat.links);
+              
+              // Procurar por um link do Canva
+              const canvaLink = firstFormat.links.find(
+                (link: any) => link.provider?.toLowerCase() === 'canva'
+              );
+              
+              if (canvaLink && canvaLink.url) {
+                console.log("URL do Canva encontrada:", canvaLink.url);
+                return canvaLink.url;
+              }
+            }
+            
+            // Se não encontrou links, verificar se tem canvaUrl direto no formato
+            if (firstFormat && firstFormat.canvaUrl) {
+              console.log("CanvaUrl direto no formato:", firstFormat.canvaUrl);
+              return firstFormat.canvaUrl;
+            }
+          }
+          
+          // Se não é array, verificar se é objeto com canvaUrl direto
+          if (formatData && typeof formatData === 'object' && !Array.isArray(formatData)) {
+            if (formatData.canvaUrl) {
+              console.log("CanvaUrl direto no formatData:", formatData.canvaUrl);
+              return formatData.canvaUrl;
+            }
+          }
+          
+        } catch (parseErr) {
+          console.error("Erro ao analisar dados de formato:", parseErr);
+        }
+      }
+      
+      // Log quando nenhuma URL é encontrada
+      console.warn("Nenhuma URL do Canva encontrada, usando valor padrão");
+      
+      // Valor padrão se não encontrar nada
+      return 'https://www.canva.com/design/new';
+    } catch (err) {
+      console.error('Erro ao extrair URL do Canva:', err);
+      return 'https://www.canva.com/design/new';
+    }
   };
-
+  
+  // Determinar se o usuário pode editar esta arte
+  const canEditArt = (): boolean => {
+    // Se não está logado, não pode editar
+    if (!user) return false;
+    
+    // Se a arte é gratuita, qualquer usuário logado pode editar
+    if (!isPremium) return true;
+    
+    // Se a arte é premium, apenas usuários premium podem editar
+    return isUserPremium === true;
+  };
+  
+  const handleEditCanva = () => {
+    // Se não pode editar, não faz nada (o botão já deve estar desabilitado ou ser apenas visual)
+    if (!canEditArt()) return;
+    
+    // Obter a URL do Canva e abrir em nova janela
+    const canvaUrl = getCanvaUrl();
+    window.open(canvaUrl, '_blank');
+  };
+  
+  // Skeletons para loading
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <main className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="aspect-square bg-gray-200 rounded-lg"></div>
-              <div className="space-y-4">
-                <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-20 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (error || !post) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <main className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Arte não encontrada</h1>
-            <p className="text-gray-600 mb-6">A arte que você está procurando não existe ou foi removida.</p>
-            <Link href="/">
-              <Button>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar ao início
-              </Button>
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:text-blue-600 transition-colors">
-            Início
-          </Link>
-          <ChevronRight size={16} />
-          <Link href={`/categoria/${post.categoryId}`} className="hover:text-blue-600 transition-colors">
-            {post.categoryName || 'Categoria'}
-          </Link>
-          <ChevronRight size={16} />
-          <span className="text-gray-900 font-medium">
-            {post.title}
-          </span>
-        </nav>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Imagem principal */}
+      <div className="container mx-auto py-8 px-4">
+        <Button 
+          variant="ghost" 
+          className="mb-6"
+          onClick={() => setLocation('/')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Skeleton className="w-full h-[500px] rounded-lg" />
           <div className="space-y-4">
-            <div className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden bg-white shadow-md border border-gray-100">
-                <img 
-                  src={post.imageUrl || post.image_url} 
-                  alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                
-                {/* Selo Premium */}
-                {post.isPro && (
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-amber-50 border border-amber-200 rounded-full px-3 py-1 flex items-center gap-1.5">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-amber-600">
-                        <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
-                      </svg>
-                      <span className="text-xs font-medium text-amber-700">Premium</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <Skeleton className="h-10 w-3/4" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-24" />
             </div>
-
-            {/* Miniaturas de formatos alternativos */}
-            {allGroupPosts.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {allGroupPosts.slice(0, 4).map((groupPost: any, index: number) => (
-                  <button
-                    key={`thumb-${groupPost.id}-${index}`}
-                    onClick={() => {
-                      const cleanTitle = groupPost.title
-                        .toLowerCase()
-                        .normalize('NFD')
-                        .replace(/[\u0300-\u036f]/g, '')
-                        .replace(/[^\w\s-]/g, '')
-                        .replace(/\s+/g, '-')
-                        .replace(/-+/g, '-')
-                        .replace(/^-+|-+$/g, '');
-                      
-                      const slug = `${groupPost.id}-${cleanTitle}`;
-                      setLocation(`/artes/${slug}`);
-                    }}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
-                      groupPost.id === postId 
-                        ? 'border-blue-500 ring-2 ring-blue-200' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <img 
-                      src={groupPost.imageUrl || groupPost.image_url} 
-                      alt={groupPost.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-                {allGroupPosts.length > 4 && (
-                  <div className="flex-shrink-0 w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs">
-                    +{allGroupPosts.length - 4}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Informações do post */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">{post.title}</h1>
-              {post.description && (
-                <p className="text-gray-600 leading-relaxed">{post.description}</p>
-              )}
+            <div className="space-y-2 mt-4">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-2/3" />
             </div>
-
-            {/* Informações do autor */}
-            {postAuthor && (
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <Link href={`/perfil/${postAuthor.id}`}>
-                    <Avatar className="w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity">
-                      <AvatarImage src={postAuthor.profileImage} alt={postAuthor.username} />
-                      <AvatarFallback>{postAuthor.username.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <div>
-                    <Link href={`/perfil/${postAuthor.id}`}>
-                      <h3 className="font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer">
-                        {postAuthor.username}
-                      </h3>
-                    </Link>
-                    <p className="text-sm text-gray-500">Designer</p>
-                  </div>
-                </div>
-                
-                {user && user.id !== postAuthor.id && (
-                  <Button
-                    variant={isFollowing ? "secondary" : "default"}
-                    size="sm"
-                    onClick={() => {
-                      if (isFollowing) {
-                        unfollowMutation.mutate();
-                      } else {
-                        followMutation.mutate();
-                      }
-                    }}
-                    disabled={followMutation.isPending || unfollowMutation.isPending}
-                    className="flex items-center gap-2"
-                  >
-                    {isFollowing ? (
-                      <>
-                        <Check size={16} />
-                        Seguindo
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus size={16} />
-                        Seguir
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {post.tags.map((tag: string, index: number) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    #{tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* Ações */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  if (!user) {
-                    toast({
-                      title: "Login necessário",
-                      description: "Você precisa estar logado para favoritar",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  
-                  if (post.isFavorited) {
-                    unfavoritePostMutation.mutate();
-                  } else {
-                    favoritePostMutation.mutate();
-                  }
-                }}
-                className="flex items-center gap-2"
-              >
-                <Heart 
-                  size={16} 
-                  className={post.isFavorited ? "fill-red-500 text-red-500" : ""} 
-                />
-                {post.isFavorited ? 'Favoritado' : 'Favoritar'}
-              </Button>
-              
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Share2 size={16} />
-                Compartilhar
-              </Button>
-            </div>
-
-            <Separator />
-
-            {/* Detalhes técnicos */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Detalhes</h3>
-              
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Como usar este template</h3>
-                <ul className="text-sm text-gray-600 space-y-2">
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <span>Baixe o arquivo e abra no Canva</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <span>Personalize cores, textos e imagens</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <span>Baixe em alta qualidade e publique</span>
-                  </li>
-                </ul>
-              </div>
-              
-              {/* Especificações do arquivo */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Especificações do Arquivo</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Formato:</span>
-                      <span className="text-sm">{formatLabel(availableFormats[0])}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Tipo:</span>
-                      <span className="text-sm">Canva</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 flex items-center justify-center">
-                      <Eye size={13} className="text-gray-400" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Visualizações:</span>
-                      <span className="text-sm">{post.views || 3}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3.5 h-3.5 flex items-center justify-center">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                      </svg>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Número de identificação:</span>
-                      <span className="text-sm">#{post.id}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Formatos disponíveis - Layout consistente */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">Formatos disponíveis</h3>
-                  {allGroupPosts.length > 1 && (
-                    <span className="text-xs text-blue-600 font-medium">{allGroupPosts.length} opções</span>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  {/* Post atual sempre visível */}
-                  <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
-                          <img 
-                            src={post.imageUrl || post.image_url} 
-                            alt={post.title} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                            {formatLabel(post?.formato || 'FEED')}
-                            {post?.isPro && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                                Premium
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
-                        </div>
-                      </div>
-                      {allGroupPosts.length > 1 && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-blue-600">Atual</span>
-                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Outras variações de formato */}
-                  {allGroupPosts
-                    .filter((groupPost: any) => groupPost.id !== Number(postId))
-                    .map((groupPost: any, index: number) => (
-                    <div 
-                      key={`format-option-${groupPost.id}-${index}`}
-                      className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
-                      onClick={() => {
-                        // Gerar slug limpo e consistente
-                        const cleanTitle = groupPost.title
-                          .toLowerCase()
-                          .normalize('NFD')
-                          .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-                          .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
-                          .replace(/\s+/g, '-') // Substitui espaços por hífens
-                          .replace(/-+/g, '-') // Remove hífens múltiplos
-                          .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
-                        
-                        const slug = `${groupPost.id}-${cleanTitle}`;
-                        
-                        // Navegação otimizada sem recarregamento
-                        setLocation(`/artes/${slug}`);
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
-                            <img 
-                              src={groupPost.imageUrl || groupPost.image_url} 
-                              alt={groupPost.title} 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                              {formatLabel(groupPost.formato || 'FEED')}
-                              {groupPost.isPro && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                                  Premium
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
-                          </div>
-                        </div>
-                        <ChevronRight size={16} className="text-gray-400" />
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Mensagem quando há apenas um formato */}
-                  {allGroupPosts.length === 1 && (
-                    <div className="text-center py-2">
-                      <p className="text-xs text-gray-500">Este design possui apenas um formato disponível</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Botão principal de ação */}
-              {!user ? (
-                // Botão desabilitado para usuários não logados
-                <Button 
-                  className="w-full bg-gray-400 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md cursor-not-allowed"
-                  disabled={true}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7,10 12,15 17,10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span>Faça login para baixar</span>
-                </Button>
-              ) : post?.isPro && user?.tipo !== 'premium' ? (
-                // Botão para upgrade quando é premium e usuário não é premium
-                <Link href="/planos">
-                  <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z"/>
-                    </svg>
-                    <span>Upgrade para Premium</span>
-                  </Button>
-                </Link>
-              ) : (
-                // Botão de download normal
-                <Button 
-                  onClick={handleDownload}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-colors"
-                >
-                  <Download size={16} />
-                  <span>Baixar Template</span>
-                </Button>
-              )}
+            <Skeleton className="h-12 w-full mt-4" />
+            <div className="flex gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-10 rounded-full" />
             </div>
           </div>
         </div>
-
-        {/* Artes relacionadas */}
-        {relatedArtworks && relatedArtworks.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Artes relacionadas</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {relatedArtworks.slice(0, 10).map((item: any) => (
-                <ArtworkCard
-                  key={`related-${item.id}`}
-                  id={item.id}
-                  title={item.title}
-                  imageUrl={item.imageUrl || item.image_url}
-                  isPremium={item.isPro || false}
-                  categoryName={item.categoryName}
-                  uniqueCode={item.uniqueCode || item.unique_code}
-                  formato={item.formato}
-                  licenseType={item.licenseType || item.license_type}
-                  description={item.description}
-                  tags={item.tags}
-                  userId={item.userId}
-                  createdAt={item.createdAt}
-                  canvaUrl={item.canvaUrl || item.canva_url}
-                />
-              ))}
+      </div>
+    );
+  }
+  
+  // Mensagem de erro
+  if (error || !post) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Button 
+          variant="ghost" 
+          className="mb-6"
+          onClick={() => setLocation('/')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        
+        <div className="text-center p-12 bg-white rounded-lg shadow-sm">
+          <h2 className="text-2xl font-bold text-red-500 mb-4">Arte não encontrada</h2>
+          <p className="text-gray-600 mb-4">
+            Não foi possível encontrar a arte solicitada. Ela pode ter sido removida ou o link está incorreto.
+          </p>
+          <Button onClick={() => setLocation('/')}>
+            Voltar para a galeria
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <Button 
+        variant="ghost" 
+        className="mb-6"
+        onClick={() => setLocation('/')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Button>
+      
+      {/* Layout principal em duas colunas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Coluna da esquerda - Imagem da arte */}
+        <div className="relative">
+          {/* Label do formato */}
+          <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
+            {formatLabel(availableFormats[0])}
+          </span>
+          
+          {/* Selo premium */}
+          {isPremium && (
+            <div className="absolute top-4 right-4 z-10 bg-[#fef3c8] rounded-full p-2 flex items-center justify-center">
+              <Crown size={16} className="text-[#e7b36a]" fill="currentColor" />
             </div>
-          </section>
-        )}
-      </main>
+          )}
+          
+          {/* Imagem principal otimizada com cache */}
+          <div className={`overflow-hidden rounded-lg shadow-md transition-opacity duration-300 ${isTransitioning ? 'opacity-75' : 'opacity-100'}`}>
+            {(() => {
+              // Usar dados do cache se disponível
+              const currentData = getCurrentFormatData();
+              const mainImageUrl = currentData?.imageUrl || currentData?.image_url || '';
+              
+              if (!mainImageUrl) {
+                return (
+                  <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <Image className="h-16 w-16 mx-auto mb-2" />
+                      <p>Imagem não disponível</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <img 
+                  key={`${currentFormat}-${currentData?.id}`}
+                  src={mainImageUrl}
+                  alt={currentData?.title || post?.title || 'Arte'}
+                  className="w-full h-auto object-cover transition-all duration-300"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('Erro ao carregar imagem:', mainImageUrl);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              );
+            })()}
+          </div>
+        </div>
+        
+        {/* Coluna da direita - Informações */}
+        <div className="space-y-5 border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
+          {/* Título e selo premium */}
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-gray-900">
+                {post.title}
+              </h1>
+              {isPremium && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium" style={{backgroundColor: '#fef3c7', color: '#a76e40'}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11.5 2L8 8l-5-1 2 7h14l2-7-5 1z"/>
+                    <circle cx="12" cy="6" r="1"/>
+                  </svg>
+                  Premium
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Checklist de vantagens */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Editável no Canva gratuito</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Para projetos comerciais e pessoais</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Não precisa atribuir o autor</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-gray-700 text-sm">Qualidade profissional</span>
+              </li>
+            </ul>
+          </div>
+          
+          {/* Especificações do arquivo */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Especificações do Arquivo</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Formato:</span>
+                  <span className="text-sm">{formatLabel(availableFormats[0])}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Tipo:</span>
+                  <span className="text-sm">Canva</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 flex items-center justify-center">
+                  <Eye size={13} className="text-gray-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Visualizações:</span>
+                  <span className="text-sm">{post.views || 3}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 flex items-center justify-center">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Número de identificação:</span>
+                  <span className="text-sm">#{post.id}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Formatos disponíveis - Layout consistente */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-700">Formatos disponíveis</h3>
+              {allGroupPosts.length > 1 && (
+                <span className="text-xs text-blue-600 font-medium">{allGroupPosts.length} opções</span>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              {/* Post atual sempre visível */}
+              <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                      <img 
+                        src={post.imageUrl || post.image_url} 
+                        alt={post.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        {formatLabel(post?.formato || 'FEED')}
+                        {post?.isPro && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                            Premium
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
+                    </div>
+                  </div>
+                  {allGroupPosts.length > 1 && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-blue-600">Atual</span>
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Outras variações de formato */}
+              {allGroupPosts
+                .filter((groupPost: any) => groupPost.id !== Number(postId))
+                .map((groupPost: any, index: number) => (
+                <div 
+                  key={`format-option-${groupPost.id}-${index}`}
+                  className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
+                  onClick={() => {
+                    // Gerar slug limpo e consistente
+                    const cleanTitle = groupPost.title
+                      .toLowerCase()
+                      .normalize('NFD')
+                      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                      .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
+                      .replace(/\s+/g, '-') // Substitui espaços por hífens
+                      .replace(/-+/g, '-') // Remove hífens múltiplos
+                      .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
+                    
+                    const slug = `${groupPost.id}-${cleanTitle}`;
+                    
+                    // Navegação otimizada sem recarregamento
+                    setLocation(`/artes/${slug}`);
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                        <img 
+                          src={groupPost.imageUrl || groupPost.image_url} 
+                          alt={groupPost.title} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                          {formatLabel(groupPost.formato || 'FEED')}
+                          {groupPost.isPro && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                              Premium
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-400" />
+                  </div>
+                </div>
+              ))}}
+
+              {/* Mensagem quando há apenas um formato */}
+              {allGroupPosts.length === 1 && (
+                <div className="text-center py-2">
+                  <p className="text-xs text-gray-500">Este design possui apenas um formato disponível</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Botão principal de ação */}
+          {!user ? (
+            // Botão desabilitado para usuários não logados
+            <Button 
+              className="w-full bg-gray-400 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md cursor-not-allowed"
+              disabled={true}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
+            </Button>
+          ) : isPremium && !isUserPremium ? (
+            // Arte premium para usuários gratuitos - botão amarelo que redireciona para planos
+            <Button 
+              onClick={() => setLocation('/planos')}
+              className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+            >
+              <Crown size={16} className="text-white" />
+              <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
+              <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
+            </Button>
+          ) : (
+            // Botão normal para usuários com permissão (premium ou arte gratuita)
+            <Button 
+              onClick={handleEditCanva} 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span className="font-medium text-sm">EDITAR NO CANVA</span>
+            </Button>
+          )}
+          
+          {/* Linha de ações */}
+          <div className="flex items-center justify-center gap-3 pt-5">
+            <Button 
+              onClick={handleFavorite}
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+            >
+              <Heart size={16} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
+              <span>Favoritar</span>
+            </Button>
+            
+            <Button 
+              onClick={handleSave}
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+            >
+              <Bookmark size={16} className={isSaved ? "fill-blue-500 text-blue-500" : ""} />
+              <span>Salvar</span>
+            </Button>
+            
+            <Button 
+              onClick={handleShare}
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+            >
+              <Share2 size={16} />
+              <span>Compartilhar</span>
+            </Button>
+          </div>
+          
+          {/* Informações do criador */}
+          <div className="flex items-center justify-between border-t pt-4 mt-2">
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => author?.id && setLocation(`/autor/${author.id}`)}
+            >
+              <Avatar className="h-10 w-10">
+                {author?.profileImage ? (
+                  <AvatarImage 
+                    src={author.profileImage} 
+                    alt={author.username}
+                    className="object-cover w-full h-full rounded-full"
+                  />
+                ) : (
+                  <AvatarFallback className="bg-gray-100 text-gray-500">
+                    {author?.username ? author.username.charAt(0).toUpperCase() : 'DE'}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div>
+                <p className="font-medium hover:text-blue-600 transition-colors">
+                  {author?.username || 'Design para Estética'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}
+                </p>
+              </div>
+            </div>
+            {/* Só mostrar botão de seguir se não for o próprio usuário */}
+            {user && author && user.id !== author.id && (
+              <Button
+                size="sm"
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={isFollowing 
+                  ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
+                  : "bg-black hover:bg-gray-800 text-white border-0"
+                }
+              >
+                {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Seção de artes relacionadas */}
+      {relatedArtworks && relatedArtworks.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-xl font-bold mb-6">Artes relacionadas</h2>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {relatedArtworks.map((item: RelatedFormat) => (
+              <ArtworkCard
+                key={item.id}
+                artwork={{
+                  id: item.id,
+                  title: item.title,
+                  description: "",
+                  imageUrl: item.imageUrl || "/placeholder.jpg",
+                  category: "outros",
+                  createdAt: new Date(item.createdAt || Date.now()),
+                  isPro: item.licenseType === 'premium' || item.isPro,
+                  format: item.formato || "1:1"
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
