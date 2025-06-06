@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
-import { Upload, Flag, Heart, Clock, TrendingUp, Filter } from 'lucide-react';
+import { Upload, Flag, Heart, Clock, TrendingUp, Filter, Camera, Bookmark, ExternalLink, Lock, ImageIcon } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 
 interface UserProfile {
@@ -37,6 +37,119 @@ interface Post {
   uniqueCode: string;
   createdAt: string;
   views?: number;
+}
+
+// Componente de card de artwork idêntico ao feed principal
+function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () => void }) {
+  const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(post.imageUrl);
+  const [hovered, setHovered] = useState(false);
+
+  const handleImageError = () => {
+    if (imageSrc.includes('supabase.co') && !imageSrc.includes('uploads/') && !imageError) {
+      const filename = imageSrc.split('/').pop()?.split('?')[0];
+      if (filename) {
+        const baseUrl = imageSrc.split('/storage/v1/object/public/images/')[0];
+        const correctUrl = `${baseUrl}/storage/v1/object/public/images/uploads/${filename}`;
+        setImageSrc(correctUrl);
+        return;
+      }
+    }
+    if (!imageError) {
+      setImageError(true);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  return (
+    <div
+      className="image-card relative rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md hover:scale-[1.02] w-full mb-3 cursor-pointer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onNavigate}
+    >
+      <div className="relative overflow-hidden w-full">
+        {imageError ? (
+          <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
+            <ImageIcon className="w-12 h-12 text-gray-400" />
+          </div>
+        ) : (
+          <img 
+            src={imageSrc} 
+            alt={post.title}
+            className="w-full h-auto object-cover display-block"
+            loading="lazy"
+            onError={handleImageError}
+          />
+        )}
+        
+        {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
+        {post.isPro && (
+          <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-8 h-8 flex items-center justify-center shadow-md relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#FFC107" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-crown">
+              <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+            </svg>
+          </div>
+        )}
+        
+        {/* Hover actions - botões de curtir e salvar */}
+        <div 
+          className={`hover-actions absolute bottom-3 right-3 flex gap-2 transition-opacity duration-300 ease-in-out z-20
+            ${hovered ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <button 
+            className="p-2 rounded-full shadow-md transition-colors bg-white text-black hover:bg-white/90"
+            onClick={handleLike}
+            aria-label="Adicionar aos favoritos"
+          >
+            <Heart className="h-4 w-4" />
+          </button>
+          
+          <button 
+            className="p-2 rounded-full shadow-md transition-colors bg-white text-black hover:bg-white/90"
+            onClick={handleSave}
+            aria-label="Salvar item"
+          >
+            <Bookmark className="h-4 w-4" />
+          </button>
+        </div>
+        
+        {/* Botão de editar ao passar o mouse */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
+          <Button 
+            className="bg-black/70 hover:bg-black/90 text-white rounded-full px-6 py-1 h-8 text-xs shadow-md z-10"
+            onClick={handleEditClick}
+          >
+            {post.isPro ? (
+              <>
+                <Lock className="h-3.5 w-3.5 mr-1.5" />
+                Desbloquear
+              </>
+            ) : (
+              <>
+                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                Editar
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ProfilePage() {
@@ -191,16 +304,29 @@ export default function ProfilePage() {
         <Card className="bg-white shadow-lg border-0 mb-8">
           <CardContent className="p-8">
             <div className="flex flex-col items-center text-center gap-6">
-              {/* Avatar centralizado */}
-              <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-                {profile.profileImage ? (
-                  <AvatarImage src={profile.profileImage} alt={profile.username} />
-                ) : (
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-bold">
-                    {profile.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
+              {/* Avatar centralizado com proporção correta */}
+              <div className="relative">
+                <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+                  {profile.profileImage ? (
+                    <AvatarImage 
+                      src={profile.profileImage} 
+                      alt={profile.username}
+                      className="object-cover w-full h-full rounded-full"
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-bold">
+                      {profile.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                
+                {/* Botão de upload apenas no próprio perfil */}
+                {isOwnProfile && (
+                  <button className="absolute bottom-0 right-0 bg-black text-white rounded-full p-2 shadow-lg hover:bg-gray-800 transition-colors">
+                    <Camera className="h-4 w-4" />
+                  </button>
                 )}
-              </Avatar>
+              </div>
               
               {/* Informações básicas centralizadas */}
               <div className="text-center">
@@ -289,52 +415,20 @@ export default function ProfilePage() {
               </Tabs>
             </div>
 
-            {/* Grid de artes no padrão do feed principal */}
+            {/* Grid de artes seguindo exatamente o padrão do feed principal */}
             {filteredPosts.length > 0 ? (
-              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
-                {filteredPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="break-inside-avoid mb-4 group cursor-pointer"
-                    onClick={() => navigate(`/artes/${post.uniqueCode}`)}
-                  >
-                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-                      <div className="relative">
-                        <img
-                          src={post.imageUrl}
-                          alt={post.title}
-                          className="w-full h-auto object-cover"
-                          loading="lazy"
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {Array.from({ length: 5 }).map((_, colIndex) => (
+                  <div key={colIndex} className="space-y-4">
+                    {filteredPosts
+                      .filter((_, index) => index % 5 === colIndex)
+                      .map((post) => (
+                        <ProfileArtworkCard 
+                          key={post.id} 
+                          post={post} 
+                          onNavigate={() => navigate(`/artes/${post.uniqueCode}`)}
                         />
-                        
-                        {/* Overlay com informações */}
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-end p-3">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-full">
-                            <div className="flex items-center justify-between text-white text-sm">
-                              <span className="bg-black bg-opacity-50 px-2 py-1 rounded text-xs">
-                                {post.formato}
-                              </span>
-                              {post.isPro && (
-                                <span className="bg-amber-500 px-2 py-1 rounded text-xs font-medium">
-                                  PREMIUM
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Informações da arte */}
-                      <div className="p-3">
-                        <h3 className="font-medium text-sm text-gray-900 line-clamp-2 leading-tight mb-1">
-                          {post.title}
-                        </h3>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{new Date(post.createdAt).toLocaleDateString('pt-BR')}</span>
-                          {post.views && <span>{post.views} views</span>}
-                        </div>
-                      </div>
-                    </div>
+                      ))}
                   </div>
                 ))}
               </div>
