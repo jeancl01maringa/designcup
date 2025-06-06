@@ -515,18 +515,18 @@ export default function ArtDetailPage() {
         <div className="space-y-5 border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
           {/* Título e selo premium */}
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-gray-900">
                 {post.title}
-                {isPremium && (
-                  <Badge className="bg-amber-400 text-white border-0 flex items-center gap-1 h-6 py-0 px-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.1L5.7 21l2.3-7-6-4.6h7.6z" />
-                    </svg>
-                    <span className="text-xs">Premium</span>
-                  </Badge>
-                )}
               </h1>
+              {isPremium && (
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-2.5 py-1 rounded-full text-sm font-medium">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/>
+                  </svg>
+                  Premium
+                </div>
+              )}
             </div>
           </div>
           
