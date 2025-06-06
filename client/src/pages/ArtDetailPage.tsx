@@ -47,8 +47,18 @@ export default function ArtDetailPage() {
     // Rota /preview/:id - usar ID diretamente
     postId = parseInt(id, 10);
   } else if (slug) {
-    // Rota /artes/:slug - extrair ID do slug (por exemplo, "10-xxxxx" => 10)
-    postId = parseInt(slug.split('-')[0] || '0', 10);
+    // Verificar se o slug começa com um número (formato "10-xxxxx")
+    const slugParts = slug.split('-');
+    const firstPart = slugParts[0];
+    const potentialId = parseInt(firstPart, 10);
+    
+    if (!isNaN(potentialId) && potentialId > 0) {
+      // Slug formato padrão com ID no início
+      postId = potentialId;
+    } else {
+      // Slug é um uniqueCode - buscar pelo uniqueCode
+      postId = 0; // Usaremos uma lógica diferente para buscar por uniqueCode
+    }
   } else {
     postId = 0;
   }
@@ -76,23 +86,42 @@ export default function ArtDetailPage() {
   
   // Buscar os dados da arte usando a API admin existente (mais confiável)
   const { data: post, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/posts', postId],
+    queryKey: ['/api/admin/posts', postId, slug],
     queryFn: async () => {
-      if (!postId) throw new Error('ID inválido');
-      
-      const response = await fetch(`/api/admin/posts/${postId}`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
+      if (postId && postId > 0) {
+        // Buscar por ID
+        const response = await fetch(`/api/admin/posts/${postId}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Arte não encontrada');
+          }
+          throw new Error('Erro ao buscar arte');
+        }
+        
+        return response.json();
+      } else if (slug) {
+        // Buscar por uniqueCode - buscar em todos os posts
+        const response = await fetch('/api/admin/posts');
+        
+        if (!response.ok) {
+          throw new Error('Erro ao buscar artes');
+        }
+        
+        const posts = await response.json();
+        const post = posts.find((p: any) => p.uniqueCode === slug);
+        
+        if (!post) {
           throw new Error('Arte não encontrada');
         }
-        throw new Error('Erro ao buscar arte');
+        
+        return post;
+      } else {
+        throw new Error('Parâmetros inválidos');
       }
-      
-      return response.json();
     },
     retry: 1,
-    enabled: !!postId,
+    enabled: !!(postId || slug),
     staleTime: 2 * 60 * 1000, // 2 minutos em cache
     gcTime: 5 * 60 * 1000, // 5 minutos no cache
     refetchOnWindowFocus: false,
