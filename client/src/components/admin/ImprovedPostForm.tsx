@@ -185,9 +185,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
     // Processar cada post do grupo para extrair format data
     posts.forEach(post => {
+      console.log("EDIT MODE: Processando post", post.id, "formato:", post.formato, "canvaUrl:", post.canvaUrl ? "SIM" : "NÃO");
+      
       if (post.formatData) {
         try {
           const formats = JSON.parse(post.formatData);
+          console.log("EDIT MODE: formatData parsed para post", post.id, formats);
           if (Array.isArray(formats)) {
             formats.forEach((formatInfo: any) => {
               const formatName = formatInfo.type;
@@ -199,6 +202,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
               if (formatInfo.imageUrl && formatFiles[formatName]) {
                 formatFiles[formatName].imagePreview = formatInfo.imageUrl;
                 formatFiles[formatName].links = formatInfo.links || [];
+                console.log("EDIT MODE: Links carregados do formatData para", formatName, formatInfo.links?.length || 0, formatInfo.links);
               }
             });
           }
@@ -207,11 +211,24 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         }
       }
       
-      // Fallback: usar o campo formato individual se não há formatData
-      if (post.formato && !allFormats.includes(post.formato)) {
-        allFormats.push(post.formato);
-        if (post.imageUrl && formatFiles[post.formato]) {
+      // SEMPRE verificar canvaUrl direto no post para cada formato
+      if (post.formato && formatFiles[post.formato]) {
+        if (!allFormats.includes(post.formato)) {
+          allFormats.push(post.formato);
+        }
+        
+        if (post.imageUrl) {
           formatFiles[post.formato].imagePreview = post.imageUrl;
+        }
+        
+        // Se há canvaUrl no post, adicionar como link
+        if (post.canvaUrl) {
+          formatFiles[post.formato].links = [{
+            id: nanoid(),
+            provider: "canva",
+            url: post.canvaUrl
+          }];
+          console.log("EDIT MODE: Link do Canva adicionado para", post.formato, post.canvaUrl);
         }
       }
     });
