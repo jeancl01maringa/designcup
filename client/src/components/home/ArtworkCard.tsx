@@ -150,9 +150,9 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             </button>
           </div>
           
-          {/* Pro badge - coroa premium SEMPRE visível no canto inferior direito, alinhado com Salvar */}
+          {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
           {artwork.isPro && (
-            <PremiumBadge className="absolute bottom-3 right-3 z-30" />
+            <PremiumBadge className="absolute top-2 right-2 z-10" />
           )}
           
           {/* Botão de editar ao passar o mouse */}
