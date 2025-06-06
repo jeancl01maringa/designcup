@@ -660,10 +660,9 @@ export default function ArtDetailPage() {
                 {post.title}
               </h1>
               {isPremium && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium" style={{backgroundColor: '#fef3c7', color: '#a76e40'}}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11.5 2L8 8l-5-1 2 7h14l2-7-5 1z"/>
-                    <circle cx="12" cy="6" r="1"/>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium" style={{backgroundColor: '#fef3c8', color: '#a76e40'}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
                   </svg>
                   Premium
                 </div>
