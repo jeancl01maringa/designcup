@@ -118,22 +118,26 @@ export default function ArtDetailPage() {
   const allGroupPosts = React.useMemo(() => {
     if (!post) return [];
     
-    // Sempre incluir o post atual
-    const posts = [post];
+    // Criar array com posts relacionados filtrados
+    const relatedFiltered = relatedPosts?.filter((p: any) => p.id !== Number(postId)) || [];
     
-    // Adicionar posts relacionados se existirem
-    if (relatedPosts && relatedPosts.length > 0) {
-      posts.push(...relatedPosts);
-    }
+    // Sempre incluir o post atual primeiro
+    const allPosts = [post, ...relatedFiltered];
     
-    // Ordenar por formato para consistência
-    return posts.sort((a, b) => {
-      const formatOrder = ['feed', 'stories', 'cartaz', 'story', 'reels'];
-      const aIndex = formatOrder.indexOf(a.formato?.toLowerCase() || '');
-      const bIndex = formatOrder.indexOf(b.formato?.toLowerCase() || '');
-      return (aIndex !== -1 ? aIndex : 999) - (bIndex !== -1 ? bIndex : 999);
-    });
-  }, [post, relatedPosts]);
+    // Remover duplicatas baseado no ID e ordenar
+    const uniquePosts = allPosts
+      .filter((item, index, self) => 
+        index === self.findIndex(p => p.id === item.id)
+      )
+      .sort((a, b) => {
+        const formatOrder = ['feed', 'stories', 'cartaz', 'story', 'reels'];
+        const aIndex = formatOrder.indexOf(a.formato?.toLowerCase() || '');
+        const bIndex = formatOrder.indexOf(b.formato?.toLowerCase() || '');
+        return (aIndex !== -1 ? aIndex : 999) - (bIndex !== -1 ? bIndex : 999);
+      });
+    
+    return uniquePosts;
+  }, [post, relatedPosts, postId]);
 
   // Extrair formatos do post a partir dos dados gravados no banco (fallback para compatibilidade)
   const availableFormats = React.useMemo(() => {
@@ -698,12 +702,20 @@ export default function ArtDetailPage() {
                   key={`format-option-${groupPost.id}-${index}`}
                   className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
                   onClick={() => {
-                    const slug = `${groupPost.id}-${groupPost.title.toLowerCase()
-                      .replace(/[^\w\s-]/g, '')
-                      .replace(/\s+/g, '-')
-                      .replace(/-+/g, '-')
-                      .trim()}`;
-                    setLocation(`/artes/${slug}`);
+                    // Gerar slug limpo e consistente
+                    const cleanTitle = groupPost.title
+                      .toLowerCase()
+                      .normalize('NFD')
+                      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                      .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
+                      .replace(/\s+/g, '-') // Substitui espaços por hífens
+                      .replace(/-+/g, '-') // Remove hífens múltiplos
+                      .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
+                    
+                    const slug = `${groupPost.id}-${cleanTitle}`;
+                    
+                    // Forçar recarregamento da página para garantir estado limpo
+                    window.location.href = `/artes/${slug}`;
                   }}
                 >
                   <div className="flex items-center justify-between">
