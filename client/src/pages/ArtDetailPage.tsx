@@ -40,14 +40,20 @@ export default function ArtDetailPage() {
     postId = parseInt(id, 10);
   } else if (slug) {
     // Rota /artes/:slug - extrair ID do slug (por exemplo, "10-xxxxx" => 10)
-    postId = parseInt(slug.split('-')[0] || '0', 10);
+    const idFromSlug = slug.split('-')[0];
+    postId = parseInt(idFromSlug, 10);
+    
+    // Debug: verificar se o ID foi extraído corretamente
+    console.log('Slug recebido:', slug);
+    console.log('ID extraído:', idFromSlug);
+    console.log('postId final:', postId);
   } else {
     postId = 0;
   }
 
   const { data: post, isLoading, error } = useQuery({
     queryKey: [`/api/posts/${postId}`],
-    enabled: !!postId,
+    enabled: !!postId && !isNaN(postId),
   });
 
   const { data: relatedPosts } = useQuery({
@@ -57,17 +63,17 @@ export default function ArtDetailPage() {
 
   const { data: relatedArtworks } = useQuery({
     queryKey: [`/api/posts/${postId}/category-related`],
-    enabled: !!postId && !!post?.categoryId,
+    enabled: !!postId && !!(post as any)?.categoryId,
   });
 
   const { data: postAuthor } = useQuery({
-    queryKey: [`/api/users/${post?.userId}`],
-    enabled: !!post?.userId,
+    queryKey: [`/api/users/${(post as any)?.userId}`],
+    enabled: !!(post as any)?.userId,
   });
 
   const { data: followStatus } = useQuery({
-    queryKey: [`/api/users/${post?.userId}/follow-status`],
-    enabled: !!user && !!post?.userId && user.id !== post?.userId,
+    queryKey: [`/api/users/${(post as any)?.userId}/follow-status`],
+    enabled: !!user && !!(post as any)?.userId && user.id !== (post as any)?.userId,
   });
 
   const [isFollowing, setIsFollowing] = useState(false);
@@ -75,13 +81,13 @@ export default function ArtDetailPage() {
 
   const followMutation = useMutation({
     mutationFn: async () => {
-      if (!post?.userId) throw new Error('User ID not found');
-      const response = await apiRequest('POST', `/api/users/${post.userId}/follow`);
+      if (!(post as any)?.userId) throw new Error('User ID not found');
+      const response = await apiRequest('POST', `/api/users/${(post as any).userId}/follow`);
       return response.json();
     },
     onSuccess: () => {
       setIsFollowing(true);
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${post?.userId}/follow-status`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${(post as any)?.userId}/follow-status`] });
       toast({
         title: "Sucesso",
         description: "Você agora está seguindo este usuário",
@@ -98,13 +104,13 @@ export default function ArtDetailPage() {
 
   const unfollowMutation = useMutation({
     mutationFn: async () => {
-      if (!post?.userId) throw new Error('User ID not found');
-      const response = await apiRequest('DELETE', `/api/users/${post.userId}/follow`);
+      if (!(post as any)?.userId) throw new Error('User ID not found');
+      const response = await apiRequest('DELETE', `/api/users/${(post as any).userId}/follow`);
       return response.json();
     },
     onSuccess: () => {
       setIsFollowing(false);
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${post?.userId}/follow-status`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${(post as any)?.userId}/follow-status`] });
       toast({
         title: "Sucesso",
         description: "Você deixou de seguir este usuário",
