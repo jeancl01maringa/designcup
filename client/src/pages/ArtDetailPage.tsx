@@ -520,9 +520,10 @@ export default function ArtDetailPage() {
                 {post.title}
               </h1>
               {isPremium && (
-                <div className="flex items-center gap-1.5 bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full text-sm font-medium">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium" style={{backgroundColor: '#fef3c7', color: '#a76e40'}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11.5 2L8 8l-5-1 2 7h14l2-7-5 1z"/>
+                    <circle cx="12" cy="6" r="1"/>
                   </svg>
                   Premium
                 </div>
