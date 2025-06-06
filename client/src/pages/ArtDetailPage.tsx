@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
 import { 
   ArrowLeft, 
   Download, 
@@ -261,6 +261,9 @@ export default function ArtDetailPage() {
     license_type?: string;
     isPro?: boolean;
     is_pro?: boolean;
+    userId?: number;
+    createdAt?: string;
+    categoryName?: string;
   }
   
   // Buscar artes relacionadas baseado em categoria e similaridade de título
@@ -966,19 +969,55 @@ export default function ArtDetailPage() {
         <div className="mt-12">
           <h2 className="text-xl font-bold mb-4">Artes relacionadas</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {relatedArtworks.map((artwork: RelatedFormat) => (
-              <ArtworkCard
-                key={artwork.id}
-                id={artwork.id}
-                title={artwork.title}
-                imageUrl={artwork.imageUrl}
-                uniqueCode={artwork.uniqueCode}
-                formato={artwork.formato}
-                isPremium={artwork.licenseType === 'premium' || artwork.isPro}
-                author=""
-                authorId={artwork.userId}
-              />
-            ))}
+            {relatedArtworks.map((item: RelatedFormat) => {
+              const isPremium = item.licenseType === 'premium' || item.isPro;
+              const slug = item.uniqueCode || `${item.id}-${item.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+              
+              return (
+                <div key={item.id} className="relative rounded-lg overflow-hidden shadow-sm bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                  <Link href={`/artes/${slug}`}>
+                    <div className="relative">
+                      {/* Selo premium */}
+                      {isPremium && (
+                        <div className="absolute top-2 right-2 z-10 bg-yellow-100 text-yellow-800 rounded-full p-1.5">
+                          <Crown className="h-3 w-3" fill="currentColor" />
+                        </div>
+                      )}
+                      
+                      {/* Badge do formato */}
+                      {item.formato && (
+                        <div className="absolute top-2 left-2 z-10 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
+                          {formatLabel(item.formato)}
+                        </div>
+                      )}
+                      
+                      {/* Imagem */}
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title} 
+                        className="w-full h-[180px] object-cover hover:scale-105 transition-transform duration-200"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/api/placeholder/180/180';
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Título */}
+                    <div className="p-3">
+                      <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
+                        {item.title}
+                      </h3>
+                      {item.categoryName && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {item.categoryName}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
