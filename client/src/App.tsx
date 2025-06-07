@@ -36,6 +36,7 @@ import AssinantesPage from "@/pages/admin/gerenciamento/AssinantesPage";
 import MarketingPage from "@/pages/admin/MarketingPage";
 import PopupsPage from "@/pages/admin/PopupsPage";
 import MonetizacaoPage from "@/pages/admin/gerenciamento/MonetizacaoPage";
+import SuportePage from "@/pages/admin/configuracoes/SuportePage";
 import ProfilePage from "@/pages/account/ProfilePage";
 import CurtidasPage from "@/pages/account/CurtidasPage";
 import SalvosPage from "@/pages/account/SalvosPage";
@@ -120,6 +121,9 @@ function Router() {
       </Route>
       <Route path="/admin/gerenciamento/monetizacao">
         <ProtectedRoute path="/admin/gerenciamento/monetizacao" component={MonetizacaoPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/configuracoes/suporte">
+        <ProtectedRoute path="/admin/configuracoes/suporte" component={SuportePage} requireAdmin={true} />
       </Route>
       <Route path="/admin">
         {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
