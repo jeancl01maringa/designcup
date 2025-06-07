@@ -163,7 +163,7 @@ export default function CategorySection() {
       <section className="py-8 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
           <div className="mb-6">
-            <h3 className="text-[#1d1d1f] font-semibold text-xl font-inter mb-1 flex items-center">
+            <h3 className="text-[#1d1d1f] font-semibold text-lg font-inter mb-1 flex items-center">
               <span className="mr-2">📁</span>
               Escolha sua categoria
             </h3>
@@ -186,7 +186,7 @@ export default function CategorySection() {
       <section className="py-8 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
           <div className="mb-6">
-            <h3 className="text-[#1d1d1f] font-semibold text-xl font-inter mb-1 flex items-center">
+            <h3 className="text-[#1d1d1f] font-semibold text-lg font-inter mb-1 flex items-center">
               <span className="mr-2">📁</span>
               Escolha sua categoria
             </h3>
@@ -211,7 +211,7 @@ export default function CategorySection() {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-6">
-          <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
+          <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
             <span className="mr-2">📁</span>
             Escolha sua categoria
           </h3>

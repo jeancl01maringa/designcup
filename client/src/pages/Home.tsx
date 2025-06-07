@@ -13,7 +13,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           {/* Header seguindo o mesmo padrão da seção de categorias */}
           <div className="mb-6">
-            <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
+            <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
               <span className="mr-2">🎨</span>
               Artes de alta qualidade para sua Clínica
             </h3>
