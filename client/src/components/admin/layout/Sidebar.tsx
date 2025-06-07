@@ -35,7 +35,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProps) {
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['marketing']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['marketing', 'monetizacao', 'conteudos']);
 
   // Função para verificar se um item de menu está ativo
   const isActive = (path: string) => {
@@ -72,16 +72,64 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       icon: <FileText className="h-4 w-4" />,
     },
     {
-      id: "categorias",
-      label: "Categorias",
-      path: "/admin/categorias",
-      icon: <FolderOpen className="h-4 w-4" />,
+      id: "monetizacao",
+      label: "Monetização",
+      path: "/admin/monetizacao",
+      icon: <Database className="h-4 w-4" />,
+      hasSubmenu: true,
+      subItems: [
+        {
+          id: "usuarios",
+          label: "Usuários",
+          path: "/admin/gerenciamento/usuarios",
+          icon: <Users className="h-4 w-4" />,
+        },
+        {
+          id: "assinantes",
+          label: "Assinantes",
+          path: "/admin/gerenciamento/assinantes",
+          icon: <Users className="h-4 w-4 text-blue-500" />,
+        },
+        {
+          id: "planos",
+          label: "Planos",
+          path: "/admin/planos",
+          icon: <LayoutTemplate className="h-4 w-4" />,
+        }
+      ],
     },
     {
-      id: "planos",
-      label: "Planos",
-      path: "/admin/planos",
-      icon: <LayoutTemplate className="h-4 w-4" />,
+      id: "conteudos",
+      label: "Conteúdos",
+      path: "/admin/conteudos",
+      icon: <FolderOpen className="h-4 w-4" />,
+      hasSubmenu: true,
+      subItems: [
+        {
+          id: "categorias",
+          label: "Categorias",
+          path: "/admin/categorias",
+          icon: <FolderOpen className="h-4 w-4" />,
+        },
+        {
+          id: "formatos",
+          label: "Formatos de Arquivo",
+          path: "/admin/gerenciamento/formatos",
+          icon: <FileType className="h-4 w-4" />,
+        },
+        {
+          id: "formatos-post",
+          label: "Formatos de Post",
+          path: "/admin/gerenciamento/formatos-post",
+          icon: <LayoutTemplate className="h-4 w-4" />,
+        },
+        {
+          id: "tags",
+          label: "Gerenciar Tags",
+          path: "/admin/gerenciamento/tags",
+          icon: <Tag className="h-4 w-4" />,
+        }
+      ],
     },
     {
       id: "marketing",
@@ -105,37 +153,6 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       path: "/admin/gerenciamento",
       icon: <Settings className="h-4 w-4" />,
       separator: false,
-    },
-    {
-      id: "usuarios",
-      label: "Usuários",
-      path: "/admin/gerenciamento/usuarios",
-      icon: <Users className="h-4 w-4" />,
-    },
-    {
-      id: "assinantes",
-      label: "Assinantes",
-      path: "/admin/gerenciamento/assinantes",
-      icon: <Users className="h-4 w-4 text-blue-500" />,
-    },
-    {
-      id: "formatos",
-      label: "Formatos de Arquivo",
-      path: "/admin/gerenciamento/formatos",
-      icon: <FileType className="h-4 w-4" />,
-    },
-    {
-      id: "formatos-post",
-      label: "Formatos de Post",
-      path: "/admin/gerenciamento/formatos-post",
-      icon: <LayoutTemplate className="h-4 w-4" />,
-    },
-    {
-      id: "tags",
-      label: "Gerenciar Tags",
-      path: "/admin/gerenciamento/tags",
-      icon: <Tag className="h-4 w-4" />,
-      separator: true,
     },
     {
       id: "configuracoes",
