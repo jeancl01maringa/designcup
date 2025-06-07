@@ -2412,13 +2412,22 @@ export class DatabaseStorage implements IStorage {
 
   async getVisiblePosts(): Promise<Post[]> {
     try {
-      console.log("DATABASE getVisiblePosts - Buscando posts visíveis para o feed");
+      console.log("DATABASE getVisiblePosts - Buscando posts visíveis para o feed com agrupamento");
       
-      // Buscar posts que estão aprovados e visíveis
+      // Query para buscar apenas uma versão por grupo (prioriza o primeiro formato criado)
       const query = `
-        SELECT * FROM posts 
-        WHERE status = 'aprovado' 
-        AND (is_visible IS NULL OR is_visible = true)
+        WITH grouped_posts AS (
+          SELECT DISTINCT ON (COALESCE(group_id, 'single_' || id::text)) 
+            id, title, description, image_url, unique_code, category_id, status,
+            created_at, published_at, formato, group_id, titulo_base,
+            is_pro, license_type, canva_url, formato_data, tags, formats,
+            format_data, is_visible, user_id
+          FROM posts 
+          WHERE status = 'aprovado' 
+          AND (is_visible IS NULL OR is_visible = true)
+          ORDER BY COALESCE(group_id, 'single_' || id::text), created_at ASC
+        )
+        SELECT * FROM grouped_posts
         ORDER BY created_at DESC
       `;
       
@@ -2438,6 +2447,7 @@ export class DatabaseStorage implements IStorage {
           imageUrl: item.image_url,
           uniqueCode: item.unique_code,
           categoryId: item.category_id,
+          userId: item.user_id,
           status: item.status,
           createdAt: new Date(item.created_at),
           publishedAt: item.published_at ? new Date(item.published_at) : null,
@@ -2458,7 +2468,7 @@ export class DatabaseStorage implements IStorage {
         return ensurePremiumFields(rawPost);
       });
       
-      console.log(`DATABASE getVisiblePosts - Encontrados ${posts.length} posts visíveis`);
+      console.log(`DATABASE getVisiblePosts - Encontrados ${posts.length} posts visíveis (agrupados)`);
       return posts;
     } catch (error) {
       console.error("DATABASE getVisiblePosts - Erro:", error);

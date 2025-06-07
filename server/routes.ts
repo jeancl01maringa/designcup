@@ -1603,27 +1603,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Group ID is required' });
       }
       
-      // Buscar apenas posts aprovados com este groupId (para o público)
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('group_id', groupId)
-        .eq('status', 'aprovado')
-        .order('id', { ascending: true });
-        
-      if (error) {
-        console.error("Erro ao buscar variações de formato:", error);
-        throw error;
+      console.log(`Buscando todos os formatos do grupo: ${groupId}`);
+      
+      // Buscar todos os posts do grupo usando PostgreSQL direto
+      const query = `
+        SELECT id, title, description, image_url, unique_code, category_id, user_id,
+               status, created_at, published_at, formato, group_id, titulo_base,
+               is_pro, license_type, canva_url, formato_data, is_visible
+        FROM posts 
+        WHERE group_id = $1 
+        AND status = 'aprovado'
+        ORDER BY id ASC
+      `;
+      
+      const result = await pool.query(query, [groupId]);
+      
+      if (!result.rows || result.rows.length === 0) {
+        console.log(`Nenhum formato encontrado para o grupo ${groupId}`);
+        return res.json([]);
       }
       
-      // Mapear os dados do Supabase para o formato esperado pelo cliente
-      const formattedData = data?.map(post => ({
+      // Mapear os dados para o formato esperado pelo cliente
+      const formattedData = result.rows.map(post => ({
         id: post.id,
         title: post.title,
         description: post.description || "",
         imageUrl: post.image_url,
         uniqueCode: post.unique_code,
         categoryId: post.category_id,
+        userId: post.user_id,
         status: post.status,
         createdAt: new Date(post.created_at),
         publishedAt: post.published_at ? new Date(post.published_at) : null,
@@ -1635,7 +1643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         canvaUrl: post.canva_url,
         formatoData: post.formato_data,
         isVisible: post.is_visible !== false
-      })) || [];
+      }));
       
       console.log(`Encontradas ${formattedData.length} variações de formato para o grupo ${groupId}`);
       res.json(formattedData);
@@ -1747,6 +1755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Preparando os dados para este formato específico
           const postData = {
             ...parsedData.data,
+            userId: req.user!.id,
             title,
             tituloBase,
             uniqueCode,

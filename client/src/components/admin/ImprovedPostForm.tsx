@@ -761,13 +761,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         };
       });
       
-      // Preparar formatData como string JSON conforme esperado pelo banco
-      const formatData = JSON.stringify(formatos.map(formato => ({
-        type: formato.formato,
-        imageUrl: formato.imageUrl,
-        links: formato.links
-      })));
-
       const post = {
         title: formData.title,
         categoryId: formData.categoryId,
@@ -777,9 +770,8 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         imageUrl: mainImageUrl,
         isVisible: formData.isVisible,
         groupId: formData.groupId,
-        formatData: formatData, // String JSON em vez de array
-        formats: formData.formats, // Array de strings dos formatos
-        uniqueCode: formData.uniqueCode // Manter uniqueCode para consistência
+        uniqueCode: formData.uniqueCode,
+        formatos: formatos // Enviar array de formatos para criação de múltiplos posts
       };
       
       // uniqueCode será gerado automaticamente no servidor para novos posts
