@@ -234,35 +234,8 @@ const MobileUserMenu = () => {
   const isAdmin = Boolean(user.isAdmin);
   
   return (
-    <div className="flex md:hidden items-center gap-2">
-      {/* Admin Button for Mobile */}
-      {isAdmin && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10 px-2"
-          onClick={() => navigate("/admin")}
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-        </Button>
-      )}
-      
-      {/* Profile Photo Button for Mobile */}
+    <div className="flex md:hidden items-center">
+      {/* Only Profile Photo Button for Mobile - Admin button removed since it's in the dropdown */}
       <Button 
         variant="ghost" 
         size="sm"
@@ -310,12 +283,12 @@ const MobileMenu = () => {
   
   return (
     <div className="md:hidden">
-      <div className="px-4 pt-2 pb-4 space-y-3 bg-white">
+      <div className="px-6 pt-6 pb-6 space-y-6 bg-white">
         {navItems.map((item) => (
           <Link 
             key={item.path} 
             href={item.path}
-            className={`block text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base py-2 transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
+            className={`block text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-lg py-3 transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
             onClick={() => setIsOpen(false)}
           >
             {item.name}
@@ -323,75 +296,45 @@ const MobileMenu = () => {
         ))}
         
         {/* Support Contact for Mobile */}
-        <div className="border-t border-muted pt-4 mt-2">
+        <div className="border-t border-gray-200 pt-6 mt-6">
           <SupportContact 
             variant="ghost" 
             size="default" 
-            className="w-full justify-start text-primary hover:text-primary/80"
+            className="w-full justify-start text-primary hover:text-primary/80 text-lg py-3"
           />
         </div>
         
         {user ? (
           <>
-            <div className="flex items-center gap-3 border-t border-muted pt-4 mt-2">
-              <div className="rounded-full overflow-hidden w-8 h-8 bg-primary/20 flex items-center justify-center text-primary">
-                <User className="h-4 w-4" />
-              </div>
-              <span className="text-[#1D1D1D] font-medium">{user.username}</span>
-            </div>
-            
-            {Boolean(user.isAdmin) && (
-              <Link 
-                href="/admin"
-                className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium text-base py-3 transition-colors border border-primary/50 rounded-md px-3 mt-3 mb-1"
-                onClick={() => setIsOpen(false)}
+            {/* Only logout button - no duplicate admin panel or username */}
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <button
+                className="flex items-center gap-3 text-destructive hover:text-destructive/80 font-medium text-lg py-3 transition-colors w-full text-left"
+                onClick={() => {
+                  logoutMutation.mutate();
+                  setIsOpen(false);
+                }}
               >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="18" 
-                  height="18" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Painel Admin</span>
-              </Link>
-            )}
-            
-            <button
-              className="flex items-center gap-2 text-destructive hover:text-destructive/80 font-medium text-base py-2 transition-colors w-full text-left"
-              onClick={() => {
-                logoutMutation.mutate();
-                setIsOpen(false);
-              }}
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sair</span>
-            </button>
+                <LogOut className="h-5 w-5" />
+                <span>Sair</span>
+              </button>
+            </div>
           </>
         ) : (
-          <div className="flex flex-col gap-2 border-t border-muted pt-4 mt-2">
+          <div className="flex flex-col gap-4 border-t border-gray-200 pt-6 mt-6">
             <button
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium text-base py-2 transition-colors"
+              className="flex items-center gap-3 text-muted-foreground hover:text-foreground font-medium text-lg py-3 transition-colors"
               onClick={() => {
                 navigate("/auth");
                 setIsOpen(false);
               }}
             >
-              <LogIn className="h-4 w-4" />
+              <LogIn className="h-5 w-5" />
               <span>Entrar</span>
             </button>
             
             <button
-              className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium text-base py-2 transition-colors"
+              className="flex items-center gap-3 text-primary hover:text-primary/80 font-medium text-lg py-3 transition-colors"
               onClick={() => {
                 navigate("/auth");
                 setIsOpen(false);
@@ -403,7 +346,7 @@ const MobileMenu = () => {
                 }, 100);
               }}
             >
-              <UserPlus className="h-4 w-4" />
+              <UserPlus className="h-5 w-5" />
               <span>Cadastre-se</span>
             </button>
           </div>
