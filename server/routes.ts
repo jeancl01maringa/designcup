@@ -3180,6 +3180,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Atualizando perfil do usuário #${userId}:`, req.body);
       
+      // Verificar se o usuário é premium (integração Hotmart)
+      const currentUser = await storage.getUser(userId);
+      const isPremiumUser = currentUser?.tipo === "premium";
+      
+      // Bloquear alterações de email/telefone para usuários premium
+      if (isPremiumUser && (email !== undefined || telefone !== undefined)) {
+        return res.status(403).json({ 
+          message: 'Usuários premium devem solicitar alteração de email e telefone via suporte devido à integração com Hotmart',
+          error: 'ALTERACAO_RESTRITA_PREMIUM'
+        });
+      }
+      
       // Construir a query SQL de atualização
       let setClauses = [];
       const queryParams = [];

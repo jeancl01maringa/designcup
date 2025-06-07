@@ -32,6 +32,10 @@ export default function ProfilePage() {
 
   // Type assertion for user data with subscription properties
   const userData = user as any;
+  
+  // Check if user is premium (Hotmart integration)
+  const isPremiumUser = userData?.tipo === "premium";
+  const isEmailPhoneEditable = !isPremiumUser;
 
   // Buscar dados do perfil
   const { data: profileData = {}, isLoading: profileLoading } = useQuery({
@@ -171,12 +175,22 @@ export default function ProfilePage() {
         queryClient.invalidateQueries({ queryKey: ["/api/user"] });
         queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
       } else {
-        throw new Error('Erro ao atualizar perfil');
+        const errorData = await response.json();
+        
+        if (errorData.error === 'ALTERACAO_RESTRITA_ASSINANTE') {
+          toast({
+            title: "Alteração restrita",
+            description: "Entre em contato com o suporte para alterar email ou telefone.",
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(errorData.message || 'Erro ao atualizar perfil');
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível atualizar seu perfil. Tente novamente.",
+        description: error.message || "Não foi possível atualizar seu perfil. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -371,23 +385,51 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
+                  <Label htmlFor="email">
+                    E-mail
+                    {isSubscriber && (
+                      <span className="text-xs text-amber-600 ml-2">
+                        (Solicite alteração via suporte)
+                      </span>
+                    )}
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     value={editableData.email}
                     onChange={(e) => setEditableData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="seu.email@exemplo.com"
+                    disabled={isSubscriber}
+                    className={isSubscriber ? "bg-gray-100 cursor-not-allowed" : ""}
                   />
+                  {isSubscriber && (
+                    <p className="text-xs text-gray-500">
+                      Usuários assinantes devem solicitar alteração de email via suporte devido à integração com Hotmart
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
+                  <Label htmlFor="telefone">
+                    Telefone
+                    {isSubscriber && (
+                      <span className="text-xs text-amber-600 ml-2">
+                        (Solicite alteração via suporte)
+                      </span>
+                    )}
+                  </Label>
                   <Input
                     id="telefone"
                     value={editableData.telefone}
                     onChange={(e) => setEditableData(prev => ({ ...prev, telefone: e.target.value }))}
                     placeholder="(11) 99999-9999"
+                    disabled={isSubscriber}
+                    className={isSubscriber ? "bg-gray-100 cursor-not-allowed" : ""}
                   />
+                  {isSubscriber && (
+                    <p className="text-xs text-gray-500">
+                      Usuários assinantes devem solicitar alteração de telefone via suporte devido à integração com Hotmart
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="site">Site</Label>
