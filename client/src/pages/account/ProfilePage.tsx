@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,7 +49,7 @@ export default function ProfilePage() {
   const [editableData, setEditableData] = useState({
     username: user?.username || "",
     email: user?.email || "",
-    telefone: (profileData as any)?.telefone || "",
+    telefone: userData?.telefone || "",
     biografia: "",
     site: "",
     localizacao: "",
@@ -61,6 +61,18 @@ export default function ProfilePage() {
     newPassword: "",
     confirmPassword: ""
   });
+
+  // Sync user data when it loads
+  useEffect(() => {
+    if (user) {
+      setEditableData(prev => ({
+        ...prev,
+        username: user.username || "",
+        email: user.email || "",
+        telefone: userData?.telefone || "",
+      }));
+    }
+  }, [user, userData?.telefone]);
 
   // Mutation para upload de foto
   const uploadPhotoMutation = useMutation({
@@ -154,6 +166,10 @@ export default function ProfilePage() {
           title: "Perfil atualizado",
           description: "Suas informações foram salvas com sucesso.",
         });
+        
+        // Invalidar cache para recarregar dados do usuário
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
       } else {
         throw new Error('Erro ao atualizar perfil');
       }
