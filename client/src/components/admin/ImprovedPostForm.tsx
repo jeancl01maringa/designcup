@@ -664,7 +664,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       
       // Preparar dados para envio como rascunho
       const formatDataJson = JSON.stringify(formats.map(format => {
-        // Verificar se o formato é válido antes de acessar formatFiles
         const typedFormat = format as PostFormat;
         return {
           type: format,
@@ -676,14 +675,14 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       const post = {
         title: formData.title,
         categoryId: formData.categoryId,
-        status: "rascunho" as "aprovado" | "rascunho" | "rejeitado", // Forçar como rascunho com type assertion
+        status: "rascunho" as const,
         description: formData.description,
         licenseType: formData.licenseType,
-        formats: formats,
         formatData: formatDataJson,
+        uniqueCode: formData.uniqueCode,
         groupId: formData.groupId,
-        imageUrl: mainImageUrl || "/assets/placeholder.png", // Fallback para placeholder
-        isVisible: formData.isVisible // Controle de visibilidade no feed
+        imageUrl: mainImageUrl || "",
+        isVisible: formData.isVisible
       };
       
       // Salvar no servidor como rascunho
@@ -762,17 +761,25 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         };
       });
       
+      // Preparar formatData como string JSON conforme esperado pelo banco
+      const formatData = JSON.stringify(formatos.map(formato => ({
+        type: formato.formato,
+        imageUrl: formato.imageUrl,
+        links: formato.links
+      })));
+
       const post = {
         title: formData.title,
         categoryId: formData.categoryId,
         status: formData.status,
         description: formData.description,
         licenseType: formData.licenseType,
-        imageUrl: mainImageUrl, // Adicionar imageUrl que é obrigatório
-        isVisible: formData.isVisible, // Controle de visibilidade no feed
-        groupId: formData.groupId, // Incluir groupId para edit mode
-        formatos: formatos // Enviar formatos para criação de múltiplas entradas
-        // uniqueCode removido para evitar conflitos na atualização em grupo
+        imageUrl: mainImageUrl,
+        isVisible: formData.isVisible,
+        groupId: formData.groupId,
+        formatData: formatData, // String JSON em vez de array
+        formats: formData.formats, // Array de strings dos formatos
+        uniqueCode: formData.uniqueCode // Manter uniqueCode para consistência
       };
       
       // uniqueCode será gerado automaticamente no servidor para novos posts
@@ -782,14 +789,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         // No modo de edição, enviar dados completos para o endpoint PATCH
         console.log("EDIT MODE: Enviando dados completos para atualização:", post);
         
-        // Preparar dados específicos para o modo de edição com formatData completo
+        // Para edição, usar os mesmos dados já preparados
         const editData = {
           ...post,
-          formatData: JSON.stringify(formatos), // Serializar os dados dos formatos
-          // Garantir que a imageUrl principal seja atualizada com a primeira imagem disponível
-          imageUrl: mainImageUrl,
-          // Incluir todos os dados de formatos para atualização completa
-          formatFiles: formData.formatFiles
+          // Garantir que a imageUrl principal seja atualizada
+          imageUrl: mainImageUrl
         };
         
         console.log("EDIT MODE: Dados serializados para API:", editData);
