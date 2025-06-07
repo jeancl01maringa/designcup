@@ -65,14 +65,14 @@ export default function CurtidasPage() {
         </div>
 
         {likedPosts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
-              <Heart className="w-10 h-10 text-red-300" />
+          <div className="flex flex-col items-center justify-center py-12 lg:py-16 text-center">
+            <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-red-50 flex items-center justify-center mb-4 lg:mb-6">
+              <Heart className="w-8 h-8 lg:w-10 lg:h-10 text-red-300" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
               Nenhuma arte curtida ainda
             </h2>
-            <p className="text-gray-600 mb-8 max-w-md">
+            <p className="text-gray-600 mb-6 lg:mb-8 max-w-md text-sm lg:text-base">
               Quando você curtir uma arte, ela aparecerá aqui para você acessar facilmente depois.
             </p>
             <Link href="/">
@@ -89,7 +89,7 @@ export default function CurtidasPage() {
                 {likedPosts.length} {likedPosts.length === 1 ? 'arte curtida' : 'artes curtidas'}
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
               {likedPosts.map((post) => (
                 <ArtworkCard key={post.id} artwork={{
                   id: post.id,
