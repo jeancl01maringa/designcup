@@ -1064,31 +1064,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Buscando categorias com posts para o feed público...");
       
-      // Buscar apenas categorias que têm pelo menos 1 post
-      const query = `
-        SELECT DISTINCT c.*, COUNT(p.id) as post_count
-        FROM categories c
-        INNER JOIN posts p ON c.id = p.category_id
-        WHERE c.is_active = true
-        GROUP BY c.id, c.name, c.description, c.is_active, c.created_at
-        HAVING COUNT(p.id) > 0
-        ORDER BY c.name
-      `;
+      // Buscar categorias usando o storage que acessa o Supabase corretamente
+      const allCategories = await storage.getCategories();
+      const activeCategoriesWithPosts = [];
       
-      const result = await pool.query(query);
-      const categoriesWithPosts = result.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        isActive: row.is_active,
-        createdAt: row.created_at,
-        postCount: parseInt(row.post_count)
-      }));
+      // Para cada categoria ativa, verificar se tem posts
+      for (const category of allCategories) {
+        if (!category.isActive) continue;
+        
+        // Contar posts desta categoria
+        const query = `
+          SELECT COUNT(*) as post_count
+          FROM posts p
+          WHERE p.category_id = $1 AND p.status = 'aprovado' AND p.is_visible = true
+        `;
+        
+        const result = await pool.query(query, [category.id]);
+        const postCount = parseInt(result.rows[0].post_count);
+        
+        if (postCount > 0) {
+          activeCategoriesWithPosts.push({
+            id: category.id,
+            name: category.name,
+            description: category.description,
+            slug: category.slug || null,
+            isActive: category.isActive,
+            createdAt: category.createdAt,
+            postCount: postCount
+          });
+        }
+      }
       
-      console.log(`Encontradas ${categoriesWithPosts.length} categorias com posts:`, 
-        categoriesWithPosts.map(c => `${c.name} (${c.postCount} posts)`));
+      // Ordenar por nome
+      activeCategoriesWithPosts.sort((a, b) => a.name.localeCompare(b.name));
       
-      res.json(categoriesWithPosts);
+      console.log(`Encontradas ${activeCategoriesWithPosts.length} categorias com posts:`, 
+        activeCategoriesWithPosts.map(c => `${c.name} (${c.postCount} posts)`));
+      
+      res.json(activeCategoriesWithPosts);
     } catch (error) {
       console.error('Error fetching categories with posts:', error);
       res.status(500).json({ message: 'Error fetching categories with posts' });
