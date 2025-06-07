@@ -78,6 +78,18 @@ export default function ProfilePage() {
     }
   }, [user, userData?.telefone]);
 
+  // Sync profile data when it loads
+  useEffect(() => {
+    if (profileData) {
+      setEditableData(prev => ({
+        ...prev,
+        biografia: profileData.bio || "",
+        site: profileData.site || "",
+        localizacao: profileData.localizacao || "",
+      }));
+    }
+  }, [profileData]);
+
   // Mutation para upload de foto
   const uploadPhotoMutation = useMutation({
     mutationFn: async (file: File) => {

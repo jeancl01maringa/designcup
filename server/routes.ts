@@ -3566,7 +3566,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               tipo: 'free',
               planoId: null,
               dataVencimento: null,
-              active: true
+              active: true,
+              bio: null
             });
           } else {
             return res.status(404).json({ message: 'Usuário não encontrado' });
@@ -3585,7 +3586,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tipo: 'free',
           planoId: null,
           dataVencimento: null,
-          active: true
+          active: true,
+          bio: null
         });
       }
 
