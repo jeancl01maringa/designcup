@@ -1095,6 +1095,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all categories with statistics (for Categories page)
+  app.get('/api/categories/with-stats', async (req, res) => {
+    try {
+      console.log("Buscando todas as categorias com estatísticas...");
+      
+      // Buscar todas as categorias ativas com contagem de posts
+      const query = `
+        SELECT 
+          c.id,
+          c.name,
+          c.description,
+          c.slug,
+          c.is_highlighted,
+          c.is_active as "isActive",
+          c.created_at,
+          COALESCE(COUNT(p.id), 0) as post_count
+        FROM categories c
+        LEFT JOIN posts p ON c.id = p.category_id AND p.status = 'aprovado'
+        WHERE c.is_active = true
+        GROUP BY c.id, c.name, c.description, c.slug, c.is_highlighted, c.is_active, c.created_at
+        ORDER BY post_count DESC, c.name ASC
+      `;
+      
+      const result = await pool.query(query);
+      const categoriesWithStats = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        slug: row.slug,
+        is_highlighted: row.is_highlighted,
+        isActive: row.isActive,
+        postCount: parseInt(row.post_count),
+        latestPost: null, // Could be added later if needed
+        createdAt: row.created_at
+      }));
+      
+      console.log(`Encontradas ${categoriesWithStats.length} categorias com estatísticas:`, 
+        categoriesWithStats.map(c => `${c.name} (${c.postCount} posts)`));
+      
+      res.json(categoriesWithStats);
+    } catch (error) {
+      console.error('Error fetching categories with stats:', error);
+      res.status(500).json({ message: 'Error fetching categories with stats' });
+    }
+  });
+
   app.get('/api/admin/categories/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
