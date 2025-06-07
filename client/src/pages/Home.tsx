@@ -11,13 +11,22 @@ export default function Home() {
       {/* Feed Section with Title and Proper Margins */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Explore nossa galeria completa
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Descubra artes profissionais para estética, organizadas por categoria e prontas para personalização
+          {/* Header seguindo o mesmo padrão da seção de categorias */}
+          <div className="mb-6">
+            <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
+              <span className="mr-2">🎨</span>
+              Artes de alta qualidade para sua Clínica
+            </h3>
+            <p className="text-[#5c3a2d] text-sm font-light">
+              Modelos premium, editáveis e prontos para usar
             </p>
+            <div className="flex items-center mt-2">
+              <div className="flex mt-1">
+                <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
+                <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
+                <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
+              </div>
+            </div>
           </div>
           <ArtworkGrid />
         </div>
