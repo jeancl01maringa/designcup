@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,7 +20,9 @@ import {
   Hash,
   Tag,
   Megaphone,
-  Zap
+  Zap,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -33,9 +35,19 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProps) {
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['marketing']);
+
   // Função para verificar se um item de menu está ativo
   const isActive = (path: string) => {
     return currentPath === path || currentPath.startsWith(`${path}/`);
+  };
+
+  const toggleSubmenu = (menuId: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuId) 
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
   };
 
   // Itens do menu da sidebar com seus respectivos ícones e caminhos
@@ -76,12 +88,15 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       label: "Marketing",
       path: "/admin/marketing",
       icon: <Megaphone className="h-4 w-4" />,
-    },
-    {
-      id: "popups",
-      label: "Popups",
-      path: "/admin/marketing/popups",
-      icon: <Zap className="h-4 w-4" />,
+      hasSubmenu: true,
+      subItems: [
+        {
+          id: "popups",
+          label: "Popups",
+          path: "/admin/marketing/popups",
+          icon: <Zap className="h-4 w-4" />,
+        }
+      ],
       separator: true,
     },
     {
@@ -212,26 +227,85 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
             <ul className="space-y-1">
               {menuItems.map((item) => (
                 <li key={item.id}>
-                  <Link href={item.path}>
-                    <Button
-                      variant={isActive(item.path) ? "default" : "ghost"}
-                      className={cn(
-                        "w-full justify-start",
-                        isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
-                        !isOpen && "md:justify-center"
+                  {item.hasSubmenu ? (
+                    // Item com submenu
+                    <div>
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSubmenu(item.id)}
+                        className={cn(
+                          "w-full justify-start",
+                          !isOpen && "md:justify-center"
+                        )}
+                        size="sm"
+                      >
+                        <span className={cn(
+                          "mr-2 text-muted-foreground",
+                          !isOpen && "md:mr-0"
+                        )}>
+                          {item.icon}
+                        </span>
+                        {isOpen && (
+                          <>
+                            <span className="flex-1 text-left">{item.label}</span>
+                            {expandedMenus.includes(item.id) ? 
+                              <ChevronDown className="h-4 w-4" /> : 
+                              <ChevronRight className="h-4 w-4" />
+                            }
+                          </>
+                        )}
+                      </Button>
+                      
+                      {/* Submenu items */}
+                      {isOpen && expandedMenus.includes(item.id) && item.subItems && (
+                        <div className="ml-4 mt-1 space-y-1">
+                          {item.subItems.map((subItem) => (
+                            <Link key={subItem.id} href={subItem.path}>
+                              <Button
+                                variant={isActive(subItem.path) ? "default" : "ghost"}
+                                className={cn(
+                                  "w-full justify-start text-sm",
+                                  isActive(subItem.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : ""
+                                )}
+                                size="sm"
+                              >
+                                <span className={cn(
+                                  "mr-2",
+                                  isActive(subItem.path) ? "text-primary" : "text-muted-foreground"
+                                )}>
+                                  {subItem.icon}
+                                </span>
+                                <span>{subItem.label}</span>
+                              </Button>
+                            </Link>
+                          ))}
+                        </div>
                       )}
-                      size="sm"
-                    >
-                      <span className={cn(
-                        "mr-2",
-                        isActive(item.path) ? "text-primary" : "text-muted-foreground",
-                        !isOpen && "md:mr-0"
-                      )}>
-                        {item.icon}
-                      </span>
-                      {isOpen && <span>{item.label}</span>}
-                    </Button>
-                  </Link>
+                    </div>
+                  ) : (
+                    // Item normal sem submenu
+                    <Link href={item.path}>
+                      <Button
+                        variant={isActive(item.path) ? "default" : "ghost"}
+                        className={cn(
+                          "w-full justify-start",
+                          isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
+                          !isOpen && "md:justify-center"
+                        )}
+                        size="sm"
+                      >
+                        <span className={cn(
+                          "mr-2",
+                          isActive(item.path) ? "text-primary" : "text-muted-foreground",
+                          !isOpen && "md:mr-0"
+                        )}>
+                          {item.icon}
+                        </span>
+                        {isOpen && <span>{item.label}</span>}
+                      </Button>
+                    </Link>
+                  )}
+                  
                   {item.separator && (
                     <div>
                       {isOpen && <Separator className="my-4" />}
