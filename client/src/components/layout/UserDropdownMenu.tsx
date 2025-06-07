@@ -13,6 +13,14 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+
+interface UserPlan {
+  planName: string;
+  periodo: string;
+  valor: string;
+  isActive: boolean;
+}
 
 interface UserDropdownMenuProps {
   isOpen: boolean;
@@ -23,6 +31,12 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+
+  // Buscar informações do plano do usuário
+  const { data: userPlan, isLoading: planLoading } = useQuery<UserPlan>({
+    queryKey: ["/api/user/plan"],
+    enabled: !!user && isOpen,
+  });
 
   if (!isOpen || !user) return null;
 
@@ -51,18 +65,12 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
   // Função para determinar o nome do plano dinamicamente
   const getPlanName = () => {
-    const planoId = typeof user.plano_id === 'string' ? parseInt(user.plano_id, 10) : user.plano_id;
-    
-    if (!planoId || planoId === 1) {
-      return 'CONTA GRATUITA';
+    if (planLoading) {
+      return 'CARREGANDO...';
     }
     
-    // Verificar o tipo de conta baseado no campo tipo ou plano_id
-    if (user.tipo === 'premium') {
-      if (planoId === 6) return 'CONTA VITALÍCIA';
-      if (planoId === 2) return 'CONTA MENSAL';
-      if (planoId === 3) return 'CONTA ANUAL';
-      return 'CONTA PREMIUM';
+    if (userPlan) {
+      return `${userPlan.planName.toUpperCase()} (${userPlan.periodo.toUpperCase()} - R$ ${userPlan.valor})`;
     }
     
     return 'CONTA GRATUITA';
