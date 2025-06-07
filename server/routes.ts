@@ -1107,14 +1107,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.name,
           c.description,
           c.slug,
-          c.is_highlighted,
+          c.image_url,
           c.is_active as "isActive",
           c.created_at,
           COALESCE(COUNT(p.id), 0) as post_count
         FROM categories c
         LEFT JOIN posts p ON c.id = p.category_id AND p.status = 'aprovado'
         WHERE c.is_active = true
-        GROUP BY c.id, c.name, c.description, c.slug, c.is_highlighted, c.is_active, c.created_at
+        GROUP BY c.id, c.name, c.description, c.slug, c.image_url, c.is_active, c.created_at
         ORDER BY post_count DESC, c.name ASC
       `;
       
@@ -1124,10 +1124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: row.name,
         description: row.description,
         slug: row.slug,
-        is_highlighted: row.is_highlighted,
+        image_url: row.image_url,
+        is_highlighted: false, // Default value since column doesn't exist
         isActive: row.isActive,
         postCount: parseInt(row.post_count),
-        latestPost: null, // Could be added later if needed
+        latestPost: null,
         createdAt: row.created_at
       }));
       

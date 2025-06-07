@@ -1,67 +1,44 @@
-import React, { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Folder, TrendingUp, Calendar } from "lucide-react";
-import { Link } from "wouter";
+import { Search } from "lucide-react";
+import Header from "@/components/layout/Header";
 
 interface Category {
   id: number;
   name: string;
-  description: string | null;
-  slug: string | null;
+  description: string;
+  slug: string;
   is_highlighted: boolean;
-  postCount: number;
-  latestPost?: string;
   isActive: boolean;
+  postCount: number;
+  latestPost: any;
+  createdAt: string;
 }
 
 export default function Categories() {
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Buscar categorias do banco de dados
+  
   const { data: categories = [], isLoading, error } = useQuery<Category[]>({
-    queryKey: ["/api/categories/with-stats"],
-    queryFn: async () => {
-      try {
-        const response = await fetch("/api/categories/with-stats");
-        if (!response.ok) throw new Error("Failed to fetch categories");
-        const data = await response.json();
-        return data || [];
-      } catch (err) {
-        console.error("Erro ao buscar categorias:", err);
-        return [];
-      }
-    }
+    queryKey: ['/api/categories/with-stats'],
   });
 
-  // Filtrar categorias por termo de busca
-  const filteredCategories = useMemo(() => {
-    if (!searchTerm.trim()) return categories;
-    
-    return categories.filter(category =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [categories, searchTerm]);
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Categorias destacadas (com mais posts)
-  const highlightedCategories = useMemo(() => {
-    return [...categories]
-      .filter(cat => cat.postCount > 0)
-      .sort((a, b) => b.postCount - a.postCount)
-      .slice(0, 3);
-  }, [categories]);
+  console.log("Categorias carregadas:", categories);
+  console.log("Erro ao buscar categorias:", error);
 
-  if (error) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-16">
+      <div className="min-h-screen bg-[#faf8f5]">
+        <Header />
+        <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Erro ao carregar categorias</h1>
-            <p className="text-gray-600">Tente recarregar a página ou entre em contato com o suporte.</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d2691e] mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando categorias...</p>
           </div>
         </div>
       </div>
@@ -69,159 +46,110 @@ export default function Categories() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-16">
-        {/* Cabeçalho da página */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Categorias</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
+    <div className="min-h-screen bg-[#faf8f5]">
+      <Header />
+      
+      {/* Header Section - Matching home page styling */}
+      <section className="pt-8 pb-6">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h1 
+              className="text-4xl md:text-5xl font-bold mb-4 font-['Inter']" 
+              style={{ color: '#1c1c1c' }}
+            >
+              Categorias
+            </h1>
+            <p 
+              className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed font-['Inter']"
+              style={{ color: '#666' }}
+            >
+              Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Search Section - Copying exact styling from home */}
+      <section className="pb-6">
+        <div className="container mx-auto px-4">
+          <div className="max-w-xl mx-auto">
+            <div className="flex">
+              <div className="relative flex-grow">
+                <Input
+                  type="text"
+                  className="w-full px-4 py-3 h-[48px] text-base border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Buscar por categoria..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              <div className="relative">
+                <button
+                  type="button"
+                  className="flex justify-center items-center text-sm px-6 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 rounded-r-md"
+                >
+                  <Search className="h-4 w-4 text-black" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="container mx-auto px-4 pb-8">
+        {/* Categories Count */}
+        <div className="text-center mb-6">
+          <p className="text-[#666] font-['Inter']">
+            {filteredCategories.length} {filteredCategories.length === 1 ? 'categoria encontrada' : 'categorias encontradas'}
           </p>
         </div>
 
-        {/* Campo de busca */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Buscar por categoria..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Categorias em destaque */}
-        {!searchTerm && highlightedCategories.length > 0 && (
-          <section className="mb-16">
-            <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              <h2 className="text-2xl font-bold text-gray-900">Categorias Populares</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {highlightedCategories.map((category) => (
-                <Link
-                  key={category.id}
-                  href={`/categorias/${category.slug || category.id}`}
-                  className="block"
+        {/* Categories Grid - Matching home card styling */}
+        {filteredCategories.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredCategories.map((category) => (
+              <div 
+                key={category.id}
+                className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 p-6 cursor-pointer hover:shadow-md group"
+              >
+                <h3 
+                  className="text-xl font-semibold mb-2 font-['Inter'] group-hover:text-[#d2691e] transition-colors"
+                  style={{ color: '#1c1c1c' }}
                 >
-                  <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="p-3 bg-blue-100 rounded-xl">
-                          <Folder className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <Badge variant="secondary" className="bg-white/80 text-blue-700">
-                          Popular
-                        </Badge>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{category.name}</h3>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {category.description || "Explore artes desta categoria"}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">
-                          {category.postCount} {category.postCount === 1 ? 'arte' : 'artes'}
-                        </span>
-                        <span className="text-blue-600 font-medium text-sm">Ver artes →</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Grid principal de categorias */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <Folder className="h-5 w-5 text-gray-600" />
-            <h2 className="text-2xl font-bold text-gray-900">
-              {searchTerm ? `Resultados para "${searchTerm}"` : "Todas as Categorias"}
-            </h2>
-            {!searchTerm && (
-              <Badge variant="outline" className="ml-2">
-                {categories.length} {categories.length === 1 ? 'categoria' : 'categorias'}
-              </Badge>
-            )}
-          </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <Card key={index} className="border-0 shadow-sm">
-                  <CardContent className="p-6">
-                    <Skeleton className="h-12 w-12 rounded-xl mb-4" />
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-full mb-4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : filteredCategories.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="h-8 w-8 text-gray-400" />
+                  {category.name}
+                </h3>
+                <p 
+                  className="text-sm mb-4 font-['Inter'] line-clamp-2"
+                  style={{ color: '#666' }}
+                >
+                  {category.description || "Categoria de artes para estética"}
+                </p>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-[#d2691e] font-medium font-['Inter']">
+                    {category.postCount} {category.postCount === 1 ? 'arte' : 'artes'}
+                  </span>
+                  <span className="text-[#666] group-hover:text-[#d2691e] transition-colors font-['Inter']">
+                    Ver artes →
+                  </span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {searchTerm ? "Nenhuma categoria encontrada" : "Nenhuma categoria disponível"}
-              </h3>
-              <p className="text-gray-600">
-                {searchTerm 
-                  ? "Tente buscar por outros termos ou verifique a ortografia."
-                  : "Não há categorias disponíveis no momento."
-                }
-              </p>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Search className="h-16 w-16 mx-auto" />
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredCategories.map((category) => (
-                <Link
-                  key={category.id}
-                  href={`/categorias/${category.slug || category.id}`}
-                  className="block"
-                >
-                  <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-sm hover:shadow-xl group">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="p-3 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors">
-                          <Folder className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                        </div>
-                        {category.is_highlighted && (
-                          <Badge variant="default" className="bg-blue-600">
-                            Destaque
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                        {category.name}
-                      </h3>
-                      
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {category.description || "Explore artes desta categoria"}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">
-                          {category.postCount} {category.postCount === 1 ? 'arte' : 'artes'}
-                        </span>
-                        <span className="text-blue-600 font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                          Ver artes →
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+            <h3 className="text-xl font-semibold text-[#1c1c1c] mb-2 font-['Inter']">
+              Nenhuma categoria encontrada
+            </h3>
+            <p className="text-[#666] font-['Inter']">
+              Tente usar termos diferentes na sua busca.
+            </p>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
