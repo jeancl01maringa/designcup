@@ -232,11 +232,11 @@ export default function CategorySection() {
           {/* Botões de navegação - Esquerda */}
           {canScrollLeft && (
             <button 
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-sm rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-white hover:shadow-lg border border-gray-100"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/40 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-white/80 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-white/30"
               onClick={handleScrollLeft}
               aria-label="Categorias anteriores"
             >
-              <ArrowLeft className="h-5 w-5 text-black" />
+              <ArrowLeft className="h-5 w-5 text-black transition-transform duration-300 group-hover:scale-110" />
             </button>
           )}
           
@@ -288,12 +288,12 @@ export default function CategorySection() {
                     </div>
                     
                     {/* Nome da categoria */}
-                    <div className="mt-3 flex flex-col items-center">
-                      <h4 className="font-semibold text-[#1d1d1f] group-hover:text-black transition-colors duration-200">
+                    <div className="mt-3">
+                      <h4 className="font-medium text-[#1d1d1f] text-base group-hover:text-black transition-colors duration-200">
                         {category.name}
                       </h4>
                       {category.description && (
-                        <p className="text-xs text-gray-500 mt-1 text-center line-clamp-1">
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">
                           {category.description}
                         </p>
                       )}
@@ -306,11 +306,11 @@ export default function CategorySection() {
           
           {canScrollRight && (
             <button 
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 backdrop-blur-sm rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all hover:bg-white hover:shadow-lg border border-gray-100"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/40 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-white/80 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-white/30"
               onClick={handleScrollRight}
               aria-label="Próximas categorias"
             >
-              <ArrowRight className="h-5 w-5 text-black" />
+              <ArrowRight className="h-5 w-5 text-black transition-transform duration-300 group-hover:scale-110" />
             </button>
           )}
         </div>
