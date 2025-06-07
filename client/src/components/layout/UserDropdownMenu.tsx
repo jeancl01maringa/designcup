@@ -136,7 +136,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
               className="w-full px-4 py-3 flex items-center gap-3"
-              onClick={() => handleClick('/favoritos')}
+              onClick={() => handleClick('/curtidas')}
             >
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
                 <Heart className="w-5 h-5 text-red-500" />
