@@ -268,3 +268,53 @@ export const insertPlanSchema = createInsertSchema(plans).omit({
 
 export type InsertPlan = z.infer<typeof insertPlanSchema>;
 export type Plan = typeof plans.$inferSelect;
+
+// Popup schema for marketing campaigns
+export const popupTargetPageEnum = pgEnum('popup_target_page', ['home', 'categories', 'art', 'plans', 'all']);
+export const popupUserTypeEnum = pgEnum('popup_user_type', ['free', 'premium', 'designers', 'admins', 'all']);
+export const popupFrequencyEnum = pgEnum('popup_frequency', ['always', 'once_per_session', 'once_per_day', 'once_per_week']);
+export const popupAnimationEnum = pgEnum('popup_animation', ['fade', 'slide', 'zoom', 'bounce']);
+export const popupPositionEnum = pgEnum('popup_position', ['center', 'top', 'bottom', 'left', 'right']);
+export const popupSizeEnum = pgEnum('popup_size', ['small', 'medium', 'large']);
+
+export const popups = pgTable("popups", {
+  id: serial("id").primaryKey(),
+  title: text("title"),
+  content: text("content"),
+  imageUrl: text("image_url"),
+  buttonText: text("button_text"),
+  buttonUrl: text("button_url"),
+  
+  // Appearance settings
+  backgroundColor: text("background_color").default("#ffffff"),
+  textColor: text("text_color").default("#000000"),
+  buttonColor: text("button_color").default("#1f4ed8"),
+  buttonTextColor: text("button_text_color").default("#ffffff"),
+  borderRadius: integer("border_radius").default(8),
+  buttonWidth: text("button_width").default("auto"), // 'auto' or 'full'
+  animation: popupAnimationEnum("animation").default("fade"),
+  position: popupPositionEnum("position").default("center"),
+  size: popupSizeEnum("size").default("medium"),
+  delaySeconds: integer("delay_seconds").default(3),
+  
+  // Targeting settings
+  targetPages: popupTargetPageEnum("target_pages").array().default(['all']),
+  targetUserTypes: popupUserTypeEnum("target_user_types").array().default(['all']),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  frequency: popupFrequencyEnum("frequency").default("once_per_session"),
+  
+  // Status
+  isActive: boolean("is_active").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPopupSchema = createInsertSchema(popups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPopup = z.infer<typeof insertPopupSchema>;
+export type Popup = typeof popups.$inferSelect;

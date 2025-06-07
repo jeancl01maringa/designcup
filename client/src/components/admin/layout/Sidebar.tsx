@@ -18,7 +18,9 @@ import {
   Globe,
   ExternalLink,
   Hash,
-  Tag
+  Tag,
+  Megaphone,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -68,6 +70,18 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       label: "Planos",
       path: "/admin/planos",
       icon: <LayoutTemplate className="h-4 w-4" />,
+    },
+    {
+      id: "marketing",
+      label: "Marketing",
+      path: "/admin/marketing",
+      icon: <Megaphone className="h-4 w-4" />,
+    },
+    {
+      id: "popups",
+      label: "Popups",
+      path: "/admin/marketing/popups",
+      icon: <Zap className="h-4 w-4" />,
       separator: true,
     },
     {
