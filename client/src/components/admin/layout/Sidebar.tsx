@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -40,6 +40,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProps) {
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [, setLocation] = useLocation();
   const { logoUrl, hasCustomLogo } = usePlatformLogo();
 
   // Função para verificar se um item de menu está ativo
@@ -331,34 +332,28 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                       {isOpen && expandedMenus.includes(item.id) && item.subItems && (
                         <div className="ml-4 mt-1 space-y-1">
                           {item.subItems.map((subItem) => (
-                            <Link 
-                              key={subItem.id} 
-                              href={subItem.path}
+                            <Button
+                              key={subItem.id}
+                              variant={isActive(subItem.path) ? "default" : "ghost"}
+                              className={cn(
+                                "w-full justify-start text-sm",
+                                isActive(subItem.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : ""
+                              )}
+                              size="sm"
                               onClick={(e) => {
-                                // Não impedir a navegação, apenas parar a propagação
+                                e.preventDefault();
                                 e.stopPropagation();
+                                setLocation(subItem.path);
                               }}
                             >
-                              <Button
-                                variant={isActive(subItem.path) ? "default" : "ghost"}
-                                className={cn(
-                                  "w-full justify-start text-sm",
-                                  isActive(subItem.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : ""
-                                )}
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <span className={cn(
-                                  "mr-2",
-                                  isActive(subItem.path) ? "text-primary" : "text-muted-foreground"
-                                )}>
-                                  {subItem.icon}
-                                </span>
-                                <span>{subItem.label}</span>
-                              </Button>
-                            </Link>
+                              <span className={cn(
+                                "mr-2",
+                                isActive(subItem.path) ? "text-primary" : "text-muted-foreground"
+                              )}>
+                                {subItem.icon}
+                              </span>
+                              <span>{subItem.label}</span>
+                            </Button>
                           ))}
                         </div>
                       )}
