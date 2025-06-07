@@ -1,0 +1,121 @@
+import { User, Heart, Bookmark, Users, Download, Settings } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { cn } from "@/lib/utils";
+
+interface ProfileSidebarProps {
+  className?: string;
+}
+
+export function ProfileSidebar({ className }: ProfileSidebarProps) {
+  const [location] = useLocation();
+
+  const menuItems = [
+    {
+      href: "/perfil",
+      icon: User,
+      label: "Minha Conta",
+      description: "Perfil e configurações"
+    },
+    {
+      href: "/curtidas",
+      icon: Heart,
+      label: "Curtidas",
+      description: "Artes que você curtiu"
+    },
+    {
+      href: "/salvos",
+      icon: Bookmark,
+      label: "Salvos",
+      description: "Para usar depois"
+    },
+    {
+      href: "/seguindo",
+      icon: Users,
+      label: "Seguindo",
+      description: "Designers que você segue"
+    },
+    {
+      href: "/downloads",
+      icon: Download,
+      label: "Downloads",
+      description: "Histórico de downloads"
+    }
+  ];
+
+  return (
+    <div className={cn("w-64 bg-white border-r border-gray-200 h-full", className)}>
+      {/* Header do sidebar */}
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800">Meu Perfil</h2>
+        <p className="text-sm text-gray-500 mt-1">Gerencie sua conta e preferências</p>
+      </div>
+
+      {/* Menu de navegação */}
+      <nav className="p-4">
+        <ul className="space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location === item.href;
+            
+            return (
+              <li key={item.href}>
+                <Link href={item.href}>
+                  <a
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-200",
+                      isActive
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center",
+                        isActive
+                          ? "bg-blue-100"
+                          : "bg-gray-100"
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "w-4 h-4",
+                          isActive ? "text-blue-600" : "text-gray-500"
+                        )}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={cn(
+                          "font-medium text-sm",
+                          isActive ? "text-blue-700" : "text-gray-800"
+                        )}
+                      >
+                        {item.label}
+                      </p>
+                      <p
+                        className={cn(
+                          "text-xs truncate",
+                          isActive ? "text-blue-600" : "text-gray-500"
+                        )}
+                      >
+                        {item.description}
+                      </p>
+                    </div>
+                  </a>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Footer do sidebar */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="text-xs text-gray-500 text-center">
+          <p>Design para Estética</p>
+          <p className="mt-1">© 2025 - Todos os direitos reservados</p>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -13,6 +13,7 @@ import { User, Mail, Phone, Calendar, Shield, Key, CreditCard, Download, Heart, 
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ProfileLayout } from "@/components/layout/ProfileLayout";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -199,13 +200,14 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Meu Perfil</h1>
-        <p className="text-muted-foreground">
-          Gerencie suas informações pessoais e configurações de conta
-        </p>
-      </div>
+    <ProfileLayout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">Meu Perfil</h1>
+          <p className="text-muted-foreground">
+            Gerencie suas informações pessoais e configurações de conta
+          </p>
+        </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
@@ -515,6 +517,7 @@ export default function ProfilePage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </ProfileLayout>
   );
 }
