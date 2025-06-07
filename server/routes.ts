@@ -1200,8 +1200,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             p.user_id as "authorId",
             u.username as "authorName",
             u.profile_image as "authorProfileImage",
-            p.likes_count as likes,
-            p.saves_count as saves,
             p.created_at as "createdAt",
             p.unique_code as "uniqueCode"
           FROM posts p
@@ -1245,9 +1243,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             authorId: row.authorId,
             authorName: row.authorName,
             authorProfileImage: row.authorProfileImage,
-            views: 0, // Default value since views column doesn't exist
-            likes: row.likes || 0,
-            saves: row.saves || 0,
+            views: 0,
+            likes: 0,
+            saves: 0,
             createdAt: row.createdAt,
             uniqueCode: row.uniqueCode
           };
