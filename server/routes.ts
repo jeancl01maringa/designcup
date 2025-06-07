@@ -852,52 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API endpoint for user data (for author information)
-  app.get('/api/admin/users/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: 'ID inválido' });
-      }
 
-      console.log(`DATABASE getUserById - Buscando usuário com ID: ${id}`);
-      
-      try {
-        // Buscar via PostgreSQL direto
-        const result = await pool.query(`
-          SELECT id, username, email, profile_image, telefone, tipo, created_at, is_admin
-          FROM users 
-          WHERE id = $1
-        `, [id]);
-        
-        if (result.rows && result.rows.length > 0) {
-          const user = result.rows[0];
-          const normalizedUser = {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            profileImage: user.profile_image,
-            telefone: user.telefone,
-            tipo: user.tipo,
-            isAdmin: user.is_admin,
-            createdAt: user.created_at,
-          };
-          
-          console.log(`DATABASE getUserById - Usuário encontrado: ${user.username}`);
-          return res.json(normalizedUser);
-        } else {
-          console.log(`DATABASE getUserById - Usuário ${id} não encontrado`);
-          return res.status(404).json({ message: 'Usuário não encontrado' });
-        }
-      } catch (dbError: any) {
-        console.error(`DATABASE getUserById - Erro ao buscar usuário ${id}:`, dbError);
-        return res.status(500).json({ message: 'Erro ao buscar usuário' });
-      }
-    } catch (error: any) {
-      console.error('Error fetching user:', error);
-      res.status(500).json({ message: 'Erro ao buscar usuário' });
-    }
-  });
 
   // API endpoint for following/unfollowing users (toggle)
   app.post('/api/users/:id/follow', async (req, res) => {
