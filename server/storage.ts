@@ -114,6 +114,9 @@ export interface IStorage {
   setSetting(key: string, value: string, description?: string): Promise<Setting>;
   updateSetting(key: string, value: string): Promise<Setting>;
   deleteSetting(key: string): Promise<void>;
+  
+  // Author methods
+  getAllAuthors(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4484,6 +4487,50 @@ export class DatabaseStorage implements IStorage {
       await pool.query(`DELETE FROM settings WHERE key = $1`, [key]);
     } catch (error) {
       console.error("DATABASE deleteSetting - Erro:", error);
+      throw error;
+    }
+  }
+
+  async getAllAuthors(): Promise<any[]> {
+    try {
+      console.log("DATABASE getAllAuthors - Buscando todos os autores (usuários admin)");
+      
+      const query = `
+        SELECT 
+          u.id,
+          u.username,
+          u.email,
+          u.profile_image as "profileImage",
+          u.bio,
+          u.created_at as "createdAt",
+          u.active,
+          COUNT(p.id) as "postsCount"
+        FROM users u
+        LEFT JOIN posts p ON u.id = p.user_id AND p.status = 'aprovado'
+        WHERE u.is_admin = true
+        GROUP BY u.id, u.username, u.email, u.profile_image, u.bio, u.created_at, u.active
+        ORDER BY u.created_at DESC
+      `;
+      
+      const result = await pool.query(query);
+      
+      const authors = result.rows.map(row => ({
+        id: row.id,
+        username: row.username,
+        email: row.email,
+        profileImage: row.profileImage,
+        bio: row.bio || "Este autor ainda não adicionou uma biografia.",
+        createdAt: row.createdAt,
+        active: row.active,
+        postsCount: parseInt(row.postsCount) || 0,
+        isDesigner: true, // Todos os admins são designers
+        isAdmin: true
+      }));
+      
+      console.log(`DATABASE getAllAuthors - Encontrados ${authors.length} autores`);
+      return authors;
+    } catch (error) {
+      console.error("DATABASE getAllAuthors - Erro:", error);
       throw error;
     }
   }

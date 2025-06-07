@@ -3333,7 +3333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         UPDATE users 
         SET ${setClauses.join(', ')} 
         WHERE id = $${paramIndex}
-        RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt"
+        RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", bio
       `;
       
       try {
@@ -3348,7 +3348,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: updatedUser.email,
             telefone: updatedUser.telefone,
             isAdmin: updatedUser.isAdmin,
-            createdAt: updatedUser.createdAt
+            createdAt: updatedUser.createdAt,
+            bio: updatedUser.bio
           });
         } else {
           return res.status(404).json({ message: 'Usuário não encontrado' });
