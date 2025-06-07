@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "wouter";
-import { AdminLayout } from "@/components/layout/AdminLayout";
-import { PageHeader } from "@/components/admin/ui/PageHeader";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { PageHeader } from "@/components/admin/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Megaphone, Zap, TrendingUp, Users, Eye, MousePointer } from "lucide-react";

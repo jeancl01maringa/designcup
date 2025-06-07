@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
-import { PageHeader } from "@/components/admin/ui/PageHeader";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { PageHeader } from "@/components/admin/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,7 +209,7 @@ export default function PopupsPage() {
       <PageHeader 
         title="Gerenciar Popups" 
         description="Crie e configure popups promocionais para aumentar conversões"
-        action={
+        actions={
           <Button onClick={() => setIsCreating(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Popup

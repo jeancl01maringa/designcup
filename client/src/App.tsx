@@ -32,6 +32,8 @@ import PostFormatsPage from "@/pages/admin/gerenciamento/PostFormatsPage";
 import TagsPage from "@/pages/admin/gerenciamento/TagsPage";
 import UsuariosPage from "@/pages/admin/gerenciamento/UsuariosPage";
 import AssinantesPage from "@/pages/admin/gerenciamento/AssinantesPage";
+import MarketingPage from "@/pages/admin/MarketingPage";
+import PopupsPage from "@/pages/admin/PopupsPage";
 import ProfilePage from "@/pages/account/ProfilePage";
 import CurtidasPage from "@/pages/account/CurtidasPage";
 import SalvosPage from "@/pages/account/SalvosPage";
@@ -107,6 +109,12 @@ function Router() {
       </Route>
       <Route path="/admin/gerenciamento/assinantes">
         <ProtectedRoute path="/admin/gerenciamento/assinantes" component={AssinantesPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/marketing">
+        <ProtectedRoute path="/admin/marketing" component={MarketingPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/marketing/popups">
+        <ProtectedRoute path="/admin/marketing/popups" component={PopupsPage} requireAdmin={true} />
       </Route>
       <Route path="/admin">
         {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
