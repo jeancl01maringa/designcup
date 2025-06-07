@@ -1118,19 +1118,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY post_count DESC, c.name ASC
       `;
       
-      const result = await pool.query(query);
-      const categoriesWithStats = result.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        slug: row.slug,
-        image_url: row.image_url,
-        is_highlighted: false, // Default value since column doesn't exist
-        isActive: row.isActive,
-        postCount: parseInt(row.post_count),
-        latestPost: null,
-        createdAt: row.created_at
-      }));
+      const categoriesResult = await pool.query(query);
+      
+      // Para cada categoria, buscar os primeiros 4 posts para preview
+      const categoriesWithStats = await Promise.all(
+        categoriesResult.rows.map(async (category) => {
+          const postsQuery = `
+            SELECT 
+              p.id,
+              p.title,
+              p.image_url as image,
+              p.is_pro as "isPremium",
+              p.created_at
+            FROM posts p
+            WHERE p.category_id = $1 
+            AND p.status = 'aprovado'
+            AND p.is_visible = true
+            ORDER BY p.created_at DESC
+            LIMIT 4
+          `;
+          
+          const postsResult = await pool.query(postsQuery, [category.id]);
+          const posts = postsResult.rows.map(row => ({
+            id: row.id,
+            title: row.title,
+            image: row.image,
+            isPremium: !!row.isPremium
+          }));
+          
+          return {
+            id: category.id,
+            name: category.name,
+            description: category.description,
+            slug: category.slug,
+            image_url: category.image_url,
+            is_highlighted: false,
+            isActive: category.isActive,
+            postCount: parseInt(category.post_count),
+            posts: posts,
+            createdAt: category.created_at
+          };
+        })
+      );
       
       console.log(`Encontradas ${categoriesWithStats.length} categorias com estatísticas:`, 
         categoriesWithStats.map(c => `${c.name} (${c.postCount} posts)`));
@@ -1168,7 +1197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             p.image_url as "imageUrl",
             p.is_pro as "isPremium",
             p.category_id as "categoryId",
-            p.author_id as "authorId",
+            p.user_id as "authorId",
             u.username as "authorName",
             u.profile_image as "authorProfileImage",
             p.views,
@@ -1177,7 +1206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             p.created_at as "createdAt",
             p.unique_code as "uniqueCode"
           FROM posts p
-          JOIN users u ON p.author_id = u.id
+          JOIN users u ON p.user_id = u.id
           WHERE p.category_id = $1 
           AND p.status = 'aprovado'
           AND p.is_visible = true
