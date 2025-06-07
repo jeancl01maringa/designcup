@@ -11,7 +11,7 @@ export default function SalvosPage() {
   const { user } = useAuth();
 
   // Buscar artes salvas pelo usuário
-  const { data: savedPosts = [], isLoading } = useQuery({
+  const { data: savedPosts = [], isLoading } = useQuery<Post[]>({
     queryKey: ['/api/user/saved-posts'],
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutos em cache
@@ -85,7 +85,20 @@ export default function SalvosPage() {
               {savedPosts.length} {savedPosts.length === 1 ? 'arte salva' : 'artes salvas'}
             </p>
           </div>
-          <ArtworkGrid posts={savedPosts} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {savedPosts.map((post) => (
+              <ArtworkCard key={post.id} artwork={{
+                id: post.id,
+                title: post.title,
+                description: post.description || "",
+                imageUrl: post.imageUrl,
+                format: post.formato || "",
+                isPro: post.isPro || false,
+                category: post.categoryId ? `${post.categoryId}` : null,
+                createdAt: post.createdAt
+              }} />
+            ))}
+          </div>
         </div>
       )}
     </div>

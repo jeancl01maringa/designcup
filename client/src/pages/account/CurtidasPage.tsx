@@ -87,7 +87,16 @@ export default function CurtidasPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {likedPosts.map((post) => (
-              <ArtworkCard key={post.id} post={post} />
+              <ArtworkCard key={post.id} artwork={{
+                id: post.id,
+                title: post.title,
+                description: post.description || "",
+                imageUrl: post.imageUrl,
+                format: post.formato || "",
+                isPro: post.isPro || false,
+                category: post.categoryId ? `${post.categoryId}` : null,
+                createdAt: post.createdAt
+              }} />
             ))}
           </div>
         </div>

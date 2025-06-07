@@ -32,6 +32,10 @@ import TagsPage from "@/pages/admin/gerenciamento/TagsPage";
 import UsuariosPage from "@/pages/admin/gerenciamento/UsuariosPage";
 import AssinantesPage from "@/pages/admin/gerenciamento/AssinantesPage";
 import ProfilePage from "@/pages/account/ProfilePage";
+import CurtidasPage from "@/pages/account/CurtidasPage";
+import SalvosPage from "@/pages/account/SalvosPage";
+import SeguindoPage from "@/pages/account/SeguindoPage";
+import DownloadsPage from "@/pages/account/DownloadsPage";
 import PublicProfilePage from "@/pages/ProfilePage";
 
 function Router() {
@@ -59,6 +63,18 @@ function Router() {
       {/* Rotas de Conta do Usuário */}
       <Route path="/perfil">
         <ProtectedRoute path="/perfil" component={ProfilePage} requireAdmin={false} />
+      </Route>
+      <Route path="/curtidas">
+        <ProtectedRoute path="/curtidas" component={CurtidasPage} requireAdmin={false} />
+      </Route>
+      <Route path="/salvos">
+        <ProtectedRoute path="/salvos" component={SalvosPage} requireAdmin={false} />
+      </Route>
+      <Route path="/seguindo">
+        <ProtectedRoute path="/seguindo" component={SeguindoPage} requireAdmin={false} />
+      </Route>
+      <Route path="/downloads">
+        <ProtectedRoute path="/downloads" component={DownloadsPage} requireAdmin={false} />
       </Route>
       
       {/* Rotas Administrativas */}
