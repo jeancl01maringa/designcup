@@ -4252,6 +4252,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Settings routes
+  app.get('/api/settings', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const settings = await storage.getSettings();
+      res.json(settings);
+    } catch (error: any) {
+      console.error('Error fetching settings:', error);
+      res.status(500).json({ message: 'Erro ao buscar configurações' });
+    }
+  });
+
+  app.get('/api/settings/:key', async (req, res) => {
+    try {
+      const { key } = req.params;
+      const setting = await storage.getSetting(key);
+      
+      if (!setting) {
+        return res.status(404).json({ message: 'Configuração não encontrada' });
+      }
+
+      res.json(setting);
+    } catch (error: any) {
+      console.error('Error fetching setting:', error);
+      res.status(500).json({ message: 'Erro ao buscar configuração' });
+    }
+  });
+
+  app.post('/api/settings', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { key, value, description } = req.body;
+      
+      if (!key || !value) {
+        return res.status(400).json({ message: 'Chave e valor são obrigatórios' });
+      }
+
+      const setting = await storage.setSetting(key, value, description);
+      res.status(201).json(setting);
+    } catch (error: any) {
+      console.error('Error creating setting:', error);
+      res.status(500).json({ message: 'Erro ao criar configuração' });
+    }
+  });
+
+  app.put('/api/settings/:key', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { key } = req.params;
+      const { value } = req.body;
+      
+      if (!value) {
+        return res.status(400).json({ message: 'Valor é obrigatório' });
+      }
+
+      const setting = await storage.updateSetting(key, value);
+      res.json(setting);
+    } catch (error: any) {
+      console.error('Error updating setting:', error);
+      res.status(500).json({ message: 'Erro ao atualizar configuração' });
+    }
+  });
+
+  app.delete('/api/settings/:key', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { key } = req.params;
+      await storage.deleteSetting(key);
+      res.status(200).json({ success: true, message: 'Configuração removida com sucesso' });
+    } catch (error: any) {
+      console.error('Error deleting setting:', error);
+      res.status(500).json({ message: 'Erro ao remover configuração' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

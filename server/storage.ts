@@ -9,6 +9,7 @@ import {
   tags, type Tag, type InsertTag,
   postTags, type PostTag,
   popups, type Popup, type InsertPopup,
+  settings, type Setting, type InsertSetting,
   postStatusEnum
 } from "@shared/schema";
 import { db, pool } from "./db";
@@ -106,6 +107,13 @@ export interface IStorage {
   updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup>;
   deletePopup(id: number): Promise<void>;
   togglePopupStatus(id: number, isActive: boolean): Promise<Popup>;
+  
+  // Settings methods
+  getSetting(key: string): Promise<Setting | undefined>;
+  getSettings(): Promise<Setting[]>;
+  setSetting(key: string, value: string, description?: string): Promise<Setting>;
+  updateSetting(key: string, value: string): Promise<Setting>;
+  deleteSetting(key: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4304,6 +4312,126 @@ export class DatabaseStorage implements IStorage {
       };
     } catch (error) {
       console.error("DATABASE togglePopupStatus - Exceção geral:", error);
+      throw error;
+    }
+  }
+
+  // Settings methods implementation
+  async getSetting(key: string): Promise<Setting | undefined> {
+    try {
+      const result = await pool.query(`
+        SELECT id, key, value, description, created_at, updated_at
+        FROM settings 
+        WHERE key = $1
+        LIMIT 1
+      `, [key]);
+
+      if (!result.rows || result.rows.length === 0) {
+        return undefined;
+      }
+
+      const data = result.rows[0];
+      return {
+        id: data.id,
+        key: data.key,
+        value: data.value,
+        description: data.description || null,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (error) {
+      console.error("DATABASE getSetting - Erro:", error);
+      throw error;
+    }
+  }
+
+  async getSettings(): Promise<Setting[]> {
+    try {
+      const result = await pool.query(`
+        SELECT id, key, value, description, created_at, updated_at
+        FROM settings 
+        ORDER BY created_at DESC
+      `);
+
+      return result.rows.map(data => ({
+        id: data.id,
+        key: data.key,
+        value: data.value,
+        description: data.description || null,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      }));
+    } catch (error) {
+      console.error("DATABASE getSettings - Erro:", error);
+      throw error;
+    }
+  }
+
+  async setSetting(key: string, value: string, description?: string): Promise<Setting> {
+    try {
+      // Check if setting exists
+      const existing = await this.getSetting(key);
+      
+      if (existing) {
+        // Update existing setting
+        return await this.updateSetting(key, value);
+      } else {
+        // Create new setting
+        const result = await pool.query(`
+          INSERT INTO settings (key, value, description, created_at, updated_at)
+          VALUES ($1, $2, $3, NOW(), NOW())
+          RETURNING id, key, value, description, created_at, updated_at
+        `, [key, value, description || null]);
+
+        const data = result.rows[0];
+        return {
+          id: data.id,
+          key: data.key,
+          value: data.value,
+          description: data.description || null,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at)
+        };
+      }
+    } catch (error) {
+      console.error("DATABASE setSetting - Erro:", error);
+      throw error;
+    }
+  }
+
+  async updateSetting(key: string, value: string): Promise<Setting> {
+    try {
+      const result = await pool.query(`
+        UPDATE settings 
+        SET value = $2, updated_at = NOW()
+        WHERE key = $1
+        RETURNING id, key, value, description, created_at, updated_at
+      `, [key, value]);
+
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error(`Setting with key '${key}' not found`);
+      }
+
+      const data = result.rows[0];
+      return {
+        id: data.id,
+        key: data.key,
+        value: data.value,
+        description: data.description || null,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (error) {
+      console.error("DATABASE updateSetting - Erro:", error);
+      throw error;
+    }
+  }
+
+  async deleteSetting(key: string): Promise<void> {
+    try {
+      await pool.query(`DELETE FROM settings WHERE key = $1`, [key]);
+    } catch (error) {
+      console.error("DATABASE deleteSetting - Erro:", error);
       throw error;
     }
   }

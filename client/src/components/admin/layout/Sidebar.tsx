@@ -155,17 +155,19 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       separator: true,
     },
     {
-      id: "gerenciamento",
-      label: "Gerenciamento",
-      path: "/admin/gerenciamento",
-      icon: <Settings className="h-4 w-4" />,
-      separator: false,
-    },
-    {
       id: "configuracoes",
       label: "Configurações",
       path: "/admin/configuracoes",
       icon: <Settings className="h-4 w-4" />,
+      hasSubmenu: true,
+      subItems: [
+        {
+          id: "suporte",
+          label: "Gerenciar Suporte",
+          path: "/admin/configuracoes/suporte",
+          icon: <Settings className="h-4 w-4" />,
+        }
+      ],
     },
   ];
 
