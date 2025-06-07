@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -42,19 +42,6 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [, setLocation] = useLocation();
   const { logoUrl, hasCustomLogo } = usePlatformLogo();
-
-  // Função para verificar se um item de menu está ativo
-  const isActive = (path: string) => {
-    return currentPath === path || currentPath.startsWith(`${path}/`);
-  };
-
-  const toggleSubmenu = (menuId: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(menuId) 
-        ? prev.filter(id => id !== menuId)
-        : [...prev, menuId]
-    );
-  };
 
   // Itens do menu da sidebar com seus respectivos ícones e caminhos
   const menuItems = [
@@ -181,6 +168,35 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       ],
     },
   ];
+
+  // Função para verificar se um item de menu está ativo
+  const isActive = (path: string) => {
+    return currentPath === path || currentPath.startsWith(`${path}/`);
+  };
+
+  const toggleSubmenu = (menuId: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuId) 
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
+  };
+
+  // Função para encontrar qual dropdown contém a página atual
+  const findParentMenu = (path: string) => {
+    return menuItems.find(item => 
+      item.hasSubmenu && 
+      item.subItems?.some(subItem => subItem.path === path)
+    )?.id;
+  };
+
+  // Effect para manter o dropdown aberto quando navegar para uma página dentro dele
+  useEffect(() => {
+    const parentMenuId = findParentMenu(currentPath);
+    if (parentMenuId && !expandedMenus.includes(parentMenuId)) {
+      setExpandedMenus(prev => [...prev, parentMenuId]);
+    }
+  }, [currentPath]);
 
   return (
     <>
