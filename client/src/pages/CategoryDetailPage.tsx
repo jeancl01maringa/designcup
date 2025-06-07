@@ -51,7 +51,7 @@ export default function CategoryDetailPage() {
     queryKey: [`/api/posts/category/${category?.id}`, filter, sortBy, formatFilter],
     queryFn: async () => {
       if (!category?.id) return [];
-      const response = await fetch(`/api/posts/category/${category.id}`);
+      const response = await fetch(`/api/posts/category/${category.id}?detailed=true`);
       if (!response.ok) throw new Error('Erro ao buscar posts');
       return response.json();
     },

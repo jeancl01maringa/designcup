@@ -1153,29 +1153,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Buscando posts da categoria ${categoryId}...`);
       
-      const query = `
-        SELECT 
-          p.id,
-          p.title,
-          p.image_url as image,
-          p.is_pro as "isPremium",
-          p.created_at
-        FROM posts p
-        WHERE p.category_id = $1 
-        AND p.status = 'aprovado'
-        AND p.is_visible = true
-        ORDER BY p.created_at DESC
-        LIMIT 4
-      `;
+      // Check if this is a detailed request (all posts for category page)
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 4;
+      const detailed = req.query.detailed === 'true';
       
-      const result = await pool.query(query, [categoryId]);
-      const posts = result.rows.map(row => ({
-        id: row.id,
-        title: row.title,
-        image: row.image,
-        isPremium: !!row.isPremium,
-        createdAt: row.created_at
-      }));
+      let query;
+      if (detailed) {
+        // Full post data for category detail page
+        query = `
+          SELECT 
+            p.id,
+            p.title,
+            p.description,
+            p.image_url as "imageUrl",
+            p.is_pro as "isPremium",
+            p.category_id as "categoryId",
+            p.author_id as "authorId",
+            u.username as "authorName",
+            u.profile_image as "authorProfileImage",
+            p.views,
+            p.likes_count as likes,
+            p.saves_count as saves,
+            p.created_at as "createdAt",
+            p.unique_code as "uniqueCode"
+          FROM posts p
+          JOIN users u ON p.author_id = u.id
+          WHERE p.category_id = $1 
+          AND p.status = 'aprovado'
+          AND p.is_visible = true
+          ORDER BY p.created_at DESC
+        `;
+      } else {
+        // Simple data for category previews
+        query = `
+          SELECT 
+            p.id,
+            p.title,
+            p.image_url as image,
+            p.is_pro as "isPremium",
+            p.created_at
+          FROM posts p
+          WHERE p.category_id = $1 
+          AND p.status = 'aprovado'
+          AND p.is_visible = true
+          ORDER BY p.created_at DESC
+          LIMIT $2
+        `;
+      }
+      
+      const result = detailed 
+        ? await pool.query(query, [categoryId])
+        : await pool.query(query, [categoryId, limit]);
+        
+      const posts = result.rows.map(row => {
+        if (detailed) {
+          return {
+            id: row.id,
+            title: row.title,
+            description: row.description,
+            imageUrl: row.imageUrl,
+            isPremium: !!row.isPremium,
+            categoryId: row.categoryId,
+            authorId: row.authorId,
+            authorName: row.authorName,
+            authorProfileImage: row.authorProfileImage,
+            views: row.views || 0,
+            likes: row.likes || 0,
+            saves: row.saves || 0,
+            createdAt: row.createdAt,
+            uniqueCode: row.uniqueCode
+          };
+        } else {
+          return {
+            id: row.id,
+            title: row.title,
+            image: row.image,
+            isPremium: !!row.isPremium,
+            createdAt: row.created_at
+          };
+        }
+      });
       
       console.log(`Encontrados ${posts.length} posts para categoria ${categoryId}`);
       res.json(posts);
