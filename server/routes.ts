@@ -2931,7 +2931,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             COALESCE(tipo, 'free') as tipo,
             plano_id,
             data_vencimento,
-            COALESCE(active, true) as active
+            COALESCE(active, true) as active,
+            bio
           FROM users 
           WHERE id = $1
         `, [userId]);
@@ -2946,7 +2947,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileImage: userData.profileImage,
             createdAt: userData.createdAt,
             tipo: userData.tipo,
-            active: userData.active
+            active: userData.active,
+            bio: userData.bio || "Bem-vindo ao nosso perfil oficial! Aqui você encontra\nconteúdos criativos que agregam valor aos seus projetos."
           };
           
           console.log(`Dados públicos do usuário #${userId} encontrados:`, publicUserData.username);
