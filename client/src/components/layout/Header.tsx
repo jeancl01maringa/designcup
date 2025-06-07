@@ -43,8 +43,7 @@ const NavLinks = () => {
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
     { name: "Planos", path: "/planos" },
-    { name: "Tutoriais", path: "/tutoriais" },
-    { name: "Suporte", path: "/suporte" }
+    { name: "Tutoriais", path: "/tutoriais" }
   ];
   
   return (
@@ -58,6 +57,12 @@ const NavLinks = () => {
           {item.name}
         </Link>
       ))}
+      <SupportContact 
+        variant="ghost" 
+        size="sm" 
+        showIcon={false}
+        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors p-0 h-auto"
+      />
     </nav>
   );
 };
@@ -320,7 +325,6 @@ export default function Header() {
         <Logo />
         <NavLinks />
         <div className="flex items-center space-x-3">
-          <SupportContact className="hidden md:flex" />
           <UserMenu />
           <MobileMenuButton />
         </div>
