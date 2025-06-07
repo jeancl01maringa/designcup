@@ -47,71 +47,75 @@ const PopupDisplay: React.FC = () => {
   });
 
   useEffect(() => {
-    console.log('PopupDisplay: useEffect triggered', { 
-      popupsLength: popups.length, 
-      hasVisiblePopup: !!visiblePopup,
-      popups: popups 
-    });
-
     if (!popups.length || visiblePopup) return;
 
     const currentPath = window.location.pathname;
     const todayKey = new Date().toDateString();
 
-    console.log('PopupDisplay: Checking popups for path:', currentPath);
-
     // Find a popup that should be displayed
     const eligiblePopup = popups.find(popup => {
-      console.log('PopupDisplay: Checking popup', popup.id, popup.title);
-      
       // Check if popup is active
-      if (!popup.isActive) {
-        console.log('PopupDisplay: Popup not active');
-        return false;
-      }
+      if (!popup.isActive) return false;
 
       // Check date range
       const now = new Date();
-      if (popup.startDate && new Date(popup.startDate) > now) {
-        console.log('PopupDisplay: Popup not started yet');
-        return false;
-      }
-      if (popup.endDate && new Date(popup.endDate) < now) {
-        console.log('PopupDisplay: Popup expired');
-        return false;
-      }
+      if (popup.startDate && new Date(popup.startDate) > now) return false;
+      if (popup.endDate && new Date(popup.endDate) < now) return false;
 
       // Check if already closed by user in this session
-      if (closedPopups.has(popup.id)) {
-        console.log('PopupDisplay: Popup already closed');
-        return false;
-      }
+      if (closedPopups.has(popup.id)) return false;
 
-      // Simplified target pages check - show on all pages if no specific targeting
+      // Check target pages - support Portuguese "Todas as páginas"
       const targetPages = Array.isArray(popup.targetPages) ? popup.targetPages : [];
       if (targetPages.length > 0 && 
           !targetPages.includes('all') && 
           !targetPages.includes('Todas as páginas') &&
           !targetPages.some(page => currentPath.includes(page))) {
-        console.log('PopupDisplay: Page not targeted', { targetPages, currentPath });
         return false;
       }
 
-      // Simplified frequency check - for testing, always show
-      console.log('PopupDisplay: Popup eligible!', popup.id);
+      // Check frequency
+      const storageKey = `popup_${popup.id}`;
+      const lastShown = localStorage.getItem(storageKey);
+      
+      switch (popup.frequency) {
+        case 'once_per_session':
+          if (sessionStorage.getItem(storageKey)) return false;
+          break;
+        case 'once_per_day':
+          if (lastShown === todayKey) return false;
+          break;
+        case 'once_per_week':
+          if (lastShown) {
+            const lastShownDate = new Date(lastShown);
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            if (lastShownDate > weekAgo) return false;
+          }
+          break;
+      }
+
       return true;
     });
 
-    console.log('PopupDisplay: Eligible popup found:', eligiblePopup);
-
     if (eligiblePopup) {
-      // Use shorter delay for testing
       const delay = Math.max(eligiblePopup.delaySeconds || 0, 0) * 1000;
-      console.log('PopupDisplay: Setting timer for', delay, 'ms');
       
       const timer = setTimeout(() => {
-        console.log('PopupDisplay: Showing popup', eligiblePopup.id);
         setVisiblePopup(eligiblePopup);
+        
+        // Mark as shown based on frequency
+        const storageKey = `popup_${eligiblePopup.id}`;
+        switch (eligiblePopup.frequency) {
+          case 'once_per_session':
+            sessionStorage.setItem(storageKey, 'shown');
+            break;
+          case 'once_per_day':
+            localStorage.setItem(storageKey, todayKey);
+            break;
+          case 'once_per_week':
+            localStorage.setItem(storageKey, new Date().toISOString());
+            break;
+        }
       }, delay);
 
       return () => clearTimeout(timer);
@@ -199,19 +203,23 @@ const PopupDisplay: React.FC = () => {
           <X size={20} />
         </button>
 
-        {/* Content */}
-        <div className="p-6">
-          {visiblePopup.imageUrl && (
-            <div className="mb-4">
-              <img 
-                src={visiblePopup.imageUrl} 
-                alt={visiblePopup.title}
-                className="w-full h-auto max-h-48 object-contain rounded-lg"
-                style={{ borderRadius: `${Math.min(visiblePopup.borderRadius, 8)}px` }}
-              />
-            </div>
-          )}
+        {/* Image - Full width without padding */}
+        {visiblePopup.imageUrl && (
+          <div className="w-full">
+            <img 
+              src={visiblePopup.imageUrl} 
+              alt={visiblePopup.title}
+              className="w-full h-auto max-h-64 object-cover"
+              style={{ 
+                borderTopLeftRadius: `${visiblePopup.borderRadius}px`,
+                borderTopRightRadius: `${visiblePopup.borderRadius}px`,
+              }}
+            />
+          </div>
+        )}
 
+        {/* Text Content - With padding */}
+        <div className="p-6">
           <h3 className="text-xl font-bold mb-3 text-center">
             {visiblePopup.title}
           </h3>
