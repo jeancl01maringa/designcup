@@ -230,31 +230,41 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                   {item.hasSubmenu ? (
                     // Item com submenu
                     <div>
-                      <Button
-                        variant="ghost"
-                        onClick={() => toggleSubmenu(item.id)}
-                        className={cn(
-                          "w-full justify-start",
-                          !isOpen && "md:justify-center"
-                        )}
-                        size="sm"
-                      >
-                        <span className={cn(
-                          "mr-2 text-muted-foreground",
-                          !isOpen && "md:mr-0"
-                        )}>
-                          {item.icon}
-                        </span>
+                      <div className="flex items-center">
+                        <Link href={item.path} className="flex-1">
+                          <Button
+                            variant={isActive(item.path) ? "default" : "ghost"}
+                            className={cn(
+                              "w-full justify-start",
+                              isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
+                              !isOpen && "md:justify-center"
+                            )}
+                            size="sm"
+                          >
+                            <span className={cn(
+                              "mr-2",
+                              isActive(item.path) ? "text-primary" : "text-muted-foreground",
+                              !isOpen && "md:mr-0"
+                            )}>
+                              {item.icon}
+                            </span>
+                            {isOpen && <span className="flex-1 text-left">{item.label}</span>}
+                          </Button>
+                        </Link>
                         {isOpen && (
-                          <>
-                            <span className="flex-1 text-left">{item.label}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleSubmenu(item.id)}
+                            className="h-8 w-8 ml-1"
+                          >
                             {expandedMenus.includes(item.id) ? 
                               <ChevronDown className="h-4 w-4" /> : 
                               <ChevronRight className="h-4 w-4" />
                             }
-                          </>
+                          </Button>
                         )}
-                      </Button>
+                      </div>
                       
                       {/* Submenu items */}
                       {isOpen && expandedMenus.includes(item.id) && item.subItems && (
