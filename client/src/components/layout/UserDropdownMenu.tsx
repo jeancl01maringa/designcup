@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import { useSupportNumber } from '@/hooks/use-support-number';
 
 interface UserPlan {
   planName: string;
@@ -31,6 +32,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const { whatsappUrl } = useSupportNumber();
 
   // Buscar informações do plano do usuário
   const { data: userPlan, isLoading: planLoading } = useQuery<UserPlan>({
@@ -211,23 +213,25 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
         {/* Suporte e Logout */}
         <ul className="py-2">
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <a 
-              href="https://wa.me/5500000000000" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full px-4 py-3 flex items-center gap-3"
-              onClick={onClose}
-            >
-              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-green-500" />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-green-600">Suporte por WhatsApp</p>
-                <p className="text-sm text-gray-500">Dúvidas e perguntas</p>
-              </div>
-            </a>
-          </li>
+          {whatsappUrl && (
+            <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+              <a 
+                href={`${whatsappUrl}?text=Olá, preciso de ajuda!`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full px-4 py-3 flex items-center gap-3"
+                onClick={onClose}
+              >
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-green-500" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-green-600">Suporte por WhatsApp</p>
+                  <p className="text-sm text-gray-500">Dúvidas e perguntas</p>
+                </div>
+              </a>
+            </li>
+          )}
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
