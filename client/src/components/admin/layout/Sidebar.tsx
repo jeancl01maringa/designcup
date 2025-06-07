@@ -39,7 +39,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProps) {
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['marketing', 'monetizacao', 'conteudos']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const { logoUrl, hasCustomLogo } = usePlatformLogo();
 
   // Função para verificar se um item de menu está ativo
