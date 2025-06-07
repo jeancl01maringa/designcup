@@ -3,14 +3,17 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useSupportNumber } from "@/hooks/use-support-number";
 import { 
   User, 
   LogOut, 
   LogIn, 
   UserPlus,
-  ChevronDown
+  ChevronDown,
+  MessageSquare
 } from "lucide-react";
 import { UserDropdownMenu } from "./UserDropdownMenu";
+import { SupportContact } from "@/components/ui/SupportContact";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -308,6 +311,7 @@ export default function Header() {
         <Logo />
         <NavLinks />
         <div className="flex items-center space-x-3">
+          <SupportContact className="hidden md:flex" />
           <UserMenu />
           <MobileMenuButton />
         </div>
