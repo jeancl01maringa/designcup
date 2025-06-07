@@ -12,7 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { 
   Plus, 
@@ -28,7 +28,10 @@ import {
   FileText,
   Users,
   X,
-  Zap
+  Zap,
+  Edit,
+  Trash2,
+  Check
 } from "lucide-react";
 
 interface PopupFormData {
@@ -93,6 +96,16 @@ export default function PopupsPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Query para buscar popups existentes
+  const { data: popups = [], isLoading: isLoadingPopups } = useQuery({
+    queryKey: ['/api/popups'],
+    queryFn: async () => {
+      const response = await fetch('/api/popups');
+      if (!response.ok) throw new Error('Erro ao carregar popups');
+      return response.json();
+    }
+  });
 
   const createPopupMutation = useMutation({
     mutationFn: async (popupData: any) => {
@@ -594,11 +607,52 @@ export default function PopupsPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12 text-gray-500">
-            <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum popup criado ainda</p>
-            <p className="text-sm mt-1">Clique em "Novo Popup" para começar</p>
-          </div>
+          {isLoadingPopups ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Carregando popups...</p>
+            </div>
+          ) : popups.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Nenhum popup criado ainda</p>
+              <p className="text-sm mt-1">Clique em "Novo Popup" para começar</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {popups.map((popup: any) => (
+                <div key={popup.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-medium text-lg">{popup.title}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          popup.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {popup.isActive ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-2">{popup.content}</p>
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>Posição: {popup.position === 'center' ? 'Centro' : popup.position}</span>
+                        <span>Tamanho: {popup.size === 'small' ? 'Pequeno' : popup.size === 'medium' ? 'Médio' : 'Grande'}</span>
+                        <span>Animação: {popup.animation}</span>
+                        <span>Delay: {popup.delaySeconds}s</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
