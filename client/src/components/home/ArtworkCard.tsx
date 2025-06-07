@@ -120,17 +120,14 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               className={cn(
                 "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
                 liked 
-                  ? 'bg-red-500 text-white animate-pulse' 
+                  ? 'bg-red-500 text-white' 
                   : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500',
                 isLiking && "animate-bounce scale-110"
               )}
               onClick={handleLike}
               aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
             >
-              <Heart className={cn(
-                "h-4 w-4 transition-all duration-300",
-                liked && "animate-pulse"
-              )} fill={liked ? "currentColor" : "none"} />
+              <Heart className="h-4 w-4 transition-all duration-300" fill={liked ? "currentColor" : "none"} />
             </button>
             
             <button 
@@ -138,17 +135,14 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               className={cn(
                 "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
                 saved 
-                  ? 'bg-blue-500 text-white animate-pulse' 
+                  ? 'bg-blue-500 text-white' 
                   : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-500',
                 isSaving && "animate-bounce scale-110"
               )}
               onClick={handleSave}
               aria-label={saved ? "Remover dos salvos" : "Salvar item"}
             >
-              <Bookmark className={cn(
-                "h-4 w-4 transition-all duration-300",
-                saved && "animate-pulse"
-              )} fill={saved ? "currentColor" : "none"} />
+              <Bookmark className="h-4 w-4 transition-all duration-300" fill={saved ? "currentColor" : "none"} />
             </button>
           </div>
           
