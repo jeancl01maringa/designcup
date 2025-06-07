@@ -70,3 +70,39 @@ export async function checkSupabaseConnection(): Promise<boolean> {
     return false;
   }
 }
+
+// Helper function to ensure image bucket exists
+export async function ensureImageBucket(bucketName: string = 'images'): Promise<boolean> {
+  try {
+    // Check if bucket exists
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    
+    if (listError) {
+      console.error('Error listing buckets:', listError);
+      return false;
+    }
+
+    const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
+    
+    if (bucketExists) {
+      return true;
+    }
+
+    // Create bucket if it doesn't exist
+    const { error: createError } = await supabase.storage.createBucket(bucketName, {
+      public: true,
+      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'],
+      fileSizeLimit: 10485760, // 10MB
+    });
+
+    if (createError) {
+      console.error('Error creating bucket:', createError);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error ensuring image bucket:', error);
+    return false;
+  }
+}
