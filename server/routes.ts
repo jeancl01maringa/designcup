@@ -2943,7 +2943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: userData.createdAt,
             tipo: userData.tipo,
             active: userData.active,
-            bio: userData.bio || "Bem-vindo ao nosso perfil oficial! Aqui você encontra\nconteúdos criativos que agregam valor aos seus projetos."
+            bio: userData.bio
           };
           
           console.log(`Dados públicos do usuário admin #${userId} encontrados:`, publicUserData.username);
