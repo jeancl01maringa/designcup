@@ -77,33 +77,33 @@ export default function SeguindoPage() {
             </p>
           </div>
 
-      {followedUsers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-6">
-            <Users className="w-10 h-10 text-blue-300" />
-          </div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-            Você ainda não está seguindo ninguém
-          </h2>
-          <p className="text-gray-600 mb-8 max-w-md">
-            Siga designers para ver mais artes como essas e acompanhar os trabalhos dos seus criadores favoritos!
-          </p>
-          <Link href="/">
-            <Button className="bg-[#1f4ed8] hover:bg-[#1d4ed8]/90 text-white">
-              <Search className="w-4 h-4 mr-2" />
-              Explorar artes
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div>
-          <div className="mb-6">
-            <p className="text-sm text-gray-600">
-              {followedUsers.length} {followedUsers.length === 1 ? 'pessoa seguida' : 'pessoas seguidas'}
+        {followedUsers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 lg:py-16 text-center">
+            <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-blue-50 flex items-center justify-center mb-4 lg:mb-6">
+              <Users className="w-8 h-8 lg:w-10 lg:h-10 text-blue-300" />
+            </div>
+            <h2 className="text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
+              Você ainda não está seguindo ninguém
+            </h2>
+            <p className="text-gray-600 mb-6 lg:mb-8 max-w-md text-sm lg:text-base">
+              Siga designers para ver mais artes como essas e acompanhar os trabalhos dos seus criadores favoritos!
             </p>
+            <Link href="/">
+              <Button className="bg-[#1f4ed8] hover:bg-[#1d4ed8]/90 text-white">
+                <Search className="w-4 h-4 mr-2" />
+                Explorar artes
+              </Button>
+            </Link>
           </div>
+        ) : (
+          <div>
+            <div className="mb-6">
+              <p className="text-sm text-gray-600">
+                {followedUsers.length} {followedUsers.length === 1 ? 'pessoa seguida' : 'pessoas seguidas'}
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
             {followedUsers.map((followedUser) => (
               <Card key={followedUser.id} className="hover:shadow-lg transition-shadow duration-200">
                 <CardContent className="p-6">

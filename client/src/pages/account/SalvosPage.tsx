@@ -21,21 +21,21 @@ export default function SalvosPage() {
   if (isLoading) {
     return (
       <ProfileLayout>
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
-                <Bookmark className="w-6 h-6 text-amber-500" />
+        <div className="max-w-7xl">
+          <div className="mb-6">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2 lg:gap-3">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-amber-50 flex items-center justify-center">
+                <Bookmark className="w-4 h-4 lg:w-6 lg:h-6 text-amber-500" />
               </div>
               Salvos
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-2 text-sm lg:text-base">
               Artes que você salvou para usar depois
             </p>
           </div>
 
           {/* Loading skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="animate-pulse">
                 <Skeleton className="aspect-square w-full rounded-lg" />
@@ -65,14 +65,14 @@ export default function SalvosPage() {
         </div>
 
         {savedPosts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-6">
-              <Bookmark className="w-10 h-10 text-amber-300" />
+          <div className="flex flex-col items-center justify-center py-12 lg:py-16 text-center">
+            <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-amber-50 flex items-center justify-center mb-4 lg:mb-6">
+              <Bookmark className="w-8 h-8 lg:w-10 lg:h-10 text-amber-300" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
               Nenhuma arte salva ainda
             </h2>
-            <p className="text-gray-600 mb-8 max-w-md">
+            <p className="text-gray-600 mb-6 lg:mb-8 max-w-md text-sm lg:text-base">
               Salve artes interessantes para acessar facilmente mais tarde e organizar seus projetos.
             </p>
             <Link href="/">
@@ -89,7 +89,7 @@ export default function SalvosPage() {
                 {savedPosts.length} {savedPosts.length === 1 ? 'arte salva' : 'artes salvas'}
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
               {savedPosts.map((post) => (
                 <ArtworkCard key={post.id} artwork={{
                   id: post.id,
