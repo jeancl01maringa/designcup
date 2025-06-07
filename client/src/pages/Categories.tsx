@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import Header from "@/components/layout/Header";
 
 interface Category {
   id: number;
@@ -120,7 +119,6 @@ export default function Categories() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#faf8f5]">
-        <Header />
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d2691e] mx-auto mb-4"></div>
@@ -133,10 +131,9 @@ export default function Categories() {
 
   return (
     <div className="min-h-screen bg-[#faf8f5]">
-      <Header />
       
       {/* Header Section - Matching home page styling */}
-      <section className="pt-8 pb-6">
+      <section className="pt-24 pb-6">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h1 

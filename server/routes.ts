@@ -1157,7 +1157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT 
           p.id,
           p.title,
-          p.image,
+          p.image_url as image,
           p.is_pro as "isPremium",
           p.created_at
         FROM posts p
