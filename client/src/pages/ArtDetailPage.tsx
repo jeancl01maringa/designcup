@@ -168,23 +168,35 @@ export default function ArtDetailPage() {
   });
 
   // Buscar dados do autor do post
-  const { data: author } = useQuery({
+  const { data: author, isLoading: authorLoading } = useQuery({
     queryKey: ['/api/admin/users', post?.user_id || post?.userId],
     queryFn: async () => {
       const userId = post?.user_id || post?.userId;
       console.log('[AUTHOR FETCH] userId from post:', userId);
       console.log('[AUTHOR FETCH] post data:', post);
-      if (!userId) return null;
+      if (!userId) {
+        console.log('[AUTHOR FETCH] No userId found, returning null');
+        return null;
+      }
       
-      const response = await fetch(`/api/admin/users/${userId}`);
-      if (!response.ok) return null;
-      
-      const authorData = await response.json();
-      console.log('[AUTHOR FETCH] author data received:', authorData);
-      return authorData;
+      try {
+        const response = await fetch(`/api/admin/users/${userId}`);
+        if (!response.ok) {
+          console.log('[AUTHOR FETCH] Response not ok:', response.status, response.statusText);
+          return null;
+        }
+        
+        const authorData = await response.json();
+        console.log('[AUTHOR FETCH] author data received:', authorData);
+        return authorData;
+      } catch (error) {
+        console.error('[AUTHOR FETCH] Error fetching author:', error);
+        return null;
+      }
     },
     enabled: !!(post?.user_id || post?.userId),
     staleTime: 10 * 60 * 1000, // 10 minutos em cache
+    retry: 2
   });
 
   // Buscar quantidade de posts do autor
@@ -915,34 +927,45 @@ export default function ArtDetailPage() {
           
           {/* Informações do criador */}
           <div className="flex items-center justify-between border-t pt-4 mt-2">
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-75 transition-opacity"
-              onClick={() => author?.id && setLocation(`/autor/${author.id}`)}
-            >
-              <Avatar className="h-10 w-10">
-                {author?.profileImage ? (
-                  <AvatarImage 
-                    src={author.profileImage} 
-                    alt={author.username}
-                    className="object-cover w-full h-full rounded-full"
-                  />
-                ) : (
-                  <AvatarFallback className="bg-gray-100 text-gray-500">
-                    {author?.username ? author.username.charAt(0).toUpperCase() : 'DE'}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div>
-                <p className="font-medium hover:text-blue-600 transition-colors">
-                  {author?.username || 'Design para Estética'}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}
-                </p>
+            {authorLoading ? (
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
               </div>
-            </div>
-            {/* Só mostrar botão de seguir se não for o próprio usuário */}
-            {user && author && user.id !== author.id && (
+            ) : (
+              <div 
+                className="flex items-center gap-3 cursor-pointer hover:opacity-75 transition-opacity"
+                onClick={() => author?.id && setLocation(`/autor/${author.id}`)}
+              >
+                <Avatar className="h-10 w-10">
+                  {author?.profileImage ? (
+                    <AvatarImage 
+                      src={author.profileImage} 
+                      alt={author.username || 'Autor'}
+                      className="object-cover w-full h-full rounded-full"
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
+                      {author?.username ? author.username.charAt(0).toUpperCase() : 'DE'}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <p className="font-medium hover:text-blue-600 transition-colors">
+                    {author?.username || 'Design para Estética'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Só mostrar botão de seguir se não for o próprio usuário e dados carregados */}
+            {!authorLoading && user && author && user.id !== author.id && (
               <Button
                 size="sm"
                 onClick={handleFollow}
