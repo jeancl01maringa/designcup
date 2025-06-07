@@ -4,47 +4,56 @@ import { useSupportNumber } from "@/hooks/use-support-number";
 import { useSocialMedia } from "@/hooks/use-social-media";
 import { usePlatformLogo } from "@/hooks/use-platform-logo";
 
-const FooterHeader = () => {
+const FooterMainSection = () => {
   const { logoUrl, hasCustomLogo } = usePlatformLogo();
   
   return (
-    <div className="mb-8">
-      <div className="flex items-center mb-3">
-        {hasCustomLogo ? (
-          <img 
-            src={logoUrl} 
-            alt="Logo da Plataforma" 
-            className="h-6 w-auto max-w-[150px] object-contain"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-        ) : (
-          <>
-            <svg className="h-6 w-6 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-              <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
-            </svg>
-            <span className="ml-2 font-bold text-lg">
-              <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
-            </span>
-          </>
-        )}
-      </div>
-      
-      <div className="space-y-2">
-        <p className="text-[#333] text-base font-medium">
-          Criado com <Heart className="inline w-4 h-4 text-red-500 mx-1 fill-current" /> por Jean Carlos
-        </p>
-        <p className="text-[#666] text-base leading-relaxed">
-          Recursos profissionais e artes premium para transformar o seu negócio.
-        </p>
-        <div className="flex items-center text-[#333] mt-3">
-          <Mail className="h-4 w-4 mr-2 text-[#a15e38]" />
-          <span className="text-sm">contato@designparaestetica.com.br</span>
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-8">
+      {/* Logo e Informações à Esquerda */}
+      <div className="lg:max-w-md">
+        <div className="flex items-center mb-3">
+          {hasCustomLogo ? (
+            <img 
+              src={logoUrl} 
+              alt="Logo da Plataforma" 
+              className="h-6 w-auto max-w-[120px] object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : (
+            <>
+              <svg className="h-6 w-6 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
+              </svg>
+              <span className="ml-2 font-bold text-lg">
+                <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
+              </span>
+            </>
+          )}
         </div>
+        
+        <div className="space-y-2">
+          <p className="text-[#333] text-base font-medium">
+            Criado com <Heart className="inline w-4 h-4 text-red-500 mx-1 fill-current" /> por Jean Carlos
+          </p>
+          <p className="text-[#666] text-base leading-relaxed">
+            Recursos profissionais e artes premium para transformar o seu negócio.
+          </p>
+          <div className="flex items-center text-[#333] mt-3">
+            <Mail className="h-4 w-4 mr-2 text-[#a15e38]" />
+            <span className="text-sm">contato@designparaestetica.com.br</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Links Úteis e Políticas à Direita */}
+      <div className="flex flex-col md:flex-row gap-12 lg:gap-16">
+        <LinksUteis />
+        <Politicas />
       </div>
     </div>
   );
@@ -150,19 +159,11 @@ const FooterBottom = () => {
   );
 };
 
-const LinksSection = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-    <LinksUteis />
-    <Politicas />
-  </div>
-);
-
 export default function Footer() {
   return (
     <footer className="bg-white py-12 border-t border-gray-100">
       <div className="container mx-auto px-4 max-w-6xl">
-        <FooterHeader />
-        <LinksSection />
+        <FooterMainSection />
         <FooterBottom />
       </div>
     </footer>
