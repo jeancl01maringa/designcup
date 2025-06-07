@@ -1,4 +1,5 @@
 import { ProfileSidebar } from "./ProfileSidebar";
+import { ProfileMobileNav } from "./ProfileMobileNav";
 import { ReactNode } from "react";
 
 interface ProfileLayoutProps {
@@ -8,15 +9,18 @@ interface ProfileLayoutProps {
 export function ProfileLayout({ children }: ProfileLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navegação mobile */}
+      <ProfileMobileNav />
+      
       <div className="flex">
-        {/* Sidebar fixo */}
-        <div className="fixed left-0 top-0 h-full z-10">
+        {/* Sidebar - Oculto no mobile, visível no desktop */}
+        <div className="hidden lg:block lg:fixed lg:left-0 lg:top-0 lg:h-full lg:z-10">
           <ProfileSidebar />
         </div>
         
-        {/* Conteúdo principal com margem para o sidebar */}
-        <div className="flex-1 ml-64">
-          <main className="min-h-screen">
+        {/* Conteúdo principal - Responsivo */}
+        <div className="flex-1 lg:ml-64">
+          <main className="min-h-screen p-6">
             {children}
           </main>
         </div>

@@ -21,15 +21,15 @@ export default function CurtidasPage() {
   if (isLoading) {
     return (
       <ProfileLayout>
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-                <Heart className="w-6 h-6 text-red-500" />
+        <div className="container mx-auto px-4 lg:px-8 py-4 lg:py-8 max-w-7xl">
+          <div className="mb-6 lg:mb-8">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2 lg:gap-3">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-red-50 flex items-center justify-center">
+                <Heart className="w-4 h-4 lg:w-6 lg:h-6 text-red-500" />
               </div>
               Curtidas
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-2 text-sm lg:text-base">
               Artes que você curtiu e salvou como favoritas
             </p>
           </div>
@@ -51,15 +51,15 @@ export default function CurtidasPage() {
 
   return (
     <ProfileLayout>
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-              <Heart className="w-6 h-6 text-red-500" />
+      <div className="container mx-auto px-4 lg:px-8 py-4 lg:py-8 max-w-7xl">
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2 lg:gap-3">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-red-50 flex items-center justify-center">
+              <Heart className="w-4 h-4 lg:w-6 lg:h-6 text-red-500" />
             </div>
             Curtidas
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 text-sm lg:text-base">
             Artes que você curtiu e salvou como favoritas
           </p>
         </div>
