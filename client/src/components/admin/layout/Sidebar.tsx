@@ -79,6 +79,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       hasSubmenu: true,
       subItems: [
         {
+          id: "monetizacao",
+          label: "Monetização",
+          path: "/admin/gerenciamento/monetizacao",
+          icon: <DollarSign className="h-4 w-4" />,
+        },
+        {
           id: "usuarios",
           label: "Usuários",
           path: "/admin/gerenciamento/usuarios",
