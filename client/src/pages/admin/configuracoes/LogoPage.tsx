@@ -1,19 +1,28 @@
-import React, { useState, useRef } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { PageHeader } from "@/components/admin/layout/PageHeader";
-import { Upload, Image as ImageIcon, Trash2, Eye } from "lucide-react";
-import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
+import { Upload, Trash2, Eye, Image as ImageIcon, Loader2 } from "lucide-react";
+import { getQueryFn, queryClient } from "@/lib/queryClient";
+import imageCompression from 'browser-image-compression';
+import { supabase } from "@/lib/supabase";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function LogoPage() {
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -24,59 +33,155 @@ export default function LogoPage() {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
+  // Função para otimizar imagem
+  const optimizeImage = async (file: File): Promise<File> => {
+    const options = {
+      maxSizeMB: 0.5, // Máximo 500KB
+      maxWidthOrHeight: 800, // Máximo 800px de largura/altura
+      useWebWorker: true,
+      fileType: 'image/webp' as const, // Converter para WebP para melhor compressão
+    };
+
+    try {
+      const compressedFile = await imageCompression(file, options);
+      return compressedFile;
+    } catch (error) {
+      console.error('Erro ao otimizar imagem:', error);
+      return file; // Retorna arquivo original se falhar
+    }
+  };
+
+  // Função para fazer upload para Supabase Storage
+  const uploadToSupabase = async (file: File): Promise<string> => {
+    const fileName = `logo_${Date.now()}.webp`;
+    const filePath = `logos/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Erro no upload para Supabase:', error);
+      throw new Error(`Falha no upload: ${error.message}`);
+    }
+
+    // Obter URL público
+    const { data: publicUrlData } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  };
+
+  // Função para remover logo antigo do Supabase
+  const removeOldLogo = async (logoUrl: string) => {
+    try {
+      // Extrair o caminho do arquivo da URL
+      const urlParts = logoUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const filePath = `logos/${fileName}`;
+
+      await supabase.storage
+        .from('images')
+        .remove([filePath]);
+    } catch (error) {
+      console.error('Erro ao remover logo antigo:', error);
+      // Não bloqueia o processo se falhar
+    }
+  };
+
   // Mutation para salvar o novo logo
   const updateLogoMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const res = await fetch("/api/settings/logo", {
-        method: "POST",
-        body: formData,
-        credentials: "include"
-      });
+    mutationFn: async (file: File) => {
+      setIsUploading(true);
       
-      if (!res.ok) {
-        const errorData = await res.text();
-        throw new Error(errorData || "Erro ao fazer upload do logo");
+      try {
+        // 1. Otimizar imagem
+        const optimizedFile = await optimizeImage(file);
+        
+        // 2. Upload para Supabase Storage
+        const publicUrl = await uploadToSupabase(optimizedFile);
+        
+        // 3. Remover logo antigo se existir
+        const currentLogoUrl = (currentLogo as any)?.value;
+        if (currentLogoUrl && currentLogoUrl.includes('supabase')) {
+          await removeOldLogo(currentLogoUrl);
+        }
+        
+        // 4. Salvar nova URL no banco
+        const response = await fetch('/api/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            key: 'logo_plataforma',
+            value: publicUrl,
+            description: 'Logo personalizado da plataforma'
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Falha ao salvar no banco de dados');
+        }
+
+        return await response.json();
+      } finally {
+        setIsUploading(false);
       }
-      
-      return await res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Logo atualizado",
-        description: "O logo da plataforma foi atualizado com sucesso.",
+        title: "Sucesso!",
+        description: "Logo atualizado com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/settings/logo_plataforma"] });
       setSelectedFile(null);
       setPreviewUrl(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/logo_plataforma"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao atualizar logo",
+        title: "Erro",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Mutation para remover o logo personalizado
-  const removeLogoMutation = useMutation({
+  // Mutation para deletar logo
+  const deleteLogoMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("DELETE", "/api/settings/logo_plataforma");
-      return await res.json();
+      const currentLogoUrl = (currentLogo as any)?.value;
+      
+      // Remover do Supabase Storage
+      if (currentLogoUrl && currentLogoUrl.includes('supabase')) {
+        await removeOldLogo(currentLogoUrl);
+      }
+      
+      // Remover do banco de dados
+      const response = await fetch('/api/settings/logo_plataforma', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao remover logo');
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Logo removido",
-        description: "O logo personalizado foi removido. O logo padrão será usado.",
+        title: "Sucesso!",
+        description: "Logo removido com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/settings/logo_plataforma"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao remover logo",
+        title: "Erro",
         description: error.message,
         variant: "destructive",
       });
@@ -88,48 +193,34 @@ export default function LogoPage() {
     if (!file) return;
 
     // Validar tipo de arquivo
-    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml"];
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
     if (!validTypes.includes(file.type)) {
       toast({
-        title: "Formato inválido",
-        description: "Por favor, selecione um arquivo PNG, JPG ou SVG.",
+        title: "Erro",
+        description: "Formato de arquivo inválido. Use PNG, JPG ou SVG.",
         variant: "destructive",
       });
       return;
     }
 
-    // Validar tamanho (máximo 2MB)
-    if (file.size > 2 * 1024 * 1024) {
+    // Validar tamanho (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Arquivo muito grande",
-        description: "O arquivo deve ter no máximo 2MB.",
+        title: "Erro",
+        description: "Arquivo muito grande. Máximo 5MB.",
         variant: "destructive",
       });
       return;
     }
 
     setSelectedFile(file);
-    
-    // Criar preview
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
   };
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("logo", selectedFile);
-      
-      await updateLogoMutation.mutateAsync(formData);
-    } finally {
-      setIsUploading(false);
-    }
+    await updateLogoMutation.mutateAsync(selectedFile);
   };
 
   const logoUrl = (currentLogo as any)?.value || "/generated-icon.png";
@@ -138,124 +229,60 @@ export default function LogoPage() {
     <AdminLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Alterar Logo da Plataforma"
-          description="Personalize o logo que aparece no cabeçalho e painel administrativo"
+          title="Alterar Logo"
+          description="Gerencie o logo personalizado da plataforma"
         />
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Upload de Novo Logo */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                Upload de Novo Logo
-              </CardTitle>
-              <CardDescription>
-                Selecione uma imagem PNG, JPG ou SVG. Máximo 2MB.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="logo-upload">Selecionar arquivo</Label>
-                <Input
-                  id="logo-upload"
-                  type="file"
-                  accept=".png,.jpg,.jpeg,.svg"
-                  onChange={handleFileSelect}
-                  ref={fileInputRef}
-                  className="mt-2"
-                />
-              </div>
-
-              {previewUrl && (
-                <div className="space-y-2">
-                  <Label>Preview</Label>
-                  <div className="border rounded-lg p-4 bg-muted/50">
-                    <img
-                      src={previewUrl}
-                      alt="Preview do logo"
-                      className="max-w-[200px] max-h-[100px] object-contain mx-auto"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleUpload}
-                  disabled={!selectedFile || isUploading}
-                  className="flex-1"
-                >
-                  {isUploading ? "Enviando..." : "Salvar Logo"}
-                </Button>
-                {selectedFile && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setPreviewUrl(null);
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = "";
-                      }
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Logo Atual */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5" />
+                <Eye className="h-5 w-5" />
                 Logo Atual
               </CardTitle>
               <CardDescription>
-                Este é o logo que aparece atualmente na plataforma.
+                Logo atualmente exibido na plataforma
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isLoading ? (
-                <div className="border rounded-lg p-8 bg-muted/50 flex items-center justify-center">
-                  <span className="text-muted-foreground">Carregando...</span>
-                </div>
-              ) : (
-                <div className="border rounded-lg p-4 bg-muted/50">
+              <div className="flex items-center justify-center bg-muted rounded-lg p-8 min-h-[200px]">
+                {isLoading ? (
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                ) : (
                   <img
                     src={logoUrl}
-                    alt="Logo atual da plataforma"
-                    className="max-w-[200px] max-h-[100px] object-contain mx-auto"
+                    alt="Logo atual"
+                    className="max-w-full max-h-32 object-contain"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/generated-icon.png";
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/generated-icon.png";
                     }}
                   />
-                </div>
-              )}
+                )}
+              </div>
 
               {(currentLogo as any)?.value && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="w-full">
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Remover Logo Personalizado
+                      Remover Logo
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Remover logo personalizado?</AlertDialogTitle>
+                      <AlertDialogTitle>Remover Logo</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Esta ação irá remover o logo personalizado e voltar a usar o logo padrão da plataforma.
-                        Esta ação não pode ser desfeita.
+                        Tem certeza que deseja remover o logo personalizado? 
+                        O logo padrão da plataforma será usado.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => removeLogoMutation.mutate()}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={() => deleteLogoMutation.mutate()}
+                        className="bg-destructive hover:bg-destructive/90"
                       >
                         Remover
                       </AlertDialogAction>
@@ -265,38 +292,106 @@ export default function LogoPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Upload de Novo Logo */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Novo Logo
+              </CardTitle>
+              <CardDescription>
+                Faça upload de um novo logo (PNG, JPG ou SVG - máx. 5MB)
+                <br />
+                <small className="text-xs text-muted-foreground">
+                  A imagem será otimizada automaticamente para web
+                </small>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-center bg-muted rounded-lg p-8 min-h-[200px] border-2 border-dashed">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="Preview do novo logo"
+                    className="max-w-full max-h-32 object-contain"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Preview aparecerá aqui
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+
+                {selectedFile && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Arquivo selecionado: {selectedFile.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Tamanho: {(selectedFile.size / 1024).toFixed(1)}KB
+                    </p>
+                    <Button
+                      onClick={handleUpload}
+                      disabled={isUploading || updateLogoMutation.isPending}
+                      className="w-full"
+                    >
+                      {isUploading || updateLogoMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {isUploading ? "Otimizando e enviando..." : "Salvando..."}
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Atualizar Logo
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Informações sobre onde o logo aparece */}
+        {/* Informações Técnicas */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Onde o logo aparece
-            </CardTitle>
-            <CardDescription>
-              O logo personalizado será exibido automaticamente nos seguintes locais:
-            </CardDescription>
+            <CardTitle>Informações Técnicas</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                Cabeçalho da página inicial e demais páginas públicas
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                Topo da sidebar do painel administrativo
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                Páginas de autenticação (login/registro)
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                Emails automáticos e notificações
-              </li>
-            </ul>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <h4 className="font-medium mb-2">Otimização Automática</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Conversão para formato WebP</li>
+                  <li>• Compressão inteligente (máx. 500KB)</li>
+                  <li>• Redimensionamento (máx. 800px)</li>
+                  <li>• Cache otimizado</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Armazenamento</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Upload para Supabase Storage</li>
+                  <li>• URL pública gerada automaticamente</li>
+                  <li>• Remoção automática de logos antigos</li>
+                  <li>• Backup seguro na nuvem</li>
+                </ul>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

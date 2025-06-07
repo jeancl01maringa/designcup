@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
+import { usePlatformLogo } from "@/hooks/use-platform-logo";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProps) {
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['marketing', 'monetizacao', 'conteudos']);
+  const { logoUrl, hasCustomLogo } = usePlatformLogo();
 
   // Função para verificar se um item de menu está ativo
   const isActive = (path: string) => {
@@ -206,12 +208,37 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
               <Link href="/">
                 <div className="flex-shrink-0 text-primary font-bold hover:text-primary/90 transition-colors cursor-pointer flex items-center">
                   {isOpen ? (
-                    <>
-                      <span className="mr-1">Design para Estética</span>
+                    <div className="flex items-center gap-2">
+                      {hasCustomLogo ? (
+                        <img 
+                          src={logoUrl} 
+                          alt="Logo da Plataforma" 
+                          className="h-6 w-auto max-w-[120px] object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <span className="mr-1">Design para Estética</span>
+                      )}
                       <Home className="h-3.5 w-3.5" />
-                    </>
+                    </div>
                   ) : (
-                    "DE"
+                    hasCustomLogo ? (
+                      <img 
+                        src={logoUrl} 
+                        alt="Logo" 
+                        className="h-6 w-6 object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.insertAdjacentHTML('afterend', 'DE');
+                        }}
+                      />
+                    ) : (
+                      "DE"
+                    )
                   )}
                 </div>
               </Link>

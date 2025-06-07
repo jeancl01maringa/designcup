@@ -1,6 +1,7 @@
 import { User, Heart, Bookmark, Users, Edit3, Settings, CreditCard } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { usePlatformLogo } from "@/hooks/use-platform-logo";
 
 interface ProfileSidebarProps {
   className?: string;
