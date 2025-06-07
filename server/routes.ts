@@ -3317,6 +3317,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      if (biografia !== undefined) {
+        setClauses.push(`bio = $${paramIndex}`);
+        queryParams.push(biografia);
+        paramIndex++;
+      }
+      
       if (setClauses.length === 0) {
         return res.status(400).json({ message: 'Nenhum campo fornecido para atualização' });
       }
@@ -3518,7 +3524,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                  telefone, profile_image, created_at,
                  COALESCE(tipo, 'free') as tipo, 
                  plano_id, data_vencimento, 
-                 COALESCE(active, true) as active
+                 COALESCE(active, true) as active,
+                 bio
           FROM users 
           WHERE id = $1
         `, [userId]);
@@ -3535,7 +3542,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tipo: userData.tipo || 'free',
             planoId: userData.plano_id || null,
             dataVencimento: userData.data_vencimento || null,
-            active: userData.active !== false
+            active: userData.active !== false,
+            bio: userData.bio || null
           });
         } else {
           // Se não encontrou, tentar com campos básicos apenas
