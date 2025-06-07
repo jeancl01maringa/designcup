@@ -57,11 +57,13 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
       filtered = filtered.filter((post) => {
         if (!post.categoryId) return false;
         const categoryMap: { [key: number]: string } = {
-          1: "facial",
-          2: "corporal", 
-          3: "procedimentos",
-          4: "marketing",
-          5: "outros"
+          2: "depilacao",
+          3: "facial", 
+          4: "botox",
+          5: "sala-de-beleza",
+          6: "corporal",
+          7: "massagem",
+          8: "pele"
         };
         return categoryMap[post.categoryId] === category;
       });
