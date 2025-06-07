@@ -15,6 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProfileLayout } from "@/components/layout/ProfileLayout";
 
+interface UserPlan {
+  planName: string;
+  periodo: string;
+  valor: string;
+  isActive: boolean;
+}
+
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -29,6 +36,12 @@ export default function ProfilePage() {
   // Buscar dados do perfil
   const { data: profileData = {}, isLoading: profileLoading } = useQuery({
     queryKey: ["/api/profile"],
+    enabled: !!user,
+  });
+
+  // Buscar informações do plano do usuário
+  const { data: userPlan, isLoading: planLoading } = useQuery<UserPlan>({
+    queryKey: ["/api/user/plan"],
     enabled: !!user,
   });
 
@@ -493,22 +506,11 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-lg">
-                      {(() => {
-                        const planoId = typeof userData?.plano_id === 'string' ? parseInt(userData.plano_id, 10) : userData?.plano_id;
-                        
-                        if (!planoId || planoId === 1) {
-                          return 'Plano Gratuito';
-                        }
-                        
-                        if (userData?.tipo === 'premium') {
-                          if (planoId === 6) return 'Plano Vitalício';
-                          if (planoId === 2) return 'Plano Mensal';
-                          if (planoId === 3) return 'Plano Anual';
-                          return 'Plano Premium';
-                        }
-                        
-                        return 'Plano Gratuito';
-                      })()}
+                      {planLoading ? (
+                        <div className="animate-pulse bg-gray-200 h-6 w-32 rounded"></div>
+                      ) : (
+                        userPlan?.planName || 'Plano Gratuito'
+                      )}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {userData?.tipo === 'premium' ? 'Acesso completo a todos os recursos premium' : 'Acesso básico à plataforma'}
@@ -557,10 +559,11 @@ export default function ProfilePage() {
                     <h4 className="font-medium">Data de Expiração</h4>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {(() => {
-                      const planoId = typeof userData?.plano_id === 'string' ? parseInt(userData.plano_id, 10) : userData?.plano_id;
-                      
-                      if (planoId === 6) {
+                    {planLoading ? (
+                      <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
+                    ) : (() => {
+                      // Se o plano tem periodo "Vitalício" ou é um plano vitalício
+                      if (userPlan?.periodo?.toLowerCase().includes('vitalício') || userPlan?.periodo?.toLowerCase().includes('vitalicio')) {
                         return 'Vitalício (sem expiração)';
                       }
                       

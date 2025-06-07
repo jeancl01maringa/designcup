@@ -794,6 +794,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint to get user's plan information
+  app.get('/api/user/plan', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const userId = req.user.id;
+      const userPlanId = req.user.plano_id;
+
+      console.log(`Buscando plano do usuário ${userId} - plano_id: ${userPlanId}`);
+
+      if (!userPlanId) {
+        return res.json({
+          planName: 'Plano Gratuito',
+          periodo: 'Gratuito',
+          valor: 'R$ 0,00',
+          isActive: true
+        });
+      }
+
+      try {
+        // Buscar o plano via PostgreSQL direto
+        const result = await pool.query(`
+          SELECT id, name, periodo, valor, is_active
+          FROM plans 
+          WHERE id = $1
+        `, [userPlanId]);
+
+        if (result.rows && result.rows.length > 0) {
+          const plan = result.rows[0];
+          console.log(`Plano encontrado: ${plan.name}`);
+          
+          return res.json({
+            planName: plan.name,
+            periodo: plan.periodo,
+            valor: plan.valor,
+            isActive: plan.is_active
+          });
+        } else {
+          console.log(`Plano ${userPlanId} não encontrado, retornando dados padrão`);
+          return res.json({
+            planName: 'Plano Personalizado',
+            periodo: 'Vitalício',
+            valor: 'Personalizado',
+            isActive: true
+          });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao buscar plano ${userPlanId}:`, dbError);
+        return res.status(500).json({ message: 'Erro ao buscar informações do plano' });
+      }
+    } catch (error: any) {
+      console.error('Error fetching user plan:', error);
+      res.status(500).json({ message: 'Erro ao buscar plano do usuário' });
+    }
+  });
+
   // API endpoint for user data (for author information)
   app.get('/api/admin/users/:id', async (req, res) => {
     try {
