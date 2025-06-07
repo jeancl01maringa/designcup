@@ -320,12 +320,7 @@ export default function ProfilePage() {
                   )}
                 </Avatar>
                 
-                {/* Botão de upload apenas no próprio perfil */}
-                {isOwnProfile && (
-                  <button className="absolute bottom-0 right-0 bg-black text-white rounded-full p-2 shadow-lg hover:bg-gray-800 transition-colors">
-                    <Camera className="h-4 w-4" />
-                  </button>
-                )}
+                {/* Botão de câmera removido - edição só na página Perfil */}
               </div>
               
               {/* Informações básicas centralizadas */}
@@ -339,12 +334,7 @@ export default function ProfilePage() {
 
               {/* Botões de ação centralizados */}
               <div className="flex gap-3 justify-center">
-                {isOwnProfile ? (
-                  <Button variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
-                  </Button>
-                ) : (
+                {!isOwnProfile && (
                   <>
                     <Button
                       size="sm"
