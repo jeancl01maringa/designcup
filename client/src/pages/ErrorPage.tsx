@@ -1,8 +1,7 @@
-import { AlertTriangle, MessageSquare, Home } from "lucide-react";
+import { AlertTriangle, Home, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSupportNumber } from "@/hooks/use-support-number";
-import { Link } from "wouter";
+import { SupportContact } from "@/components/ui/SupportContact";
+import { useLocation } from "wouter";
 
 interface ErrorPageProps {
   title?: string;
@@ -11,57 +10,74 @@ interface ErrorPageProps {
 }
 
 export default function ErrorPage({ 
-  title = "Algo deu errado", 
-  message = "Ocorreu um erro inesperado. Nossa equipe foi notificada e está trabalhando para resolver o problema.",
-  statusCode = 500 
+  title = "Ops! Algo deu errado",
+  message = "Não conseguimos encontrar a página que você está procurando ou ocorreu um erro inesperado.",
+  statusCode = 404
 }: ErrorPageProps) {
-  const { supportNumber, whatsappUrl } = useSupportNumber();
+  const [, navigate] = useLocation();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
-            <AlertTriangle className="h-8 w-8 text-red-600" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+          {/* Error Icon */}
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="w-10 h-10 text-red-600" />
           </div>
-          <CardTitle className="text-xl font-semibold text-gray-900">
-            {statusCode && <span className="text-red-600 font-mono">{statusCode} - </span>}
+
+          {/* Status Code */}
+          <div className="text-6xl font-bold text-gray-300 mb-4">
+            {statusCode}
+          </div>
+
+          {/* Title */}
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
             {title}
-          </CardTitle>
-          <CardDescription className="text-gray-600">
+          </h1>
+
+          {/* Message */}
+          <p className="text-gray-600 mb-8 leading-relaxed">
             {message}
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3">
-            <Link href="/">
-              <Button className="w-full" variant="default">
-                <Home className="h-4 w-4 mr-2" />
-                Voltar ao Início
-              </Button>
-            </Link>
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <Button
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2 flex-1"
+            >
+              <Home className="w-4 h-4" />
+              Voltar ao Início
+            </Button>
             
-            {whatsappUrl && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => window.open(`${whatsappUrl}?text=Olá, preciso de ajuda! Encontrei um erro na plataforma.`, '_blank')}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Falar com Suporte
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2 flex-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Button>
           </div>
-          
-          {supportNumber && (
-            <div className="text-center pt-4 border-t">
-              <p className="text-sm text-gray-500 mb-2">Ou entre em contato via WhatsApp:</p>
-              <p className="text-sm font-medium text-gray-700">{supportNumber}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
+          {/* Support Contact */}
+          <div className="border-t border-gray-200 pt-6">
+            <p className="text-sm text-gray-500 mb-3">
+              Precisa de ajuda? Entre em contato conosco:
+            </p>
+            <SupportContact 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        {/* Additional Help Text */}
+        <p className="text-sm text-gray-500 mt-6">
+          Se o problema persistir, nossa equipe de suporte está pronta para ajudar.
+        </p>
+      </div>
     </div>
   );
 }

@@ -205,6 +205,15 @@ const MobileMenu = () => {
           </Link>
         ))}
         
+        {/* Support Contact for Mobile */}
+        <div className="border-t border-muted pt-4 mt-2">
+          <SupportContact 
+            variant="ghost" 
+            size="default" 
+            className="w-full justify-start text-primary hover:text-primary/80"
+          />
+        </div>
+        
         {user ? (
           <>
             <div className="flex items-center gap-3 border-t border-muted pt-4 mt-2">
