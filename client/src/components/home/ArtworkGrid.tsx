@@ -18,7 +18,7 @@ function useResponsiveColumns() {
   useEffect(() => {
     const updateColumns = () => {
       const width = window.innerWidth;
-      if (width < 640) setColumns(1);      // mobile
+      if (width < 640) setColumns(2);      // mobile - 2 columns
       else if (width < 768) setColumns(2); // sm
       else if (width < 1024) setColumns(3); // md
       else if (width < 1280) setColumns(4); // lg
@@ -88,7 +88,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {Array.from({ length: columns }).map((_, colIndex) => (
           <div key={colIndex} className="space-y-4">
             {Array.from({ length: 3 }).map((_, itemIndex) => (
@@ -153,7 +153,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
       </div>
 
       {/* Grid masonry Pinterest-style */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {columnArrays.map((columnPosts, columnIndex) => (
           <div key={columnIndex} className="space-y-4">
             {columnPosts.map((post) => (
