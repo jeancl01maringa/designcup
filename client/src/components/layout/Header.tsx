@@ -234,8 +234,35 @@ const MobileUserMenu = () => {
   const isAdmin = Boolean(user.isAdmin);
   
   return (
-    <div className="flex md:hidden items-center">
-      {/* Only Profile Photo Button for Mobile - Admin button removed since it's in the dropdown */}
+    <div className="flex md:hidden items-center gap-2">
+      {/* Admin Button for Mobile */}
+      {isAdmin && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10 px-2"
+          onClick={() => navigate("/admin")}
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </Button>
+      )}
+      
+      {/* Profile Photo Button for Mobile */}
       <Button 
         variant="ghost" 
         size="sm"
@@ -275,8 +302,7 @@ const MobileMenu = () => {
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
     { name: "Planos", path: "/planos" },
-    { name: "Tutoriais", path: "/tutoriais" },
-    { name: "Suporte", path: "/suporte" }
+    { name: "Tutoriais", path: "/tutoriais" }
   ];
   
   if (!isOpen) return null;
