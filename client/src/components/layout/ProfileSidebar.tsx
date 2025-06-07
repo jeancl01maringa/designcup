@@ -59,7 +59,7 @@ export function ProfileSidebar({ className }: ProfileSidebarProps) {
       {/* Header do sidebar */}
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800">Meu Perfil</h2>
-        <p className="text-sm text-gray-500 mt-1">Gerencie sua conta e preferências</p>
+        <p className="text-sm text-gray-500 mt-1">Gerencie sua conta</p>
       </div>
 
       {/* Menu de navegação */}
@@ -171,28 +171,7 @@ export function ProfileSidebar({ className }: ProfileSidebarProps) {
         </div>
       </nav>
 
-      {/* Footer do sidebar */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500 text-center">
-          <div className="flex items-center justify-center mb-2">
-            {hasCustomLogo ? (
-              <img 
-                src={logoUrl} 
-                alt="Logo da Plataforma" 
-                className="h-6 w-auto max-w-[80px] object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : (
-              <span className="font-medium">Design para Estética</span>
-            )}
-          </div>
-          <p className="mt-1">© 2025 - Todos os direitos reservados</p>
-        </div>
-      </div>
+
     </div>
   );
 }
