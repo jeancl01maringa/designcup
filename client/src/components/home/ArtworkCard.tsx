@@ -13,36 +13,13 @@ interface ArtworkCardProps {
 }
 
 export function ArtworkCard({ artwork }: ArtworkCardProps) {
-  const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(artwork.imageUrl);
   const { toast } = useToast();
-
-  const handleLike = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setLiked(!liked);
-    
-    toast({
-      title: liked ? "Removido dos favoritos" : "Adicionado aos favoritos",
-      description: liked ? "O item foi removido dos seus favoritos" : "O item foi adicionado aos seus favoritos",
-      duration: 2000,
-    });
-  };
-
-  const handleSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSaved(!saved);
-    
-    toast({
-      title: saved ? "Removido da coleção" : "Salvo na sua coleção",
-      description: saved ? "O item foi removido da sua coleção" : "O item foi salvo na sua coleção",
-      duration: 2000,
-    });
-  };
+  
+  // Usar o hook de ações de post com dados reais
+  const { liked, saved, isLiking, isSaving, handleLike, handleSave } = usePostActions(artwork.id);
 
   const handleImageError = () => {
     console.log(`Imagem falhou ao carregar: ${imageSrc}`);
@@ -139,23 +116,39 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               ${hovered ? 'opacity-100' : 'opacity-0'}`}
           >
             <button 
-              className={`p-2 rounded-full shadow-md transition-colors ${
-                liked ? 'bg-[#AA5E2F] text-white' : 'bg-white text-black hover:bg-white/90'
-              }`}
+              disabled={isLiking}
+              className={cn(
+                "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
+                liked 
+                  ? 'bg-red-500 text-white animate-pulse' 
+                  : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500',
+                isLiking && "animate-bounce scale-110"
+              )}
               onClick={handleLike}
               aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
             >
-              <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
+              <Heart className={cn(
+                "h-4 w-4 transition-all duration-300",
+                liked && "animate-pulse"
+              )} fill={liked ? "currentColor" : "none"} />
             </button>
             
             <button 
-              className={`p-2 rounded-full shadow-md transition-colors ${
-                saved ? 'bg-[#AA5E2F] text-white' : 'bg-white text-black hover:bg-white/90'
-              }`}
+              disabled={isSaving}
+              className={cn(
+                "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
+                saved 
+                  ? 'bg-blue-500 text-white animate-pulse' 
+                  : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-500',
+                isSaving && "animate-bounce scale-110"
+              )}
               onClick={handleSave}
               aria-label={saved ? "Remover dos salvos" : "Salvar item"}
             >
-              <Bookmark className="h-4 w-4" fill={saved ? "currentColor" : "none"} />
+              <Bookmark className={cn(
+                "h-4 w-4 transition-all duration-300",
+                saved && "animate-pulse"
+              )} fill={saved ? "currentColor" : "none"} />
             </button>
           </div>
           
