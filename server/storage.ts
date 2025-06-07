@@ -1617,7 +1617,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async createPost(post: InsertPost): Promise<Post> {
+  async createPost(post: InsertPost, authorUser?: any): Promise<Post> {
     try {
       console.log("DATABASE createPost - Criando novo post:", JSON.stringify(post));
       
@@ -1651,6 +1651,34 @@ export class DatabaseStorage implements IStorage {
         status: post.status || 'rascunho',
         published_at: post.publishedAt ? post.publishedAt.toISOString() : null
       };
+      
+      // Adicionar informações do autor se fornecidas
+      if (authorUser) {
+        dbPost.user_id = authorUser.id;
+        dbPost.author_name = authorUser.username;
+        dbPost.author_profile_image = authorUser.profileImage;
+        dbPost.author_type = authorUser.tipo || 'free';
+        console.log(`DATABASE createPost - Dados do autor incluídos: ${authorUser.username} (${authorUser.tipo})`);
+      } else if (post.userId) {
+        dbPost.user_id = post.userId;
+        // Se não temos dados do autor mas temos userId, buscar os dados
+        try {
+          const authorResult = await pool.query(`
+            SELECT username, profile_image, COALESCE(tipo, 'free') as tipo 
+            FROM users WHERE id = $1
+          `, [post.userId]);
+          
+          if (authorResult.rows.length > 0) {
+            const author = authorResult.rows[0];
+            dbPost.author_name = author.username;
+            dbPost.author_profile_image = author.profile_image;
+            dbPost.author_type = author.tipo;
+            console.log(`DATABASE createPost - Dados do autor buscados: ${author.username} (${author.tipo})`);
+          }
+        } catch (authorError) {
+          console.warn("DATABASE createPost - Erro ao buscar dados do autor:", authorError);
+        }
+      }
       
       // Adicionar os novos campos para suporte a múltiplos formatos
       if (post.formato) dbPost.formato = post.formato;

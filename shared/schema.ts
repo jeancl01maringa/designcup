@@ -135,6 +135,7 @@ export const posts = pgTable("posts", {
   imageUrl: text("image_url").notNull(),
   uniqueCode: text("unique_code").notNull().unique(), // código hash único
   categoryId: integer("category_id").references(() => categories.id),
+  userId: integer("user_id").references(() => users.id), // ID do usuário que criou
   status: postStatusEnum("status").default('rascunho').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   publishedAt: timestamp("published_at"),
@@ -148,6 +149,10 @@ export const posts = pgTable("posts", {
   groupId: text("group_id"), // ID para agrupar artes relacionadas (UUID)
   isVisible: boolean("is_visible").default(true).notNull(), // controle de visibilidade no feed
   isPro: boolean("is_pro").default(false), // campo is_pro para manter compatibilidade
+  // Campos do autor (para evitar consultas separadas)
+  authorName: text("author_name"), // nome do usuário que criou
+  authorProfileImage: text("author_profile_image"), // foto de perfil do autor
+  authorType: text("author_type"), // tipo do usuário (free/premium)
 });
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
