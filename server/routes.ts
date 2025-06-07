@@ -1744,8 +1744,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? { formato } 
             : formato;
           
-          // Título completo com o formato para SEO
-          const title = `${tituloBase} - Editável no Canva - ${formatoData.formato.toUpperCase()}`;
+          // Manter o título original limpo sem adicionar informações de formato
+          const title = tituloBase;
           
           // Gerando um uniqueCode para cada formato
           const uniqueCode = parsedData.data.uniqueCode 

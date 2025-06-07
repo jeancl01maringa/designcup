@@ -612,13 +612,14 @@ export default function PostagensPage() {
                 />
               </TableHead>
               <TableHead className="w-14">ID</TableHead>
-              <TableHead className="min-w-[250px]">Título</TableHead>
-              <TableHead className="hidden md:table-cell">Categoria</TableHead>
-              <TableHead className="w-20 text-center">Premium</TableHead>
+              <TableHead className="min-w-[200px]">Título</TableHead>
+              <TableHead className="hidden md:table-cell">Categorias</TableHead>
+              <TableHead className="hidden md:table-cell">Formato</TableHead>
+              <TableHead className="hidden lg:table-cell">Tipo</TableHead>
               <TableHead className="w-20 text-center">Visível</TableHead>
               <TableHead className="w-24">Status</TableHead>
               <TableHead className="hidden md:table-cell">Data</TableHead>
-              <TableHead className="w-16"></TableHead>
+              <TableHead className="w-16">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
