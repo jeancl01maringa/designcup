@@ -35,7 +35,7 @@ import ProfilePage from "@/pages/account/ProfilePage";
 import CurtidasPage from "@/pages/account/CurtidasPage";
 import SalvosPage from "@/pages/account/SalvosPage";
 import SeguindoPage from "@/pages/account/SeguindoPage";
-import DownloadsPage from "@/pages/account/DownloadsPage";
+import EdicoesRecentesPage from "@/pages/account/EdicoesRecentesPage";
 import PublicProfilePage from "@/pages/ProfilePage";
 
 function Router() {
@@ -73,8 +73,8 @@ function Router() {
       <Route path="/seguindo">
         <ProtectedRoute path="/seguindo" component={SeguindoPage} requireAdmin={false} />
       </Route>
-      <Route path="/downloads">
-        <ProtectedRoute path="/downloads" component={DownloadsPage} requireAdmin={false} />
+      <Route path="/edicoes-recentes">
+        <ProtectedRoute path="/edicoes-recentes" component={EdicoesRecentesPage} requireAdmin={false} />
       </Route>
       
       {/* Rotas Administrativas */}

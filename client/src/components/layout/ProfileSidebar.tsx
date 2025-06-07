@@ -1,4 +1,4 @@
-import { User, Heart, Bookmark, Users, Download, Settings } from "lucide-react";
+import { User, Heart, Bookmark, Users, Edit3, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -35,10 +35,10 @@ export function ProfileSidebar({ className }: ProfileSidebarProps) {
       description: "Designers que você segue"
     },
     {
-      href: "/downloads",
-      icon: Download,
-      label: "Downloads",
-      description: "Histórico de downloads"
+      href: "/edicoes-recentes",
+      icon: Edit3,
+      label: "Edições recentes",
+      description: "Artes editadas no Canva"
     }
   ];
 
