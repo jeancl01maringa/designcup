@@ -65,32 +65,61 @@ const PopupDisplay: React.FC = () => {
       // Check if already closed by user in this session
       if (closedPopups.has(popup.id)) return false;
 
-      // Check target pages - support Portuguese "Todas as páginas"
+      // Check target pages - enhanced targeting with Portuguese support
       const targetPages = Array.isArray(popup.targetPages) ? popup.targetPages : [];
-      if (targetPages.length > 0 && 
-          !targetPages.includes('all') && 
-          !targetPages.includes('Todas as páginas') &&
-          !targetPages.some(page => currentPath.includes(page))) {
-        return false;
+      if (targetPages.length > 0) {
+        const shouldShow = targetPages.some(page => {
+          // Support for "Todas as páginas" and "all"
+          if (page === 'Todas as páginas' || page === 'all') return true;
+          
+          // Support for specific page names
+          if (page === 'Página inicial' || page === 'home') return currentPath === '/';
+          if (page === 'Categorias' || page === 'categories') return currentPath.includes('/categoria');
+          if (page === 'Planos' || page === 'plans') return currentPath.includes('/planos');
+          if (page === 'Tutoriais' || page === 'tutorials') return currentPath.includes('/tutoriais');
+          if (page === 'Suporte' || page === 'support') return currentPath.includes('/suporte');
+          if (page === 'Perfil' || page === 'profile') return currentPath.includes('/perfil');
+          if (page === 'Arte' || page === 'art') return currentPath.includes('/arte/');
+          
+          // Fallback: check if path contains the page name
+          return currentPath.toLowerCase().includes(page.toLowerCase());
+        });
+        
+        if (!shouldShow) return false;
       }
 
-      // Check frequency
+      // Check frequency with improved logic
       const storageKey = `popup_${popup.id}`;
+      const sessionKey = `popup_session_${popup.id}`;
       const lastShown = localStorage.getItem(storageKey);
       
       switch (popup.frequency) {
         case 'once_per_session':
-          if (sessionStorage.getItem(storageKey)) return false;
+          // Check if already shown in this browser session
+          if (sessionStorage.getItem(sessionKey)) return false;
           break;
         case 'once_per_day':
-          if (lastShown === todayKey) return false;
-          break;
-        case 'once_per_week':
+          // Check if shown today
           if (lastShown) {
             const lastShownDate = new Date(lastShown);
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            if (lastShownDate > weekAgo) return false;
+            const today = new Date();
+            const isSameDay = lastShownDate.getDate() === today.getDate() &&
+                            lastShownDate.getMonth() === today.getMonth() &&
+                            lastShownDate.getFullYear() === today.getFullYear();
+            if (isSameDay) return false;
           }
+          break;
+        case 'once_per_week':
+          // Check if shown in the last 7 days
+          if (lastShown) {
+            const lastShownDate = new Date(lastShown);
+            const now = new Date();
+            const daysDiff = (now.getTime() - lastShownDate.getTime()) / (1000 * 60 * 60 * 24);
+            if (daysDiff < 7) return false;
+          }
+          break;
+        case 'always':
+          // No frequency restriction
           break;
       }
 
@@ -105,15 +134,20 @@ const PopupDisplay: React.FC = () => {
         
         // Mark as shown based on frequency
         const storageKey = `popup_${eligiblePopup.id}`;
+        const sessionKey = `popup_session_${eligiblePopup.id}`;
+        
         switch (eligiblePopup.frequency) {
           case 'once_per_session':
-            sessionStorage.setItem(storageKey, 'shown');
+            sessionStorage.setItem(sessionKey, 'shown');
             break;
           case 'once_per_day':
-            localStorage.setItem(storageKey, todayKey);
+            localStorage.setItem(storageKey, new Date().toISOString());
             break;
           case 'once_per_week':
             localStorage.setItem(storageKey, new Date().toISOString());
+            break;
+          case 'always':
+            // No storage tracking needed for always
             break;
         }
       }, delay);

@@ -33,6 +33,7 @@ import {
   Trash2,
   Check
 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface PopupFormData {
   // Content
@@ -94,6 +95,8 @@ export default function PopupsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [popupToDelete, setPopupToDelete] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -737,9 +740,8 @@ export default function PopupsPage() {
                         variant="outline" 
                         size="sm"
                         onClick={() => {
-                          if (confirm('Tem certeza que deseja excluir este popup?')) {
-                            deletePopupMutation.mutate(popup.id);
-                          }
+                          setPopupToDelete(popup);
+                          setIsDeleteDialogOpen(true);
                         }}
                         disabled={deletePopupMutation.isPending}
                       >
@@ -933,6 +935,34 @@ export default function PopupsPage() {
           </div>
         </div>
       )}
+
+      {/* Diálogo de confirmação de exclusão */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o popup "{popupToDelete?.title}"?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPopupToDelete(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                if (popupToDelete) {
+                  deletePopupMutation.mutate(popupToDelete.id);
+                  setIsDeleteDialogOpen(false);
+                  setPopupToDelete(null);
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
