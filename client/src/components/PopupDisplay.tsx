@@ -209,7 +209,7 @@ const PopupDisplay: React.FC = () => {
             <img 
               src={visiblePopup.imageUrl} 
               alt={visiblePopup.title}
-              className="w-full h-auto max-h-64 object-cover"
+              className="w-full h-auto max-h-64 object-contain"
               style={{ 
                 borderTopLeftRadius: `${visiblePopup.borderRadius}px`,
                 borderTopRightRadius: `${visiblePopup.borderRadius}px`,

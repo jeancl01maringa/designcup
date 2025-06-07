@@ -4194,6 +4194,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/popups/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      const popup = await storage.updatePopup(id, req.body);
+      res.json(popup);
+    } catch (error: any) {
+      console.error('Error updating popup:', error);
+      res.status(500).json({ message: 'Erro ao atualizar popup' });
+    }
+  });
+
   app.delete('/api/popups/:id', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !req.user?.isAdmin) {

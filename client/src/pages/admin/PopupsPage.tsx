@@ -132,6 +132,48 @@ export default function PopupsPage() {
     },
   });
 
+  const togglePopupMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number, isActive: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/popups/${id}`, { isActive });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado!",
+        description: "O status do popup foi alterado com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/popups'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message || "Ocorreu um erro ao alterar o status do popup.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePopupMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/popups/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Popup excluído!",
+        description: "O popup foi removido com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/popups'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao excluir popup",
+        description: error.message || "Ocorreu um erro ao excluir o popup.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleInputChange = (field: keyof PopupFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -640,11 +682,67 @@ export default function PopupsPage() {
                         <span>Delay: {popup.delaySeconds}s</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button variant="outline" size="sm">
+                    <div className="flex items-center gap-3 ml-4">
+                      {/* Toggle Switch */}
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor={`toggle-${popup.id}`} className="text-xs text-gray-600">
+                          {popup.isActive ? 'Ativo' : 'Inativo'}
+                        </Label>
+                        <Switch
+                          id={`toggle-${popup.id}`}
+                          checked={popup.isActive}
+                          onCheckedChange={(checked) => 
+                            togglePopupMutation.mutate({ id: popup.id, isActive: checked })
+                          }
+                          disabled={togglePopupMutation.isPending}
+                        />
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Populate form with popup data for editing
+                          setFormData({
+                            title: popup.title,
+                            content: popup.content,
+                            imageUrl: popup.imageUrl || '',
+                            buttonText: popup.buttonText || 'Saiba mais',
+                            buttonUrl: popup.buttonUrl || '',
+                            backgroundColor: popup.backgroundColor || '#ffffff',
+                            textColor: popup.textColor || '#000000',
+                            buttonColor: popup.buttonColor || '#1f4ed8',
+                            buttonTextColor: popup.buttonTextColor || '#ffffff',
+                            borderRadius: popup.borderRadius || 8,
+                            buttonWidth: popup.buttonWidth || 'auto',
+                            animation: popup.animation || 'fade',
+                            position: popup.position || 'center',
+                            size: popup.size || 'medium',
+                            delaySeconds: popup.delaySeconds || 2,
+                            targetPages: popup.targetPages || [],
+                            targetUserTypes: popup.targetUserTypes || [],
+                            startDate: popup.startDate ? new Date(popup.startDate).toISOString().split('T')[0] : '',
+                            endDate: popup.endDate ? new Date(popup.endDate).toISOString().split('T')[0] : '',
+                            frequency: popup.frequency || 'once_per_session',
+                            isActive: popup.isActive
+                          });
+                          setIsCreating(true);
+                          setCurrentStep(1);
+                        }}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          if (confirm('Tem certeza que deseja excluir este popup?')) {
+                            deletePopupMutation.mutate(popup.id);
+                          }
+                        }}
+                        disabled={deletePopupMutation.isPending}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
