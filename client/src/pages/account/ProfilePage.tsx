@@ -177,7 +177,7 @@ export default function ProfilePage() {
       } else {
         const errorData = await response.json();
         
-        if (errorData.error === 'ALTERACAO_RESTRITA_ASSINANTE') {
+        if (errorData.error === 'ALTERACAO_RESTRITA_PREMIUM') {
           toast({
             title: "Alteração restrita",
             description: "Entre em contato com o suporte para alterar email ou telefone.",
@@ -387,7 +387,7 @@ export default function ProfilePage() {
                 <div className="space-y-2">
                   <Label htmlFor="email">
                     E-mail
-                    {isSubscriber && (
+                    {isPremiumUser && (
                       <span className="text-xs text-amber-600 ml-2">
                         (Solicite alteração via suporte)
                       </span>
@@ -399,19 +399,19 @@ export default function ProfilePage() {
                     value={editableData.email}
                     onChange={(e) => setEditableData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="seu.email@exemplo.com"
-                    disabled={isSubscriber}
-                    className={isSubscriber ? "bg-gray-100 cursor-not-allowed" : ""}
+                    disabled={isPremiumUser}
+                    className={isPremiumUser ? "bg-gray-100 cursor-not-allowed" : ""}
                   />
-                  {isSubscriber && (
+                  {isPremiumUser && (
                     <p className="text-xs text-gray-500">
-                      Usuários assinantes devem solicitar alteração de email via suporte devido à integração com Hotmart
+                      Usuários premium devem solicitar alteração de email via suporte devido à integração com Hotmart
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="telefone">
                     Telefone
-                    {isSubscriber && (
+                    {isPremiumUser && (
                       <span className="text-xs text-amber-600 ml-2">
                         (Solicite alteração via suporte)
                       </span>
@@ -422,12 +422,12 @@ export default function ProfilePage() {
                     value={editableData.telefone}
                     onChange={(e) => setEditableData(prev => ({ ...prev, telefone: e.target.value }))}
                     placeholder="(11) 99999-9999"
-                    disabled={isSubscriber}
-                    className={isSubscriber ? "bg-gray-100 cursor-not-allowed" : ""}
+                    disabled={isPremiumUser}
+                    className={isPremiumUser ? "bg-gray-100 cursor-not-allowed" : ""}
                   />
-                  {isSubscriber && (
+                  {isPremiumUser && (
                     <p className="text-xs text-gray-500">
-                      Usuários assinantes devem solicitar alteração de telefone via suporte devido à integração com Hotmart
+                      Usuários premium devem solicitar alteração de telefone via suporte devido à integração com Hotmart
                     </p>
                   )}
                 </div>
