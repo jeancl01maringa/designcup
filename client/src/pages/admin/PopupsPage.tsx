@@ -94,6 +94,8 @@ export default function PopupsPage() {
   const [formData, setFormData] = useState<PopupFormData>(initialFormData);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingPopupId, setEditingPopupId] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [popupToDelete, setPopupToDelete] = useState<any>(null);
@@ -130,6 +132,33 @@ export default function PopupsPage() {
       toast({
         title: "Erro ao criar popup",
         description: error.message || "Ocorreu um erro ao salvar o popup.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePopupMutation = useMutation({
+    mutationFn: async ({ id, popupData }: { id: number, popupData: any }) => {
+      const response = await apiRequest('PATCH', `/api/popups/${id}`, popupData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Popup atualizado!",
+        description: "As alterações foram salvas com sucesso.",
+      });
+      setFormData(initialFormData);
+      setImageFile(null);
+      setIsCreating(false);
+      setIsEditing(false);
+      setEditingPopupId(null);
+      setCurrentStep(1);
+      queryClient.invalidateQueries({ queryKey: ['/api/popups'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar popup",
+        description: error.message || "Ocorreu um erro ao atualizar o popup.",
         variant: "destructive",
       });
     },
@@ -232,7 +261,11 @@ export default function PopupsPage() {
       isActive: formData.isActive
     };
 
-    createPopupMutation.mutate(popupData);
+    if (isEditing && editingPopupId) {
+      updatePopupMutation.mutate({ id: editingPopupId, popupData });
+    } else {
+      createPopupMutation.mutate(popupData);
+    }
   };
 
   const nextStep = () => {
@@ -730,6 +763,8 @@ export default function PopupsPage() {
                             frequency: popup.frequency || 'once_per_session',
                             isActive: popup.isActive
                           });
+                          setIsEditing(true);
+                          setEditingPopupId(popup.id);
                           setIsCreating(true);
                           setCurrentStep(1);
                         }}
@@ -762,7 +797,7 @@ export default function PopupsPage() {
           <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-xl font-semibold">Criar Novo Popup</h2>
+              <h2 className="text-xl font-semibold">{isEditing ? 'Editar Popup' : 'Criar Novo Popup'}</h2>
               <Button 
                 variant="ghost" 
                 size="sm" 
