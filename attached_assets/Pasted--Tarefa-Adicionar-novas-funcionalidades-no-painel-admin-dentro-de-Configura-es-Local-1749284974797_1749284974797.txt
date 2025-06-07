@@ -1,0 +1,51 @@
+// Tarefa: Adicionar novas funcionalidades no painel admin dentro de "Configurações".
+
+// 📌 Local no slidebar (menu lateral do admin):
+// Menu principal: "Configurações"
+// Transformar em dropdown com os seguintes itens:
+// - Gerenciar Suporte
+// - Alterar Logo
+
+// ------------------------------
+// 1️⃣ GERENCIAR SUPORTE
+// ------------------------------
+
+// Criar um campo de input para alterar o número de suporte (WhatsApp).
+// Exemplo: (11) 9 9999-9999
+// Ao clicar em “Salvar”, o número deve ser salvo no banco de dados (pode ser na tabela `settings` ou `config`)
+// Chave sugerida: `numero_suporte`
+
+// O número salvo deve ser usado automaticamente em:
+// - Página inicial (cabeçalho)
+// - Página de assinatura do usuário
+// - Onde mais o número de suporte for exibido
+
+// ✅ Deve ser dinâmico, sem precisar editar componente por componente.
+
+// ------------------------------
+// 2️⃣ ALTERAR LOGO DA PLATAFORMA
+// ------------------------------
+
+// Criar uma tela com upload de imagem (aceitar PNG, JPG e SVG).
+// Ao salvar, a imagem deve substituir o logo padrão da plataforma.
+// A logo é usada:
+// - No cabeçalho (header) do site
+// - No painel de admin (topo da sidebar)
+// - E onde mais o logo for exibido
+
+// ⚠️ Atenção:
+// - A imagem deve ser exibida em preview antes de salvar
+// - Deve manter proporção ideal (máximo 300px largura)
+// - Preferência para arquivos leves
+
+// ✅ Salvar no banco com chave `logo_plataforma`
+// Ao carregar a plataforma, sempre buscar o logo personalizado se existir. Se não houver, usar o logo padrão.
+
+// ------------------------------
+// CUIDADOS GERAIS:
+// ------------------------------
+// - Não remover nem alterar nenhuma funcionalidade que já esteja funcionando.
+// - Apenas adicionar os dois itens de forma limpa e organizada no painel admin > Configurações.
+// - Manter o layout padrão da plataforma (estilo visual, espaçamento, fontes etc).
+// - Garantir que o upload de imagem seja seguro, com tamanho máximo de 2MB e extensões válidas.
+// - Sem scroll lateral nem bugs de layout.

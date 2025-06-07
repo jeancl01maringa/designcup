@@ -24,7 +24,8 @@ import {
   Zap,
   ChevronDown,
   ChevronRight,
-  Phone
+  Phone,
+  Image
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -167,6 +168,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
           label: "Gerenciar Suporte",
           path: "/admin/configuracoes/suporte",
           icon: <Phone className="h-4 w-4" />,
+        },
+        {
+          id: "logo",
+          label: "Alterar Logo",
+          path: "/admin/configuracoes/logo",
+          icon: <Image className="h-4 w-4" />,
         }
       ],
     },
