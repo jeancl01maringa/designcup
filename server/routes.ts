@@ -1775,8 +1775,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             imageUrl: formatoData.imageUrl, // Usar a imagem específica deste formato
           };
           
-          // Criando o post para este formato
-          const post = await storage.createPost(postData);
+          // Criando o post para este formato com dados do autor
+          const post = await storage.createPost(postData, req.user);
           createdPosts.push(post);
         }
         
@@ -1787,8 +1787,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           groupId
         });
       } else {
-        // Apenas um formato - fluxo tradicional
-        const post = await storage.createPost(parsedData.data);
+        // Apenas um formato - fluxo tradicional com dados do autor
+        const post = await storage.createPost(parsedData.data, req.user);
         res.status(201).json(post);
       }
     } catch (error) {

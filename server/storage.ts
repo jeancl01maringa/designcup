@@ -1737,6 +1737,7 @@ export class DatabaseStorage implements IStorage {
             imageUrl: supabaseData.image_url,
             uniqueCode: supabaseData.unique_code,
             categoryId: supabaseData.category_id,
+            userId: supabaseData.user_id,
             status: supabaseData.status,
             createdAt: new Date(supabaseData.created_at),
             publishedAt: supabaseData.published_at ? new Date(supabaseData.published_at) : null,
@@ -1751,7 +1752,11 @@ export class DatabaseStorage implements IStorage {
             formatoData: supabaseData.formato_data,
             isVisible: supabaseData.is_visible !== false,
             tags: supabaseData.tags || [],
-            formats: supabaseData.formats || []
+            formats: supabaseData.formats || [],
+            // Campos do autor armazenados com a arte
+            authorName: supabaseData.author_name,
+            authorProfileImage: supabaseData.author_profile_image,
+            authorType: supabaseData.author_type
           };
           
           // Aplicar normalização para campos premium
