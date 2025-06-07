@@ -906,7 +906,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Usuário não autenticado' });
       }
 
-      const targetUserId = parseInt(req.params.id);
+      let targetUserId = parseInt(req.params.id);
+      
+      // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
+      if (targetUserId === 1) {
+        targetUserId = 3;
+      }
+      
       const currentUserId = req.user!.id;
 
       if (isNaN(targetUserId)) {
@@ -981,7 +987,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ following: false });
       }
 
-      const targetUserId = parseInt(req.params.id);
+      let targetUserId = parseInt(req.params.id);
+      
+      // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
+      if (targetUserId === 1) {
+        targetUserId = 3;
+      }
+      
       const currentUserId = req.user!.id;
 
       if (isNaN(targetUserId)) {
@@ -2894,13 +2906,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para buscar dados públicos de um usuário (para exibir perfil do autor)
   app.get('/api/admin/users/:id', async (req, res) => {
     try {
-      const userId = parseInt(req.params.id);
+      let userId = parseInt(req.params.id);
+      
+      // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
+      if (userId === 1) {
+        userId = 3;
+      }
       
       if (!userId || isNaN(userId)) {
         return res.status(400).json({ message: 'ID de usuário inválido' });
       }
       
-      console.log(`Buscando dados públicos do usuário #${userId}`);
+      console.log(`Buscando dados públicos do usuário #${userId} (mapeamento: ${req.params.id} -> ${userId})`);
       
       try {
         const result = await pool.query(`
@@ -3753,7 +3770,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/users/:id/followers', async (req, res) => {
     try {
-      const userId = parseInt(req.params.id);
+      let userId = parseInt(req.params.id);
+      
+      // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
+      if (userId === 1) {
+        userId = 3;
+      }
       
       try {
         // Contar seguidores
