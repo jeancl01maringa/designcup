@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false).notNull(),
   telefone: text("telefone"),
   profileImage: text("profile_image"),
+  bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   // Campos para gerenciar assinantes
   tipo: userTipoEnum("tipo").default('free').notNull(),

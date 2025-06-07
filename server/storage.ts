@@ -126,7 +126,7 @@ export class DatabaseStorage implements IStorage {
       
       // Tentar primeiro no PostgreSQL direto (onde estão os dados reais)
       const result = await pool.query(`
-        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active, bio
         FROM users 
         WHERE id = $1 OR (username = 'admin' AND $1 = 2)
         LIMIT 1
