@@ -57,8 +57,12 @@ export default function AutoresPage() {
 
   // Buscar todos os autores/designers
   const { data: authors = [], isLoading } = useQuery<Author[]>({
-    queryKey: ['/api/admin/usuarios'],
-    select: (users) => users.filter(user => user.isAdmin),
+    queryKey: ['/api/admin/authors'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/authors');
+      if (!response.ok) throw new Error('Erro ao carregar autores');
+      return await response.json();
+    },
     staleTime: 30000,
   });
 
@@ -73,7 +77,7 @@ export default function AutoresPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/authors'] });
       queryClient.invalidateQueries({ queryKey: ['/api/authors'] });
       setDialogOpen(false);
       form.reset();

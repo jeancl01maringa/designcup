@@ -3772,8 +3772,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await pool.query(`
             ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT
           `);
+          console.log('Coluna bio verificada/criada com sucesso');
         } catch (alterError) {
-          // Coluna pode já existir, continuar
+          console.log('Coluna bio pode já existir, continuando...');
         }
 
         const result = await pool.query(`
@@ -3809,6 +3810,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error fetching authors:', error);
       res.status(500).json({ message: 'Erro ao buscar autores' });
+    }
+  });
+
+  // GET /api/admin/authors - Buscar todos os autores para o painel administrativo
+  app.get('/api/admin/authors', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const authors = await storage.getAllAuthors();
+      res.json(authors);
+    } catch (error: any) {
+      console.error('Erro ao buscar autores para admin:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
   });
 
