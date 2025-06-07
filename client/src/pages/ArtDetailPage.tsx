@@ -85,6 +85,21 @@ export default function ArtDetailPage() {
   const isUserPremium = user?.tipo === 'premium' || 
                      (user?.plano_id !== undefined && user?.plano_id !== null && 
                       typeof user?.plano_id === 'number' && user?.plano_id !== 1);
+
+  // Mutation para rastrear edições recentes
+  const addRecentEditMutation = useMutation({
+    mutationFn: async (postId: number) => {
+      const response = await apiRequest('POST', `/api/user/recent-edits/${postId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidar cache das edições recentes
+      queryClient.invalidateQueries({ queryKey: ['/api/user/recent-edits'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao adicionar edição recente:', error);
+    }
+  });
   
   // Buscar os dados da arte usando a API admin existente (mais confiável)
   const { data: post, isLoading, error } = useQuery({
@@ -515,6 +530,11 @@ export default function ArtDetailPage() {
   const handleEditCanva = () => {
     // Se não pode editar, não faz nada (o botão já deve estar desabilitado ou ser apenas visual)
     if (!canEditArt()) return;
+    
+    // Rastrear a edição se o usuário estiver logado e o post existir
+    if (user && post?.id) {
+      addRecentEditMutation.mutate(post.id);
+    }
     
     // Obter a URL do Canva e abrir em nova janela
     const canvaUrl = getCanvaUrl();

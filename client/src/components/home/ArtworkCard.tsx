@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { usePostActions } from "@/hooks/use-post-actions";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -17,9 +20,26 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(artwork.imageUrl);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   
   // Usar o hook de ações de post com dados reais
   const { liked, saved, isLiking, isSaving, handleLike, handleSave } = usePostActions(artwork.id);
+
+  // Mutation para rastrear edições recentes
+  const addRecentEditMutation = useMutation({
+    mutationFn: async (postId: number) => {
+      const response = await apiRequest('POST', `/api/user/recent-edits/${postId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidar cache das edições recentes
+      queryClient.invalidateQueries({ queryKey: ['/api/user/recent-edits'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao adicionar edição recente:', error);
+    }
+  });
 
   const handleImageError = () => {
     console.log(`Imagem falhou ao carregar: ${imageSrc}`);
@@ -68,9 +88,27 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
     e.preventDefault();
     e.stopPropagation();
     
+    // Se é premium e usuário não é premium, não rastrear nem abrir
+    if (artwork.isPro) {
+      toast({
+        title: "Conteúdo Premium",
+        description: "Faça upgrade para acessar este conteúdo",
+        duration: 2000,
+      });
+      return;
+    }
+    
+    // Rastrear a edição se o usuário estiver logado
+    if (user) {
+      addRecentEditMutation.mutate(artwork.id);
+    }
+    
+    // Abrir no Canva (aqui você pode adicionar a lógica para obter a URL real do Canva)
+    window.open('https://canva.com', '_blank');
+    
     toast({
-      title: artwork.isPro ? "Conteúdo Premium" : "Editar no Canva",
-      description: artwork.isPro ? "Faça upgrade para acessar este conteúdo" : "Redirecionando para o editor...",
+      title: "Editar no Canva",
+      description: "Redirecionando para o editor...",
       duration: 2000,
     });
   };
