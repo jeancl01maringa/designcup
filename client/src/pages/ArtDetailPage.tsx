@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation, Link } from "wouter";
 import { 
   ArrowLeft, 
@@ -34,12 +34,14 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function ArtDetailPage() {
   const [location, setLocation] = useLocation();
   const params = useParams<{ slug?: string; id?: string }>();
   const { slug, id } = params;
   const { user, isLoading: isLoadingAuth } = useAuth();
+  const queryClient = useQueryClient();
   
   // Determinar o ID do post baseado na rota
   let postId: number;

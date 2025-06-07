@@ -3244,6 +3244,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoints para edições recentes
+  app.get('/api/user/recent-edits', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const userId = req.user!.id;
+      console.log(`Buscando edições recentes do usuário ${userId}`);
+
+      try {
+        // Buscar o campo recent_edits do usuário
+        const result = await pool.query(`
+          SELECT recent_edits FROM users WHERE id = $1
+        `, [userId]);
+
+        if (!result.rows || result.rows.length === 0) {
+          return res.json([]);
+        }
+
+        const recentEditsIds = result.rows[0].recent_edits || [];
+        
+        if (recentEditsIds.length === 0) {
+          return res.json([]);
+        }
+
+        // Buscar os posts correspondentes aos IDs das edições recentes
+        const placeholders = recentEditsIds.map((_, index) => `$${index + 1}`).join(',');
+        const postsResult = await pool.query(`
+          SELECT id, title, description, image_url, formato, is_pro, category_id, created_at
+          FROM posts 
+          WHERE id IN (${placeholders}) AND status = 'aprovado'
+        `, recentEditsIds);
+
+        // Ordenar pelos IDs na ordem original (mais recente primeiro)
+        const orderedPosts = recentEditsIds.map(id => 
+          postsResult.rows.find(post => post.id === id)
+        ).filter(Boolean);
+
+        const recentEdits = orderedPosts.map(post => ({
+          post: {
+            id: post.id,
+            title: post.title,
+            description: post.description,
+            imageUrl: post.image_url,
+            formato: post.formato,
+            isPro: post.is_pro || false,
+            categoryId: post.category_id,
+            createdAt: post.created_at
+          },
+          editedAt: new Date().toISOString() // Usar data atual como aproximação
+        }));
+
+        console.log(`Encontradas ${recentEdits.length} edições recentes`);
+        res.json(recentEdits);
+      } catch (dbError: any) {
+        console.error('Erro de banco ao buscar edições recentes:', dbError);
+        res.status(500).json({ message: 'Erro ao buscar edições recentes' });
+      }
+    } catch (error: any) {
+      console.error('Error fetching recent edits:', error);
+      res.status(500).json({ message: 'Erro ao buscar edições recentes' });
+    }
+  });
+
+  app.post('/api/user/recent-edits/:postId', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const userId = req.user!.id;
+      const postId = parseInt(req.params.postId);
+
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'ID do post inválido' });
+      }
+
+      console.log(`Adicionando post ${postId} às edições recentes do usuário ${userId}`);
+
+      try {
+        // Buscar as edições recentes atuais
+        const userResult = await pool.query(`
+          SELECT recent_edits FROM users WHERE id = $1
+        `, [userId]);
+
+        if (!userResult.rows || userResult.rows.length === 0) {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        let recentEdits = userResult.rows[0].recent_edits || [];
+        
+        // Remover o post se já existe (para evitar duplicatas)
+        recentEdits = recentEdits.filter(id => id !== postId);
+        
+        // Adicionar no início da lista
+        recentEdits.unshift(postId);
+        
+        // Limitar a 20 itens
+        if (recentEdits.length > 20) {
+          recentEdits = recentEdits.slice(0, 20);
+        }
+
+        // Atualizar o banco
+        await pool.query(`
+          UPDATE users SET recent_edits = $1 WHERE id = $2
+        `, [JSON.stringify(recentEdits), userId]);
+
+        console.log(`Edições recentes atualizadas para usuário ${userId}:`, recentEdits);
+        res.json({ 
+          success: true, 
+          message: 'Post adicionado às edições recentes',
+          recentEditsCount: recentEdits.length
+        });
+      } catch (dbError: any) {
+        console.error('Erro de banco ao atualizar edições recentes:', dbError);
+        res.status(500).json({ message: 'Erro ao atualizar edições recentes' });
+      }
+    } catch (error: any) {
+      console.error('Error adding to recent edits:', error);
+      res.status(500).json({ message: 'Erro ao adicionar à lista de edições recentes' });
+    }
+  });
+
   // API endpoints para sistema de seguidores
   app.get('/api/users/:id/follow-status', async (req, res) => {
     try {
