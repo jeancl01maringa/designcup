@@ -23,7 +23,8 @@ import {
   Megaphone,
   Zap,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -165,7 +166,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
           id: "suporte",
           label: "Gerenciar Suporte",
           path: "/admin/configuracoes/suporte",
-          icon: <Settings className="h-4 w-4" />,
+          icon: <Phone className="h-4 w-4" />,
         }
       ],
     },
