@@ -39,8 +39,6 @@ const NavLinks = () => {
   const navItems = [
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
-    { name: "Designers", path: "/designers" },
-    { name: "Formatos", path: "/formatos" },
     { name: "Planos", path: "/planos" },
     { name: "Tutoriais", path: "/tutoriais" },
     { name: "Suporte", path: "/suporte" }
@@ -183,8 +181,6 @@ const MobileMenu = () => {
   const navItems = [
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
-    { name: "Designers", path: "/designers" },
-    { name: "Formatos", path: "/formatos" },
     { name: "Planos", path: "/planos" },
     { name: "Tutoriais", path: "/tutoriais" },
     { name: "Suporte", path: "/suporte" }
