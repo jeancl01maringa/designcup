@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ProfileLayout } from "@/components/layout/ProfileLayout";
 
 interface FollowedUser {
   id: number;
@@ -59,7 +60,8 @@ export default function SeguindoPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <ProfileLayout>
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
@@ -149,6 +151,7 @@ export default function SeguindoPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ProfileLayout>
   );
 }
