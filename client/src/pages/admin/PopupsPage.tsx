@@ -201,292 +201,306 @@ export default function PopupsPage() {
   };
 
   const renderContentStep = () => (
-    <div className="space-y-6">
-      <div>
-        <Label htmlFor="title">Título do Popup *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => handleInputChange('title', e.target.value)}
-          placeholder="Digite o título do popup"
-          className="mt-2"
-        />
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="title" className="text-sm">Título do Popup *</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => handleInputChange('title', e.target.value)}
+            placeholder="Digite o título do popup"
+            className="mt-1 h-8"
+          />
+        </div>
+        <div>
+          <Label htmlFor="buttonText" className="text-sm">Texto do Botão</Label>
+          <Input
+            id="buttonText"
+            value={formData.buttonText}
+            onChange={(e) => handleInputChange('buttonText', e.target.value)}
+            placeholder="Ex: Saiba mais"
+            className="mt-1 h-8"
+          />
+        </div>
       </div>
 
       <div>
-        <Label htmlFor="content">Conteúdo *</Label>
+        <Label htmlFor="content" className="text-sm">Conteúdo *</Label>
         <Textarea
           id="content"
           value={formData.content}
           onChange={(e) => handleInputChange('content', e.target.value)}
           placeholder="Digite o conteúdo do popup"
-          className="mt-2 min-h-[100px]"
+          className="mt-1 min-h-[80px] resize-none"
         />
       </div>
 
-      <div>
-        <Label>Imagem (opcional)</Label>
-        <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-            id="image-upload"
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="buttonUrl" className="text-sm">URL do Botão</Label>
+          <Input
+            id="buttonUrl"
+            value={formData.buttonUrl}
+            onChange={(e) => handleInputChange('buttonUrl', e.target.value)}
+            placeholder="https://exemplo.com"
+            className="mt-1 h-8"
           />
-          <label htmlFor="image-upload" className="cursor-pointer">
-            <Upload className="mx-auto h-12 w-12 text-gray-400" />
-            <p className="mt-2 text-sm text-gray-600">Clique para fazer upload de uma imagem</p>
-          </label>
         </div>
-        {formData.imageUrl && (
-          <div className="mt-2">
-            <img src={formData.imageUrl} alt="Preview" className="h-20 w-20 object-cover rounded" />
+        <div>
+          <Label className="text-sm">Imagem (opcional)</Label>
+          <div className="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-3 text-center">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="image-upload"
+            />
+            <label htmlFor="image-upload" className="cursor-pointer">
+              <Upload className="mx-auto h-6 w-6 text-gray-400" />
+              <p className="mt-1 text-xs text-gray-600">Clique para upload</p>
+            </label>
           </div>
-        )}
+        </div>
       </div>
 
-      <div>
-        <Label htmlFor="buttonText">Texto do Botão</Label>
-        <Input
-          id="buttonText"
-          value={formData.buttonText}
-          onChange={(e) => handleInputChange('buttonText', e.target.value)}
-          placeholder="Ex: Saiba mais"
-          className="mt-2"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="buttonUrl">URL do Botão</Label>
-        <Input
-          id="buttonUrl"
-          value={formData.buttonUrl}
-          onChange={(e) => handleInputChange('buttonUrl', e.target.value)}
-          placeholder="https://exemplo.com"
-          className="mt-2"
-        />
-      </div>
+      {formData.imageUrl && (
+        <div className="flex justify-center">
+          <img src={formData.imageUrl} alt="Preview" className="h-16 w-16 object-cover rounded" />
+        </div>
+      )}
     </div>
   );
 
   const renderAppearanceStep = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="grid grid-cols-4 gap-6">
+        <div>
+          <Label className="text-sm">Cor de Fundo</Label>
+          <div className="mt-1 flex items-center gap-2">
+            <Input
+              type="color"
+              value={formData.backgroundColor}
+              onChange={(e) => handleInputChange('backgroundColor', e.target.value)}
+              className="h-8 w-12 p-0 border rounded"
+            />
+            <span className="text-xs text-gray-500">{formData.backgroundColor}</span>
+          </div>
+        </div>
+        <div>
+          <Label className="text-sm">Cor do Texto</Label>
+          <div className="mt-1 flex items-center gap-2">
+            <Input
+              type="color"
+              value={formData.textColor}
+              onChange={(e) => handleInputChange('textColor', e.target.value)}
+              className="h-8 w-12 p-0 border rounded"
+            />
+            <span className="text-xs text-gray-500">{formData.textColor}</span>
+          </div>
+        </div>
+        <div>
+          <Label className="text-sm">Cor do Botão</Label>
+          <div className="mt-1 flex items-center gap-2">
+            <Input
+              type="color"
+              value={formData.buttonColor}
+              onChange={(e) => handleInputChange('buttonColor', e.target.value)}
+              className="h-8 w-12 p-0 border rounded"
+            />
+            <span className="text-xs text-gray-500">{formData.buttonColor}</span>
+          </div>
+        </div>
+        <div>
+          <Label className="text-sm">Cor Texto Botão</Label>
+          <div className="mt-1 flex items-center gap-2">
+            <Input
+              type="color"
+              value={formData.buttonTextColor}
+              onChange={(e) => handleInputChange('buttonTextColor', e.target.value)}
+              className="h-8 w-12 p-0 border rounded"
+            />
+            <span className="text-xs text-gray-500">{formData.buttonTextColor}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Label className="text-sm">Largura do Botão</Label>
+          <Select value={formData.buttonWidth} onValueChange={(value) => handleInputChange('buttonWidth', value)}>
+            <SelectTrigger className="mt-1 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">Automática</SelectItem>
+              <SelectItem value="full">Largura total</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-sm">Animação</Label>
+          <Select value={formData.animation} onValueChange={(value) => handleInputChange('animation', value)}>
+            <SelectTrigger className="mt-1 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fade">Fade</SelectItem>
+              <SelectItem value="slide">Slide</SelectItem>
+              <SelectItem value="zoom">Zoom</SelectItem>
+              <SelectItem value="bounce">Bounce</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-sm">Posição</Label>
+          <Select value={formData.position} onValueChange={(value) => handleInputChange('position', value)}>
+            <SelectTrigger className="mt-1 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="center">Centro</SelectItem>
+              <SelectItem value="top">Topo</SelectItem>
+              <SelectItem value="bottom">Rodapé</SelectItem>
+              <SelectItem value="left">Esquerda</SelectItem>
+              <SelectItem value="right">Direita</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>Cor de Fundo</Label>
-          <Input
-            type="color"
-            value={formData.backgroundColor}
-            onChange={(e) => handleInputChange('backgroundColor', e.target.value)}
-            className="mt-2 h-12"
-          />
+          <Label className="text-sm">Tamanho</Label>
+          <Select value={formData.size} onValueChange={(value) => handleInputChange('size', value)}>
+            <SelectTrigger className="mt-1 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="small">Pequeno</SelectItem>
+              <SelectItem value="medium">Médio</SelectItem>
+              <SelectItem value="large">Grande</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div>
-          <Label>Cor do Texto</Label>
-          <Input
-            type="color"
-            value={formData.textColor}
-            onChange={(e) => handleInputChange('textColor', e.target.value)}
-            className="mt-2 h-12"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>Cor do Botão</Label>
-          <Input
-            type="color"
-            value={formData.buttonColor}
-            onChange={(e) => handleInputChange('buttonColor', e.target.value)}
-            className="mt-2 h-12"
-          />
-        </div>
-        <div>
-          <Label>Cor do Texto do Botão</Label>
-          <Input
-            type="color"
-            value={formData.buttonTextColor}
-            onChange={(e) => handleInputChange('buttonTextColor', e.target.value)}
-            className="mt-2 h-12"
+          <Label className="text-sm">Raio da Borda: {formData.borderRadius}px</Label>
+          <Slider
+            value={[formData.borderRadius]}
+            onValueChange={(value) => handleInputChange('borderRadius', value[0])}
+            max={50}
+            step={1}
+            className="mt-1"
           />
         </div>
       </div>
 
       <div>
-        <Label>Raio da Borda: {formData.borderRadius}px</Label>
-        <Slider
-          value={[formData.borderRadius]}
-          onValueChange={(value) => handleInputChange('borderRadius', value[0])}
-          max={50}
-          step={1}
-          className="mt-2"
-        />
-      </div>
-
-      <div>
-        <Label>Largura do Botão</Label>
-        <Select value={formData.buttonWidth} onValueChange={(value) => handleInputChange('buttonWidth', value)}>
-          <SelectTrigger className="mt-2">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="auto">Automática</SelectItem>
-            <SelectItem value="full">Largura total</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Animação</Label>
-        <Select value={formData.animation} onValueChange={(value) => handleInputChange('animation', value)}>
-          <SelectTrigger className="mt-2">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="fade">Fade</SelectItem>
-            <SelectItem value="slide">Slide</SelectItem>
-            <SelectItem value="zoom">Zoom</SelectItem>
-            <SelectItem value="bounce">Bounce</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Posição</Label>
-        <Select value={formData.position} onValueChange={(value) => handleInputChange('position', value)}>
-          <SelectTrigger className="mt-2">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="center">Centro</SelectItem>
-            <SelectItem value="top">Topo</SelectItem>
-            <SelectItem value="bottom">Rodapé</SelectItem>
-            <SelectItem value="left">Esquerda</SelectItem>
-            <SelectItem value="right">Direita</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Tamanho</Label>
-        <Select value={formData.size} onValueChange={(value) => handleInputChange('size', value)}>
-          <SelectTrigger className="mt-2">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="small">Pequeno</SelectItem>
-            <SelectItem value="medium">Médio</SelectItem>
-            <SelectItem value="large">Grande</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Delay de Exibição: {formData.delaySeconds}s</Label>
+        <Label className="text-sm">Delay de Exibição: {formData.delaySeconds}s</Label>
         <Slider
           value={[formData.delaySeconds]}
           onValueChange={(value) => handleInputChange('delaySeconds', value[0])}
           max={30}
           step={1}
-          className="mt-2"
+          className="mt-1"
         />
       </div>
     </div>
   );
 
   const renderTargetingStep = () => (
-    <div className="space-y-6">
-      <div>
-        <Label>Páginas de Destino</Label>
-        <div className="mt-2 space-y-2">
-          {['Todas as páginas', 'Página inicial', 'Páginas de categoria', 'Páginas de produto'].map((page) => (
-            <div key={page} className="flex items-center space-x-2">
-              <Checkbox
-                id={page}
-                checked={formData.targetPages.includes(page)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    handleInputChange('targetPages', [...formData.targetPages, page]);
-                  } else {
-                    handleInputChange('targetPages', formData.targetPages.filter(p => p !== page));
-                  }
-                }}
-              />
-              <Label htmlFor={page}>{page}</Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <Label>Tipos de Usuário</Label>
-        <div className="mt-2 space-y-2">
-          {['Todos os usuários', 'Usuários logados', 'Visitantes', 'Usuários premium'].map((type) => (
-            <div key={type} className="flex items-center space-x-2">
-              <Checkbox
-                id={type}
-                checked={formData.targetUserTypes.includes(type)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    handleInputChange('targetUserTypes', [...formData.targetUserTypes, type]);
-                  } else {
-                    handleInputChange('targetUserTypes', formData.targetUserTypes.filter(t => t !== type));
-                  }
-                }}
-              />
-              <Label htmlFor={type}>{type}</Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-6">
         <div>
-          <Label htmlFor="startDate">Data de Início</Label>
+          <Label className="text-sm font-medium">Páginas de Destino</Label>
+          <div className="mt-2 space-y-1">
+            {['Todas as páginas', 'Página inicial', 'Feed principal', 'Páginas de categoria', 'Detalhes da arte', 'Perfil do usuário', 'Admin/Dashboard'].map((page) => (
+              <div key={page} className="flex items-center space-x-2">
+                <Checkbox
+                  id={page}
+                  checked={formData.targetPages.includes(page)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      handleInputChange('targetPages', [...formData.targetPages, page]);
+                    } else {
+                      handleInputChange('targetPages', formData.targetPages.filter(p => p !== page));
+                    }
+                  }}
+                />
+                <Label htmlFor={page} className="text-sm">{page}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium">Tipos de Usuário</Label>
+          <div className="mt-2 space-y-1">
+            {['Todos os usuários', 'Usuários logados', 'Visitantes', 'Usuários premium', 'Usuários free', 'Administradores'].map((type) => (
+              <div key={type} className="flex items-center space-x-2">
+                <Checkbox
+                  id={type}
+                  checked={formData.targetUserTypes.includes(type)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      handleInputChange('targetUserTypes', [...formData.targetUserTypes, type]);
+                    } else {
+                      handleInputChange('targetUserTypes', formData.targetUserTypes.filter(t => t !== type));
+                    }
+                  }}
+                />
+                <Label htmlFor={type} className="text-sm">{type}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Label htmlFor="startDate" className="text-sm">Data de Início</Label>
           <Input
             id="startDate"
             type="date"
             value={formData.startDate}
             onChange={(e) => handleInputChange('startDate', e.target.value)}
-            className="mt-2"
+            className="mt-1 h-8"
           />
         </div>
         <div>
-          <Label htmlFor="endDate">Data de Fim</Label>
+          <Label htmlFor="endDate" className="text-sm">Data de Fim</Label>
           <Input
             id="endDate"
             type="date"
             value={formData.endDate}
             onChange={(e) => handleInputChange('endDate', e.target.value)}
-            className="mt-2"
+            className="mt-1 h-8"
           />
+        </div>
+        <div>
+          <Label className="text-sm">Frequência de Exibição</Label>
+          <Select value={formData.frequency} onValueChange={(value) => handleInputChange('frequency', value)}>
+            <SelectTrigger className="mt-1 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="always">Sempre</SelectItem>
+              <SelectItem value="once_per_session">Uma vez por sessão</SelectItem>
+              <SelectItem value="once_per_day">Uma vez por dia</SelectItem>
+              <SelectItem value="once_per_week">Uma vez por semana</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div>
-        <Label>Frequência de Exibição</Label>
-        <Select value={formData.frequency} onValueChange={(value) => handleInputChange('frequency', value)}>
-          <SelectTrigger className="mt-2">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="always">Sempre</SelectItem>
-            <SelectItem value="once_per_session">Uma vez por sessão</SelectItem>
-            <SelectItem value="once_per_day">Uma vez por dia</SelectItem>
-            <SelectItem value="once_per_week">Uma vez por semana</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 pt-2">
         <Switch
           id="isActive"
           checked={formData.isActive}
           onCheckedChange={(checked) => handleInputChange('isActive', checked)}
         />
-        <Label htmlFor="isActive">Ativar popup imediatamente</Label>
+        <Label htmlFor="isActive" className="text-sm">Ativar popup imediatamente</Label>
       </div>
     </div>
   );
@@ -570,7 +584,7 @@ export default function PopupsPage() {
       {/* Modal de criação/edição */}
       {isCreating && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-xl font-semibold">Criar Novo Popup</h2>
@@ -641,40 +655,43 @@ export default function PopupsPage() {
                     {currentStep === 4 && renderPreviewStep()}
                   </div>
 
-                  {/* Navigation Buttons */}
-                  <div className="flex justify-between items-center p-6 border-t bg-gray-50">
-                    <Button
-                      variant="outline"
-                      onClick={prevStep}
-                      disabled={currentStep === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4 mr-2" />
-                      Voltar
-                    </Button>
-                    
-                    <div className="text-sm text-gray-500">
-                      Passo {currentStep} de 4
-                    </div>
-                    
-                    {currentStep < 4 ? (
-                      <Button
-                        onClick={nextStep}
-                        disabled={!canProceedToNext()}
-                      >
-                        Avançar
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleSavePopup}
-                        disabled={createPopupMutation.isPending || !formData.title || !formData.content}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        {createPopupMutation.isPending ? 'Salvando...' : 'Criar Popup'}
-                        <Save className="h-4 w-4 ml-2" />
-                      </Button>
-                    )}
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between items-center p-4 border-t bg-gray-50 flex-shrink-0">
+                  <Button
+                    variant="outline"
+                    onClick={prevStep}
+                    disabled={currentStep === 1}
+                    className="h-8"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Voltar
+                  </Button>
+                  
+                  <div className="text-sm text-gray-500">
+                    Passo {currentStep} de 4
                   </div>
+                  
+                  {currentStep < 4 ? (
+                    <Button
+                      onClick={nextStep}
+                      disabled={!canProceedToNext()}
+                      className="h-8"
+                    >
+                      Avançar
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleSavePopup}
+                      disabled={createPopupMutation.isPending || !formData.title || !formData.content}
+                      className="bg-blue-600 hover:bg-blue-700 h-8"
+                    >
+                      {createPopupMutation.isPending ? 'Salvando...' : 'Criar Popup'}
+                      <Save className="h-4 w-4 ml-2" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
