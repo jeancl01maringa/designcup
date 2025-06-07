@@ -23,3 +23,50 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Helper function for uploading files to Supabase Storage
+export async function uploadFileToSupabase(
+  file: File, 
+  bucket: string, 
+  path: string
+): Promise<{ url: string; error: null } | { url: null; error: string }> {
+  try {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) {
+      return { url: null, error: error.message };
+    }
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(path);
+
+    return { url: publicUrl, error: null };
+  } catch (error) {
+    return { 
+      url: null, 
+      error: error instanceof Error ? error.message : 'Unknown upload error' 
+    };
+  }
+}
+
+// Helper function to check Supabase connection
+export async function checkSupabaseConnection(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    
+    return !error;
+  } catch (error) {
+    console.error('Supabase connection check failed:', error);
+    return false;
+  }
+}
