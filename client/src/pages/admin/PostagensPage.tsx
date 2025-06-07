@@ -78,6 +78,7 @@ export default function PostagensPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
   const [isDeleteBatchModalOpen, setIsDeleteBatchModalOpen] = useState(false);
+  const [groupPosts, setGroupPosts] = useState<Post[]>([]);
 
   // Buscar categorias (necessário para o formulário)
   const { data: categories = [] } = useQuery<Category[]>({
@@ -377,8 +378,35 @@ export default function PostagensPage() {
   const allSelected = posts?.length ? selectedPosts.length === posts.length : false;
 
   // Manipulador para edição de postagem
-  const handleEditPost = (post: Post) => {
-    setEditingPost(post);
+  const handleEditPost = async (post: Post) => {
+    // Se o post tem groupId, carregar todos os posts do grupo
+    if (post.groupId) {
+      try {
+        // Buscar todos os posts do mesmo grupo
+        const response = await apiRequest('GET', `/api/admin/posts?groupId=${post.groupId}`);
+        if (response.ok) {
+          const groupPosts = await response.json();
+          console.log("Carregando grupo para edição:", post.groupId, "com", groupPosts.length, "posts");
+          
+          // Definir o post principal e os posts do grupo
+          setEditingPost(post);
+          setGroupPosts(groupPosts);
+        } else {
+          console.warn("Erro ao buscar posts do grupo, editando post individual");
+          setEditingPost(post);
+          setGroupPosts([]);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar posts do grupo:", error);
+        setEditingPost(post);
+        setGroupPosts([]);
+      }
+    } else {
+      // Post individual
+      setEditingPost(post);
+      setGroupPosts([]);
+    }
+    
     setIsFormOpen(true);
   };
 
@@ -594,6 +622,7 @@ export default function PostagensPage() {
             onOpenChange={setIsFormOpen}
             initialData={editingPost || undefined}
             isEdit={!!editingPost}
+            groupPosts={groupPosts}
             key={editingPost ? `edit-${editingPost.id}` : 'new-post'} // Forçar recriação do componente
           />
         </div>

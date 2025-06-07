@@ -1655,6 +1655,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/posts', async (req, res) => {
     try {
+      // Se tem groupId como parâmetro, buscar apenas posts do grupo
+      if (req.query.groupId) {
+        const groupId = req.query.groupId as string;
+        console.log(`Buscando posts do grupo: ${groupId}`);
+        
+        const groupPosts = await storage.getPostsByGroupId(groupId);
+        return res.json(groupPosts);
+      }
+      
       const filters = {
         searchTerm: req.query.search as string,
         categoryId: req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined,
