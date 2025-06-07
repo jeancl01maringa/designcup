@@ -33,7 +33,7 @@ const Logo = () => {
           <img 
             src={logoUrl} 
             alt="Logo da Plataforma" 
-            className="h-8 w-auto max-w-[200px] object-contain"
+            className="h-6 md:h-8 w-auto max-w-[150px] md:max-w-[200px] object-contain"
             onError={(e) => {
               // Fallback para o logo padrão em caso de erro
               const target = e.target as HTMLImageElement;
@@ -42,7 +42,7 @@ const Logo = () => {
             }}
           />
         ) : (
-          <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="h-5 md:h-7 w-5 md:w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
             <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
           </svg>
@@ -51,12 +51,12 @@ const Logo = () => {
         {/* Logo padrão como fallback, oculto quando há logo personalizado */}
         <div className={hasCustomLogo ? 'hidden' : 'flex items-center'}>
           {!hasCustomLogo && (
-            <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-5 md:h-7 w-5 md:w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
               <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
             </svg>
           )}
-          <span className="ml-2 font-bold text-lg md:text-xl">
+          <span className="ml-2 font-bold text-sm md:text-lg lg:text-xl">
             <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
           </span>
         </div>
@@ -309,71 +309,72 @@ const MobileMenu = () => {
   
   return (
     <div className="md:hidden">
-      <div className="px-6 pt-6 pb-6 space-y-6 bg-white">
-        {navItems.map((item) => (
-          <Link 
-            key={item.path} 
-            href={item.path}
-            className={`block text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-lg py-3 transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
-            onClick={() => setIsOpen(false)}
-          >
-            {item.name}
-          </Link>
-        ))}
+      <div className="px-4 pt-4 pb-6 space-y-1 bg-white border-t border-gray-100 shadow-lg">
+        {/* Navigation Links */}
+        <div className="space-y-1">
+          {navItems.map((item) => (
+            <Link 
+              key={item.path} 
+              href={item.path}
+              className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                location === item.path 
+                  ? 'bg-[#AA5E2F]/10 text-[#AA5E2F] border-l-4 border-[#AA5E2F]' 
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-[#AA5E2F]'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
         
         {/* Support Contact for Mobile */}
-        <div className="border-t border-gray-200 pt-6 mt-6">
+        <div className="border-t border-gray-100 pt-3 mt-3">
           <SupportContact 
             variant="ghost" 
-            size="default" 
-            className="w-full justify-start text-primary hover:text-primary/80 text-lg py-3"
+            size="sm" 
+            className="w-full justify-start text-gray-600 hover:text-[#AA5E2F] hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm"
           />
         </div>
         
         {user ? (
           <>
-            {/* Only logout button - no duplicate admin panel or username */}
-            <div className="border-t border-gray-200 pt-6 mt-6">
+            {/* User Info Section */}
+            <div className="border-t border-gray-100 pt-3 mt-3">
+              <div className="flex items-center px-3 py-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#AA5E2F] to-[#8B4513] flex items-center justify-center text-white text-xs font-bold mr-3">
+                  {user.username?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{user.username}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user.tipo}</p>
+                </div>
+              </div>
+              
+              {/* Logout button */}
               <button
-                className="flex items-center gap-3 text-destructive hover:text-destructive/80 font-medium text-lg py-3 transition-colors w-full text-left"
+                className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
                 onClick={() => {
                   logoutMutation.mutate();
                   setIsOpen(false);
                 }}
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-4 w-4 mr-3" />
                 <span>Sair</span>
               </button>
             </div>
           </>
         ) : (
-          <div className="flex flex-col gap-4 border-t border-gray-200 pt-6 mt-6">
+          <div className="border-t border-gray-100 pt-3 mt-3">
             <button
-              className="flex items-center gap-3 text-muted-foreground hover:text-foreground font-medium text-lg py-3 transition-colors"
+              className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-[#AA5E2F] hover:bg-[#AA5E2F]/10 transition-all duration-200"
               onClick={() => {
                 navigate("/auth");
                 setIsOpen(false);
               }}
             >
-              <LogIn className="h-5 w-5" />
+              <LogIn className="h-4 w-4 mr-3" />
               <span>Entrar</span>
-            </button>
-            
-            <button
-              className="flex items-center gap-3 text-primary hover:text-primary/80 font-medium text-lg py-3 transition-colors"
-              onClick={() => {
-                navigate("/auth");
-                setIsOpen(false);
-                // Ativar a tab de registro
-                setTimeout(() => {
-                  document.querySelector('[value="register"]')?.dispatchEvent(
-                    new MouseEvent('click', { bubbles: true })
-                  );
-                }, 100);
-              }}
-            >
-              <UserPlus className="h-5 w-5" />
-              <span>Cadastre-se</span>
             </button>
           </div>
         )}
