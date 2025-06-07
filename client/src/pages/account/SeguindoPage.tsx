@@ -25,6 +25,7 @@ export default function SeguindoPage() {
     queryKey: ['/api/user/following'],
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutos em cache
+    retry: 1
   });
 
   if (isLoading) {

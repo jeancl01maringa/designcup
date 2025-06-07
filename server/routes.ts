@@ -3704,6 +3704,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/user/following - Buscar usuários que o usuário atual está seguindo
+  app.get('/api/user/following', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const userId = req.user.id;
+      console.log(`Buscando usuários seguidos pelo usuário #${userId}`);
+
+      try {
+        const result = await pool.query(`
+          SELECT 
+            u.id,
+            u.username,
+            u.profile_image as "profileImage",
+            u.is_admin as "isAdmin",
+            u.created_at as "createdAt",
+            COUNT(p.id) as "postsCount"
+          FROM follows f
+          JOIN users u ON f.followed_user_id = u.id
+          LEFT JOIN posts p ON u.id = p.user_id AND p.status = 'aprovado'
+          WHERE f.follower_user_id = $1 AND u.is_admin = true
+          GROUP BY u.id, u.username, u.profile_image, u.is_admin, u.created_at
+          ORDER BY f.created_at DESC
+        `, [userId]);
+
+        const followedUsers = result.rows.map(row => ({
+          id: row.id,
+          username: row.username,
+          profileImage: row.profileImage,
+          postsCount: parseInt(row.postsCount) || 0,
+          isDesigner: row.isAdmin,
+          createdAt: row.createdAt
+        }));
+
+        console.log(`Encontrados ${followedUsers.length} usuários seguidos`);
+        res.json(followedUsers);
+      } catch (dbError: any) {
+        console.error('Erro ao buscar usuários seguidos:', dbError);
+        res.status(500).json({ message: 'Erro ao buscar usuários seguidos' });
+      }
+    } catch (error: any) {
+      console.error('Error fetching following users:', error);
+      res.status(500).json({ message: 'Erro ao buscar usuários seguidos' });
+    }
+  });
+
+  // GET /api/authors - Buscar todos os autores/designers (usuários admin)
+  app.get('/api/authors', async (req, res) => {
+    try {
+      console.log('Buscando todos os autores/designers');
+
+      try {
+        // Primeiro, verificar se a coluna bio existe e criar se necessário
+        try {
+          await pool.query(`
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT
+          `);
+        } catch (alterError) {
+          // Coluna pode já existir, continuar
+        }
+
+        const result = await pool.query(`
+          SELECT 
+            u.id,
+            u.username,
+            u.profile_image as "profileImage",
+            u.created_at as "createdAt",
+            COALESCE(u.bio, 'Bem-vindo ao nosso perfil oficial! Aqui você encontra conteúdos criativos que agregam valor aos seus projetos.') as bio,
+            COUNT(p.id) as "postsCount"
+          FROM users u
+          LEFT JOIN posts p ON u.id = p.user_id AND p.status = 'aprovado'
+          WHERE u.is_admin = true AND u.active = true
+          GROUP BY u.id, u.username, u.profile_image, u.created_at, u.bio
+          ORDER BY u.created_at ASC
+        `, []);
+
+        const authors = result.rows.map(row => ({
+          id: row.id,
+          username: row.username,
+          profileImage: row.profileImage,
+          postsCount: parseInt(row.postsCount) || 0,
+          createdAt: row.createdAt,
+          bio: row.bio
+        }));
+
+        console.log(`Encontrados ${authors.length} autores/designers`);
+        res.json(authors);
+      } catch (dbError: any) {
+        console.error('Erro ao buscar autores:', dbError);
+        res.status(500).json({ message: 'Erro ao buscar autores' });
+      }
+    } catch (error: any) {
+      console.error('Error fetching authors:', error);
+      res.status(500).json({ message: 'Erro ao buscar autores' });
+    }
+  });
+
   app.post('/api/user/recent-edits/:postId', async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
