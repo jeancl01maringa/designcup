@@ -2888,6 +2888,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para buscar dados públicos de um usuário (para exibir perfil do autor)
+  app.get('/api/admin/users/:id', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      if (!userId || isNaN(userId)) {
+        return res.status(400).json({ message: 'ID de usuário inválido' });
+      }
+      
+      console.log(`Buscando dados públicos do usuário #${userId}`);
+      
+      try {
+        const result = await pool.query(`
+          SELECT 
+            id, 
+            username, 
+            email, 
+            telefone, 
+            profile_image as "profileImage",
+            created_at as "createdAt", 
+            COALESCE(tipo, 'free') as tipo,
+            plano_id,
+            data_vencimento,
+            COALESCE(active, true) as active
+          FROM users 
+          WHERE id = $1
+        `, [userId]);
+        
+        if (result.rows && result.rows.length > 0) {
+          const userData = result.rows[0];
+          
+          // Remover informações sensíveis para exibição pública
+          const publicUserData = {
+            id: userData.id,
+            username: userData.username,
+            profileImage: userData.profileImage,
+            createdAt: userData.createdAt,
+            tipo: userData.tipo,
+            active: userData.active
+          };
+          
+          console.log(`Dados públicos do usuário #${userId} encontrados:`, publicUserData.username);
+          return res.json(publicUserData);
+        } else {
+          console.log(`Usuário #${userId} não encontrado`);
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+      } catch (dbError: any) {
+        console.error(`Erro ao buscar usuário #${userId}:`, dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao buscar dados do usuário',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching user data:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar dados do usuário',
+        error: error.message
+      });
+    }
+  });
+
   // API endpoints para gerenciamento de assinantes
   app.get('/api/admin/assinantes', async (req, res) => {
     try {
