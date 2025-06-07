@@ -960,58 +960,60 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Informações do criador */}
-          <div className="flex items-center justify-between border-t pt-4 mt-2">
-            {authorLoading ? (
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
+          <div className="border-t pt-4 mt-2">
+            <div className="flex items-center justify-between">
+              {authorLoading ? (
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div 
-                className="flex items-center gap-3 cursor-pointer hover:opacity-75 transition-opacity"
-                onClick={() => author?.id && setLocation(`/autor/${author.id}`)}
-              >
-                <Avatar className="h-10 w-10">
-                  {author?.profileImage ? (
-                    <AvatarImage 
-                      src={author.profileImage} 
-                      alt={author.username || 'Autor'}
-                      className="object-cover w-full h-full rounded-full"
-                    />
-                  ) : (
-                    <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
-                      {author?.username ? author.username.charAt(0).toUpperCase() : 'DE'}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                <div>
-                  <p className="font-medium hover:text-blue-600 transition-colors">
-                    {author?.username || 'Design para Estética'}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}
-                  </p>
+              ) : (
+                <div 
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-75 transition-opacity"
+                  onClick={() => author?.id && setLocation(`/autor/${author.id}`)}
+                >
+                  <Avatar className="h-10 w-10">
+                    {author?.profileImage ? (
+                      <AvatarImage 
+                        src={author.profileImage} 
+                        alt={author.username || 'Autor'}
+                        className="object-cover w-full h-full rounded-full"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
+                        {author?.username ? author.username.charAt(0).toUpperCase() : 'DE'}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div>
+                    <p className="font-medium hover:text-blue-600 transition-colors">
+                      {author?.username || 'Design para Estética'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-            
-            {/* Só mostrar botão de seguir se não for o próprio usuário e dados carregados */}
-            {!authorLoading && user && author && user.id !== author.id && (
-              <Button
-                size="sm"
-                onClick={handleFollow}
-                disabled={followLoading}
-                className={isFollowing 
-                  ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
-                  : "bg-black hover:bg-gray-800 text-white border-0"
-                }
-              >
-                {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
-              </Button>
-            )}
+              )}
+              
+              {/* Botão de seguir alinhado à direita do autor */}
+              {!authorLoading && user && author && user.id !== author.id && (
+                <Button
+                  size="sm"
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                  className={isFollowing 
+                    ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
+                    : "bg-black hover:bg-gray-800 text-white border-0"
+                  }
+                >
+                  {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

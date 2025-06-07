@@ -330,12 +330,10 @@ export default function ProfilePage() {
                 <p className="text-gray-700 mt-2 max-w-md mx-auto">
                   {profile.bio || "Bem-vindo ao nosso perfil oficial! Aqui você encontra conteúdos criativos que agregam valor aos seus projetos."}
                 </p>
-              </div>
-
-              {/* Botões de ação centralizados */}
-              <div className="flex gap-3 justify-center">
+                
+                {/* Botão "Seguir" abaixo da biografia */}
                 {!isOwnProfile && (
-                  <>
+                  <div className="mt-4">
                     <Button
                       size="sm"
                       onClick={handleFollow}
@@ -347,10 +345,16 @@ export default function ProfilePage() {
                     >
                       {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Flag className="h-4 w-4" />
-                    </Button>
-                  </>
+                  </div>
+                )}
+              </div>
+
+              {/* Outros botões de ação centralizados */}
+              <div className="flex gap-3 justify-center">
+                {!isOwnProfile && (
+                  <Button variant="outline" size="sm">
+                    <Flag className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
 
