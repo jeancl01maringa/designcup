@@ -506,26 +506,33 @@ export default function PopupsPage() {
   );
 
   const renderPreviewStep = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 h-full overflow-y-auto">
       <div className="text-center">
-        <h3 className="text-lg font-medium mb-4">Preview do Popup</h3>
-        <div className="relative">
+        <h3 className="text-lg font-medium mb-4">Preview Final do Popup</h3>
+        <div className="bg-gray-100 rounded-lg p-4 min-h-[250px] flex items-center justify-center">
           <div 
-            className="inline-block p-6 rounded-lg shadow-lg border max-w-md"
+            className="popup-preview max-w-sm w-full"
             style={{
               backgroundColor: formData.backgroundColor,
               color: formData.textColor,
-              borderRadius: `${formData.borderRadius}px`
+              borderRadius: `${formData.borderRadius}px`,
+              padding: '20px',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+              minHeight: '180px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}
           >
             {formData.imageUrl && (
-              <img src={formData.imageUrl} alt="Popup" className="w-full h-32 object-cover rounded mb-4" />
+              <img src={formData.imageUrl} alt="Popup" className="w-full h-20 object-cover rounded mb-3" />
             )}
             <h4 className="font-bold text-lg mb-2">{formData.title || 'Título do Popup'}</h4>
-            <p className="mb-4">{formData.content || 'Conteúdo do popup aparecerá aqui.'}</p>
+            <p className="text-sm mb-3">{formData.content || 'Conteúdo do popup aparecerá aqui.'}</p>
             {formData.buttonText && (
               <button
-                className={`px-4 py-2 rounded font-medium ${formData.buttonWidth === 'full' ? 'w-full' : ''}`}
+                className={`px-3 py-2 rounded font-medium text-sm ${formData.buttonWidth === 'full' ? 'w-full' : ''}`}
                 style={{
                   backgroundColor: formData.buttonColor,
                   color: formData.buttonTextColor,
@@ -539,16 +546,30 @@ export default function PopupsPage() {
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium mb-2">Configurações do Popup:</h4>
-        <div className="space-y-2 text-sm">
-          <div><strong>Posição:</strong> {formData.position}</div>
-          <div><strong>Tamanho:</strong> {formData.size}</div>
+      <div className="bg-gray-50 p-3 rounded-lg">
+        <h4 className="font-medium mb-2 text-sm">Configurações do Popup:</h4>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div><strong>Posição:</strong> {formData.position === 'center' ? 'Centro' : formData.position}</div>
+          <div><strong>Tamanho:</strong> {formData.size === 'small' ? 'Pequeno' : formData.size === 'medium' ? 'Médio' : 'Grande'}</div>
           <div><strong>Animação:</strong> {formData.animation}</div>
           <div><strong>Delay:</strong> {formData.delaySeconds}s</div>
-          <div><strong>Frequência:</strong> {formData.frequency}</div>
+          <div><strong>Frequência:</strong> {formData.frequency === 'always' ? 'Sempre' : formData.frequency.replace('_', ' ')}</div>
           <div><strong>Status:</strong> {formData.isActive ? 'Ativo' : 'Inativo'}</div>
         </div>
+      </div>
+
+      {/* Segmentação resumida */}
+      <div className="space-y-2">
+        {formData.targetPages.length > 0 && (
+          <div className="bg-blue-50 p-2 rounded text-xs">
+            <strong>Páginas:</strong> {formData.targetPages.slice(0, 3).join(', ')}{formData.targetPages.length > 3 ? '...' : ''}
+          </div>
+        )}
+        {formData.targetUserTypes.length > 0 && (
+          <div className="bg-green-50 p-2 rounded text-xs">
+            <strong>Usuários:</strong> {formData.targetUserTypes.slice(0, 3).join(', ')}{formData.targetUserTypes.length > 3 ? '...' : ''}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -584,9 +605,9 @@ export default function PopupsPage() {
       {/* Modal de criação/edição */}
       {isCreating && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b">
+            <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-xl font-semibold">Criar Novo Popup</h2>
               <Button 
                 variant="ghost" 
@@ -605,9 +626,9 @@ export default function PopupsPage() {
             <div className="flex flex-1 min-h-0">
               {/* Form Section */}
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 flex flex-col p-6">
+                <div className="flex-1 flex flex-col p-4">
                   {/* Step Progress Indicator */}
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <div className="flex items-center space-x-4">
                       {[
                         { number: 1, title: 'Conteúdo', icon: Settings },
@@ -694,6 +715,68 @@ export default function PopupsPage() {
                   )}
                 </div>
               </div>
+
+              {/* Preview ao vivo à direita */}
+              {currentStep < 4 && (
+                <div className="w-80 border-l bg-gray-50 p-4 overflow-y-auto">
+                  <h3 className="text-sm font-medium text-gray-700 mb-4">Preview em Tempo Real</h3>
+                  <div className="bg-white rounded-lg p-4 shadow-sm min-h-[300px] flex items-center justify-center">
+                    <div 
+                      className="popup-preview max-w-sm w-full"
+                      style={{
+                        backgroundColor: formData.backgroundColor,
+                        color: formData.textColor,
+                        borderRadius: `${formData.borderRadius}px`,
+                        padding: '20px',
+                        textAlign: 'center',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        minHeight: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {formData.imageUrl && (
+                        <img 
+                          src={formData.imageUrl} 
+                          alt="Preview" 
+                          className="w-full h-24 object-cover rounded mb-3"
+                        />
+                      )}
+                      <h3 className="text-lg font-bold mb-2">
+                        {formData.title || 'Título do Popup'}
+                      </h3>
+                      <p className="text-sm mb-4">
+                        {formData.content || 'Conteúdo do popup aparecerá aqui...'}
+                      </p>
+                      {formData.buttonText && (
+                        <button
+                          style={{
+                            backgroundColor: formData.buttonColor,
+                            color: formData.buttonTextColor,
+                            borderRadius: `${formData.borderRadius}px`,
+                            padding: '8px 16px',
+                            border: 'none',
+                            width: formData.buttonWidth === 'full' ? '100%' : 'auto',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {formData.buttonText}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Configurações resumidas */}
+                  <div className="mt-4 text-xs text-gray-600 space-y-1">
+                    <p><strong>Posição:</strong> {formData.position === 'center' ? 'Centro' : formData.position}</p>
+                    <p><strong>Tamanho:</strong> {formData.size === 'small' ? 'Pequeno' : formData.size === 'medium' ? 'Médio' : 'Grande'}</p>
+                    <p><strong>Animação:</strong> {formData.animation}</p>
+                    <p><strong>Delay:</strong> {formData.delaySeconds}s</p>
+                    <p><strong>Frequência:</strong> {formData.frequency === 'always' ? 'Sempre' : formData.frequency.replace('_', ' ')}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
