@@ -4225,7 +4225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.deletePopup(id);
-      res.status(204).send();
+      res.status(200).json({ success: true, message: 'Popup excluído com sucesso' });
     } catch (error: any) {
       console.error('Error deleting popup:', error);
       res.status(500).json({ message: 'Erro ao excluir popup' });

@@ -3573,60 +3573,14 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE getPopups - Buscando todos os popups");
       
-      // Tentar primeiro com Supabase
-      const { data, error } = await supabase
-        .from('popups')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
-      if (error) {
-        console.error("DATABASE getPopups - Erro ao buscar popups via Supabase:", error.message);
-        // Tentar com PostgreSQL direto se o Supabase falhar
-        try {
-          console.log("DATABASE getPopups - Tentando via PostgreSQL após falha no Supabase");
-          const result = await pool.query(
-            'SELECT * FROM popups ORDER BY created_at DESC'
-          );
-          
-          return result.rows.map(popup => ({
-            id: popup.id,
-            title: popup.title,
-            content: popup.content,
-            imageUrl: popup.image_url,
-            buttonText: popup.button_text,
-            buttonUrl: popup.button_url,
-            backgroundColor: popup.background_color,
-            textColor: popup.text_color,
-            buttonColor: popup.button_color,
-            buttonTextColor: popup.button_text_color,
-            borderRadius: popup.border_radius,
-            buttonWidth: popup.button_width,
-            animation: popup.animation,
-            position: popup.position,
-            size: popup.size,
-            delaySeconds: popup.delay_seconds,
-            targetPages: popup.target_pages,
-            targetUserTypes: popup.target_user_types,
-            startDate: popup.start_date ? new Date(popup.start_date) : null,
-            endDate: popup.end_date ? new Date(popup.end_date) : null,
-            frequency: popup.frequency,
-            isActive: popup.is_active,
-            createdAt: new Date(popup.created_at),
-            updatedAt: new Date(popup.updated_at)
-          }));
-        } catch (pgError) {
-          console.error("DATABASE getPopups - Erro também no PostgreSQL:", pgError);
-          return [];
-        }
-      }
+      // Usar PostgreSQL diretamente para melhor performance
+      const result = await pool.query(
+        'SELECT * FROM popups ORDER BY created_at DESC'
+      );
       
-      if (!data) {
-        console.log("DATABASE getPopups - Nenhum popup encontrado");
-        return [];
-      }
+      console.log("DATABASE getPopups - Encontrados", result.rows.length, "popups");
       
-      // Mapear para o formato esperado pela aplicação
-      return data.map(popup => ({
+      return result.rows.map(popup => ({
         id: popup.id,
         title: popup.title,
         content: popup.content,
@@ -3982,6 +3936,346 @@ export class DatabaseStorage implements IStorage {
       console.log("DATABASE togglePopupStatus - Status atualizado via PostgreSQL:", data.id);
       
       // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        imageUrl: data.image_url,
+        buttonText: data.button_text,
+        buttonUrl: data.button_url,
+        backgroundColor: data.background_color,
+        textColor: data.text_color,
+        buttonColor: data.button_color,
+        buttonTextColor: data.button_text_color,
+        borderRadius: data.border_radius,
+        buttonWidth: data.button_width,
+        animation: data.animation,
+        position: data.position,
+        size: data.size,
+        delaySeconds: data.delay_seconds,
+        targetPages: data.target_pages,
+        targetUserTypes: data.target_user_types,
+        startDate: data.start_date ? new Date(data.start_date) : null,
+        endDate: data.end_date ? new Date(data.end_date) : null,
+        frequency: data.frequency,
+        isActive: data.is_active,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (error) {
+      console.error("DATABASE togglePopupStatus - Exceção geral:", error);
+      throw error;
+    }
+  }
+  async getPopupById(id: number): Promise<Popup | undefined> {
+    try {
+      console.log(`DATABASE getPopupById - Buscando popup com ID ${id}`);
+      
+      const result = await pool.query('SELECT * FROM popups WHERE id = $1', [id]);
+      
+      if (result.rows.length === 0) {
+        console.log("DATABASE getPopupById - Popup não encontrado");
+        return undefined;
+      }
+      
+      const popup = result.rows[0];
+      
+      return {
+        id: popup.id,
+        title: popup.title,
+        content: popup.content,
+        imageUrl: popup.image_url,
+        buttonText: popup.button_text,
+        buttonUrl: popup.button_url,
+        backgroundColor: popup.background_color,
+        textColor: popup.text_color,
+        buttonColor: popup.button_color,
+        buttonTextColor: popup.button_text_color,
+        borderRadius: popup.border_radius,
+        buttonWidth: popup.button_width,
+        animation: popup.animation,
+        position: popup.position,
+        size: popup.size,
+        delaySeconds: popup.delay_seconds,
+        targetPages: popup.target_pages,
+        targetUserTypes: popup.target_user_types,
+        startDate: popup.start_date ? new Date(popup.start_date) : null,
+        endDate: popup.end_date ? new Date(popup.end_date) : null,
+        frequency: popup.frequency,
+        isActive: popup.is_active,
+        createdAt: new Date(popup.created_at),
+        updatedAt: new Date(popup.updated_at)
+      };
+    } catch (error) {
+      console.error("DATABASE getPopupById - Exceção:", error);
+      return undefined;
+    }
+  }
+
+  async createPopup(popup: InsertPopup): Promise<Popup> {
+    try {
+      console.log("DATABASE createPopup - Criando novo popup:", JSON.stringify(popup));
+      
+      const query = `
+        INSERT INTO popups (
+          title, content, image_url, button_text, button_url,
+          background_color, text_color, button_color, button_text_color,
+          border_radius, button_width, animation, position, size,
+          delay_seconds, target_pages, target_user_types,
+          start_date, end_date, frequency, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+        RETURNING *
+      `;
+      
+      const values = [
+        popup.title,
+        popup.content,
+        popup.imageUrl || '',
+        popup.buttonText || '',
+        popup.buttonUrl || '',
+        popup.backgroundColor || '#ffffff',
+        popup.textColor || '#000000',
+        popup.buttonColor || '#3b82f6',
+        popup.buttonTextColor || '#ffffff',
+        popup.borderRadius || 8,
+        popup.buttonWidth || 'auto',
+        popup.animation || 'fade',
+        popup.position || 'center',
+        popup.size || 'medium',
+        popup.delaySeconds || 0,
+        popup.targetPages || [],
+        popup.targetUserTypes || [],
+        popup.startDate || null,
+        popup.endDate || null,
+        popup.frequency || 'once_per_session',
+        popup.isActive || false
+      ];
+      
+      const { rows } = await pool.query(query, values);
+      const data = rows[0];
+      
+      if (!data) {
+        throw new Error("Falha ao criar popup no banco de dados");
+      }
+      
+      console.log("DATABASE createPopup - Popup criado via PostgreSQL:", data.id);
+      
+      return {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        imageUrl: data.image_url,
+        buttonText: data.button_text,
+        buttonUrl: data.button_url,
+        backgroundColor: data.background_color,
+        textColor: data.text_color,
+        buttonColor: data.button_color,
+        buttonTextColor: data.button_text_color,
+        borderRadius: data.border_radius,
+        buttonWidth: data.button_width,
+        animation: data.animation,
+        position: data.position,
+        size: data.size,
+        delaySeconds: data.delay_seconds,
+        targetPages: data.target_pages,
+        targetUserTypes: data.target_user_types,
+        startDate: data.start_date ? new Date(data.start_date) : null,
+        endDate: data.end_date ? new Date(data.end_date) : null,
+        frequency: data.frequency,
+        isActive: data.is_active,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (error) {
+      console.error("DATABASE createPopup - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup> {
+    try {
+      console.log("DATABASE updatePopup - Atualizando popup #" + id + ":", JSON.stringify(popup));
+      
+      const updates: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+      
+      if (popup.title !== undefined) {
+        updates.push(`title = $${paramIndex++}`);
+        values.push(popup.title);
+      }
+      if (popup.content !== undefined) {
+        updates.push(`content = $${paramIndex++}`);
+        values.push(popup.content);
+      }
+      if (popup.imageUrl !== undefined) {
+        updates.push(`image_url = $${paramIndex++}`);
+        values.push(popup.imageUrl);
+      }
+      if (popup.buttonText !== undefined) {
+        updates.push(`button_text = $${paramIndex++}`);
+        values.push(popup.buttonText);
+      }
+      if (popup.buttonUrl !== undefined) {
+        updates.push(`button_url = $${paramIndex++}`);
+        values.push(popup.buttonUrl);
+      }
+      if (popup.backgroundColor !== undefined) {
+        updates.push(`background_color = $${paramIndex++}`);
+        values.push(popup.backgroundColor);
+      }
+      if (popup.textColor !== undefined) {
+        updates.push(`text_color = $${paramIndex++}`);
+        values.push(popup.textColor);
+      }
+      if (popup.buttonColor !== undefined) {
+        updates.push(`button_color = $${paramIndex++}`);
+        values.push(popup.buttonColor);
+      }
+      if (popup.buttonTextColor !== undefined) {
+        updates.push(`button_text_color = $${paramIndex++}`);
+        values.push(popup.buttonTextColor);
+      }
+      if (popup.borderRadius !== undefined) {
+        updates.push(`border_radius = $${paramIndex++}`);
+        values.push(popup.borderRadius);
+      }
+      if (popup.buttonWidth !== undefined) {
+        updates.push(`button_width = $${paramIndex++}`);
+        values.push(popup.buttonWidth);
+      }
+      if (popup.animation !== undefined) {
+        updates.push(`animation = $${paramIndex++}`);
+        values.push(popup.animation);
+      }
+      if (popup.position !== undefined) {
+        updates.push(`position = $${paramIndex++}`);
+        values.push(popup.position);
+      }
+      if (popup.size !== undefined) {
+        updates.push(`size = $${paramIndex++}`);
+        values.push(popup.size);
+      }
+      if (popup.delaySeconds !== undefined) {
+        updates.push(`delay_seconds = $${paramIndex++}`);
+        values.push(popup.delaySeconds);
+      }
+      if (popup.targetPages !== undefined) {
+        updates.push(`target_pages = $${paramIndex++}`);
+        values.push(popup.targetPages);
+      }
+      if (popup.targetUserTypes !== undefined) {
+        updates.push(`target_user_types = $${paramIndex++}`);
+        values.push(popup.targetUserTypes);
+      }
+      if (popup.startDate !== undefined) {
+        updates.push(`start_date = $${paramIndex++}`);
+        values.push(popup.startDate);
+      }
+      if (popup.endDate !== undefined) {
+        updates.push(`end_date = $${paramIndex++}`);
+        values.push(popup.endDate);
+      }
+      if (popup.frequency !== undefined) {
+        updates.push(`frequency = $${paramIndex++}`);
+        values.push(popup.frequency);
+      }
+      if (popup.isActive !== undefined) {
+        updates.push(`is_active = $${paramIndex++}`);
+        values.push(popup.isActive);
+      }
+      
+      updates.push(`updated_at = $${paramIndex++}`);
+      values.push(new Date().toISOString());
+      
+      values.push(id);
+      
+      const query = `
+        UPDATE popups 
+        SET ${updates.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+      
+      const { rows } = await pool.query(query, values);
+      const data = rows[0];
+      
+      if (!data) {
+        throw new Error("Popup não encontrado ou falha ao atualizar");
+      }
+      
+      console.log("DATABASE updatePopup - Popup atualizado via PostgreSQL:", data.id);
+      
+      return {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        imageUrl: data.image_url,
+        buttonText: data.button_text,
+        buttonUrl: data.button_url,
+        backgroundColor: data.background_color,
+        textColor: data.text_color,
+        buttonColor: data.button_color,
+        buttonTextColor: data.button_text_color,
+        borderRadius: data.border_radius,
+        buttonWidth: data.button_width,
+        animation: data.animation,
+        position: data.position,
+        size: data.size,
+        delaySeconds: data.delay_seconds,
+        targetPages: data.target_pages,
+        targetUserTypes: data.target_user_types,
+        startDate: data.start_date ? new Date(data.start_date) : null,
+        endDate: data.end_date ? new Date(data.end_date) : null,
+        frequency: data.frequency,
+        isActive: data.is_active,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (error) {
+      console.error("DATABASE updatePopup - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async deletePopup(id: number): Promise<void> {
+    try {
+      console.log("DATABASE deletePopup - Excluindo popup #" + id);
+      
+      const query = 'DELETE FROM popups WHERE id = $1';
+      const { rowCount } = await pool.query(query, [id]);
+      
+      if (rowCount === 0) {
+        throw new Error("Popup não encontrado");
+      }
+      
+      console.log("DATABASE deletePopup - Popup excluído com sucesso via PostgreSQL");
+    } catch (error) {
+      console.error("DATABASE deletePopup - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async togglePopupStatus(id: number, isActive: boolean): Promise<Popup> {
+    try {
+      console.log(`DATABASE togglePopupStatus - ${isActive ? 'Ativando' : 'Desativando'} popup #${id}`);
+      
+      const query = `
+        UPDATE popups 
+        SET is_active = $1, updated_at = $2
+        WHERE id = $3
+        RETURNING *
+      `;
+      
+      const { rows } = await pool.query(query, [isActive, new Date().toISOString(), id]);
+      const data = rows[0];
+      
+      if (!data) {
+        throw new Error("Popup não encontrado");
+      }
+      
+      console.log("DATABASE togglePopupStatus - Status atualizado via PostgreSQL:", data.id);
+      
       return {
         id: data.id,
         title: data.title,
