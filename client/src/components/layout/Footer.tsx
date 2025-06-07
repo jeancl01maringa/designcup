@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, Mail, Phone, Heart } from "lucide-react";
 import { useSupportNumber } from "@/hooks/use-support-number";
+import { useSocialMedia } from "@/hooks/use-social-media";
 
 const HeroMessage = () => (
   <div className="text-left mb-12">
