@@ -625,13 +625,13 @@ export default function PostagensPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-48 text-center">
+                <TableCell colSpan={10} className="h-48 text-center">
                   Carregando postagens...
                 </TableCell>
               </TableRow>
             ) : posts?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-48 text-center">
+                <TableCell colSpan={10} className="h-48 text-center">
                   Nenhuma postagem encontrada.
                 </TableCell>
               </TableRow>
@@ -670,23 +670,15 @@ export default function PostagensPage() {
                   <TableCell className="hidden md:table-cell py-3">
                     {categories.find(c => c.id === post.categoryId)?.name || '-'}
                   </TableCell>
-                  <TableCell className="py-3 text-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => updatePremiumStatusMutation.mutate({ 
-                        id: post.id, 
-                        isPremium: !isPostPremium(post)
-                      })}
-                      title={isPostPremium(post) ? 'Conteúdo Premium (clique para tornar gratuito)' : 'Conteúdo Gratuito (clique para tornar premium)'}
-                    >
-                      {isPostPremium(post) ? (
-                        <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
-                      ) : (
-                        <Crown className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </Button>
+                  <TableCell className="hidden md:table-cell py-3">
+                    <span className="text-sm text-muted-foreground">
+                      {post.formato || 'Feed'}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell py-3">
+                    <span className="text-sm text-muted-foreground">
+                      Canva
+                    </span>
                   </TableCell>
                   <TableCell className="py-3 text-center">
                     <div 
@@ -713,32 +705,34 @@ export default function PostagensPage() {
                     {formatDate(post.createdAt)}
                   </TableCell>
                   <TableCell className="py-3">
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => window.open(`/preview/${post.id}`, '_blank')}
-                      >
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => handleEditPost(post)}
-                      >
-                        <Edit className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDeletePost(post.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => window.open(`/preview/${post.id}`, '_blank')}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Visualizar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditPost(post)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeletePost(post.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
