@@ -331,7 +331,14 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                       {isOpen && expandedMenus.includes(item.id) && item.subItems && (
                         <div className="ml-4 mt-1 space-y-1">
                           {item.subItems.map((subItem) => (
-                            <Link key={subItem.id} href={subItem.path}>
+                            <Link 
+                              key={subItem.id} 
+                              href={subItem.path}
+                              onClick={(e) => {
+                                // Não impedir a navegação, apenas parar a propagação
+                                e.stopPropagation();
+                              }}
+                            >
                               <Button
                                 variant={isActive(subItem.path) ? "default" : "ghost"}
                                 className={cn(
@@ -339,6 +346,9 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                                   isActive(subItem.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : ""
                                 )}
                                 size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
                               >
                                 <span className={cn(
                                   "mr-2",
