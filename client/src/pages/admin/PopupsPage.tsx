@@ -539,23 +539,38 @@ export default function PopupsPage() {
                     <TabsContent value="targeting" className="space-y-6 mt-0">
                       <div>
                         <Label className="text-base font-medium">Páginas Específicas</Label>
-                        <div className="mt-3 space-y-2">
+                        <div className="mt-3 max-h-64 overflow-y-auto border rounded-lg p-3 space-y-2">
                           {[
-                            { value: 'all', label: 'Todas as páginas' },
-                            { value: 'home', label: 'Página inicial' },
-                            { value: 'categories', label: 'Categorias' },
-                            { value: 'art', label: 'Página de arte' },
-                            { value: 'plans', label: 'Planos' }
+                            { value: 'all', label: 'Todas as páginas', description: 'Exibir em qualquer página da plataforma' },
+                            { value: '/', label: 'Feed Principal', description: 'Página inicial com posts' },
+                            { value: '/auth', label: 'Login/Registro', description: 'Página de autenticação' },
+                            { value: '/plans', label: 'Planos e Assinaturas', description: 'Página de escolha de planos' },
+                            { value: '/profile/edit', label: 'Editar Perfil', description: 'Configurações do usuário' },
+                            { value: '/categories/botox', label: 'Categoria: Botox', description: 'Posts de procedimentos botox' },
+                            { value: '/categories/corporal', label: 'Categoria: Corporal', description: 'Posts de estética corporal' },
+                            { value: '/categories/depilacao', label: 'Categoria: Depilação', description: 'Posts sobre depilação' },
+                            { value: '/categories/facial', label: 'Categoria: Facial', description: 'Posts de tratamentos faciais' },
+                            { value: '/categories/massagem', label: 'Categoria: Massagem', description: 'Posts sobre massagem' },
+                            { value: '/categories/pele', label: 'Categoria: Pele', description: 'Posts de cuidados com a pele' },
+                            { value: '/categories/sala-de-beleza', label: 'Categoria: Sala de Beleza', description: 'Posts para salões' },
+                            { value: '/art/*', label: 'Páginas de Arte', description: 'Visualização individual de artes' },
+                            { value: '/autor/*', label: 'Perfis de Autores', description: 'Páginas públicas de designers' }
                           ].map(page => (
-                            <div key={page.value} className="flex items-center space-x-2">
+                            <div key={page.value} className="flex items-start space-x-3 hover:bg-gray-50 p-2 rounded">
                               <Checkbox
                                 id={`page-${page.value}`}
                                 checked={formData.targetPages.includes(page.value)}
                                 onCheckedChange={(checked) => 
                                   handleTargetChange('targetPages', page.value, checked as boolean)
                                 }
+                                className="mt-1"
                               />
-                              <Label htmlFor={`page-${page.value}`}>{page.label}</Label>
+                              <div className="flex-1">
+                                <Label htmlFor={`page-${page.value}`} className="font-medium text-sm cursor-pointer">
+                                  {page.label}
+                                </Label>
+                                <p className="text-xs text-gray-500 mt-1">{page.description}</p>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -565,21 +580,29 @@ export default function PopupsPage() {
                         <Label className="text-base font-medium">Tipo de Usuário</Label>
                         <div className="mt-3 space-y-2">
                           {[
-                            { value: 'all', label: 'Todos os usuários' },
-                            { value: 'free', label: 'Usuários gratuitos' },
-                            { value: 'premium', label: 'Usuários premium' },
-                            { value: 'designers', label: 'Designers' },
-                            { value: 'admins', label: 'Administradores' }
+                            { value: 'all', label: 'Todos os usuários', description: 'Visitantes e usuários logados' },
+                            { value: 'guest', label: 'Visitantes', description: 'Usuários não autenticados' },
+                            { value: 'free', label: 'Usuários Free', description: 'Plano gratuito ativo' },
+                            { value: 'premium', label: 'Usuários Premium', description: 'Assinatura premium ativa' },
+                            { value: 'new_users', label: 'Novos Usuários', description: 'Cadastrados nos últimos 7 dias' },
+                            { value: 'inactive_users', label: 'Usuários Inativos', description: 'Sem acesso há mais de 30 dias' },
+                            { value: 'returning_users', label: 'Usuários Recorrentes', description: 'Mais de 5 acessos no mês' }
                           ].map(userType => (
-                            <div key={userType.value} className="flex items-center space-x-2">
+                            <div key={userType.value} className="flex items-start space-x-3 hover:bg-gray-50 p-2 rounded">
                               <Checkbox
                                 id={`user-${userType.value}`}
                                 checked={formData.targetUserTypes.includes(userType.value)}
                                 onCheckedChange={(checked) => 
                                   handleTargetChange('targetUserTypes', userType.value, checked as boolean)
                                 }
+                                className="mt-1"
                               />
-                              <Label htmlFor={`user-${userType.value}`}>{userType.label}</Label>
+                              <div className="flex-1">
+                                <Label htmlFor={`user-${userType.value}`} className="font-medium text-sm cursor-pointer">
+                                  {userType.label}
+                                </Label>
+                                <p className="text-xs text-gray-500 mt-1">{userType.description}</p>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -670,32 +693,83 @@ export default function PopupsPage() {
                   <h3 className="font-medium mb-4">Preview em Tempo Real</h3>
                   {formData.title || formData.content || formData.imageUrl || formData.buttonText ? (
                     <div className="relative">
-                      <div className="bg-black/20 p-4 rounded-lg">
-                        <div className="bg-white rounded-lg shadow-lg p-4 text-center text-sm">
+                      <div 
+                        className={`
+                          bg-black/50 p-4 rounded-lg min-h-48 flex items-center justify-center
+                          ${formData.position === 'top' ? 'items-start pt-8' : ''}
+                          ${formData.position === 'bottom' ? 'items-end pb-8' : ''}
+                          ${formData.position === 'left' ? 'justify-start pl-8' : ''}
+                          ${formData.position === 'right' ? 'justify-end pr-8' : ''}
+                        `}
+                      >
+                        <div 
+                          className={`
+                            rounded-lg shadow-xl text-center transition-all duration-300
+                            ${formData.size === 'small' ? 'max-w-xs p-3' : ''}
+                            ${formData.size === 'medium' ? 'max-w-sm p-4' : ''}
+                            ${formData.size === 'large' ? 'max-w-md p-6' : ''}
+                            ${formData.animation === 'fade' ? 'animate-in fade-in' : ''}
+                            ${formData.animation === 'slide' ? 'animate-in slide-in-from-top' : ''}
+                            ${formData.animation === 'zoom' ? 'animate-in zoom-in' : ''}
+                            ${formData.animation === 'bounce' ? 'animate-bounce' : ''}
+                          `}
+                          style={{
+                            backgroundColor: formData.backgroundColor,
+                            color: formData.textColor,
+                            borderRadius: `${formData.borderRadius}px`
+                          }}
+                        >
                           {formData.imageUrl && (
                             <img 
                               src={formData.imageUrl} 
                               alt="Preview" 
-                              className="w-full h-20 object-cover rounded mb-2"
+                              className="w-full h-16 object-cover rounded mb-3"
+                              style={{ borderRadius: `${formData.borderRadius * 0.5}px` }}
                             />
                           )}
                           {formData.title && (
-                            <h4 className="font-bold mb-2">{formData.title}</h4>
+                            <h4 className="font-bold mb-2 text-xs">{formData.title}</h4>
                           )}
                           {formData.content && (
-                            <p className="text-xs mb-3 text-gray-600">{formData.content}</p>
+                            <p className="text-xs mb-3 opacity-80">{formData.content}</p>
                           )}
                           {formData.buttonText && (
                             <button 
-                              className="px-3 py-1 rounded text-xs"
+                              className={`
+                                px-3 py-1 text-xs font-medium transition-colors
+                                ${formData.buttonWidth === 'full' ? 'w-full' : 'inline-block'}
+                              `}
                               style={{
                                 backgroundColor: formData.buttonColor,
-                                color: formData.buttonTextColor
+                                color: formData.buttonTextColor,
+                                borderRadius: `${formData.borderRadius * 0.5}px`
                               }}
                             >
                               {formData.buttonText}
                             </button>
                           )}
+                        </div>
+                      </div>
+                      
+                      {/* Preview Settings Summary */}
+                      <div className="mt-4 p-3 bg-white rounded border text-xs">
+                        <div className="grid grid-cols-2 gap-2 text-gray-600">
+                          <div>Posição: <span className="font-medium">{
+                            formData.position === 'center' ? 'Centro' :
+                            formData.position === 'top' ? 'Topo' :
+                            formData.position === 'bottom' ? 'Rodapé' :
+                            formData.position === 'left' ? 'Esquerda' : 'Direita'
+                          }</span></div>
+                          <div>Tamanho: <span className="font-medium">{
+                            formData.size === 'small' ? 'Pequeno' :
+                            formData.size === 'medium' ? 'Médio' : 'Grande'
+                          }</span></div>
+                          <div>Animação: <span className="font-medium">{
+                            formData.animation === 'fade' ? 'Fade' :
+                            formData.animation === 'slide' ? 'Slide' :
+                            formData.animation === 'zoom' ? 'Zoom' : 'Bounce'
+                          }</span></div>
+                          <div>Delay: <span className="font-medium">{formData.delaySeconds}s</span></div>
                         </div>
                       </div>
                     </div>
