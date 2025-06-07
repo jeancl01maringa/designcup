@@ -153,6 +153,7 @@ export class DatabaseStorage implements IStorage {
         isAdmin: Boolean(data.is_admin),
         telefone: data.telefone || null,
         profileImage: data.profile_image || null,
+        bio: data.bio || null,
         createdAt: new Date(data.created_at),
         tipo: data.tipo || 'free',
         plano_id: data.plano_id || null,
