@@ -3665,81 +3665,77 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE createPopup - Criando popup:", JSON.stringify(popup));
       
-      // Mapear para o formato do banco
-      const dbPopup = {
-        title: popup.title,
-        content: popup.content,
-        image_url: popup.imageUrl,
-        button_text: popup.buttonText,
-        button_url: popup.buttonUrl,
-        background_color: popup.backgroundColor,
-        text_color: popup.textColor,
-        button_color: popup.buttonColor,
-        button_text_color: popup.buttonTextColor,
-        border_radius: popup.borderRadius,
-        button_width: popup.buttonWidth,
-        animation: popup.animation,
-        position: popup.position,
-        size: popup.size,
-        delay_seconds: popup.delaySeconds,
-        target_pages: popup.targetPages,
-        target_user_types: popup.targetUserTypes,
-        start_date: popup.startDate,
-        end_date: popup.endDate,
-        frequency: popup.frequency,
-        is_active: popup.isActive
-      };
+      // Usar PostgreSQL direto via pool do Neon
+      const query = `
+        INSERT INTO popups (
+          title, content, image_url, button_text, button_url,
+          background_color, text_color, button_color, button_text_color,
+          border_radius, button_width, animation, position, size, delay_seconds,
+          target_pages, target_user_types, start_date, end_date, frequency, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+        RETURNING *
+      `;
       
-      // Primeiro tentamos com Supabase
-      try {
-        const { data, error } = await supabase
-          .from('popups')
-          .insert(dbPopup)
-          .select()
-          .single();
-        
-        if (error) {
-          console.error("DATABASE createPopup - Erro ao inserir popup via Supabase:", error.message);
-          throw new Error("Falha ao criar popup via Supabase");
-        }
-        
-        if (data) {
-          console.log("DATABASE createPopup - Popup criado via Supabase:", data.id);
-          
-          // Mapear para o formato esperado pela aplicação
-          return {
-            id: data.id,
-            title: data.title,
-            content: data.content,
-            imageUrl: data.image_url,
-            buttonText: data.button_text,
-            buttonUrl: data.button_url,
-            backgroundColor: data.background_color,
-            textColor: data.text_color,
-            buttonColor: data.button_color,
-            buttonTextColor: data.button_text_color,
-            borderRadius: data.border_radius,
-            buttonWidth: data.button_width,
-            animation: data.animation,
-            position: data.position,
-            size: data.size,
-            delaySeconds: data.delay_seconds,
-            targetPages: data.target_pages,
-            targetUserTypes: data.target_user_types,
-            startDate: data.start_date ? new Date(data.start_date) : null,
-            endDate: data.end_date ? new Date(data.end_date) : null,
-            frequency: data.frequency,
-            isActive: data.is_active,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at)
-          };
-        }
-      } catch (supabaseError) {
-        console.error("DATABASE createPopup - Exceção ao acessar Supabase:", supabaseError);
+      const values = [
+        popup.title,
+        popup.content,
+        popup.imageUrl,
+        popup.buttonText,
+        popup.buttonUrl,
+        popup.backgroundColor || '#ffffff',
+        popup.textColor || '#000000',
+        popup.buttonColor || '#1f4ed8',
+        popup.buttonTextColor || '#ffffff',
+        popup.borderRadius || 8,
+        popup.buttonWidth || 'auto',
+        popup.animation || 'fade',
+        popup.position || 'center',
+        popup.size || 'medium',
+        popup.delaySeconds || 3,
+        popup.targetPages || ['all'],
+        popup.targetUserTypes || ['all'],
+        popup.startDate,
+        popup.endDate,
+        popup.frequency || 'once_per_session',
+        popup.isActive || false
+      ];
+      
+      const { rows } = await pool.query(query, values);
+      const data = rows[0];
+      
+      if (!data) {
+        throw new Error("Falha ao criar popup no banco de dados");
       }
       
-      // Se chegou aqui, falhou com Supabase
-      throw new Error("Falha ao criar popup: Supabase não disponível");
+      console.log("DATABASE createPopup - Popup criado via PostgreSQL:", data.id);
+      
+      // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        imageUrl: data.image_url,
+        buttonText: data.button_text,
+        buttonUrl: data.button_url,
+        backgroundColor: data.background_color,
+        textColor: data.text_color,
+        buttonColor: data.button_color,
+        buttonTextColor: data.button_text_color,
+        borderRadius: data.border_radius,
+        buttonWidth: data.button_width,
+        animation: data.animation,
+        position: data.position,
+        size: data.size,
+        delaySeconds: data.delay_seconds,
+        targetPages: data.target_pages,
+        targetUserTypes: data.target_user_types,
+        startDate: data.start_date ? new Date(data.start_date) : null,
+        endDate: data.end_date ? new Date(data.end_date) : null,
+        frequency: data.frequency,
+        isActive: data.is_active,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
     } catch (error) {
       console.error("DATABASE createPopup - Exceção geral:", error);
       throw error;
