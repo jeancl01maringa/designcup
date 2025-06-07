@@ -646,7 +646,7 @@ export default function ArtDetailPage() {
         <div className="relative">
           {/* Label do formato */}
           <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
-            {formatLabel(availableFormats[0])}
+            {formatLabel(currentPost?.formato || 'Feed')}
           </span>
           
           {/* Selo premium */}
@@ -656,15 +656,31 @@ export default function ArtDetailPage() {
             </div>
           )}
           
+          {/* Navigation between formats if available */}
+          {availablePosts.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
+              {availablePosts.map((formatPost: any, index: number) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentFormatIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === currentFormatIndex ? 'bg-white' : 'bg-white/50'
+                  }`}
+                  title={formatPost?.formato || `Formato ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+
           {/* Imagem principal otimizada com cache */}
           <div className="overflow-hidden rounded-lg shadow-md">
             <img 
-              src={post.imageUrl || "/placeholder.jpg"}
-              alt={post.title}
+              src={currentPost?.imageUrl || post?.imageUrl || "/placeholder.jpg"}
+              alt={currentPost?.title || post?.title}
               className="w-full h-auto object-cover"
               loading="lazy"
               onError={(e) => {
-                console.error('Erro ao carregar imagem:', post.imageUrl);
+                console.error('Erro ao carregar imagem:', currentPost?.imageUrl);
                 const target = e.target as HTMLImageElement;
                 target.src = "/placeholder.jpg";
               }}
@@ -730,7 +746,7 @@ export default function ArtDetailPage() {
                 <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
                 <div className="flex flex-col">
                   <span className="text-gray-500 text-xs">Formato:</span>
-                  <span className="text-sm">{formatLabel(availableFormats[0])}</span>
+                  <span className="text-sm">{formatLabel(currentPost?.formato || 'Feed')}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1009,7 +1025,7 @@ export default function ArtDetailPage() {
                   imageUrl: item.imageUrl || "/placeholder.jpg",
                   category: "outros",
                   createdAt: new Date(item.createdAt || Date.now()),
-                  isPro: item.licenseType === 'premium' || item.isPro,
+                  isPro: Boolean(item.licenseType === 'premium' || item.isPro),
                   format: item.formato || "1:1"
                 }}
               />
