@@ -1258,7 +1258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN posts p ON c.id = p.category_id 
           AND p.status = 'aprovado' 
           AND p.is_visible = true
-        WHERE c.slug = $1 OR c.id = $1
+        WHERE c.slug = $1 OR (c.slug IS NULL AND c.id::text = $1)
         GROUP BY c.id, c.name, c.description, c.slug
       `;
       
