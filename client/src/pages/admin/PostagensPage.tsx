@@ -616,6 +616,7 @@ export default function PostagensPage() {
               <TableHead className="hidden md:table-cell">Categorias</TableHead>
               <TableHead className="hidden md:table-cell">Formato</TableHead>
               <TableHead className="hidden lg:table-cell">Tipo</TableHead>
+              <TableHead className="w-20 text-center">Premium</TableHead>
               <TableHead className="w-20 text-center">Visível</TableHead>
               <TableHead className="w-24">Status</TableHead>
               <TableHead className="hidden md:table-cell">Data</TableHead>
@@ -625,13 +626,13 @@ export default function PostagensPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={10} className="h-48 text-center">
+                <TableCell colSpan={11} className="h-48 text-center">
                   Carregando postagens...
                 </TableCell>
               </TableRow>
             ) : posts?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="h-48 text-center">
+                <TableCell colSpan={11} className="h-48 text-center">
                   Nenhuma postagem encontrada.
                 </TableCell>
               </TableRow>
@@ -679,6 +680,24 @@ export default function PostagensPage() {
                     <span className="text-sm text-muted-foreground">
                       Canva
                     </span>
+                  </TableCell>
+                  <TableCell className="py-3 text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => updatePremiumStatusMutation.mutate({ 
+                        id: post.id, 
+                        isPremium: !isPostPremium(post)
+                      })}
+                      title={isPostPremium(post) ? 'Conteúdo Premium (clique para tornar gratuito)' : 'Conteúdo Gratuito (clique para tornar premium)'}
+                    >
+                      {isPostPremium(post) ? (
+                        <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
+                      ) : (
+                        <Crown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
                   </TableCell>
                   <TableCell className="py-3 text-center">
                     <div 
