@@ -89,7 +89,7 @@ export default function PopupsPage() {
   const [formData, setFormData] = useState<PopupFormData>(initialFormData);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [activeTab, setActiveTab] = useState('content');
+  const [currentStep, setCurrentStep] = useState(1);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -106,6 +106,7 @@ export default function PopupsPage() {
       setFormData(initialFormData);
       setImageFile(null);
       setIsCreating(false);
+      setCurrentStep(1);
       queryClient.invalidateQueries({ queryKey: ['/api/popups'] });
     },
     onError: (error: any) => {
@@ -187,6 +188,29 @@ export default function PopupsPage() {
     };
 
     createPopupMutation.mutate(popupData);
+  };
+
+  const nextStep = () => {
+    if (currentStep < 4) setCurrentStep(currentStep + 1);
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const canProceedToNext = () => {
+    switch (currentStep) {
+      case 1: // Conteúdo
+        return formData.title && formData.content;
+      case 2: // Aparência
+        return true;
+      case 3: // Segmentação
+        return true;
+      case 4: // Preview
+        return true;
+      default:
+        return false;
+    }
   };
 
   const [showPreview, setShowPreview] = useState(false);
@@ -341,29 +365,91 @@ export default function PopupsPage() {
             <div className="flex flex-1 min-h-0">
               {/* Form Section */}
               <div className="flex-1 flex flex-col min-h-0">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                  <TabsList className="grid w-full grid-cols-4 m-4 flex-shrink-0">
-                    <TabsTrigger value="content" className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Conteúdo
-                    </TabsTrigger>
-                    <TabsTrigger value="appearance" className="flex items-center gap-2">
-                      <Palette className="h-4 w-4" />
-                      Aparência
-                    </TabsTrigger>
-                    <TabsTrigger value="targeting" className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Segmentação
-                    </TabsTrigger>
-                    <TabsTrigger value="preview" className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Pré-visualização
-                    </TabsTrigger>
-                  </TabsList>
+                <div className="flex-1 flex flex-col p-6">
+                  {/* Step Progress Indicator */}
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-4">
+                      {[
+                        { number: 1, title: 'Conteúdo', icon: Settings },
+                        { number: 2, title: 'Aparência', icon: Palette },
+                        { number: 3, title: 'Segmentação', icon: Target },
+                        { number: 4, title: 'Preview', icon: Eye }
+                      ].map((step, index) => {
+                        const Icon = step.icon;
+                        const isActive = currentStep === step.number;
+                        const isCompleted = currentStep > step.number;
+                        
+                        return (
+                          <div key={step.number} className="flex items-center">
+                            <div className={`
+                              flex items-center justify-center w-8 h-8 rounded-full border-2 
+                              ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 
+                                isCompleted ? 'border-green-600 bg-green-600 text-white' : 
+                                'border-gray-300 text-gray-400'}
+                            `}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <span className={`ml-2 text-sm font-medium ${
+                              isActive ? 'text-blue-600' : 
+                              isCompleted ? 'text-green-600' : 
+                              'text-gray-400'
+                            }`}>
+                              {step.title}
+                            </span>
+                            {index < 3 && (
+                              <div className={`w-8 h-0.5 mx-4 ${
+                                isCompleted ? 'bg-green-600' : 'bg-gray-300'
+                              }`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                  {/* Scrollable content area */}
+                  {/* Step Content */}
                   <div className="flex-1 overflow-y-auto">
-                    <div className="p-6">
+                    {currentStep === 1 && renderContentStep()}
+                    {currentStep === 2 && renderAppearanceStep()}
+                    {currentStep === 3 && renderTargetingStep()}
+                    {currentStep === 4 && renderPreviewStep()}
+                  </div>
+
+                  {/* Navigation Buttons */}
+                  <div className="flex justify-between items-center p-6 border-t bg-gray-50">
+                    <Button
+                      variant="outline"
+                      onClick={prevStep}
+                      disabled={currentStep === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-2" />
+                      Voltar
+                    </Button>
+                    
+                    <div className="text-sm text-gray-500">
+                      Passo {currentStep} de 4
+                    </div>
+                    
+                    {currentStep < 4 ? (
+                      <Button
+                        onClick={nextStep}
+                        disabled={!canProceedToNext()}
+                      >
+                        Avançar
+                        <ChevronRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleSavePopup}
+                        disabled={createPopupMutation.isPending || !formData.title || !formData.content}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {createPopupMutation.isPending ? 'Salvando...' : 'Criar Popup'}
+                        <Save className="h-4 w-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
                       {/* Aba Conteúdo */}
                       <TabsContent value="content" className="space-y-6 mt-0">
                         <div>
