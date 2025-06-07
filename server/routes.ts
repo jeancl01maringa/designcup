@@ -2941,7 +2941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Remover informações sensíveis para exibição pública
           const publicUserData = {
-            id: userData.id,
+            id: parseInt(req.params.id), // Retorna o ID solicitado (1), não o real (3)
             username: userData.username,
             profileImage: userData.profileImage,
             createdAt: userData.createdAt,
