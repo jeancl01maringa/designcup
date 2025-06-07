@@ -1,4 +1,4 @@
-import { User, Heart, Bookmark, Users, Edit3, Settings } from "lucide-react";
+import { User, Heart, Bookmark, Users, Edit3, Settings, CreditCard } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,12 @@ export function ProfileSidebar({ className }: ProfileSidebarProps) {
       icon: User,
       label: "Minha Conta",
       description: "Perfil e configurações"
+    },
+    {
+      href: "/assinatura",
+      icon: CreditCard,
+      label: "Assinatura",
+      description: "Gerenciar sua assinatura"
     },
     {
       href: "/curtidas",

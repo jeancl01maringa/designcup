@@ -36,6 +36,7 @@ import CurtidasPage from "@/pages/account/CurtidasPage";
 import SalvosPage from "@/pages/account/SalvosPage";
 import SeguindoPage from "@/pages/account/SeguindoPage";
 import EdicoesRecentesPage from "@/pages/account/EdicoesRecentesPage";
+import AssinaturaPage from "@/pages/account/AssinaturaPage";
 import PublicProfilePage from "@/pages/ProfilePage";
 
 function Router() {
@@ -75,6 +76,9 @@ function Router() {
       </Route>
       <Route path="/edicoes-recentes">
         <ProtectedRoute path="/edicoes-recentes" component={EdicoesRecentesPage} requireAdmin={false} />
+      </Route>
+      <Route path="/assinatura">
+        <ProtectedRoute path="/assinatura" component={AssinaturaPage} requireAdmin={false} />
       </Route>
       
       {/* Rotas Administrativas */}
