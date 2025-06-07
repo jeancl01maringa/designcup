@@ -84,13 +84,28 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
     groupId: nanoid()
   });
 
-  // Preencher dados caso seja edição
+  // Preencher dados caso seja edição OU resetar para novo post
   useEffect(() => {
+    if (!open) return; // Só executa quando o modal está aberto
+    
     if (isEdit && initialData) {
+      // Carregar as imagens existentes para edição
       const formatFiles: Record<PostFormat, FormatFile> = {
-        feed: { ...defaultFormatFile },
-        cartaz: { ...defaultFormatFile },
-        stories: { ...defaultFormatFile }
+        feed: { 
+          imageFile: null,
+          imagePreview: initialData.imageUrl || null, // Usar a imagem existente como preview
+          links: []
+        },
+        cartaz: { 
+          imageFile: null,
+          imagePreview: initialData.imageUrl || null, // Mesmo para outros formatos por enquanto
+          links: []
+        },
+        stories: { 
+          imageFile: null,
+          imagePreview: initialData.imageUrl || null,
+          links: []
+        }
       };
 
       setFormData({
@@ -104,8 +119,30 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
         formatFiles: formatFiles,
         uniqueCode: initialData.uniqueCode || uniquePostId
       });
+    } else if (!isEdit && open) {
+      // Reset completo para novo post apenas quando abre o modal
+      const newUniqueId = nanoid();
+      console.log('NEW POST MODE: Resetando formulário');
+      setFormData({
+        title: "",
+        categoryId: null,
+        status: "aprovado",
+        description: null,
+        licenseType: "premium",
+        tags: [],
+        formats: [],
+        formatFiles: {
+          feed: { ...defaultFormatFile },
+          cartaz: { ...defaultFormatFile },
+          stories: { ...defaultFormatFile }
+        },
+        uniqueCode: newUniqueId,
+        groupId: nanoid()
+      });
+      setStep(1);
+      setActiveTab("feed");
     }
-  }, [isEdit, initialData, uniquePostId]);
+  }, [open, isEdit, initialData]);
 
   // Buscar categorias
   const { data: categories = [] } = useQuery<Category[]>({

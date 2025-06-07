@@ -236,53 +236,40 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     return { formatFiles, allFormats };
   };
 
-  // Effect para carregar dados quando o diálogo abre
+  // Effect para carregar dados quando o diálogo abre - SÓ executa quando open muda
   useEffect(() => {
     if (!open) return;
     
     if (isEdit && initialData) {
       console.log("EDIT MODE: Carregando dados da postagem", initialData.id);
-      console.log("Group posts disponíveis:", groupPosts.length);
-      console.log("Post formats disponíveis:", postFormats.length);
       
-      // Se temos posts do grupo, usar para carregar format data completo
+      // Criar formatFiles com imagem existente para todos os formatos
       let formatFiles = createDefaultFormatFiles();
       let allFormats: PostFormat[] = [];
       
-      if (groupPosts.length > 0) {
-        const loadedData = loadFormatDataFromPosts(groupPosts);
-        formatFiles = loadedData.formatFiles;
-        allFormats = loadedData.allFormats;
-        console.log("EDIT MODE: Dados carregados do grupo", { 
-          formatFiles: Object.keys(formatFiles), 
-          allFormats,
-          groupPostsCount: groupPosts.length 
-        });
-      } else {
-        // Fallback: usar apenas os dados do post atual
-        console.log("EDIT MODE: Usando dados do post atual como fallback");
-        allFormats = (initialData.formats as PostFormat[]) || [];
-        
-        // Se não há formatos no post, tentar extrair do campo formato
-        if (allFormats.length === 0 && initialData.formato) {
-          allFormats = [initialData.formato as PostFormat];
-          console.log("EDIT MODE: Formato extraído do campo formato:", initialData.formato);
-        }
-        
-        // Se ainda não há formatos, usar "feed" como padrão
-        if (allFormats.length === 0) {
-          allFormats = ["feed"];
-          console.log("EDIT MODE: Usando formato padrão 'feed'");
-        }
-        
-        // Se há imagem URL, adicionar ao primeiro formato
-        if (initialData.imageUrl && allFormats.length > 0) {
-          const firstFormat = allFormats[0];
-          if (formatFiles[firstFormat]) {
-            formatFiles[firstFormat].imagePreview = initialData.imageUrl;
-            console.log("EDIT MODE: Imagem adicionada ao formato:", firstFormat, initialData.imageUrl);
+      // Usar dados do post atual
+      allFormats = (initialData.formats as PostFormat[]) || [];
+      
+      // Se não há formatos no post, tentar extrair do campo formato
+      if (allFormats.length === 0 && initialData.formato) {
+        allFormats = [initialData.formato as PostFormat];
+        console.log("EDIT MODE: Formato extraído do campo formato:", initialData.formato);
+      }
+      
+      // Se ainda não há formatos, usar "feed" como padrão
+      if (allFormats.length === 0) {
+        allFormats = ["feed"];
+        console.log("EDIT MODE: Usando formato padrão 'feed'");
+      }
+      
+      // Carregar imagem existente para TODOS os formatos (não só o primeiro)
+      if (initialData.imageUrl) {
+        allFormats.forEach(format => {
+          if (formatFiles[format]) {
+            formatFiles[format].imagePreview = initialData.imageUrl;
+            console.log("EDIT MODE: Imagem carregada para formato:", format, initialData.imageUrl);
           }
-        }
+        });
       }
 
       const newFormData = {
@@ -306,9 +293,9 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         setActiveTab(allFormats[0]);
         console.log("EDIT MODE: Aba ativa definida para:", allFormats[0]);
       }
-    } else if (!isEdit) {
+    } else if (!isEdit && open) {
+      // SÓ reseta quando abre para novo post
       console.log("NEW POST MODE: Resetando formulário");
-      // Gerar um novo ID único para cada nova postagem
       const newUniquePostId = nanoid();
       
       setFormData({
@@ -324,12 +311,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         isVisible: true
       });
       
-      // Resetar também o passo e a aba ativa
       setStep(1);
       setActiveTab("feed");
       setHasUnsavedChanges(false);
     }
-  }, [open, isEdit, initialData, groupPosts, postFormats]);
+  }, [open, isEdit, initialData?.id]); // Removidas dependências que causavam re-render
   
   // Rastrear mudanças no formulário quando esses valores específicos mudarem
   useEffect(() => {
