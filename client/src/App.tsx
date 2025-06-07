@@ -146,6 +146,7 @@ function App() {
             </main>
             {showHeaderFooter && <Footer />}
           </div>
+          <PopupDisplay />
           <Toaster />
         </Context.Provider>
       </AuthProvider>
