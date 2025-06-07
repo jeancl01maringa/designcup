@@ -1142,6 +1142,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get posts by category ID (for category previews)
+  app.get('/api/posts/category/:id', async (req, res) => {
+    try {
+      const categoryId = parseInt(req.params.id);
+      
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ message: 'Invalid category ID' });
+      }
+
+      console.log(`Buscando posts da categoria ${categoryId}...`);
+      
+      const query = `
+        SELECT 
+          p.id,
+          p.title,
+          p.image,
+          p.is_pro as "isPremium",
+          p.created_at
+        FROM posts p
+        WHERE p.category_id = $1 
+        AND p.status = 'aprovado'
+        AND p.is_visible = true
+        ORDER BY p.created_at DESC
+        LIMIT 4
+      `;
+      
+      const result = await pool.query(query, [categoryId]);
+      const posts = result.rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        image: row.image,
+        isPremium: !!row.isPremium,
+        createdAt: row.created_at
+      }));
+      
+      console.log(`Encontrados ${posts.length} posts para categoria ${categoryId}`);
+      res.json(posts);
+    } catch (error) {
+      console.error('Error fetching posts by category:', error);
+      res.status(500).json({ message: 'Error fetching posts by category' });
+    }
+  });
+
   app.get('/api/admin/categories/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);

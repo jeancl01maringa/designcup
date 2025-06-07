@@ -16,6 +16,92 @@ interface Category {
   createdAt: string;
 }
 
+interface Post {
+  id: number;
+  title: string;
+  image: string;
+  isPremium: boolean;
+}
+
+interface CategoryCardProps {
+  category: Category;
+}
+
+function CategoryCard({ category }: CategoryCardProps) {
+  const { data: posts = [] } = useQuery<Post[]>({
+    queryKey: [`/api/posts/category/${category.id}`],
+    enabled: !!category.id,
+  });
+
+  // Get first 4 posts for preview
+  const previewPosts = posts.slice(0, 4);
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 cursor-pointer hover:shadow-md group overflow-hidden">
+      {/* Preview Images Grid */}
+      <div className="relative h-48 bg-gray-100">
+        {previewPosts.length > 0 ? (
+          <div className="grid grid-cols-2 gap-1 h-full">
+            {previewPosts.map((post, index) => (
+              <div key={post.id} className="relative overflow-hidden bg-gray-200">
+                <img
+                  src={post.image}
+                  alt={post.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `data:image/svg+xml,${encodeURIComponent(`
+                      <svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="200" height="150" fill="#f3f4f6"/>
+                        <text x="100" y="75" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">
+                          ${post.title.length > 20 ? post.title.substring(0, 20) + '...' : post.title}
+                        </text>
+                      </svg>
+                    `)}`;
+                  }}
+                />
+                {post.isPremium && (
+                  <div className="absolute top-1 right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-black font-bold">★</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full bg-gray-100">
+            <div className="text-center">
+              <Search className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">Sem artes</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Item count badge */}
+        <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
+          {category.postCount} items
+        </div>
+      </div>
+
+      {/* Category Info */}
+      <div className="p-4">
+        <h3 
+          className="text-lg font-semibold mb-1 font-['Inter'] group-hover:text-[#d2691e] transition-colors"
+          style={{ color: '#1c1c1c' }}
+        >
+          {category.name}
+        </h3>
+        <p 
+          className="text-sm font-['Inter'] text-center"
+          style={{ color: '#666' }}
+        >
+          {category.description || "Categoria de artes para estética"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function Categories() {
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -105,35 +191,14 @@ export default function Categories() {
           </p>
         </div>
 
-        {/* Categories Grid - Matching home card styling */}
+        {/* Categories Grid - With image previews like home */}
         {filteredCategories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredCategories.map((category) => (
-              <div 
+              <CategoryCard 
                 key={category.id}
-                className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 p-6 cursor-pointer hover:shadow-md group"
-              >
-                <h3 
-                  className="text-xl font-semibold mb-2 font-['Inter'] group-hover:text-[#d2691e] transition-colors"
-                  style={{ color: '#1c1c1c' }}
-                >
-                  {category.name}
-                </h3>
-                <p 
-                  className="text-sm mb-4 font-['Inter'] line-clamp-2"
-                  style={{ color: '#666' }}
-                >
-                  {category.description || "Categoria de artes para estética"}
-                </p>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-[#d2691e] font-medium font-['Inter']">
-                    {category.postCount} {category.postCount === 1 ? 'arte' : 'artes'}
-                  </span>
-                  <span className="text-[#666] group-hover:text-[#d2691e] transition-colors font-['Inter']">
-                    Ver artes →
-                  </span>
-                </div>
-              </div>
+                category={category}
+              />
             ))}
           </div>
         ) : (
