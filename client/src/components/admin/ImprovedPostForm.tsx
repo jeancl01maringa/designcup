@@ -436,7 +436,26 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         description: "Postagem atualizada com sucesso.",
         variant: "default",
       });
+      
+      // Invalidar caches específicos para atualizar todas as visualizações
       queryClient.invalidateQueries({ queryKey: ["/api/admin/posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      
+      // Invalidar cache específico da página de detalhes
+      if (result?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/posts", result.id] });
+      }
+      
+      // Invalidar cache por uniqueCode se disponível
+      if (result?.uniqueCode) {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/posts", undefined, result.uniqueCode] });
+      }
+      
+      // Invalidar cache de posts relacionados se houver groupId
+      if (result?.groupId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/posts/related", result.groupId] });
+      }
+      
       onOpenChange(false);
     },
     onError: (error: any) => {
