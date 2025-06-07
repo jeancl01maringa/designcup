@@ -210,6 +210,89 @@ const UserMenu = () => {
   );
 };
 
+// Novo componente para mobile header
+const MobileUserMenu = () => {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  if (!user) {
+    return (
+      <div className="flex md:hidden items-center gap-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={() => navigate("/auth")}
+        >
+          <LogIn className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+  
+  const isAdmin = Boolean(user.isAdmin);
+  
+  return (
+    <div className="flex md:hidden items-center gap-2">
+      {/* Admin Button for Mobile */}
+      {isAdmin && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10 px-2"
+          onClick={() => navigate("/admin")}
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </Button>
+      )}
+      
+      {/* Profile Photo Button for Mobile */}
+      <Button 
+        variant="ghost" 
+        size="sm"
+        className="flex items-center gap-1 p-1"
+        onClick={() => setIsDropdownOpen(true)}
+      >
+        <div className="rounded-full overflow-hidden w-8 h-8">
+          {user.profileImage ? (
+            <img 
+              src={user.profileImage} 
+              alt={user.username}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
+              <User className="h-4 w-4" />
+            </div>
+          )}
+        </div>
+      </Button>
+      
+      {/* Dropdown Menu for Mobile */}
+      <UserDropdownMenu 
+        isOpen={isDropdownOpen} 
+        onClose={() => setIsDropdownOpen(false)} 
+      />
+    </div>
+  );
+};
+
 const MobileMenu = () => {
   const [location, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
@@ -355,6 +438,7 @@ export default function Header() {
         <NavLinks />
         <div className="flex items-center space-x-3">
           <UserMenu />
+          <MobileUserMenu />
           <MobileMenuButton />
         </div>
       </div>
