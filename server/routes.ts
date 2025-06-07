@@ -4339,6 +4339,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Logo upload routes
+  app.post('/api/settings/logo', upload.single('logo'), async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'Nenhum arquivo enviado' });
+      }
+
+      const file = req.file;
+      
+      // Validar tipo de arquivo
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+      if (!validTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: 'Formato de arquivo inválido. Use PNG, JPG ou SVG.' });
+      }
+
+      // Validar tamanho (máximo 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        return res.status(400).json({ message: 'Arquivo muito grande. Máximo 2MB.' });
+      }
+
+      // Definir caminho e nome do arquivo
+      const logoPath = `/uploads/logos/logo_${Date.now()}.${file.mimetype.split('/')[1]}`;
+      const fullPath = path.join(process.cwd(), 'client', 'public', logoPath);
+
+      // Criar diretório se não existir
+      const logoDir = path.dirname(fullPath);
+      if (!fs.existsSync(logoDir)) {
+        fs.mkdirSync(logoDir, { recursive: true });
+      }
+
+      // Salvar arquivo
+      fs.writeFileSync(fullPath, file.buffer);
+
+      // Salvar no banco de dados
+      const setting = await storage.setSetting('logo_plataforma', logoPath, 'Logo personalizado da plataforma');
+      
+      res.json({
+        success: true,
+        message: 'Logo atualizado com sucesso',
+        logoPath,
+        setting
+      });
+
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      res.status(500).json({ message: 'Erro ao fazer upload do logo' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

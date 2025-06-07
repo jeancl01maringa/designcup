@@ -21,7 +21,7 @@ export default function LogoPage() {
   // Buscar o logo atual da plataforma
   const { data: currentLogo, isLoading } = useQuery({
     queryKey: ["/api/settings/logo_plataforma"],
-    queryFn: getQueryFn(),
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   // Mutation para salvar o novo logo
@@ -132,7 +132,7 @@ export default function LogoPage() {
     }
   };
 
-  const logoUrl = currentLogo?.value || "/generated-icon.png";
+  const logoUrl = (currentLogo as any)?.value || "/generated-icon.png";
 
   return (
     <AdminLayout>
@@ -235,7 +235,7 @@ export default function LogoPage() {
                 </div>
               )}
 
-              {currentLogo?.value && (
+              {(currentLogo as any)?.value && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="w-full">
