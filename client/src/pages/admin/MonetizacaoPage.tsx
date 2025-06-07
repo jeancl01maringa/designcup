@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { PageHeader } from "@/components/admin/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -88,17 +91,15 @@ export default function MonetizacaoPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard de Monetização</h1>
-          <p className="text-muted-foreground">
-            Acompanhe métricas financeiras e de crescimento da plataforma
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4">
+    <AdminLayout>
+      <Helmet>
+        <title>Dashboard de Monetização - Admin</title>
+      </Helmet>
+      
+      <PageHeader
+        title="Dashboard de Monetização"
+        description="Acompanhe métricas financeiras e de crescimento da plataforma"
+        actions={
           <Select value={periodo} onValueChange={setPeriodo}>
             <SelectTrigger className="w-[180px]">
               <SelectValue />
@@ -110,10 +111,11 @@ export default function MonetizacaoPage() {
               <SelectItem value="90">Últimos 90 dias</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      {/* Cards de Métricas Principais */}
+        }
+      />
+      
+      <div className="space-y-6">
+        {/* Cards de Métricas Principais */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -378,6 +380,7 @@ export default function MonetizacaoPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
