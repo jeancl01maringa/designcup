@@ -462,19 +462,19 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${
-                    user?.active ? 'bg-green-500' : 'bg-red-500'
+                    userData?.active ? 'bg-green-500' : 'bg-red-500'
                   }`}></div>
                   <div>
                     <h3 className="font-semibold">
-                      {user?.active ? 'Assinatura Ativa' : 'Assinatura Inativa'}
+                      {userData?.active ? 'Assinatura Ativa' : 'Assinatura Inativa'}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {user?.active ? 'Sua assinatura está funcionando normalmente' : 'Sua assinatura está expirada ou cancelada'}
+                      {userData?.active ? 'Sua assinatura está funcionando normalmente' : 'Sua assinatura está expirada ou cancelada'}
                     </p>
                   </div>
                 </div>
-                <Badge variant={user?.active ? "default" : "destructive"}>
-                  {user?.active ? '✅ Ativa' : '❌ Inativa'}
+                <Badge variant={userData?.active ? "default" : "destructive"}>
+                  {userData?.active ? '✅ Ativa' : '❌ Inativa'}
                 </Badge>
               </div>
             </CardContent>
@@ -494,13 +494,13 @@ export default function ProfilePage() {
                   <div>
                     <h3 className="font-bold text-lg">
                       {(() => {
-                        const planoId = typeof user?.plano_id === 'string' ? parseInt(user.plano_id, 10) : user?.plano_id;
+                        const planoId = typeof userData?.plano_id === 'string' ? parseInt(userData.plano_id, 10) : userData?.plano_id;
                         
                         if (!planoId || planoId === 1) {
                           return 'Plano Gratuito';
                         }
                         
-                        if (user?.tipo === 'premium') {
+                        if (userData?.tipo === 'premium') {
                           if (planoId === 6) return 'Plano Vitalício';
                           if (planoId === 2) return 'Plano Mensal';
                           if (planoId === 3) return 'Plano Anual';
@@ -511,12 +511,12 @@ export default function ProfilePage() {
                       })()}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {user?.tipo === 'premium' ? 'Acesso completo a todos os recursos premium' : 'Acesso básico à plataforma'}
+                      {userData?.tipo === 'premium' ? 'Acesso completo a todos os recursos premium' : 'Acesso básico à plataforma'}
                     </p>
                   </div>
                   <div className="text-right">
-                    <Badge variant={user?.tipo === 'premium' ? "default" : "secondary"} className="text-xs">
-                      {user?.tipo === 'premium' ? 'PREMIUM' : 'GRATUITO'}
+                    <Badge variant={userData?.tipo === 'premium' ? "default" : "secondary"} className="text-xs">
+                      {userData?.tipo === 'premium' ? 'PREMIUM' : 'GRATUITO'}
                     </Badge>
                   </div>
                 </div>
@@ -540,8 +540,8 @@ export default function ProfilePage() {
                     <h4 className="font-medium">Data de Início</h4>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {user?.createdAt ? 
-                      new Date(user.createdAt).toLocaleDateString('pt-BR', {
+                    {userData?.createdAt ? 
+                      new Date(userData.createdAt).toLocaleDateString('pt-BR', {
                         day: '2-digit',
                         month: '2-digit', 
                         year: 'numeric'
@@ -558,21 +558,21 @@ export default function ProfilePage() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {(() => {
-                      const planoId = typeof user?.plano_id === 'string' ? parseInt(user.plano_id, 10) : user?.plano_id;
+                      const planoId = typeof userData?.plano_id === 'string' ? parseInt(userData.plano_id, 10) : userData?.plano_id;
                       
                       if (planoId === 6) {
                         return 'Vitalício (sem expiração)';
                       }
                       
-                      if (user?.data_vencimento) {
-                        return new Date(user.data_vencimento).toLocaleDateString('pt-BR', {
+                      if (userData?.data_vencimento) {
+                        return new Date(userData.data_vencimento).toLocaleDateString('pt-BR', {
                           day: '2-digit',
                           month: '2-digit',
                           year: 'numeric'
                         });
                       }
                       
-                      if (user?.tipo === 'premium') {
+                      if (userData?.tipo === 'premium') {
                         return 'Não definida';
                       }
                       
