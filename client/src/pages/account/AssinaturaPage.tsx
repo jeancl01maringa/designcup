@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useSupportNumber } from "@/hooks/use-support-number";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface UserPlan {
 
 export default function AssinaturaPage() {
   const { user } = useAuth();
+  const { supportNumber, whatsappUrl } = useSupportNumber();
   const [activeTab, setActiveTab] = useState("status");
 
   // Type assertion for user data with subscription properties
@@ -225,14 +227,15 @@ export default function AssinaturaPage() {
                     </div>
                     <div>
                       <h4 className="font-medium text-green-800">Suporte via WhatsApp</h4>
-                      <p className="text-sm text-green-600">Dúvidas e perguntas</p>
+                      <p className="text-sm text-green-600">{supportNumber || "Carregando número..."}</p>
                     </div>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     className="border-green-300 text-green-700 hover:bg-green-100"
-                    onClick={() => window.open(`https://wa.me/5544999419907?text=Olá, preciso de ajuda com minha conta!`, '_blank')}
+                    disabled={!whatsappUrl}
+                    onClick={() => whatsappUrl && window.open(`${whatsappUrl}?text=Olá, preciso de ajuda com minha conta!`, '_blank')}
                   >
                     Entrar em contato
                   </Button>

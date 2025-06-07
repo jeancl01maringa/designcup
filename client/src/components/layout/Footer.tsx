@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, Twitter, Mail, Phone } from "lucide-react";
+import { useSupportNumber } from "@/hooks/use-support-number";
 
 const FooterLogo = () => (
   <div>
@@ -42,32 +43,50 @@ const Categories = () => (
   </div>
 );
 
-const Contact = () => (
-  <div>
-    <h3 className="text-[#1D1D1D] font-medium text-lg mb-4">Contato</h3>
-    <ul className="space-y-3">
-      <li className="flex items-center text-[#4B4B4B]">
-        <Mail className="h-5 w-5 mr-2 text-[#AA5E2F]" />
-        contato@designparaestetica.com.br
-      </li>
-      <li className="flex items-center text-[#4B4B4B]">
-        <Phone className="h-5 w-5 mr-2 text-[#AA5E2F]" />
-        (11) 9 8765-4321
-      </li>
-    </ul>
-    <div className="mt-4 flex space-x-4">
-      <a href="#" className="text-[#AA5E2F] hover:text-[#95512A] transition duration-300">
-        <Instagram className="h-6 w-6" />
-      </a>
-      <a href="#" className="text-[#AA5E2F] hover:text-[#95512A] transition duration-300">
-        <Twitter className="h-6 w-6" />
-      </a>
-      <a href="#" className="text-[#AA5E2F] hover:text-[#95512A] transition duration-300">
-        <Facebook className="h-6 w-6" />
-      </a>
+const Contact = () => {
+  const { supportNumber, whatsappUrl } = useSupportNumber();
+  
+  return (
+    <div>
+      <h3 className="text-[#1D1D1D] font-medium text-lg mb-4">Contato</h3>
+      <ul className="space-y-3">
+        <li className="flex items-center text-[#4B4B4B]">
+          <Mail className="h-5 w-5 mr-2 text-[#AA5E2F]" />
+          contato@designparaestetica.com.br
+        </li>
+        <li className="flex items-center text-[#4B4B4B]">
+          {whatsappUrl ? (
+            <a 
+              href={whatsappUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center hover:text-[#AA5E2F] transition-colors"
+            >
+              <Phone className="h-5 w-5 mr-2 text-[#AA5E2F]" />
+              {supportNumber || "Carregando..."}
+            </a>
+          ) : (
+            <>
+              <Phone className="h-5 w-5 mr-2 text-[#AA5E2F]" />
+              {supportNumber || "Carregando..."}
+            </>
+          )}
+        </li>
+      </ul>
+      <div className="mt-4 flex space-x-4">
+        <a href="#" className="text-[#AA5E2F] hover:text-[#95512A] transition duration-300">
+          <Instagram className="h-6 w-6" />
+        </a>
+        <a href="#" className="text-[#AA5E2F] hover:text-[#95512A] transition duration-300">
+          <Twitter className="h-6 w-6" />
+        </a>
+        <a href="#" className="text-[#AA5E2F] hover:text-[#95512A] transition duration-300">
+          <Facebook className="h-6 w-6" />
+        </a>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const FooterBottom = () => (
   <div className="border-t border-[#F5E9DE] mt-10 pt-8">
