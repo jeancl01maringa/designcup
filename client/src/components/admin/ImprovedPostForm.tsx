@@ -272,14 +272,15 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       let allFormats: PostFormat[] = [];
       
       // Se tem grupo, carregar dados de todos os posts do grupo
-      if (initialData.groupId && groupPosts.length > 0) {
-        console.log("EDIT MODE: Carregando dados do grupo", initialData.groupId, "com", groupPosts.length, "posts");
+      if (initialData.groupId && relatedGroupPosts.length > 0) {
+        console.log("EDIT MODE: Carregando dados do grupo", initialData.groupId, "com", relatedGroupPosts.length, "posts");
         
-        const { formatFiles: groupFormatFiles, allFormats: groupFormats } = loadFormatDataFromPosts(groupPosts);
+        const { formatFiles: groupFormatFiles, allFormats: groupFormats } = loadFormatDataFromPosts(relatedGroupPosts);
         formatFiles = groupFormatFiles;
         allFormats = groupFormats;
         
         console.log("EDIT MODE: Formatos carregados do grupo:", allFormats);
+        console.log("EDIT MODE: FormatFiles do grupo:", Object.keys(formatFiles).filter(key => formatFiles[key].imagePreview));
       } else {
         // Fallback para post individual
         allFormats = (initialData.formats as PostFormat[]) || [];
