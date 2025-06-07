@@ -35,6 +35,7 @@ import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
+import { usePostActions } from "@/hooks/use-post-actions";
 
 export default function ArtDetailPage() {
   const [location, setLocation] = useLocation();
@@ -72,9 +73,10 @@ export default function ArtDetailPage() {
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   
   const [isFollowing, setIsFollowing] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+
+  // Hook para ações de curtir e salvar
+  const postActions = usePostActions(postId);
   
   // Estado para controlar qual formato está sendo exibido
   const [currentFormatIndex, setCurrentFormatIndex] = useState(0);
@@ -404,9 +406,7 @@ export default function ArtDetailPage() {
   // Determinar se é premium (verificar todos os possíveis campos)
   const isPremium = post?.licenseType === 'premium' || post?.is_pro || post?.isPro;
   
-  // Handlers para ações
-  const handleFavorite = () => setIsFavorite(!isFavorite);
-  const handleSave = () => setIsSaved(!isSaved);
+  // Handlers para ações - usando o hook centralizado
   
   const handleFollow = async () => {
     if (!user || !author || followLoading) return;
@@ -923,22 +923,28 @@ export default function ArtDetailPage() {
           {/* Linha de ações */}
           <div className="flex items-center justify-center gap-3 pt-5">
             <Button 
-              onClick={handleFavorite}
+              onClick={postActions.handleLike}
               variant="outline"
               size="sm"
-              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+              disabled={postActions.isLiking}
+              className={`border-gray-300 flex items-center gap-1.5 ${
+                postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-gray-700"
+              }`}
             >
-              <Heart size={16} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
+              <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
               <span>Favoritar</span>
             </Button>
             
             <Button 
-              onClick={handleSave}
+              onClick={postActions.handleSave}
               variant="outline"
               size="sm"
-              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+              disabled={postActions.isSaving}
+              className={`border-gray-300 flex items-center gap-1.5 ${
+                postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-gray-700"
+              }`}
             >
-              <Bookmark size={16} className={isSaved ? "fill-blue-500 text-blue-500" : ""} />
+              <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
               <span>Salvar</span>
             </Button>
             
