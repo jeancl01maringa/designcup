@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useSupportNumber } from "@/hooks/use-support-number";
+import { usePlatformLogo } from "@/hooks/use-platform-logo";
 import { 
   User, 
   LogOut, 
@@ -22,19 +23,47 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const Logo = () => (
-  <div className="flex items-center">
-    <Link href="/" className="flex items-center">
-      <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-        <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
-      </svg>
-      <span className="ml-2 font-bold text-lg md:text-xl">
-        <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
-      </span>
-    </Link>
-  </div>
-);
+const Logo = () => {
+  const { logoUrl, hasCustomLogo } = usePlatformLogo();
+  
+  return (
+    <div className="flex items-center">
+      <Link href="/" className="flex items-center">
+        {hasCustomLogo ? (
+          <img 
+            src={logoUrl} 
+            alt="Logo da Plataforma" 
+            className="h-8 w-auto max-w-[200px] object-contain"
+            onError={(e) => {
+              // Fallback para o logo padrão em caso de erro
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+        ) : (
+          <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+            <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
+          </svg>
+        )}
+        
+        {/* Logo padrão como fallback, oculto quando há logo personalizado */}
+        <div className={hasCustomLogo ? 'hidden' : 'flex items-center'}>
+          {!hasCustomLogo && (
+            <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
+            </svg>
+          )}
+          <span className="ml-2 font-bold text-lg md:text-xl">
+            <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
+          </span>
+        </div>
+      </Link>
+    </div>
+  );
+};
 
 const NavLinks = () => {
   const [location] = useLocation();
