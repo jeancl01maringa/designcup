@@ -1,23 +1,43 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, Twitter, Mail, Phone } from "lucide-react";
 import { useSupportNumber } from "@/hooks/use-support-number";
+import { usePlatformLogo } from "@/hooks/use-platform-logo";
 
-const FooterLogo = () => (
-  <div>
-    <div className="flex items-center">
-      <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-        <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
-      </svg>
-      <span className="ml-2 font-bold text-lg">
-        <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
-      </span>
+const FooterLogo = () => {
+  const { logoUrl, hasCustomLogo } = usePlatformLogo();
+  
+  return (
+    <div>
+      <div className="flex items-center">
+        {hasCustomLogo ? (
+          <img 
+            src={logoUrl} 
+            alt="Logo da Plataforma" 
+            className="h-8 w-auto max-w-[150px] object-contain"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+        ) : (
+          <>
+            <svg className="h-7 w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
+            </svg>
+            <span className="ml-2 font-bold text-lg">
+              <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
+            </span>
+          </>
+        )}
+      </div>
+      <p className="mt-4 text-[#4B4B4B] text-sm">
+        A melhor plataforma de Artes para Estética do Brasil. Criando artes 100% editáveis para profissionais da beleza.
+      </p>
     </div>
-    <p className="mt-4 text-[#4B4B4B] text-sm">
-      A melhor plataforma de Artes para Estética do Brasil. Criando artes 100% editáveis para profissionais da beleza.
-    </p>
-  </div>
-);
+  );
+};
 
 const QuickLinks = () => (
   <div>

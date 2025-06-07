@@ -9,6 +9,7 @@ interface ProfileSidebarProps {
 
 export function ProfileSidebar({ className }: ProfileSidebarProps) {
   const [location] = useLocation();
+  const { logoUrl, hasCustomLogo } = usePlatformLogo();
 
   const menuItems = [
     {
@@ -119,7 +120,22 @@ export function ProfileSidebar({ className }: ProfileSidebarProps) {
       {/* Footer do sidebar */}
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
         <div className="text-xs text-gray-500 text-center">
-          <p>Design para Estética</p>
+          <div className="flex items-center justify-center mb-2">
+            {hasCustomLogo ? (
+              <img 
+                src={logoUrl} 
+                alt="Logo da Plataforma" 
+                className="h-6 w-auto max-w-[80px] object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : (
+              <span className="font-medium">Design para Estética</span>
+            )}
+          </div>
           <p className="mt-1">© 2025 - Todos os direitos reservados</p>
         </div>
       </div>
