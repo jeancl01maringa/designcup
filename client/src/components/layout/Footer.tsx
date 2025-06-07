@@ -4,17 +4,17 @@ import { useSupportNumber } from "@/hooks/use-support-number";
 import { useSocialMedia } from "@/hooks/use-social-media";
 import { usePlatformLogo } from "@/hooks/use-platform-logo";
 
-const FooterLogo = () => {
+const FooterHeader = () => {
   const { logoUrl, hasCustomLogo } = usePlatformLogo();
   
   return (
     <div className="mb-8">
-      <div className="flex items-center mb-4">
+      <div className="flex items-center mb-3">
         {hasCustomLogo ? (
           <img 
             src={logoUrl} 
             alt="Logo da Plataforma" 
-            className="h-8 w-auto max-w-[200px] object-contain"
+            className="h-6 w-auto max-w-[150px] object-contain"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -23,11 +23,11 @@ const FooterLogo = () => {
           />
         ) : (
           <>
-            <svg className="h-8 w-8 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-6 w-6 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
               <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
             </svg>
-            <span className="ml-3 font-bold text-xl">
+            <span className="ml-2 font-bold text-lg">
               <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
             </span>
           </>
@@ -150,17 +150,19 @@ const FooterBottom = () => {
   );
 };
 
+const LinksSection = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+    <LinksUteis />
+    <Politicas />
+  </div>
+);
+
 export default function Footer() {
   return (
     <footer className="bg-white py-12 border-t border-gray-100">
       <div className="container mx-auto px-4 max-w-6xl">
-        <FooterLogo />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <LinksUteis />
-          <Politicas />
-        </div>
-        
+        <FooterHeader />
+        <LinksSection />
         <FooterBottom />
       </div>
     </footer>
