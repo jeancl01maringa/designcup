@@ -539,7 +539,7 @@ export default function PopupsPage() {
             }}
           >
             {formData.imageUrl && (
-              <img src={formData.imageUrl} alt="Popup" className="w-full h-20 object-cover rounded mb-3" />
+              <img src={formData.imageUrl} alt="Popup" className="w-full h-auto max-h-24 object-contain rounded mb-3" />
             )}
             <h4 className="font-bold text-lg mb-2">{formData.title || 'Título do Popup'}</h4>
             <p className="text-sm mb-3">{formData.content || 'Conteúdo do popup aparecerá aqui.'}</p>
@@ -794,7 +794,7 @@ export default function PopupsPage() {
                         <img 
                           src={formData.imageUrl} 
                           alt="Preview" 
-                          className="w-full h-24 object-cover rounded mb-3"
+                          className="w-full h-auto max-h-32 object-contain rounded mb-3"
                         />
                       )}
                       <h3 className="text-lg font-bold mb-2">

@@ -18,6 +18,7 @@ import Footer from "@/components/layout/Footer";
 import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import PopupDisplay from "@/components/PopupDisplay";
 
 // Página pública de planos
 import PlansPage from "@/pages/PlansPage";

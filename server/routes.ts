@@ -4126,6 +4126,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/popups/active', async (req, res) => {
+    try {
+      const popups = await storage.getActivePopups();
+      res.json(popups);
+    } catch (error: any) {
+      console.error('Error fetching active popups:', error);
+      res.status(500).json({ message: 'Erro ao buscar popups ativos' });
+    }
+  });
+
   app.get('/api/popups/:id', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !req.user?.isAdmin) {

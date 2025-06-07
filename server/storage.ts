@@ -100,6 +100,7 @@ export interface IStorage {
   
   // Popup methods (for marketing campaigns)
   getPopups(): Promise<Popup[]>;
+  getActivePopups(): Promise<Popup[]>;
   getPopupById(id: number): Promise<Popup | undefined>;
   createPopup(popup: InsertPopup): Promise<Popup>;
   updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup>;
@@ -3517,6 +3518,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Implementação dos métodos de gerenciamento de popups
+
+  async getActivePopups(): Promise<Popup[]> {
+    try {
+      console.log("DATABASE getActivePopups - Buscando popups ativos");
+      
+      // Tentar primeiro com PostgreSQL direto
+      try {
+        const result = await pool.query(`
+          SELECT * FROM popups 
+          WHERE is_active = true 
+          AND (start_date IS NULL OR start_date <= NOW())
+          AND (end_date IS NULL OR end_date >= NOW())
+          ORDER BY created_at DESC
+        `);
+        
+        return result.rows.map(popup => ({
+          id: popup.id,
+          title: popup.title,
+          content: popup.content,
+          imageUrl: popup.image_url,
+          buttonText: popup.button_text,
+          buttonUrl: popup.button_url,
+          backgroundColor: popup.background_color,
+          textColor: popup.text_color,
+          buttonColor: popup.button_color,
+          buttonTextColor: popup.button_text_color,
+          borderRadius: popup.border_radius,
+          buttonWidth: popup.button_width,
+          animation: popup.animation,
+          position: popup.position,
+          size: popup.size,
+          delaySeconds: popup.delay_seconds,
+          targetPages: popup.target_pages,
+          targetUserTypes: popup.target_user_types,
+          startDate: popup.start_date ? new Date(popup.start_date) : null,
+          endDate: popup.end_date ? new Date(popup.end_date) : null,
+          frequency: popup.frequency,
+          isActive: popup.is_active,
+          createdAt: new Date(popup.created_at),
+          updatedAt: new Date(popup.updated_at)
+        }));
+      } catch (pgError) {
+        console.error("DATABASE getActivePopups - Erro no PostgreSQL:", pgError);
+        return [];
+      }
+    } catch (error) {
+      console.error("DATABASE getActivePopups - Exceção:", error);
+      return [];
+    }
+  }
 
   async getPopups(): Promise<Popup[]> {
     try {
