@@ -37,6 +37,7 @@ interface PostFormProps {
   onOpenChange: (open: boolean) => void;
   initialData?: Post;
   isEdit?: boolean;
+  groupPosts?: Post[];
 }
 
 // Tipo para formato de postagem que vem do banco de dados
@@ -146,7 +147,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
   });
 
   // Buscar posts do mesmo grupo quando estiver editando
-  const { data: groupPosts = [] } = useQuery<Post[]>({
+  const { data: relatedGroupPosts = [] } = useQuery<Post[]>({
     queryKey: ["/api/admin/posts/related", initialData?.groupId],
     queryFn: async () => {
       if (!initialData?.groupId) return [];
