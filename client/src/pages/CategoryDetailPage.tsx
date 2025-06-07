@@ -1,10 +1,7 @@
-import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import ArtworkGrid from "@/components/home/ArtworkGrid";
 
 interface Category {
@@ -16,8 +13,6 @@ interface Category {
 
 export default function CategoryDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [filter, setFilter] = useState("todos");
-  const [sortBy, setSortBy] = useState("recentes");
 
   // Buscar dados da categoria
   const { data: category, isLoading: categoryLoading } = useQuery<Category>({
@@ -28,20 +23,6 @@ export default function CategoryDetailPage() {
       return response.json();
     }
   });
-
-  // Construir parâmetros para filtrar posts por categoria
-  const buildFilterParams = () => {
-    const params = new URLSearchParams();
-    if (category?.id) {
-      params.append('category', category.id.toString());
-    }
-    if (filter === "premium") {
-      params.append('premium', 'true');
-    } else if (filter === "gratis") {
-      params.append('premium', 'false');
-    }
-    return params.toString();
-  };
 
   if (categoryLoading) {
     return (
@@ -100,51 +81,9 @@ export default function CategoryDetailPage() {
             <p className="text-lg text-gray-600 mb-4">{category.description}</p>
           </div>
 
-          {/* Filtros */}
-          <div className="mb-8 bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex flex-wrap gap-4 items-center">
-              {/* Filtro Principal */}
-              <div className="flex space-x-2">
-                <Button
-                  variant={filter === "todos" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilter("todos")}
-                >
-                  Todos
-                </Button>
-                <Button
-                  variant={filter === "premium" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilter("premium")}
-                >
-                  Premium
-                </Button>
-                <Button
-                  variant={filter === "gratis" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilter("gratis")}
-                >
-                  Grátis
-                </Button>
-              </div>
-
-              {/* Ordenação */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recentes">Recentes</SelectItem>
-                  <SelectItem value="populares">Populares</SelectItem>
-                  <SelectItem value="curtidas">Mais Curtidas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           {/* Grid de Artes - Usando o mesmo componente da home */}
           <ArtworkGrid 
-            category={category.id.toString()}
+            category={category.slug}
           />
         </div>
       </div>
