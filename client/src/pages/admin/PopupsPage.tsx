@@ -123,11 +123,28 @@ export default function PopupsPage() {
     }
   };
 
+  const [showPreview, setShowPreview] = useState(false);
+
+  const getAnimationClass = () => {
+    switch (formData.animation) {
+      case 'slide':
+        return 'animate-in slide-in-from-bottom-4';
+      case 'zoom':
+        return 'animate-in zoom-in-95';
+      case 'bounce':
+        return 'animate-in bounce-in';
+      default:
+        return 'animate-in fade-in';
+    }
+  };
+
   const renderPopupPreview = () => {
+    if (!showPreview) return null;
+
     const sizeClasses = {
       small: 'max-w-sm',
       medium: 'max-w-md',
-      large: 'max-w-lg'
+      large: 'max-w-2xl'
     };
 
     const positionClasses = {
@@ -139,66 +156,73 @@ export default function PopupsPage() {
     };
 
     return (
-      <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex ${positionClasses[formData.position]} z-50`}>
+      <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex ${positionClasses[formData.position]} z-[60] p-4`}>
         <div 
-          className={`${sizeClasses[formData.size]} w-full mx-4 p-6 shadow-2xl animate-in`}
+          className={`${sizeClasses[formData.size]} w-full relative bg-white shadow-2xl ${getAnimationClass()}`}
           style={{
             backgroundColor: formData.backgroundColor,
             color: formData.textColor,
             borderRadius: `${formData.borderRadius}px`,
-            animationDuration: '300ms'
+            animationDuration: '500ms'
           }}
         >
           {/* Close button */}
-          <div className="flex justify-end mb-4">
-            <button className="text-gray-400 hover:text-gray-600">
-              <X className="h-4 w-4" />
-            </button>
+          <button 
+            onClick={() => setShowPreview(false)}
+            className="absolute top-4 right-4 p-1 rounded-full bg-black/10 hover:bg-black/20 transition-colors z-10"
+            style={{ color: formData.textColor }}
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="p-6">
+            {/* Image */}
+            {formData.imageUrl && (
+              <div className="mb-4">
+                <img 
+                  src={formData.imageUrl} 
+                  alt="Popup" 
+                  className="w-full h-auto rounded-lg object-cover"
+                  style={{ 
+                    maxHeight: '300px',
+                    borderRadius: `${Math.min(formData.borderRadius, 12)}px`
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Title */}
+            {formData.title && (
+              <h3 className="text-xl font-bold mb-3 text-center">
+                {formData.title}
+              </h3>
+            )}
+
+            {/* Content */}
+            {formData.content && (
+              <p className="text-sm mb-6 text-center leading-relaxed">
+                {formData.content}
+              </p>
+            )}
+
+            {/* Button */}
+            {formData.buttonText && (
+              <div className="text-center">
+                <button
+                  className={`px-6 py-3 font-medium transition-all hover:scale-105 ${
+                    formData.buttonWidth === 'full' ? 'w-full' : 'inline-block'
+                  }`}
+                  style={{
+                    backgroundColor: formData.buttonColor,
+                    color: formData.buttonTextColor,
+                    borderRadius: `${formData.borderRadius}px`
+                  }}
+                >
+                  {formData.buttonText}
+                </button>
+              </div>
+            )}
           </div>
-
-          {/* Image */}
-          {formData.imageUrl && (
-            <div className="mb-4 text-center">
-              <img 
-                src={formData.imageUrl} 
-                alt="Popup" 
-                className="max-w-full h-auto rounded-md mx-auto"
-                style={{ maxHeight: '200px' }}
-              />
-            </div>
-          )}
-
-          {/* Title */}
-          {formData.title && (
-            <h3 className="text-xl font-bold mb-3 text-center">
-              {formData.title}
-            </h3>
-          )}
-
-          {/* Content */}
-          {formData.content && (
-            <p className="text-sm mb-4 text-center leading-relaxed">
-              {formData.content}
-            </p>
-          )}
-
-          {/* Button */}
-          {formData.buttonText && (
-            <div className="text-center">
-              <button
-                className={`px-6 py-2 rounded-md font-medium transition-colors ${
-                  formData.buttonWidth === 'full' ? 'w-full' : 'inline-block'
-                }`}
-                style={{
-                  backgroundColor: formData.buttonColor,
-                  color: formData.buttonTextColor,
-                  borderRadius: `${Math.min(formData.borderRadius, 8)}px`
-                }}
-              >
-                {formData.buttonText}
-              </button>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -233,9 +257,10 @@ export default function PopupsPage() {
 
       {/* Modal de criação/edição */}
       {isCreating && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
               <h2 className="text-xl font-bold">Criar Novo Popup</h2>
               <Button
                 variant="ghost"
@@ -246,11 +271,12 @@ export default function PopupsPage() {
               </Button>
             </div>
 
-            <div className="flex h-[calc(90vh-120px)]">
+            {/* Content Area */}
+            <div className="flex flex-1 min-h-0">
               {/* Form Section */}
-              <div className="flex-1 overflow-y-auto">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-                  <TabsList className="grid w-full grid-cols-4 m-4">
+              <div className="flex-1 flex flex-col min-h-0">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+                  <TabsList className="grid w-full grid-cols-4 m-4 flex-shrink-0">
                     <TabsTrigger value="content" className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
                       Conteúdo
@@ -269,72 +295,74 @@ export default function PopupsPage() {
                     </TabsTrigger>
                   </TabsList>
 
-                  <div className="p-6">
-                    {/* Aba Conteúdo */}
-                    <TabsContent value="content" className="space-y-6 mt-0">
-                      <div>
-                        <Label htmlFor="title">Título do Popup (opcional)</Label>
-                        <Input
-                          id="title"
-                          value={formData.title}
-                          onChange={(e) => handleInputChange('title', e.target.value)}
-                          placeholder="Ex: Oferta Especial!"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="content">Conteúdo do Popup (opcional)</Label>
-                        <Textarea
-                          id="content"
-                          value={formData.content}
-                          onChange={(e) => handleInputChange('content', e.target.value)}
-                          placeholder="Descreva sua oferta ou mensagem..."
-                          rows={4}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="image">Imagem (PNG, JPG, WebP - máx. 10MB)</Label>
-                        <div className="mt-2">
-                          <input
-                            type="file"
-                            id="image"
-                            accept="image/png,image/jpeg,image/webp"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                          <Button
-                            variant="outline"
-                            onClick={() => document.getElementById('image')?.click()}
-                            className="w-full"
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            {imageFile ? imageFile.name : 'Selecionar Imagem'}
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
+                  {/* Scrollable content area */}
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="p-6">
+                      {/* Aba Conteúdo */}
+                      <TabsContent value="content" className="space-y-6 mt-0">
                         <div>
-                          <Label htmlFor="buttonText">Texto do Botão</Label>
+                          <Label htmlFor="title">Título do Popup (opcional)</Label>
                           <Input
-                            id="buttonText"
-                            value={formData.buttonText}
-                            onChange={(e) => handleInputChange('buttonText', e.target.value)}
-                            placeholder="Ex: Assinar Agora"
+                            id="title"
+                            value={formData.title}
+                            onChange={(e) => handleInputChange('title', e.target.value)}
+                            placeholder="Ex: Oferta Especial!"
                           />
                         </div>
+
                         <div>
-                          <Label htmlFor="buttonUrl">URL do Botão</Label>
-                          <Input
-                            id="buttonUrl"
-                            value={formData.buttonUrl}
-                            onChange={(e) => handleInputChange('buttonUrl', e.target.value)}
-                            placeholder="https://..."
+                          <Label htmlFor="content">Conteúdo do Popup (opcional)</Label>
+                          <Textarea
+                            id="content"
+                            value={formData.content}
+                            onChange={(e) => handleInputChange('content', e.target.value)}
+                            placeholder="Descreva sua oferta ou mensagem..."
+                            rows={4}
                           />
                         </div>
-                      </div>
-                    </TabsContent>
+
+                        <div>
+                          <Label htmlFor="image">Imagem (PNG, JPG, WebP - máx. 10MB)</Label>
+                          <div className="mt-2">
+                            <input
+                              type="file"
+                              id="image"
+                              accept="image/png,image/jpeg,image/webp"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                            <Button
+                              variant="outline"
+                              onClick={() => document.getElementById('image')?.click()}
+                              className="w-full"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              {imageFile ? imageFile.name : 'Selecionar Imagem'}
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="buttonText">Texto do Botão</Label>
+                            <Input
+                              id="buttonText"
+                              value={formData.buttonText}
+                              onChange={(e) => handleInputChange('buttonText', e.target.value)}
+                              placeholder="Ex: Assinar Agora"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="buttonUrl">URL do Botão</Label>
+                            <Input
+                              id="buttonUrl"
+                              value={formData.buttonUrl}
+                              onChange={(e) => handleInputChange('buttonUrl', e.target.value)}
+                              placeholder="https://..."
+                            />
+                          </div>
+                        </div>
+                      </TabsContent>
 
                     {/* Aba Aparência */}
                     <TabsContent value="appearance" className="space-y-6 mt-0">
@@ -630,7 +658,8 @@ export default function PopupsPage() {
                           </div>
                         )}
                       </div>
-                    </TabsContent>
+                      </TabsContent>
+                    </div>
                   </div>
                 </Tabs>
               </div>
