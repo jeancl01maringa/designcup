@@ -857,7 +857,7 @@ export class DatabaseStorage implements IStorage {
           id: item.id,
           name: item.name,
           description: item.description,
-          slug: item.slug || slugify(item.name), // Gera slug se não existir
+          slug: item.slug || slugify(item.name),
           imageUrl: item.image_url,
           isActive: isActive,
           createdAt: new Date(item.created_at)
