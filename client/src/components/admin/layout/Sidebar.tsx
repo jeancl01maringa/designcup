@@ -19,6 +19,7 @@ import {
   ExternalLink,
   Hash,
   Tag,
+  DollarSign,
   Megaphone,
   Zap,
   ChevronDown,
