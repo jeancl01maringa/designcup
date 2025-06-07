@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Calendar, Shield, Key, CreditCard, Download, Heart, Settings, Camera, Upload } from "lucide-react";
+import { User, Mail, Phone, Calendar, Shield, Key, CreditCard, Download, Heart, Settings, Camera, Upload, Clock, MessageSquare } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +22,9 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("perfil");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Type assertion for user data with subscription properties
+  const userData = user as any;
 
   // Buscar dados do perfil
   const { data: profileData = {}, isLoading: profileLoading } = useQuery({
@@ -447,35 +450,169 @@ export default function ProfilePage() {
 
         {/* Aba Assinatura */}
         <TabsContent value="assinatura" className="space-y-6">
+          {/* Status da Assinatura */}
           <Card>
             <CardHeader>
-              <CardTitle>Plano Atual</CardTitle>
+              <CardTitle>Status da Assinatura</CardTitle>
               <CardDescription>
-                Informações sobre sua assinatura e benefícios.
+                Informações atuais sobre sua conta e plano ativo.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-semibold">Plano Free</h3>
-                  <p className="text-sm text-muted-foreground">Acesso básico à plataforma</p>
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    user?.active ? 'bg-green-500' : 'bg-red-500'
+                  }`}></div>
+                  <div>
+                    <h3 className="font-semibold">
+                      {user?.active ? 'Assinatura Ativa' : 'Assinatura Inativa'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {user?.active ? 'Sua assinatura está funcionando normalmente' : 'Sua assinatura está expirada ou cancelada'}
+                    </p>
+                  </div>
                 </div>
-                <Badge variant="secondary">Gratuito</Badge>
+                <Badge variant={user?.active ? "default" : "destructive"}>
+                  {user?.active ? '✅ Ativa' : '❌ Inativa'}
+                </Badge>
               </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">Benefícios inclusos:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Acesso a templates básicos</li>
-                  <li>• Download em baixa resolução</li>
-                  <li>• Suporte por email</li>
-                </ul>
-              </div>
+            </CardContent>
+          </Card>
 
-              <Button className="w-full">
-                <CreditCard className="h-4 w-4 mr-2" />
-                Fazer Upgrade
-              </Button>
+          {/* Plano Atual */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Plano Atual</CardTitle>
+              <CardDescription>
+                Detalhes do seu plano de assinatura e benefícios inclusos.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-purple-50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-lg">
+                      {(() => {
+                        const planoId = typeof user?.plano_id === 'string' ? parseInt(user.plano_id, 10) : user?.plano_id;
+                        
+                        if (!planoId || planoId === 1) {
+                          return 'Plano Gratuito';
+                        }
+                        
+                        if (user?.tipo === 'premium') {
+                          if (planoId === 6) return 'Plano Vitalício';
+                          if (planoId === 2) return 'Plano Mensal';
+                          if (planoId === 3) return 'Plano Anual';
+                          return 'Plano Premium';
+                        }
+                        
+                        return 'Plano Gratuito';
+                      })()}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {user?.tipo === 'premium' ? 'Acesso completo a todos os recursos premium' : 'Acesso básico à plataforma'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant={user?.tipo === 'premium' ? "default" : "secondary"} className="text-xs">
+                      {user?.tipo === 'premium' ? 'PREMIUM' : 'GRATUITO'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Datas Importantes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Datas Importantes</CardTitle>
+              <CardDescription>
+                Informações sobre início e vencimento da sua assinatura.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="h-4 w-4 text-blue-500" />
+                    <h4 className="font-medium">Data de Início</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {user?.createdAt ? 
+                      new Date(user.createdAt).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit', 
+                        year: 'numeric'
+                      }) : 
+                      'Não disponível'
+                    }
+                  </p>
+                </div>
+                
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-orange-500" />
+                    <h4 className="font-medium">Data de Expiração</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {(() => {
+                      const planoId = typeof user?.plano_id === 'string' ? parseInt(user.plano_id, 10) : user?.plano_id;
+                      
+                      if (planoId === 6) {
+                        return 'Vitalício (sem expiração)';
+                      }
+                      
+                      if (user?.data_vencimento) {
+                        return new Date(user.data_vencimento).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        });
+                      }
+                      
+                      if (user?.tipo === 'premium') {
+                        return 'Não definida';
+                      }
+                      
+                      return 'Não aplicável';
+                    })()}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Suporte */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Suporte ao Cliente</CardTitle>
+              <CardDescription>
+                Precisa de ajuda? Entre em contato conosco através do WhatsApp.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <MessageSquare className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-green-800">Suporte via WhatsApp</h4>
+                    <p className="text-sm text-green-600">Atendimento rápido e personalizado</p>
+                  </div>
+                </div>
+                <a 
+                  href="https://wa.me/5544999419907" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Contatar Suporte
+                </a>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
