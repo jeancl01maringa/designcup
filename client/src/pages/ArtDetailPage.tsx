@@ -76,6 +76,9 @@ export default function ArtDetailPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   
+  // Estado para controlar qual formato está sendo exibido
+  const [currentFormatIndex, setCurrentFormatIndex] = useState(0);
+  
   // Garantir que a página sempre inicie no topo
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -199,6 +202,15 @@ export default function ArtDetailPage() {
     retry: 2
   });
 
+  // Calcular posts disponíveis do grupo
+  const availablePosts = relatedPosts.length > 0 ? relatedPosts : [post].filter(Boolean);
+  const currentPost = availablePosts[currentFormatIndex] || post;
+  
+  // Reset index quando mudar de post
+  useEffect(() => {
+    setCurrentFormatIndex(0);
+  }, [postId]);
+
   // Buscar quantidade de posts do autor
   const { data: authorStats } = useQuery({
     queryKey: ['/api/admin/users', post?.user_id || post?.userId, 'stats'],
@@ -273,7 +285,7 @@ export default function ArtDetailPage() {
   }, [post, relatedPosts, postId]);
 
   // Extrair formatos do post a partir dos dados gravados no banco (fallback para compatibilidade)
-  const availableFormats = React.useMemo(() => {
+  const extractedFormats = React.useMemo(() => {
     // Verificar primeiro formato diretamente no post
     if (post?.formato) {
       return [post.formato];

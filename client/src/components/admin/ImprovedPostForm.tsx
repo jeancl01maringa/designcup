@@ -187,6 +187,29 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     posts.forEach(post => {
       console.log("EDIT MODE: Processando post", post.id, "formato:", post.formato, "canvaUrl:", post.canvaUrl ? "SIM" : "NÃO");
       
+      // Para posts agrupados, usar o campo `formato` diretamente
+      if (post.formato) {
+        const formatName = post.formato as PostFormat;
+        
+        if (!allFormats.includes(formatName)) {
+          allFormats.push(formatName);
+        }
+        
+        // Carregar dados específicos deste formato
+        if (formatFiles[formatName]) {
+          formatFiles[formatName] = {
+            imageFile: null,
+            imagePreview: post.imageUrl || null,
+            links: post.canvaUrl ? [{ 
+              provider: 'Canva', 
+              url: post.canvaUrl, 
+              id: crypto.randomUUID() 
+            }] : []
+          };
+        }
+      }
+      
+      // Fallback: tentar processar formatData se existir
       if (post.formatData) {
         try {
           const formats = JSON.parse(post.formatData);
@@ -247,29 +270,40 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       let formatFiles = createDefaultFormatFiles();
       let allFormats: PostFormat[] = [];
       
-      // Usar dados do post atual
-      allFormats = (initialData.formats as PostFormat[]) || [];
-      
-      // Se não há formatos no post, tentar extrair do campo formato
-      if (allFormats.length === 0 && initialData.formato) {
-        allFormats = [initialData.formato as PostFormat];
-        console.log("EDIT MODE: Formato extraído do campo formato:", initialData.formato);
-      }
-      
-      // Se ainda não há formatos, usar "feed" como padrão
-      if (allFormats.length === 0) {
-        allFormats = ["feed"];
-        console.log("EDIT MODE: Usando formato padrão 'feed'");
-      }
-      
-      // Carregar imagem existente para TODOS os formatos (não só o primeiro)
-      if (initialData.imageUrl) {
-        allFormats.forEach(format => {
-          if (formatFiles[format]) {
-            formatFiles[format].imagePreview = initialData.imageUrl;
-            console.log("EDIT MODE: Imagem carregada para formato:", format, initialData.imageUrl);
-          }
-        });
+      // Se tem grupo, carregar dados de todos os posts do grupo
+      if (initialData.groupId && groupPosts.length > 0) {
+        console.log("EDIT MODE: Carregando dados do grupo", initialData.groupId, "com", groupPosts.length, "posts");
+        
+        const { formatFiles: groupFormatFiles, allFormats: groupFormats } = loadFormatDataFromPosts(groupPosts);
+        formatFiles = groupFormatFiles;
+        allFormats = groupFormats;
+        
+        console.log("EDIT MODE: Formatos carregados do grupo:", allFormats);
+      } else {
+        // Fallback para post individual
+        allFormats = (initialData.formats as PostFormat[]) || [];
+        
+        // Se não há formatos no post, tentar extrair do campo formato
+        if (allFormats.length === 0 && initialData.formato) {
+          allFormats = [initialData.formato as PostFormat];
+          console.log("EDIT MODE: Formato extraído do campo formato:", initialData.formato);
+        }
+        
+        // Se ainda não há formatos, usar "feed" como padrão
+        if (allFormats.length === 0) {
+          allFormats = ["feed"];
+          console.log("EDIT MODE: Usando formato padrão 'feed'");
+        }
+        
+        // Carregar imagem existente para TODOS os formatos (não só o primeiro)
+        if (initialData.imageUrl) {
+          allFormats.forEach(format => {
+            if (formatFiles[format]) {
+              formatFiles[format].imagePreview = initialData.imageUrl;
+              console.log("EDIT MODE: Imagem carregada para formato:", format, initialData.imageUrl);
+            }
+          });
+        }
       }
 
       const newFormData = {
