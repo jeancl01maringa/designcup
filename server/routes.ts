@@ -2906,18 +2906,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para buscar dados públicos de um usuário (para exibir perfil do autor)
   app.get('/api/admin/users/:id', async (req, res) => {
     try {
-      let userId = parseInt(req.params.id);
-      
-      // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
-      if (userId === 1) {
-        userId = 3;
-      }
+      const userId = parseInt(req.params.id);
       
       if (!userId || isNaN(userId)) {
         return res.status(400).json({ message: 'ID de usuário inválido' });
       }
       
-      console.log(`Buscando dados públicos do usuário #${userId} (mapeamento: ${req.params.id} -> ${userId})`);
+      console.log(`Buscando dados públicos do usuário admin #${userId}`);
       
       try {
         const result = await pool.query(`
@@ -2934,7 +2929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             COALESCE(active, true) as active,
             bio
           FROM users 
-          WHERE id = $1
+          WHERE id = $1 AND is_admin = true
         `, [userId]);
         
         if (result.rows && result.rows.length > 0) {
@@ -2942,7 +2937,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Remover informações sensíveis para exibição pública
           const publicUserData = {
-            id: parseInt(req.params.id), // Retorna o ID solicitado (1), não o real (3)
+            id: userData.id,
             username: userData.username,
             profileImage: userData.profileImage,
             createdAt: userData.createdAt,
@@ -2951,11 +2946,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             bio: userData.bio || "Bem-vindo ao nosso perfil oficial! Aqui você encontra\nconteúdos criativos que agregam valor aos seus projetos."
           };
           
-          console.log(`Dados públicos do usuário #${userId} encontrados:`, publicUserData.username);
+          console.log(`Dados públicos do usuário admin #${userId} encontrados:`, publicUserData.username);
           return res.json(publicUserData);
         } else {
-          console.log(`Usuário #${userId} não encontrado`);
-          return res.status(404).json({ message: 'Usuário não encontrado' });
+          console.log(`Usuário admin #${userId} não encontrado`);
+          return res.status(404).json({ message: 'Autor não encontrado' });
         }
       } catch (dbError: any) {
         console.error(`Erro ao buscar usuário #${userId}:`, dbError);
