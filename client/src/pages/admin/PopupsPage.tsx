@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Plus, 
   Upload, 
@@ -87,6 +90,32 @@ export default function PopupsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [activeTab, setActiveTab] = useState('content');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const createPopupMutation = useMutation({
+    mutationFn: async (popupData: any) => {
+      const response = await apiRequest('POST', '/api/popups', popupData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Popup criado com sucesso!",
+        description: "O popup foi salvo e está pronto para ser ativado.",
+      });
+      setFormData(initialFormData);
+      setImageFile(null);
+      setIsCreating(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/popups'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar popup",
+        description: error.message || "Ocorreu um erro ao salvar o popup.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleInputChange = (field: keyof PopupFormData, value: any) => {
     setFormData(prev => ({
@@ -121,6 +150,43 @@ export default function PopupsPage() {
         handleInputChange(field, currentValues.filter(v => v !== value));
       }
     }
+  };
+
+  const handleSavePopup = async () => {
+    if (!formData.title || !formData.content) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Título e conteúdo são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const popupData = {
+      title: formData.title,
+      content: formData.content,
+      imageUrl: formData.imageUrl,
+      buttonText: formData.buttonText,
+      buttonUrl: formData.buttonUrl,
+      backgroundColor: formData.backgroundColor,
+      textColor: formData.textColor,
+      buttonColor: formData.buttonColor,
+      buttonTextColor: formData.buttonTextColor,
+      borderRadius: formData.borderRadius,
+      buttonWidth: formData.buttonWidth,
+      animation: formData.animation,
+      position: formData.position,
+      size: formData.size,
+      delaySeconds: formData.delaySeconds,
+      targetPages: formData.targetPages,
+      targetUserTypes: formData.targetUserTypes,
+      startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+      endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+      frequency: formData.frequency,
+      isActive: formData.isActive
+    };
+
+    createPopupMutation.mutate(popupData);
   };
 
   const [showPreview, setShowPreview] = useState(false);
@@ -791,9 +857,12 @@ export default function PopupsPage() {
               >
                 Cancelar
               </Button>
-              <Button>
+              <Button 
+                onClick={handleSavePopup}
+                disabled={createPopupMutation.isPending}
+              >
                 <Save className="h-4 w-4 mr-2" />
-                Salvar Popup
+                {createPopupMutation.isPending ? 'Salvando...' : 'Salvar Popup'}
               </Button>
             </div>
           </div>
