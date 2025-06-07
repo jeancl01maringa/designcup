@@ -1139,16 +1139,33 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           <>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="border-b">
-                <TabsList className="p-0 h-auto bg-transparent border-b-0">
-                  {formData.formats.map((format) => (
-                    <TabsTrigger 
-                      key={format} 
-                      value={format} 
-                      className="py-2 px-4 rounded-none capitalize data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none"
-                    >
-                      {format}
-                    </TabsTrigger>
-                  ))}
+                <TabsList className="p-0 h-auto bg-transparent border-b-0 flex justify-center">
+                  {formData.formats.map((format) => {
+                    // Ícones de proporção para cada formato
+                    const getFormatIcon = (formatName: string) => {
+                      switch(formatName.toLowerCase()) {
+                        case 'cartaz':
+                          return <div className="w-4 h-6 bg-current rounded-sm mr-2" title="9:16 - Vertical" />;
+                        case 'stories':
+                          return <div className="w-3 h-6 bg-current rounded-sm mr-2" title="9:16 - Stories" />;
+                        case 'feed':
+                          return <div className="w-6 h-4 bg-current rounded-sm mr-2" title="16:9 - Horizontal" />;
+                        default:
+                          return <div className="w-5 h-5 bg-current rounded-sm mr-2" title="1:1 - Quadrado" />;
+                      }
+                    };
+                    
+                    return (
+                      <TabsTrigger 
+                        key={format} 
+                        value={format} 
+                        className="py-3 px-6 rounded-none capitalize data-[state=active]:border-b-2 data-[state=active]:border-[#1f4ed8] data-[state=active]:text-[#1f4ed8] data-[state=active]:shadow-none flex items-center"
+                      >
+                        {getFormatIcon(format)}
+                        {format}
+                      </TabsTrigger>
+                    );
+                  })}
                 </TabsList>
               </div>
               
@@ -1198,7 +1215,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                               <Button 
                                 variant="outline"
                                 onClick={() => document.getElementById(`file-${format}`)?.click()}
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:border-blue-300"
                               >
                                 <Upload className="h-4 w-4" />
                                 Selecionar Arquivo
@@ -1212,14 +1229,6 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                       <div>
                         <div className="flex justify-between items-center mb-2">
                           <h3 className="font-medium">Links da Arte</h3>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="text-primary flex items-center"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Adicionar Link
-                          </Button>
                         </div>
                         
                         <div className="space-y-4">
