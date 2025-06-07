@@ -3497,6 +3497,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoints para curtidas e salvos
+  app.post('/api/posts/:id/like', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const postId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'ID do post inválido' });
+      }
+
+      console.log(`Usuário ${userId} curtindo post ${postId}`);
+
+      // Verificar se já curtiu
+      const checkResult = await pool.query(`
+        SELECT id FROM post_likes 
+        WHERE user_id = $1 AND post_id = $2
+      `, [userId, postId]);
+
+      if (checkResult.rows && checkResult.rows.length > 0) {
+        // Já curtiu, remover curtida
+        await pool.query(`
+          DELETE FROM post_likes 
+          WHERE user_id = $1 AND post_id = $2
+        `, [userId, postId]);
+        
+        console.log(`Curtida removida: usuário ${userId}, post ${postId}`);
+        res.json({ liked: false });
+      } else {
+        // Não curtiu ainda, adicionar curtida
+        await pool.query(`
+          INSERT INTO post_likes (user_id, post_id, created_at)
+          VALUES ($1, $2, NOW())
+        `, [userId, postId]);
+        
+        console.log(`Curtida adicionada: usuário ${userId}, post ${postId}`);
+        res.json({ liked: true });
+      }
+    } catch (error: any) {
+      console.error('Error toggling like:', error);
+      res.status(500).json({ message: 'Erro ao curtir post' });
+    }
+  });
+
+  app.post('/api/posts/:id/save', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const postId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'ID do post inválido' });
+      }
+
+      console.log(`Usuário ${userId} salvando post ${postId}`);
+
+      // Verificar se já salvou
+      const checkResult = await pool.query(`
+        SELECT id FROM post_saves 
+        WHERE user_id = $1 AND post_id = $2
+      `, [userId, postId]);
+
+      if (checkResult.rows && checkResult.rows.length > 0) {
+        // Já salvou, remover
+        await pool.query(`
+          DELETE FROM post_saves 
+          WHERE user_id = $1 AND post_id = $2
+        `, [userId, postId]);
+        
+        console.log(`Post removido dos salvos: usuário ${userId}, post ${postId}`);
+        res.json({ saved: false });
+      } else {
+        // Não salvou ainda, adicionar
+        await pool.query(`
+          INSERT INTO post_saves (user_id, post_id, created_at)
+          VALUES ($1, $2, NOW())
+        `, [userId, postId]);
+        
+        console.log(`Post salvo: usuário ${userId}, post ${postId}`);
+        res.json({ saved: true });
+      }
+    } catch (error: any) {
+      console.error('Error toggling save:', error);
+      res.status(500).json({ message: 'Erro ao salvar post' });
+    }
+  });
+
+  // Buscar posts curtidos do usuário
+  app.get('/api/user/liked-posts', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const userId = req.user!.id;
+      console.log(`Buscando posts curtidos do usuário ${userId}`);
+
+      const result = await pool.query(`
+        SELECT p.*, pl.created_at as liked_at
+        FROM posts p
+        INNER JOIN post_likes pl ON p.id = pl.post_id
+        WHERE pl.user_id = $1
+        ORDER BY pl.created_at DESC
+      `, [userId]);
+
+      const posts = result.rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        imageUrl: row.image_url,
+        formato: row.formato,
+        isPro: row.is_pro || false,
+        categoryId: row.category_id,
+        createdAt: row.created_at,
+        likedAt: row.liked_at
+      }));
+
+      console.log(`Encontrados ${posts.length} posts curtidos`);
+      res.json(posts);
+    } catch (error: any) {
+      console.error('Error fetching liked posts:', error);
+      res.status(500).json({ message: 'Erro ao buscar posts curtidos' });
+    }
+  });
+
+  // Buscar posts salvos do usuário
+  app.get('/api/user/saved-posts', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const userId = req.user!.id;
+      console.log(`Buscando posts salvos do usuário ${userId}`);
+
+      const result = await pool.query(`
+        SELECT p.*, ps.created_at as saved_at
+        FROM posts p
+        INNER JOIN post_saves ps ON p.id = ps.post_id
+        WHERE ps.user_id = $1
+        ORDER BY ps.created_at DESC
+      `, [userId]);
+
+      const posts = result.rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        imageUrl: row.image_url,
+        formato: row.formato,
+        isPro: row.is_pro || false,
+        categoryId: row.category_id,
+        createdAt: row.created_at,
+        savedAt: row.saved_at
+      }));
+
+      console.log(`Encontrados ${posts.length} posts salvos`);
+      res.json(posts);
+    } catch (error: any) {
+      console.error('Error fetching saved posts:', error);
+      res.status(500).json({ message: 'Erro ao buscar posts salvos' });
+    }
+  });
+
+  // Verificar status de curtida e salvamento de um post
+  app.get('/api/posts/:id/status', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+      }
+
+      const postId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'ID do post inválido' });
+      }
+
+      // Verificar curtida
+      const likeResult = await pool.query(`
+        SELECT id FROM post_likes 
+        WHERE user_id = $1 AND post_id = $2
+      `, [userId, postId]);
+
+      // Verificar salvamento
+      const saveResult = await pool.query(`
+        SELECT id FROM post_saves 
+        WHERE user_id = $1 AND post_id = $2
+      `, [userId, postId]);
+
+      res.json({
+        liked: likeResult.rows && likeResult.rows.length > 0,
+        saved: saveResult.rows && saveResult.rows.length > 0
+      });
+    } catch (error: any) {
+      console.error('Error checking post status:', error);
+      res.status(500).json({ message: 'Erro ao verificar status do post' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { usePostActions } from "@/hooks/use-post-actions";
 
 interface ArtworkCardProps {
   artwork: Artwork;
