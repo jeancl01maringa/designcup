@@ -578,7 +578,7 @@ export default function PopupsPage() {
 
                       <div>
                         <Label className="text-base font-medium">Tipo de Usuário</Label>
-                        <div className="mt-3 space-y-2">
+                        <div className="mt-3 max-h-64 overflow-y-auto border rounded-lg p-3 space-y-2">
                           {[
                             { value: 'all', label: 'Todos os usuários', description: 'Visitantes e usuários logados' },
                             { value: 'guest', label: 'Visitantes', description: 'Usuários não autenticados' },

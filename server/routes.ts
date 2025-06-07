@@ -4111,6 +4111,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoints para gerenciamento de popups
+  app.get('/api/popups', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const popups = await storage.getPopups();
+      res.json(popups);
+    } catch (error: any) {
+      console.error('Error fetching popups:', error);
+      res.status(500).json({ message: 'Erro ao buscar popups' });
+    }
+  });
+
+  app.get('/api/popups/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      const popup = await storage.getPopupById(id);
+      if (!popup) {
+        return res.status(404).json({ message: 'Popup não encontrado' });
+      }
+
+      res.json(popup);
+    } catch (error: any) {
+      console.error('Error fetching popup:', error);
+      res.status(500).json({ message: 'Erro ao buscar popup' });
+    }
+  });
+
+  app.post('/api/popups', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      console.log('Criando popup com dados:', req.body);
+
+      const popup = await storage.createPopup(req.body);
+      res.status(201).json(popup);
+    } catch (error: any) {
+      console.error('Error creating popup:', error);
+      res.status(500).json({ message: 'Erro ao criar popup', error: error.message });
+    }
+  });
+
+  app.put('/api/popups/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      const popup = await storage.updatePopup(id, req.body);
+      res.json(popup);
+    } catch (error: any) {
+      console.error('Error updating popup:', error);
+      res.status(500).json({ message: 'Erro ao atualizar popup' });
+    }
+  });
+
+  app.delete('/api/popups/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      await storage.deletePopup(id);
+      res.status(204).send();
+    } catch (error: any) {
+      console.error('Error deleting popup:', error);
+      res.status(500).json({ message: 'Erro ao excluir popup' });
+    }
+  });
+
+  app.patch('/api/popups/:id/toggle', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      const { isActive } = req.body;
+      const popup = await storage.togglePopupStatus(id, isActive);
+      res.json(popup);
+    } catch (error: any) {
+      console.error('Error toggling popup status:', error);
+      res.status(500).json({ message: 'Erro ao atualizar status do popup' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

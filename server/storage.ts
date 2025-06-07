@@ -8,6 +8,7 @@ import {
   plans, type Plan, type InsertPlan,
   tags, type Tag, type InsertTag,
   postTags, type PostTag,
+  popups, type Popup, type InsertPopup,
   postStatusEnum
 } from "@shared/schema";
 import { db, pool } from "./db";
@@ -96,6 +97,14 @@ export interface IStorage {
   updateTag(id: number, tag: Partial<InsertTag>): Promise<Tag>;
   deleteTag(id: number): Promise<void>;
   toggleTagStatus(id: number, isActive: boolean): Promise<Tag>;
+  
+  // Popup methods (for marketing campaigns)
+  getPopups(): Promise<Popup[]>;
+  getPopupById(id: number): Promise<Popup | undefined>;
+  createPopup(popup: InsertPopup): Promise<Popup>;
+  updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup>;
+  deletePopup(id: number): Promise<void>;
+  togglePopupStatus(id: number, isActive: boolean): Promise<Popup>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3503,6 +3512,397 @@ export class DatabaseStorage implements IStorage {
       };
     } catch (error) {
       console.error("DATABASE toggleTagStatus - Exceção:", error);
+      throw error;
+    }
+  }
+
+  // Implementação dos métodos de gerenciamento de popups
+
+  async getPopups(): Promise<Popup[]> {
+    try {
+      console.log("DATABASE getPopups - Buscando todos os popups");
+      
+      // Tentar primeiro com Supabase
+      const { data, error } = await supabase
+        .from('popups')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("DATABASE getPopups - Erro ao buscar popups via Supabase:", error.message);
+        // Tentar com PostgreSQL direto se o Supabase falhar
+        try {
+          console.log("DATABASE getPopups - Tentando via PostgreSQL após falha no Supabase");
+          const result = await pool.query(
+            'SELECT * FROM popups ORDER BY created_at DESC'
+          );
+          
+          return result.rows.map(popup => ({
+            id: popup.id,
+            title: popup.title,
+            content: popup.content,
+            imageUrl: popup.image_url,
+            buttonText: popup.button_text,
+            buttonUrl: popup.button_url,
+            backgroundColor: popup.background_color,
+            textColor: popup.text_color,
+            buttonColor: popup.button_color,
+            buttonTextColor: popup.button_text_color,
+            borderRadius: popup.border_radius,
+            buttonWidth: popup.button_width,
+            animation: popup.animation,
+            position: popup.position,
+            size: popup.size,
+            delaySeconds: popup.delay_seconds,
+            targetPages: popup.target_pages,
+            targetUserTypes: popup.target_user_types,
+            startDate: popup.start_date ? new Date(popup.start_date) : null,
+            endDate: popup.end_date ? new Date(popup.end_date) : null,
+            frequency: popup.frequency,
+            isActive: popup.is_active,
+            createdAt: new Date(popup.created_at),
+            updatedAt: new Date(popup.updated_at)
+          }));
+        } catch (pgError) {
+          console.error("DATABASE getPopups - Erro também no PostgreSQL:", pgError);
+          return [];
+        }
+      }
+      
+      if (!data) {
+        console.log("DATABASE getPopups - Nenhum popup encontrado");
+        return [];
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return data.map(popup => ({
+        id: popup.id,
+        title: popup.title,
+        content: popup.content,
+        imageUrl: popup.image_url,
+        buttonText: popup.button_text,
+        buttonUrl: popup.button_url,
+        backgroundColor: popup.background_color,
+        textColor: popup.text_color,
+        buttonColor: popup.button_color,
+        buttonTextColor: popup.button_text_color,
+        borderRadius: popup.border_radius,
+        buttonWidth: popup.button_width,
+        animation: popup.animation,
+        position: popup.position,
+        size: popup.size,
+        delaySeconds: popup.delay_seconds,
+        targetPages: popup.target_pages,
+        targetUserTypes: popup.target_user_types,
+        startDate: popup.start_date ? new Date(popup.start_date) : null,
+        endDate: popup.end_date ? new Date(popup.end_date) : null,
+        frequency: popup.frequency,
+        isActive: popup.is_active,
+        createdAt: new Date(popup.created_at),
+        updatedAt: new Date(popup.updated_at)
+      }));
+    } catch (error) {
+      console.error("DATABASE getPopups - Exceção:", error);
+      return [];
+    }
+  }
+  
+  async getPopupById(id: number): Promise<Popup | undefined> {
+    try {
+      console.log(`DATABASE getPopupById - Buscando popup com ID ${id}`);
+      
+      // Tentar primeiro com Supabase
+      const { data, error } = await supabase
+        .from('popups')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) {
+        console.error("DATABASE getPopupById - Erro ao buscar popup via Supabase:", error.message);
+        return undefined;
+      }
+      
+      if (!data) {
+        console.log(`DATABASE getPopupById - Popup com ID ${id} não encontrado`);
+        return undefined;
+      }
+      
+      // Mapear para o formato esperado pela aplicação
+      return {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        imageUrl: data.image_url,
+        buttonText: data.button_text,
+        buttonUrl: data.button_url,
+        backgroundColor: data.background_color,
+        textColor: data.text_color,
+        buttonColor: data.button_color,
+        buttonTextColor: data.button_text_color,
+        borderRadius: data.border_radius,
+        buttonWidth: data.button_width,
+        animation: data.animation,
+        position: data.position,
+        size: data.size,
+        delaySeconds: data.delay_seconds,
+        targetPages: data.target_pages,
+        targetUserTypes: data.target_user_types,
+        startDate: data.start_date ? new Date(data.start_date) : null,
+        endDate: data.end_date ? new Date(data.end_date) : null,
+        frequency: data.frequency,
+        isActive: data.is_active,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (error) {
+      console.error("DATABASE getPopupById - Exceção:", error);
+      return undefined;
+    }
+  }
+  
+  async createPopup(popup: InsertPopup): Promise<Popup> {
+    try {
+      console.log("DATABASE createPopup - Criando popup:", JSON.stringify(popup));
+      
+      // Mapear para o formato do banco
+      const dbPopup = {
+        title: popup.title,
+        content: popup.content,
+        image_url: popup.imageUrl,
+        button_text: popup.buttonText,
+        button_url: popup.buttonUrl,
+        background_color: popup.backgroundColor,
+        text_color: popup.textColor,
+        button_color: popup.buttonColor,
+        button_text_color: popup.buttonTextColor,
+        border_radius: popup.borderRadius,
+        button_width: popup.buttonWidth,
+        animation: popup.animation,
+        position: popup.position,
+        size: popup.size,
+        delay_seconds: popup.delaySeconds,
+        target_pages: popup.targetPages,
+        target_user_types: popup.targetUserTypes,
+        start_date: popup.startDate,
+        end_date: popup.endDate,
+        frequency: popup.frequency,
+        is_active: popup.isActive
+      };
+      
+      // Primeiro tentamos com Supabase
+      try {
+        const { data, error } = await supabase
+          .from('popups')
+          .insert(dbPopup)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error("DATABASE createPopup - Erro ao inserir popup via Supabase:", error.message);
+          throw new Error("Falha ao criar popup via Supabase");
+        }
+        
+        if (data) {
+          console.log("DATABASE createPopup - Popup criado via Supabase:", data.id);
+          
+          // Mapear para o formato esperado pela aplicação
+          return {
+            id: data.id,
+            title: data.title,
+            content: data.content,
+            imageUrl: data.image_url,
+            buttonText: data.button_text,
+            buttonUrl: data.button_url,
+            backgroundColor: data.background_color,
+            textColor: data.text_color,
+            buttonColor: data.button_color,
+            buttonTextColor: data.button_text_color,
+            borderRadius: data.border_radius,
+            buttonWidth: data.button_width,
+            animation: data.animation,
+            position: data.position,
+            size: data.size,
+            delaySeconds: data.delay_seconds,
+            targetPages: data.target_pages,
+            targetUserTypes: data.target_user_types,
+            startDate: data.start_date ? new Date(data.start_date) : null,
+            endDate: data.end_date ? new Date(data.end_date) : null,
+            frequency: data.frequency,
+            isActive: data.is_active,
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at)
+          };
+        }
+      } catch (supabaseError) {
+        console.error("DATABASE createPopup - Exceção ao acessar Supabase:", supabaseError);
+      }
+      
+      // Se chegou aqui, falhou com Supabase
+      throw new Error("Falha ao criar popup: Supabase não disponível");
+    } catch (error) {
+      console.error("DATABASE createPopup - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup> {
+    try {
+      console.log("DATABASE updatePopup - Atualizando popup #" + id + ":", JSON.stringify(popup));
+      
+      // Mapear para o formato do banco
+      const dbPopup: Record<string, any> = {};
+      
+      if (popup.title !== undefined) dbPopup.title = popup.title;
+      if (popup.content !== undefined) dbPopup.content = popup.content;
+      if (popup.imageUrl !== undefined) dbPopup.image_url = popup.imageUrl;
+      if (popup.buttonText !== undefined) dbPopup.button_text = popup.buttonText;
+      if (popup.buttonUrl !== undefined) dbPopup.button_url = popup.buttonUrl;
+      if (popup.backgroundColor !== undefined) dbPopup.background_color = popup.backgroundColor;
+      if (popup.textColor !== undefined) dbPopup.text_color = popup.textColor;
+      if (popup.buttonColor !== undefined) dbPopup.button_color = popup.buttonColor;
+      if (popup.buttonTextColor !== undefined) dbPopup.button_text_color = popup.buttonTextColor;
+      if (popup.borderRadius !== undefined) dbPopup.border_radius = popup.borderRadius;
+      if (popup.buttonWidth !== undefined) dbPopup.button_width = popup.buttonWidth;
+      if (popup.animation !== undefined) dbPopup.animation = popup.animation;
+      if (popup.position !== undefined) dbPopup.position = popup.position;
+      if (popup.size !== undefined) dbPopup.size = popup.size;
+      if (popup.delaySeconds !== undefined) dbPopup.delay_seconds = popup.delaySeconds;
+      if (popup.targetPages !== undefined) dbPopup.target_pages = popup.targetPages;
+      if (popup.targetUserTypes !== undefined) dbPopup.target_user_types = popup.targetUserTypes;
+      if (popup.startDate !== undefined) dbPopup.start_date = popup.startDate;
+      if (popup.endDate !== undefined) dbPopup.end_date = popup.endDate;
+      if (popup.frequency !== undefined) dbPopup.frequency = popup.frequency;
+      if (popup.isActive !== undefined) dbPopup.is_active = popup.isActive;
+      
+      dbPopup.updated_at = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('popups')
+        .update(dbPopup)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE updatePopup - Erro ao atualizar popup via Supabase:", error.message);
+        throw new Error("Falha ao atualizar popup");
+      }
+      
+      if (data) {
+        console.log("DATABASE updatePopup - Popup atualizado via Supabase");
+        
+        // Mapear para o formato esperado pela aplicação
+        return {
+          id: data.id,
+          title: data.title,
+          content: data.content,
+          imageUrl: data.image_url,
+          buttonText: data.button_text,
+          buttonUrl: data.button_url,
+          backgroundColor: data.background_color,
+          textColor: data.text_color,
+          buttonColor: data.button_color,
+          buttonTextColor: data.button_text_color,
+          borderRadius: data.border_radius,
+          buttonWidth: data.button_width,
+          animation: data.animation,
+          position: data.position,
+          size: data.size,
+          delaySeconds: data.delay_seconds,
+          targetPages: data.target_pages,
+          targetUserTypes: data.target_user_types,
+          startDate: data.start_date ? new Date(data.start_date) : null,
+          endDate: data.end_date ? new Date(data.end_date) : null,
+          frequency: data.frequency,
+          isActive: data.is_active,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at)
+        };
+      }
+      
+      throw new Error(`Popup com ID ${id} não encontrado`);
+    } catch (error) {
+      console.error("DATABASE updatePopup - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async deletePopup(id: number): Promise<void> {
+    try {
+      console.log("DATABASE deletePopup - Excluindo popup #" + id);
+      
+      const { error } = await supabase
+        .from('popups')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error("DATABASE deletePopup - Erro ao excluir popup via Supabase:", error.message);
+        throw new Error("Falha ao excluir popup");
+      }
+      
+      console.log("DATABASE deletePopup - Popup excluído com sucesso via Supabase");
+    } catch (error) {
+      console.error("DATABASE deletePopup - Exceção geral:", error);
+      throw error;
+    }
+  }
+  
+  async togglePopupStatus(id: number, isActive: boolean): Promise<Popup> {
+    try {
+      console.log(`DATABASE togglePopupStatus - ${isActive ? 'Ativando' : 'Desativando'} popup #${id}`);
+      
+      const { data, error } = await supabase
+        .from('popups')
+        .update({ 
+          is_active: isActive,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("DATABASE togglePopupStatus - Erro ao atualizar status via Supabase:", error.message);
+        throw new Error("Falha ao atualizar status do popup");
+      }
+      
+      if (data) {
+        console.log("DATABASE togglePopupStatus - Status atualizado via Supabase");
+        
+        // Mapear para o formato esperado pela aplicação
+        return {
+          id: data.id,
+          title: data.title,
+          content: data.content,
+          imageUrl: data.image_url,
+          buttonText: data.button_text,
+          buttonUrl: data.button_url,
+          backgroundColor: data.background_color,
+          textColor: data.text_color,
+          buttonColor: data.button_color,
+          buttonTextColor: data.button_text_color,
+          borderRadius: data.border_radius,
+          buttonWidth: data.button_width,
+          animation: data.animation,
+          position: data.position,
+          size: data.size,
+          delaySeconds: data.delay_seconds,
+          targetPages: data.target_pages,
+          targetUserTypes: data.target_user_types,
+          startDate: data.start_date ? new Date(data.start_date) : null,
+          endDate: data.end_date ? new Date(data.end_date) : null,
+          frequency: data.frequency,
+          isActive: data.is_active,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at)
+        };
+      }
+      
+      throw new Error(`Popup com ID ${id} não encontrado`);
+    } catch (error) {
+      console.error("DATABASE togglePopupStatus - Exceção geral:", error);
       throw error;
     }
   }
