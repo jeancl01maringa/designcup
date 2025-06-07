@@ -803,6 +803,8 @@ export default function PopupsPage() {
                 size="sm" 
                 onClick={() => {
                   setIsCreating(false);
+                  setIsEditing(false);
+                  setEditingPopupId(null);
                   setCurrentStep(1);
                   setFormData(initialFormData);
                 }}
@@ -898,7 +900,7 @@ export default function PopupsPage() {
                       disabled={createPopupMutation.isPending || !formData.title || !formData.content}
                       className="bg-blue-600 hover:bg-blue-700 h-8"
                     >
-                      {createPopupMutation.isPending ? 'Salvando...' : 'Criar Popup'}
+                      {(createPopupMutation.isPending || updatePopupMutation.isPending) ? 'Salvando...' : (isEditing ? 'Atualizar Popup' : 'Criar Popup')}
                       <Save className="h-4 w-4 ml-2" />
                     </Button>
                   )}
