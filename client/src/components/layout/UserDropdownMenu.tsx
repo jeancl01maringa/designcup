@@ -3,7 +3,7 @@ import {
   User,
   LogOut,
   CreditCard,
-  Download,
+  Clock,
   Heart,
   Bookmark,
   Users,
@@ -49,6 +49,25 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
     navigate(path);
   };
 
+  // Função para determinar o nome do plano dinamicamente
+  const getPlanName = () => {
+    const planoId = typeof user.plano_id === 'string' ? parseInt(user.plano_id, 10) : user.plano_id;
+    
+    if (!planoId || planoId === 1) {
+      return 'CONTA GRATUITA';
+    }
+    
+    // Verificar o tipo de conta baseado no campo tipo ou plano_id
+    if (user.tipo === 'premium') {
+      if (planoId === 6) return 'CONTA VITALÍCIA';
+      if (planoId === 2) return 'CONTA MENSAL';
+      if (planoId === 3) return 'CONTA ANUAL';
+      return 'CONTA PREMIUM';
+    }
+    
+    return 'CONTA GRATUITA';
+  };
+
   // Overlay para fechar o dropdown ao clicar fora
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -77,7 +96,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           <h3 className="text-white font-bold text-lg">{user.username}</h3>
           <p className="text-white/90 text-sm">{user.email}</p>
           <span className="inline-block mt-2 px-3 py-1 bg-white text-black text-xs font-semibold rounded-full">
-            CONTA MENSAL
+            {getPlanName()}
           </span>
         </div>
 
@@ -116,14 +135,14 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
               className="w-full px-4 py-3 flex items-center gap-3"
-              onClick={() => handleClick('/downloads')}
+              onClick={() => handleClick('/edicoes-recentes')}
             >
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                <Download className="w-5 h-5 text-indigo-500" />
+                <Clock className="w-5 h-5 text-indigo-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-800">Downloads</p>
-                <p className="text-sm text-gray-500">Histórico de downloads</p>
+                <p className="font-semibold text-gray-800">Edições recentes</p>
+                <p className="text-sm text-gray-500">Histórico de edições</p>
               </div>
               <span className="ml-auto">
                 <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
