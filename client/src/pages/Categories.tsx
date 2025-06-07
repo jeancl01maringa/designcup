@@ -147,23 +147,6 @@ export default function Categories() {
         {/* Categories Grid Section */}
         <section className="py-8 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
-            {/* Header */}
-            <div className="mb-6">
-              <h3 className="text-black font-semibold text-xl font-inter mb-1 flex items-center">
-                <span className="mr-2">📁</span>
-                Escolha sua categoria
-              </h3>
-              <p className="text-[#5c3a2d] text-sm font-light">
-                Encontre recursos ideais para sua clínica de estética
-              </p>
-              <div className="flex items-center mt-2">
-                <div className="flex mt-1">
-                  <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
-                  <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
-                  <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
-                </div>
-              </div>
-            </div>
             
             {filteredCategories.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
@@ -195,11 +178,7 @@ export default function Categories() {
                                       className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300"
                                       loading="lazy"
                                     />
-                                    {post.isPremium && (
-                                      <div className="absolute top-1 right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
-                                        <span className="text-xs text-black font-bold">★</span>
-                                      </div>
-                                    )}
+
                                   </>
                                 ) : (
                                   <div className="w-full h-full bg-gray-100 flex items-center justify-center">

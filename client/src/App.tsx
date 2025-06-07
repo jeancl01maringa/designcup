@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Categories from "@/pages/Categories";
+import CategoryDetailPage from "@/pages/CategoryDetailPage";
 import VideoClasses from "@/pages/VideoClasses";
 import More from "@/pages/More";
 import ArtworkDetail from "@/pages/ArtworkDetail";
@@ -48,6 +49,7 @@ function Router() {
       {/* Rotas Públicas */}
       <Route path="/" component={Home} />
       <Route path="/categorias" component={Categories} />
+      <Route path="/categorias/:slug" component={CategoryDetailPage} />
       <Route path="/video-aulas" component={VideoClasses} />
       <Route path="/mais" component={More} />
       <Route path="/artwork/:id" component={ArtworkDetail} />

@@ -1185,6 +1185,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get category by slug
+  app.get('/api/categories/:slug', async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      
+      const query = `
+        SELECT 
+          c.id,
+          c.name,
+          c.description,
+          c.slug,
+          COUNT(p.id) as post_count
+        FROM categories c
+        LEFT JOIN posts p ON c.id = p.category_id 
+          AND p.status = 'aprovado' 
+          AND p.is_visible = true
+        WHERE c.slug = $1 OR c.id = $1
+        GROUP BY c.id, c.name, c.description, c.slug
+      `;
+      
+      const result = await pool.query(query, [slug]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Category not found' });
+      }
+      
+      const category = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        slug: result.rows[0].slug,
+        postCount: parseInt(result.rows[0].post_count)
+      };
+      
+      res.json(category);
+    } catch (error) {
+      console.error('Error fetching category by slug:', error);
+      res.status(500).json({ message: 'Error fetching category' });
+    }
+  });
+
   app.get('/api/admin/categories/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
