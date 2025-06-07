@@ -30,21 +30,22 @@ export default function SeguindoPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-500" />
-            </div>
-            Seguindo
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Designers e autores que você está seguindo
-          </p>
-        </div>
+      <ProfileLayout>
+        <div className="max-w-7xl">
+          <div className="mb-6">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2 lg:gap-3">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                <Users className="w-4 h-4 lg:w-6 lg:h-6 text-blue-500" />
+              </div>
+              Seguindo
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm lg:text-base">
+              Designers e autores que você está seguindo
+            </p>
+          </div>
 
-        {/* Loading skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* Loading skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <Card key={i} className="p-6">
               <div className="flex flex-col items-center space-y-4">
@@ -55,25 +56,26 @@ export default function SeguindoPage() {
               </div>
             </Card>
           ))}
+          </div>
         </div>
-      </div>
+      </ProfileLayout>
     );
   }
 
   return (
     <ProfileLayout>
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-            <Users className="w-6 h-6 text-blue-500" />
+      <div className="max-w-7xl">
+        <div className="mb-6">
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2 lg:gap-3">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-blue-50 flex items-center justify-center">
+              <Users className="w-4 h-4 lg:w-6 lg:h-6 text-blue-500" />
           </div>
           Seguindo
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Designers e autores que você está seguindo
-        </p>
-      </div>
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm lg:text-base">
+              Designers e autores que você está seguindo
+            </p>
+          </div>
 
       {followedUsers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">

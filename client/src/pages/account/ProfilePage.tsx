@@ -259,8 +259,8 @@ export default function ProfilePage() {
 
   return (
     <ProfileLayout>
-      <div className="container mx-auto px-4 lg:px-8 py-4 lg:py-8 max-w-4xl">
-        <div className="mb-6 lg:mb-8">
+      <div className="max-w-4xl">
+        <div className="mb-6">
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Meu Perfil</h1>
           <p className="text-muted-foreground text-sm lg:text-base">
             Gerencie suas informações pessoais e configurações de conta

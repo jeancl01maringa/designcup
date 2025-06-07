@@ -51,15 +51,15 @@ export default function SalvosPage() {
 
   return (
     <ProfileLayout>
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
-              <Bookmark className="w-6 h-6 text-amber-500" />
+      <div className="max-w-7xl">
+        <div className="mb-6">
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2 lg:gap-3">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-amber-50 flex items-center justify-center">
+              <Bookmark className="w-4 h-4 lg:w-6 lg:h-6 text-amber-500" />
             </div>
             Salvos
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 text-sm lg:text-base">
             Artes que você salvou para usar depois
           </p>
         </div>

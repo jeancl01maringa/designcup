@@ -43,11 +43,11 @@ export default function AssinaturaPage() {
 
   return (
     <ProfileLayout>
-      <div className="space-y-6">
+      <div className="max-w-4xl space-y-6">
         {/* Cabeçalho */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Assinatura</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Assinatura</h1>
+          <p className="text-gray-600 mt-1 text-sm lg:text-base">
             Gerencie sua assinatura e veja detalhes do seu plano.
           </p>
         </div>
