@@ -99,8 +99,8 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
         
         {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
         {post.isPro && (
-          <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-5 h-5 lg:w-8 lg:h-8 flex items-center justify-center shadow-md relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="#FFC107" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-crown lg:w-4 lg:h-4">
+          <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-4 h-4 lg:w-8 lg:h-8 flex items-center justify-center shadow-md relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="#FFC107" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-crown lg:w-4 lg:h-4">
               <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
             </svg>
           </div>
