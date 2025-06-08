@@ -651,8 +651,8 @@ export default function ArtDetailPage() {
           
           {/* Selo premium */}
           {isPremium && (
-            <div className="absolute top-4 right-4 z-10 bg-[#fef3c8] rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center">
-              <Crown size={12} className="text-[#e7b36a] lg:w-4 lg:h-4" fill="currentColor" />
+            <div className="absolute top-4 right-4 z-10 bg-[#fef3c8] rounded-full w-5 h-5 lg:w-8 lg:h-8 flex items-center justify-center">
+              <Crown size={10} className="text-[#e7b36a] lg:w-4 lg:h-4" fill="currentColor" />
             </div>
           )}
           
