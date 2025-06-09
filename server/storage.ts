@@ -2670,6 +2670,7 @@ export class DatabaseStorage implements IStorage {
             codigoHotmart: plan.codigo_hotmart,
             urlHotmart: plan.url_hotmart,
             beneficios: plan.beneficios,
+            itensRestritos: plan.itens_restritos,
             createdAt: new Date(plan.created_at)
           }));
         }
@@ -2977,6 +2978,7 @@ export class DatabaseStorage implements IStorage {
             codigoHotmart: data.codigo_hotmart,
             urlHotmart: data.url_hotmart,
             beneficios: data.beneficios,
+            itensRestritos: data.itens_restritos,
             createdAt: new Date(data.created_at)
           };
         }
@@ -3117,6 +3119,7 @@ export class DatabaseStorage implements IStorage {
             codigoHotmart: data.codigo_hotmart,
             urlHotmart: data.url_hotmart,
             beneficios: data.beneficios,
+            itensRestritos: data.itens_restritos,
             createdAt: new Date(data.created_at)
           };
         }
@@ -3153,6 +3156,7 @@ export class DatabaseStorage implements IStorage {
             codigoHotmart: plan.codigo_hotmart,
             urlHotmart: plan.url_hotmart,
             beneficios: plan.beneficios,
+            itensRestritos: plan.itens_restritos,
             createdAt: new Date(plan.created_at)
           };
         }
