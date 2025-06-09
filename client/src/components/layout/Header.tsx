@@ -407,7 +407,7 @@ const MobileMenu = () => {
                   </button>
                   
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
+                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium border border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB] hover:text-white bg-transparent transition-all duration-200"
                     onClick={() => {
                       navigate("/auth");
                       setIsOpen(false);
