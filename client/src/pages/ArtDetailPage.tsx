@@ -1181,8 +1181,8 @@ export default function ArtDetailPage() {
                 </div>
               )}
               
-              {/* Botão de seguir alinhado à direita do autor */}
-              {!authorLoading && author && user && user.id !== author.id && (
+              {/* Botão de seguir sempre visível para teste */}
+              {!authorLoading && author && (
                 <Button
                   size="sm"
                   onClick={handleFollow}
