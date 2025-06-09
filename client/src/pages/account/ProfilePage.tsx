@@ -22,6 +22,12 @@ interface UserPlan {
   isActive: boolean;
 }
 
+interface ProfileData {
+  bio?: string;
+  site?: string;
+  localizacao?: string;
+}
+
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -38,7 +44,7 @@ export default function ProfilePage() {
   const isEmailPhoneEditable = !isPremiumUser;
 
   // Buscar dados do perfil
-  const { data: profileData = {}, isLoading: profileLoading } = useQuery({
+  const { data: profileData = {} as ProfileData, isLoading: profileLoading } = useQuery<ProfileData>({
     queryKey: ["/api/profile"],
     enabled: !!user,
   });
@@ -80,7 +86,7 @@ export default function ProfilePage() {
 
   // Sync profile data when it loads
   useEffect(() => {
-    if (profileData) {
+    if (profileData && profileData.bio !== undefined) {
       setEditableData(prev => ({
         ...prev,
         biografia: profileData.bio || "",
@@ -88,7 +94,7 @@ export default function ProfilePage() {
         localizacao: profileData.localizacao || "",
       }));
     }
-  }, [profileData]);
+  }, [profileData?.bio, profileData?.site, profileData?.localizacao]);
 
   // Mutation para upload de foto
   const uploadPhotoMutation = useMutation({

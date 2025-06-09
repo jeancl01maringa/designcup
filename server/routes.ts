@@ -2572,6 +2572,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       
+      if (isNaN(id)) {
+        console.error(`ID inválido recebido: ${req.params.id}`);
+        return res.status(400).json({ message: 'ID de usuário inválido' });
+      }
+      
       try {
         const query = `
           SELECT 
