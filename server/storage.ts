@@ -272,56 +272,51 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE createUser - Recebendo dados:", JSON.stringify(insertUser));
       
-      // Mapear isAdmin para is_admin no banco de dados e incluir todos os campos obrigatórios
-      const dbUser = {
-        username: insertUser.username,
-        email: insertUser.email,
-        password: insertUser.password,
-        is_admin: insertUser.isAdmin || false,
-        telefone: null,
-        profile_image: null,
-        bio: null,
-        tipo: 'free' as const,
-        plano_id: null,
-        data_vencimento: null,
-        active: true,
-      };
-      
-      console.log("DATABASE createUser - Enviando para o banco:", JSON.stringify(dbUser));
-      
-      // Usar a API do Supabase para criar o usuário
-      const { data, error } = await supabase
-        .from('users')
-        .insert(dbUser)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error("DATABASE createUser - Erro ao criar usuário:", error.message);
-        throw new Error(`Erro ao criar usuário: ${error.message}`);
+      // Usar PostgreSQL direto para criar o usuário (mesmo método que funciona no login)
+      const result = await pool.query(`
+        INSERT INTO users (username, email, password, is_admin, telefone, profile_image, bio, tipo, plano_id, data_vencimento, active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING id, username, email, password, is_admin, created_at, telefone, profile_image, bio, tipo, plano_id, data_vencimento, active
+      `, [
+        insertUser.username,
+        insertUser.email,
+        insertUser.password,
+        insertUser.isAdmin || false,
+        null, // telefone
+        null, // profile_image
+        null, // bio
+        'free', // tipo
+        null, // plano_id
+        null, // data_vencimento
+        true // active
+      ]);
+
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error('Erro ao criar usuário no banco de dados');
       }
-      
-      console.log("DATABASE createUser - Resultado do banco:", JSON.stringify(data));
+
+      const userData = result.rows[0];
+      console.log("DATABASE createUser - Resultado do banco:", JSON.stringify(userData));
       
       // Converter is_admin para boolean usando o mesmo método
-      const isAdmin = data.is_admin === true || data.is_admin === 't';
+      const isAdmin = userData.is_admin === true || userData.is_admin === 't';
       console.log("DATABASE createUser - isAdmin convertido:", isAdmin);
       
       // Mapear para o formato esperado pela aplicação
       const user: User = {
-        id: data.id,
-        username: data.username,
-        email: data.email,
-        password: data.password,
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
         isAdmin: isAdmin,
-        telefone: data.telefone || null,
-        profileImage: data.profile_image || null,
-        bio: data.bio || null,
-        createdAt: new Date(data.created_at),
-        tipo: data.tipo || 'free',
-        plano_id: data.plano_id || null,
-        data_vencimento: data.data_vencimento ? new Date(data.data_vencimento) : null,
-        active: data.active || true
+        telefone: userData.telefone || null,
+        profileImage: userData.profile_image || null,
+        bio: userData.bio || null,
+        createdAt: new Date(userData.created_at),
+        tipo: userData.tipo || 'free',
+        plano_id: userData.plano_id || null,
+        data_vencimento: userData.data_vencimento ? new Date(userData.data_vencimento) : null,
+        active: userData.active || true
       };
       
       return user;
