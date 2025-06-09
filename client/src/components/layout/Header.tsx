@@ -115,18 +115,18 @@ const UserMenu = () => {
     return (
       <div className="hidden md:flex items-center gap-2">
         <Button 
-          variant="outline" 
+          variant="default" 
           size="sm" 
-          className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10 bg-transparent"
+          className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-white shadow-sm transition-all duration-200"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-4 w-4" />
           <span>Entrar</span>
         </Button>
         <Button 
-          variant="default" 
+          variant="outline" 
           size="sm"
-          className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-white shadow-sm transition-all duration-200"
+          className="flex items-center gap-1 border-primary text-primary hover:bg-primary hover:text-white bg-transparent transition-all duration-200"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
