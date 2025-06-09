@@ -3698,9 +3698,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             u.created_at as "createdAt",
             COUNT(p.id) as "postsCount"
           FROM follows f
-          JOIN users u ON f.followed_user_id = u.id
+          JOIN users u ON f.following_id = u.id
           LEFT JOIN posts p ON u.id = p.user_id AND p.status = 'aprovado'
-          WHERE f.follower_user_id = $1 AND u.is_admin = true
+          WHERE f.follower_id = $1 AND u.is_admin = true
           GROUP BY u.id, u.username, u.profile_image, u.is_admin, u.created_at
           ORDER BY f.created_at DESC
         `, [userId]);
