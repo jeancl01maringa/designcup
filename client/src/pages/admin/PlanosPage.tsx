@@ -260,139 +260,149 @@ export default function PlanosPage() {
                 <Plus className="h-4 w-4 mr-2" /> Novo Plano
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-4xl">
               <DialogHeader>
                 <DialogTitle>Adicionar Plano</DialogTitle>
                 <DialogDescription>
                   Preencha os campos abaixo para adicionar um novo plano.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                {/* Dados básicos do plano */}
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Plano</Label>
-                  <Input 
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ex: Básico, Premium, Pro"
-                    required
-                  />
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+                {/* Layout em duas colunas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Coluna esquerda - Dados básicos */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900 border-b pb-2">Informações Básicas</h4>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome do Plano</Label>
+                      <Input 
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Ex: Básico, Premium, Pro"
+                        required
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="periodo">Período</Label>
-                  <Select 
-                    value={formData.periodo} 
-                    onValueChange={(value) => setFormData({ ...formData, periodo: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o período" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Mensal">Mensal</SelectItem>
-                      <SelectItem value="Trimestral">Trimestral</SelectItem>
-                      <SelectItem value="Semestral">Semestral</SelectItem>
-                      <SelectItem value="Anual">Anual</SelectItem>
-                      <SelectItem value="Vitalício">Vitalício</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="periodo">Período</Label>
+                      <Select 
+                        value={formData.periodo} 
+                        onValueChange={(value) => setFormData({ ...formData, periodo: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o período" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Mensal">Mensal</SelectItem>
+                          <SelectItem value="Trimestral">Trimestral</SelectItem>
+                          <SelectItem value="Semestral">Semestral</SelectItem>
+                          <SelectItem value="Anual">Anual</SelectItem>
+                          <SelectItem value="Vitalício">Vitalício</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="valor">Valor</Label>
-                  <Input 
-                    id="valor"
-                    value={formData.valor}
-                    onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-                    placeholder="Ex: 49,90"
-                    required
-                    disabled={formData.isGratuito}
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="valor">Valor</Label>
+                      <Input 
+                        id="valor"
+                        value={formData.valor}
+                        onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                        placeholder="Ex: 49,90"
+                        required
+                        disabled={formData.isGratuito}
+                      />
+                    </div>
 
-                {/* Configurações */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="isActive"
-                      checked={formData.isActive}
-                      onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                    />
-                    <Label htmlFor="isActive">Ativo</Label>
+                    {/* Configurações */}
+                    <div className="space-y-3">
+                      <h5 className="font-medium text-sm text-gray-700">Configurações</h5>
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id="isActive"
+                          checked={formData.isActive}
+                          onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                        />
+                        <Label htmlFor="isActive">Ativo</Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id="isPrincipal"
+                          checked={formData.isPrincipal}
+                          onCheckedChange={(checked) => setFormData({ ...formData, isPrincipal: checked })}
+                        />
+                        <Label htmlFor="isPrincipal">Plano Principal</Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id="isGratuito"
+                          checked={formData.isGratuito}
+                          onCheckedChange={(checked) => {
+                            const newFormData = { ...formData, isGratuito: checked };
+                            if (checked) {
+                              newFormData.valor = "0,00";
+                            }
+                            setFormData(newFormData);
+                          }}
+                        />
+                        <Label htmlFor="isGratuito">Plano Gratuito</Label>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="isPrincipal"
-                      checked={formData.isPrincipal}
-                      onCheckedChange={(checked) => setFormData({ ...formData, isPrincipal: checked })}
-                    />
-                    <Label htmlFor="isPrincipal">Plano Principal</Label>
+                  {/* Coluna direita - Dados da Hotmart e conteúdo */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900 border-b pb-2">Dados da Hotmart</h4>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="codigoHotmart">Código Hotmart (opcional)</Label>
+                      <Input 
+                        id="codigoHotmart"
+                        value={formData.codigoHotmart || ''}
+                        onChange={(e) => setFormData({ ...formData, codigoHotmart: e.target.value })}
+                        placeholder="Código do produto na Hotmart"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="urlHotmart">URL de Checkout (opcional)</Label>
+                      <Input 
+                        id="urlHotmart"
+                        value={formData.urlHotmart || ''}
+                        onChange={(e) => setFormData({ ...formData, urlHotmart: e.target.value })}
+                        placeholder="URL de checkout da Hotmart"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="beneficios">Benefícios (um por linha)</Label>
+                      <Textarea 
+                        id="beneficios"
+                        value={formData.beneficios || ''}
+                        onChange={(e) => setFormData({ ...formData, beneficios: e.target.value })}
+                        placeholder="Ex:&#10;Acesso a todos os templates&#10;Suporte prioritário&#10;Atualizações ilimitadas"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="itensRestritos">Itens Restritos (um por linha)</Label>
+                      <Textarea 
+                        id="itensRestritos"
+                        value={formData.itensRestritos || ''}
+                        onChange={(e) => setFormData({ ...formData, itensRestritos: e.target.value })}
+                        placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
+                        rows={3}
+                      />
+                      <p className="text-xs text-gray-500">
+                        Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
+                      </p>
+                    </div>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="isGratuito"
-                      checked={formData.isGratuito}
-                      onCheckedChange={(checked) => {
-                        const newFormData = { ...formData, isGratuito: checked };
-                        if (checked) {
-                          newFormData.valor = "0,00";
-                        }
-                        setFormData(newFormData);
-                      }}
-                    />
-                    <Label htmlFor="isGratuito">Plano Gratuito</Label>
-                  </div>
-                </div>
-
-                {/* Dados da Hotmart */}
-                <div className="space-y-2">
-                  <Label htmlFor="codigoHotmart">Código Hotmart (opcional)</Label>
-                  <Input 
-                    id="codigoHotmart"
-                    value={formData.codigoHotmart || ''}
-                    onChange={(e) => setFormData({ ...formData, codigoHotmart: e.target.value })}
-                    placeholder="Código do produto na Hotmart"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="urlHotmart">URL de Checkout (opcional)</Label>
-                  <Input 
-                    id="urlHotmart"
-                    value={formData.urlHotmart || ''}
-                    onChange={(e) => setFormData({ ...formData, urlHotmart: e.target.value })}
-                    placeholder="URL de checkout da Hotmart"
-                  />
-                </div>
-
-                {/* Benefícios do plano */}
-                <div className="space-y-2">
-                  <Label htmlFor="beneficios">Benefícios (um por linha)</Label>
-                  <Textarea 
-                    id="beneficios"
-                    value={formData.beneficios || ''}
-                    onChange={(e) => setFormData({ ...formData, beneficios: e.target.value })}
-                    placeholder="Ex:&#10;Acesso a todos os templates&#10;Suporte prioritário&#10;Atualizações ilimitadas"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Itens restritos (para mostrar limitações) */}
-                <div className="space-y-2">
-                  <Label htmlFor="itensRestritos">Itens Restritos (um por linha)</Label>
-                  <Textarea 
-                    id="itensRestritos"
-                    value={formData.itensRestritos || ''}
-                    onChange={(e) => setFormData({ ...formData, itensRestritos: e.target.value })}
-                    placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
-                    rows={3}
-                  />
-                  <p className="text-xs text-gray-500">
-                    Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
-                  </p>
                 </div>
 
                 <DialogFooter>
@@ -481,139 +491,149 @@ export default function PlanosPage() {
 
       {/* Modal de edição */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Editar Plano</DialogTitle>
             <DialogDescription>
               Atualize as informações do plano.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-            {/* Dados básicos do plano */}
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Nome do Plano</Label>
-              <Input 
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ex: Básico, Premium, Pro"
-                required
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+            {/* Layout em duas colunas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Coluna esquerda - Dados básicos */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900 border-b pb-2">Informações Básicas</h4>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Nome do Plano</Label>
+                  <Input 
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ex: Básico, Premium, Pro"
+                    required
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-periodo">Período</Label>
-              <Select 
-                value={formData.periodo} 
-                onValueChange={(value) => setFormData({ ...formData, periodo: value })}
-              >
-                <SelectTrigger id="edit-periodo">
-                  <SelectValue placeholder="Selecione o período" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Mensal">Mensal</SelectItem>
-                  <SelectItem value="Trimestral">Trimestral</SelectItem>
-                  <SelectItem value="Semestral">Semestral</SelectItem>
-                  <SelectItem value="Anual">Anual</SelectItem>
-                  <SelectItem value="Vitalício">Vitalício</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-periodo">Período</Label>
+                  <Select 
+                    value={formData.periodo} 
+                    onValueChange={(value) => setFormData({ ...formData, periodo: value })}
+                  >
+                    <SelectTrigger id="edit-periodo">
+                      <SelectValue placeholder="Selecione o período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Mensal">Mensal</SelectItem>
+                      <SelectItem value="Trimestral">Trimestral</SelectItem>
+                      <SelectItem value="Semestral">Semestral</SelectItem>
+                      <SelectItem value="Anual">Anual</SelectItem>
+                      <SelectItem value="Vitalício">Vitalício</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-valor">Valor</Label>
-              <Input 
-                id="edit-valor"
-                value={formData.valor}
-                onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-                placeholder="Ex: 49,90"
-                required
-                disabled={formData.isGratuito}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-valor">Valor</Label>
+                  <Input 
+                    id="edit-valor"
+                    value={formData.valor}
+                    onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                    placeholder="Ex: 49,90"
+                    required
+                    disabled={formData.isGratuito}
+                  />
+                </div>
 
-            {/* Configurações */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="edit-isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                />
-                <Label htmlFor="edit-isActive">Ativo</Label>
+                {/* Configurações */}
+                <div className="space-y-3">
+                  <h5 className="font-medium text-sm text-gray-700">Configurações</h5>
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      id="edit-isActive"
+                      checked={formData.isActive}
+                      onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                    />
+                    <Label htmlFor="edit-isActive">Ativo</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      id="edit-isPrincipal"
+                      checked={formData.isPrincipal}
+                      onCheckedChange={(checked) => setFormData({ ...formData, isPrincipal: checked })}
+                    />
+                    <Label htmlFor="edit-isPrincipal">Plano Principal</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      id="edit-isGratuito"
+                      checked={formData.isGratuito}
+                      onCheckedChange={(checked) => {
+                        const newFormData = { ...formData, isGratuito: checked };
+                        if (checked) {
+                          newFormData.valor = "0,00";
+                        }
+                        setFormData(newFormData);
+                      }}
+                    />
+                    <Label htmlFor="edit-isGratuito">Plano Gratuito</Label>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="edit-isPrincipal"
-                  checked={formData.isPrincipal}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isPrincipal: checked })}
-                />
-                <Label htmlFor="edit-isPrincipal">Plano Principal</Label>
+              {/* Coluna direita - Dados da Hotmart e conteúdo */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900 border-b pb-2">Dados da Hotmart</h4>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-codigoHotmart">Código Hotmart (opcional)</Label>
+                  <Input 
+                    id="edit-codigoHotmart"
+                    value={formData.codigoHotmart || ''}
+                    onChange={(e) => setFormData({ ...formData, codigoHotmart: e.target.value })}
+                    placeholder="Código do produto na Hotmart"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-urlHotmart">URL de Checkout (opcional)</Label>
+                  <Input 
+                    id="edit-urlHotmart"
+                    value={formData.urlHotmart || ''}
+                    onChange={(e) => setFormData({ ...formData, urlHotmart: e.target.value })}
+                    placeholder="URL de checkout da Hotmart"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-beneficios">Benefícios (um por linha)</Label>
+                  <Textarea 
+                    id="edit-beneficios"
+                    value={formData.beneficios || ''}
+                    onChange={(e) => setFormData({ ...formData, beneficios: e.target.value })}
+                    placeholder="Ex:&#10;Acesso a todos os templates&#10;Suporte prioritário&#10;Atualizações ilimitadas"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-itensRestritos">Itens Restritos (um por linha)</Label>
+                  <Textarea 
+                    id="edit-itensRestritos"
+                    value={formData.itensRestritos || ''}
+                    onChange={(e) => setFormData({ ...formData, itensRestritos: e.target.value })}
+                    placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
+                  </p>
+                </div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="edit-isGratuito"
-                  checked={formData.isGratuito}
-                  onCheckedChange={(checked) => {
-                    const newFormData = { ...formData, isGratuito: checked };
-                    if (checked) {
-                      newFormData.valor = "0,00";
-                    }
-                    setFormData(newFormData);
-                  }}
-                />
-                <Label htmlFor="edit-isGratuito">Plano Gratuito</Label>
-              </div>
-            </div>
-
-            {/* Dados da Hotmart */}
-            <div className="space-y-2">
-              <Label htmlFor="edit-codigoHotmart">Código Hotmart (opcional)</Label>
-              <Input 
-                id="edit-codigoHotmart"
-                value={formData.codigoHotmart || ''}
-                onChange={(e) => setFormData({ ...formData, codigoHotmart: e.target.value })}
-                placeholder="Código do produto na Hotmart"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-urlHotmart">URL de Checkout (opcional)</Label>
-              <Input 
-                id="edit-urlHotmart"
-                value={formData.urlHotmart || ''}
-                onChange={(e) => setFormData({ ...formData, urlHotmart: e.target.value })}
-                placeholder="URL de checkout da Hotmart"
-              />
-            </div>
-
-            {/* Benefícios do plano */}
-            <div className="space-y-2">
-              <Label htmlFor="edit-beneficios">Benefícios (um por linha)</Label>
-              <Textarea 
-                id="edit-beneficios"
-                value={formData.beneficios || ''}
-                onChange={(e) => setFormData({ ...formData, beneficios: e.target.value })}
-                placeholder="Ex:&#10;Acesso a todos os templates&#10;Suporte prioritário&#10;Atualizações ilimitadas"
-                rows={4}
-              />
-            </div>
-
-            {/* Itens restritos (para mostrar limitações) */}
-            <div className="space-y-2">
-              <Label htmlFor="edit-itensRestritos">Itens Restritos (um por linha)</Label>
-              <Textarea 
-                id="edit-itensRestritos"
-                value={formData.itensRestritos || ''}
-                onChange={(e) => setFormData({ ...formData, itensRestritos: e.target.value })}
-                placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
-                rows={3}
-              />
-              <p className="text-xs text-gray-500">
-                Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
-              </p>
             </div>
 
             <DialogFooter>
