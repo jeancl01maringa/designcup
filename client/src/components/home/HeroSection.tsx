@@ -7,20 +7,20 @@ export default function HeroSection() {
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         {/* Badges - Moved above the heading */}
         <div className="flex flex-wrap justify-center gap-6 mb-6">
-          <div className="bg-white/60 backdrop-blur-sm rounded-full py-1.5 px-3 flex items-center shadow-sm">
-            <Users className="h-4 w-4 text-[#AA5E2F] mr-1.5" />
-            <span className="text-xs font-light text-[#1D1D1D]">+3 mil membros</span>
+          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm border border-white/20">
+            <Users className="h-4 w-4 text-primary mr-1.5" />
+            <span className="text-xs font-medium text-[#1D1D1D]">+3 mil membros</span>
           </div>
-          <div className="bg-white/60 backdrop-blur-sm rounded-full py-1.5 px-3 flex items-center shadow-sm">
+          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm border border-white/20">
             <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1.5" />
-            <span className="text-xs font-light text-[#1D1D1D]">Avaliado 5 estrelas</span>
+            <span className="text-xs font-medium text-[#1D1D1D]">Avaliado 5 estrelas</span>
           </div>
         </div>
         
         {/* Main Heading */}
         <h1 className="text-3xl md:text-5xl font-bold text-[#1D1D1D] leading-tight mb-6 font-montserrat">
           A Melhor plataforma de<br />
-          <span className="text-[#AA5E2F] bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] bg-clip-text text-transparent">Artes para Estética do Brasil</span>
+          <span className="text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Artes para Estética do Brasil</span>
         </h1>
         
         {/* Description */}
@@ -52,7 +52,7 @@ export default function HeroSection() {
               </div>
             </div>
             
-            <Button className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] hover:from-[#9A542A] hover:to-[#B86A35] shadow-lg transition-all duration-200">
+            <Button className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-primary hover:bg-primary/90 shadow-lg transition-all duration-200">
               <Search className="h-5 w-5 text-white" />
             </Button>
           </div>
