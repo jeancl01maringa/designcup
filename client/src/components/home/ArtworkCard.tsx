@@ -141,20 +141,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
           )}
           
           {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
-          {artwork.isPro && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="badge-premium absolute top-2 right-2 z-10 bg-gradient-to-br from-slate-800/15 to-slate-900/15 backdrop-blur-sm text-white rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg border border-slate-600/10 transition-all duration-300 hover:scale-110 hover:shadow-xl cursor-pointer">
-                    <Crown className="w-3 h-3 lg:w-4 lg:h-4 text-amber-400 drop-shadow-sm" fill="currentColor" />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="max-w-48 text-center">
-                  <p className="text-sm font-medium">Esse é um modelo premium, exclusivo do Design para Estética</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          {artwork.isPro && <PremiumCrown />}
           
           {/* Hover actions - botões de curtir e salvar */}
           <div 

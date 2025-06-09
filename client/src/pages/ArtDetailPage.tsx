@@ -17,6 +17,7 @@ import {
   Image
 } from "lucide-react";
 import { ArtworkCard } from "@/components/home/ArtworkCard";
+import { PremiumCrown } from "@/components/ui/premium-crown";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

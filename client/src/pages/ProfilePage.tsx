@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
-import { Upload, Flag, Heart, Clock, TrendingUp, Filter, Camera, Bookmark, ExternalLink, Lock, ImageIcon, Crown } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Upload, Flag, Heart, Clock, TrendingUp, Filter, Camera, Bookmark, ExternalLink, Lock, ImageIcon } from 'lucide-react';
+import { PremiumCrown } from '@/components/ui/premium-crown';
 import { Loader2 } from 'lucide-react';
 
 interface UserProfile {
@@ -99,20 +99,7 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
         )}
         
         {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
-        {post.isPro && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="badge-premium absolute top-2 right-2 z-10 bg-gradient-to-br from-slate-800/15 to-slate-900/15 backdrop-blur-sm text-white rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg border border-slate-600/10 transition-all duration-300 hover:scale-110 hover:shadow-xl cursor-pointer">
-                  <Crown className="w-3 h-3 lg:w-4 lg:h-4 text-amber-400 drop-shadow-sm" fill="currentColor" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="left" className="max-w-48 text-center">
-                <p className="text-sm font-medium">Esse é um modelo premium, exclusivo do Design para Estética</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {post.isPro && <PremiumCrown />}
         
         {/* Hover actions - botões de curtir e salvar */}
         <div 
