@@ -94,7 +94,7 @@ export default function MarketingPage() {
             <p className="text-sm text-muted-foreground">
               Crie e gerencie popups promocionais para aumentar conversões e engajamento dos usuários.
             </p>
-            <div className="space-y-2 mb-6">
+            <div className="space-y-3 mb-8">
               <div className="flex justify-between text-sm">
                 <span>Popups ativos</span>
                 <span className="font-medium">2</span>
