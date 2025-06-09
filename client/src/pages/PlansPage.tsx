@@ -90,20 +90,20 @@ export default function PlansPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+      <div className="bg-white text-gray-900 py-16 border-b">
         <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-medium">Planos especiais para impulsionar seu negócio</span>
+          <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-6">
+            <Sparkles className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800">Escolha o plano ideal para você</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-            Escolha Seu Plano Ideal
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent">
+            Junte-se ao premium
           </h1>
           
-          <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-4xl mx-auto">
+          <p className="text-xl md:text-2xl mb-8 text-gray-600 max-w-4xl mx-auto">
             Desbloqueie todo o potencial criativo com nossos templates profissionais. Comece grátis ou escolha um plano premium para acesso ilimitado.
           </p>
           
@@ -111,11 +111,17 @@ export default function PlansPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {premiumFeatures.map((feature, index) => (
               <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full mb-4">
-                  {feature.icon}
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                  index === 0 ? 'bg-blue-100 text-blue-600' :
+                  index === 1 ? 'bg-green-100 text-green-600' :
+                  'bg-purple-100 text-purple-600'
+                }`}>
+                  {React.cloneElement(feature.icon, {
+                    className: "h-5 w-5"
+                  })}
                 </div>
-                <div className="text-3xl font-bold mb-2">{feature.title}</div>
-                <div className="text-blue-100">{feature.description}</div>
+                <div className="text-3xl font-bold mb-2 text-gray-900">{feature.title}</div>
+                <div className="text-gray-600">{feature.description}</div>
               </div>
             ))}
           </div>
@@ -207,47 +213,67 @@ export default function PlansPage() {
                     {plan.isGratuito ? (
                       <>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Check className="h-3 w-3 text-green-600" />
+                          </div>
                           <span>5 downloads por mês</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Check className="h-3 w-3 text-blue-600" />
+                          </div>
                           <span>Acesso à galeria básica</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Check className="h-3 w-3 text-purple-600" />
+                          </div>
                           <span>Sem marca d'água</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Check className="h-3 w-3 text-orange-600" />
+                          </div>
                           <span>Suporte via e-mail</span>
                         </li>
                       </>
                     ) : (
                       <>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>+500 Artes Premium</span>
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Palette className="h-3 w-3 text-blue-600" />
+                          </div>
+                          <span className="font-medium">+500 Artes Premium</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Atualizações Mensais</span>
+                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <RefreshCw className="h-3 w-3 text-green-600" />
+                          </div>
+                          <span className="font-medium">Atualizações Mensais</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Suporte Exclusivo</span>
+                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Headphones className="h-3 w-3 text-purple-600" />
+                          </div>
+                          <span className="font-medium">Suporte Exclusivo</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Downloads Ilimitados</span>
+                          <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Check className="h-3 w-3 text-emerald-600" />
+                          </div>
+                          <span className="font-medium">Downloads Ilimitados</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Acesso a todas categorias</span>
+                          <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Check className="h-3 w-3 text-indigo-600" />
+                          </div>
+                          <span className="font-medium">Acesso a todas categorias</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Novos designs semanais</span>
+                          <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <Sparkles className="h-3 w-3 text-pink-600" />
+                          </div>
+                          <span className="font-medium">Novos designs semanais</span>
                         </li>
                       </>
                     )}
