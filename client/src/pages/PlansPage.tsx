@@ -289,23 +289,30 @@ export default function PlansPage() {
                       let benefits = plan.beneficios ? plan.beneficios.split('\n') : [];
                       
                       if (plan.isGratuito) {
-                        // Adicionar os itens restritos se não existirem
-                        const hasDownloads = benefits.some(b => b.toLowerCase().includes('downloads ilimitados'));
-                        const hasModelos = benefits.some(b => b.toLowerCase().includes('modelos premium'));
+                        // Lista de itens restritos para o plano gratuito
+                        const restrictedItems = [
+                          'Acesso a comunidade exclusiva',
+                          'Downloads Ilimitados', 
+                          'Modelos Premium',
+                          'Suporte individual'
+                        ];
                         
-                        if (!hasDownloads) {
-                          benefits.push('Downloads Ilimitados');
-                        }
-                        if (!hasModelos) {
-                          benefits.push('Modelos Premium');
-                        }
+                        // Adicionar os itens restritos se não existirem
+                        restrictedItems.forEach(item => {
+                          const hasItem = benefits.some(b => b.toLowerCase().includes(item.toLowerCase()));
+                          if (!hasItem) {
+                            benefits.push(item);
+                          }
+                        });
                       }
                       
                       return benefits.length > 0 ? benefits.map((benefit, index) => {
                         const benefitText = benefit.trim();
                         const isRestricted = plan.isGratuito && 
                           (benefitText.toLowerCase().includes('downloads ilimitados') || 
-                           benefitText.toLowerCase().includes('modelos premium'));
+                           benefitText.toLowerCase().includes('modelos premium') ||
+                           benefitText.toLowerCase().includes('acesso a comunidade exclusiva') ||
+                           benefitText.toLowerCase().includes('suporte individual'));
                         
                         return (
                           <li key={index} className="flex items-center text-sm">
