@@ -2708,6 +2708,7 @@ export class DatabaseStorage implements IStorage {
             codigoHotmart: plan.codigo_hotmart,
             urlHotmart: plan.url_hotmart,
             beneficios: plan.beneficios,
+            itensRestritos: plan.itens_restritos,
             createdAt: new Date(plan.created_at)
           }));
         }

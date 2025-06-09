@@ -21,6 +21,7 @@ interface Plan {
   codigoHotmart: string | null;
   urlHotmart: string | null;
   beneficios: string | null;
+  itensRestritos?: string | null;
   createdAt: string;
 }
 
@@ -285,52 +286,42 @@ export default function PlansPage() {
                 <CardContent className="flex-1 py-6">
                   <ul className="space-y-3">
                     {(() => {
-                      // Para plano gratuito, adicionar os itens restritos
-                      let benefits = plan.beneficios ? plan.beneficios.split('\n') : [];
+                      // Combinar benefícios disponíveis e itens restritos
+                      let allItems = [];
                       
-                      if (plan.isGratuito) {
-                        // Lista de itens restritos para o plano gratuito
-                        const restrictedItems = [
-                          'Acesso a comunidade exclusiva',
-                          'Downloads Ilimitados', 
-                          'Modelos Premium',
-                          'Suporte individual'
-                        ];
-                        
-                        // Adicionar os itens restritos se não existirem
-                        restrictedItems.forEach(item => {
-                          const hasItem = benefits.some(b => b.toLowerCase().includes(item.toLowerCase()));
-                          if (!hasItem) {
-                            benefits.push(item);
-                          }
-                        });
+                      // Adicionar benefícios disponíveis
+                      if (plan.beneficios) {
+                        allItems = plan.beneficios.split('\n').map(item => ({
+                          text: item.trim(),
+                          isRestricted: false
+                        }));
                       }
                       
-                      return benefits.length > 0 ? benefits.map((benefit, index) => {
-                        const benefitText = benefit.trim();
-                        const isRestricted = plan.isGratuito && 
-                          (benefitText.toLowerCase().includes('downloads ilimitados') || 
-                           benefitText.toLowerCase().includes('modelos premium') ||
-                           benefitText.toLowerCase().includes('acesso a comunidade exclusiva') ||
-                           benefitText.toLowerCase().includes('suporte individual'));
-                        
-                        return (
-                          <li key={index} className="flex items-center text-sm">
-                            {isRestricted ? (
-                              <X className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
-                            ) : (
-                              <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                            )}
-                            <span className={`font-light ${
-                              isRestricted 
-                                ? 'text-gray-400 line-through' 
-                                : 'text-gray-700'
-                            }`}>
-                              {benefitText}
-                            </span>
-                          </li>
-                        );
-                      }) : [
+                      // Adicionar itens restritos se existirem
+                      if (plan.itensRestritos) {
+                        const restrictedItems = plan.itensRestritos.split('\n').map(item => ({
+                          text: item.trim(),
+                          isRestricted: true
+                        }));
+                        allItems = [...allItems, ...restrictedItems];
+                      }
+                      
+                      return allItems.length > 0 ? allItems.map((item, index) => (
+                        <li key={index} className="flex items-center text-sm">
+                          {item.isRestricted ? (
+                            <X className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          )}
+                          <span className={`font-light ${
+                            item.isRestricted 
+                              ? 'text-gray-400 line-through' 
+                              : 'text-gray-700'
+                          }`}>
+                            {item.text}
+                          </span>
+                        </li>
+                      )) : [
                         <li key="default" className="flex items-center text-sm">
                           <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-light text-gray-700">Plano sem benefícios descritos</span>

@@ -28,6 +28,7 @@ interface Plan {
   codigoHotmart: string | null;
   urlHotmart: string | null;
   beneficios: string | null;
+  itensRestritos?: string | null;
   createdAt: string;
 }
 
@@ -42,6 +43,7 @@ interface PlanInput {
   codigoHotmart: string | null;
   urlHotmart: string | null;
   beneficios: string | null;
+  itensRestritos?: string | null;
 }
 
 export default function PlanosPage() {
@@ -60,6 +62,7 @@ export default function PlanosPage() {
     codigoHotmart: '',
     urlHotmart: '',
     beneficios: '',
+    itensRestritos: '',
   });
 
   // Buscar planos
