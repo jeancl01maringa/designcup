@@ -128,7 +128,8 @@ export function setupAuth(app: Express) {
       const user = await storage.getUser(id);
       
       if (!user) {
-        return done(new Error("Usuário não encontrado"), null);
+        console.warn(`Usuário com ID ${id} não encontrado. Invalidando sessão.`);
+        return done(null, false);
       }
       
       const userWithAdmin = {
