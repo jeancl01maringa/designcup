@@ -1182,14 +1182,14 @@ export default function ArtDetailPage() {
               )}
               
               {/* Botão de seguir alinhado à direita do autor */}
-              {!authorLoading && user && author && user.id !== author.id && (
+              {!authorLoading && user && author && user.id !== author.id && author.isAdmin && (
                 <Button
                   size="sm"
                   onClick={handleFollow}
                   disabled={followLoading}
                   className={isFollowing 
                     ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
-                    : "bg-black hover:bg-gray-800 text-white border-0"
+                    : "bg-blue-600 hover:bg-blue-700 text-white border-0"
                   }
                 >
                   {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
