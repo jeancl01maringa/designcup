@@ -925,6 +925,39 @@ export default function ArtDetailPage() {
                     <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
                   </Button>
                   
+                  {/* Linha de ações */}
+                  <div className="flex items-center justify-center gap-3">
+                    <Button 
+                      onClick={() => setLocation('/auth')}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                    >
+                      <Heart size={16} />
+                      <span>Favoritar</span>
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => setLocation('/auth')}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                    >
+                      <Bookmark size={16} />
+                      <span>Salvar</span>
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleShare}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                    >
+                      <Share2 size={16} />
+                      <span>Compartilhar</span>
+                    </Button>
+                  </div>
+                  
                   {/* Aviso premium */}
                   <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <div className="flex items-start gap-2">
@@ -940,17 +973,52 @@ export default function ArtDetailPage() {
                 </>
               ) : (
                 /* Botão azul para artes gratuitas quando não logado */
-                <Button 
-                  onClick={() => setLocation('/auth')}
-                  className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
-                    <polyline points="15 3 21 3 21 9" />
-                    <line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                  <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
-                </Button>
+                <>
+                  <Button 
+                    onClick={() => setLocation('/auth')}
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
+                  </Button>
+                  
+                  {/* Linha de ações */}
+                  <div className="flex items-center justify-center gap-3">
+                    <Button 
+                      onClick={() => setLocation('/auth')}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                    >
+                      <Heart size={16} />
+                      <span>Favoritar</span>
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => setLocation('/auth')}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                    >
+                      <Bookmark size={16} />
+                      <span>Salvar</span>
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleShare}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                    >
+                      <Share2 size={16} />
+                      <span>Compartilhar</span>
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
           ) : isPremium && !isUserPremium ? (
@@ -964,6 +1032,45 @@ export default function ArtDetailPage() {
                 <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
                 <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
               </Button>
+              
+              {/* Linha de ações */}
+              <div className="flex items-center justify-center gap-3">
+                <Button 
+                  onClick={postActions.handleLike}
+                  variant="outline"
+                  size="sm"
+                  disabled={postActions.isLiking}
+                  className={`border-gray-300 flex items-center gap-1.5 ${
+                    postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-gray-700"
+                  }`}
+                >
+                  <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
+                  <span>Favoritar</span>
+                </Button>
+                
+                <Button 
+                  onClick={postActions.handleSave}
+                  variant="outline"
+                  size="sm"
+                  disabled={postActions.isSaving}
+                  className={`border-gray-300 flex items-center gap-1.5 ${
+                    postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-gray-700"
+                  }`}
+                >
+                  <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
+                  <span>Salvar</span>
+                </Button>
+                
+                <Button 
+                  onClick={handleShare}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                >
+                  <Share2 size={16} />
+                  <span>Compartilhar</span>
+                </Button>
+              </div>
               
               {/* Aviso premium */}
               <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
@@ -982,57 +1089,59 @@ export default function ArtDetailPage() {
             </div>
           ) : (
             // Botão normal para usuários com permissão (premium ou arte gratuita)
-            <Button 
-              onClick={handleEditCanva} 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-              <span className="font-medium text-sm">EDITAR NO CANVA</span>
-            </Button>
+            <div className="space-y-3">
+              <Button 
+                onClick={handleEditCanva} 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                <span className="font-medium text-sm">EDITAR NO CANVA</span>
+              </Button>
+              
+              {/* Linha de ações */}
+              <div className="flex items-center justify-center gap-3">
+                <Button 
+                  onClick={postActions.handleLike}
+                  variant="outline"
+                  size="sm"
+                  disabled={postActions.isLiking}
+                  className={`border-gray-300 flex items-center gap-1.5 ${
+                    postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-gray-700"
+                  }`}
+                >
+                  <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
+                  <span>Favoritar</span>
+                </Button>
+                
+                <Button 
+                  onClick={postActions.handleSave}
+                  variant="outline"
+                  size="sm"
+                  disabled={postActions.isSaving}
+                  className={`border-gray-300 flex items-center gap-1.5 ${
+                    postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-gray-700"
+                  }`}
+                >
+                  <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
+                  <span>Salvar</span>
+                </Button>
+                
+                <Button 
+                  onClick={handleShare}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 flex items-center gap-1.5"
+                >
+                  <Share2 size={16} />
+                  <span>Compartilhar</span>
+                </Button>
+              </div>
+            </div>
           )}
-          
-          {/* Linha de ações */}
-          <div className="flex items-center justify-center gap-3 pt-5">
-            <Button 
-              onClick={postActions.handleLike}
-              variant="outline"
-              size="sm"
-              disabled={postActions.isLiking}
-              className={`border-gray-300 flex items-center gap-1.5 ${
-                postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-gray-700"
-              }`}
-            >
-              <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
-              <span>Favoritar</span>
-            </Button>
-            
-            <Button 
-              onClick={postActions.handleSave}
-              variant="outline"
-              size="sm"
-              disabled={postActions.isSaving}
-              className={`border-gray-300 flex items-center gap-1.5 ${
-                postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-gray-700"
-              }`}
-            >
-              <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
-              <span>Salvar</span>
-            </Button>
-            
-            <Button 
-              onClick={handleShare}
-              variant="outline"
-              size="sm"
-              className="border-gray-300 text-gray-700 flex items-center gap-1.5"
-            >
-              <Share2 size={16} />
-              <span>Compartilhar</span>
-            </Button>
-          </div>
           
           {/* Informações do criador */}
           <div className="border-t pt-4 mt-2">
