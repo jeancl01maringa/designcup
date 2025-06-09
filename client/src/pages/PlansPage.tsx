@@ -49,6 +49,9 @@ export default function PlansPage() {
   // Filtramos apenas os planos ativos
   const activePlans = plans?.filter(plan => plan.isActive) || [];
 
+  // Estado para alternar entre tipos de planos
+  const [planType, setPlanType] = React.useState<'mensal' | 'anual'>('mensal');
+
   // Vantagens premium destacadas
   const premiumFeatures = [
     {
@@ -136,9 +139,33 @@ export default function PlansPage() {
             <span className="text-sm font-medium">Todos os Planos</span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Encontre o plano perfeito</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
             Escolha entre nossos planos flexíveis e comece a criar designs incríveis hoje mesmo
           </p>
+          
+          {/* Seletor de Tipo de Plano */}
+          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-8">
+            <button
+              onClick={() => setPlanType('mensal')}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                planType === 'mensal'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Mensal
+            </button>
+            <button
+              onClick={() => setPlanType('anual')}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                planType === 'anual'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Anual
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -183,7 +210,13 @@ export default function PlansPage() {
                 )}
                 
                 <CardHeader className="text-center pt-8 pb-4">
-                  <CardTitle className="text-2xl font-bold mb-2">
+                  <CardTitle className={`text-2xl font-bold mb-2 ${
+                    plan.isGratuito 
+                      ? 'text-gray-500' 
+                      : plan.isPrincipal 
+                        ? 'text-black border-b-2 border-blue-500 pb-2' 
+                        : 'text-black'
+                  }`}>
                     {plan.name}
                   </CardTitle>
                 </CardHeader>
@@ -209,66 +242,46 @@ export default function PlansPage() {
                     {plan.isGratuito ? (
                       <>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Check className="h-3 w-3 text-green-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>5 downloads por mês</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Check className="h-3 w-3 text-blue-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>Acesso à galeria básica</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Check className="h-3 w-3 text-purple-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>Sem marca d'água</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Check className="h-3 w-3 text-orange-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>Suporte via e-mail</span>
                         </li>
                       </>
                     ) : (
                       <>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Palette className="h-3 w-3 text-blue-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">+500 Artes Premium</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <RefreshCw className="h-3 w-3 text-green-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Atualizações Mensais</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Headphones className="h-3 w-3 text-purple-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Suporte Exclusivo</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Downloads Ilimitados</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Check className="h-3 w-3 text-indigo-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Acesso a todas categorias</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                            <Sparkles className="h-3 w-3 text-pink-600" />
-                          </div>
+                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Novos designs semanais</span>
                         </li>
                       </>
