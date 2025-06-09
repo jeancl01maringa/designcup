@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap } from "lucide-react";
+import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -73,16 +73,19 @@ export default function PlansPage() {
     if (plan.isGratuito) {
       return <Star className="h-6 w-6 text-blue-600" />;
     }
+    if (plan.periodo.toLowerCase().includes('vitalício')) {
+      return <Infinity className="h-6 w-6 text-green-600" />;
+    }
     if (plan.periodo.toLowerCase().includes('mensal')) {
-      return <RefreshCw className="h-6 w-6 text-orange-600" />;
+      return <RefreshCw className="h-6 w-6 text-green-600" />;
     }
     if (plan.periodo.toLowerCase().includes('trimestral')) {
       return <CheckCircle className="h-6 w-6 text-green-600" />;
     }
-    if (plan.periodo.toLowerCase().includes('anual') || plan.periodo.toLowerCase().includes('vitalício')) {
-      return <Crown className="h-6 w-6 text-purple-600" />;
+    if (plan.periodo.toLowerCase().includes('anual')) {
+      return <Crown className="h-6 w-6 text-green-600" />;
     }
-    return <Sparkles className="h-6 w-6 text-blue-600" />;
+    return <Sparkles className="h-6 w-6 text-green-600" />;
   };
 
   // Filtramos apenas os planos ativos do período selecionado
@@ -306,13 +309,7 @@ export default function PlansPage() {
                         className={`w-full h-12 text-base font-semibold ${
                           plan.isGratuito 
                             ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
-                            : plan.periodo.toLowerCase().includes('mensal') 
-                            ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                            : plan.periodo.toLowerCase().includes('trimestral')
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : plan.periodo.toLowerCase().includes('anual') || plan.periodo.toLowerCase().includes('vitalício')
-                            ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-green-600 hover:bg-green-700 text-white'
                         }`}
                         variant={plan.isGratuito ? 'outline' : 'default'}
                       >
@@ -325,13 +322,7 @@ export default function PlansPage() {
                         className={`w-full h-12 text-base font-semibold ${
                           plan.isGratuito 
                             ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
-                            : plan.periodo.toLowerCase().includes('mensal') 
-                            ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                            : plan.periodo.toLowerCase().includes('trimestral')
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : plan.periodo.toLowerCase().includes('anual') || plan.periodo.toLowerCase().includes('vitalício')
-                            ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-green-600 hover:bg-green-700 text-white'
                         }`}
                         variant={plan.isGratuito ? 'outline' : 'default'}
                       >
