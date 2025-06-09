@@ -932,19 +932,21 @@ export default function ArtDetailPage() {
                 onClick={() => setLocation('/planos')}
                 className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
               >
-                <Crown size={16} className="text-white" />
+                <Crown size={16} className="text-white drop-shadow-sm" />
                 <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
                 <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
               </Button>
               
               {/* Aviso premium */}
-              <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Crown size={14} className="text-amber-400 drop-shadow-sm" />
+                  </div>
                   <div className="text-sm">
-                    <p className="font-medium text-amber-800">Acesso Premium Necessário</p>
-                    <p className="text-amber-700 mt-1">
-                      Este produto está disponível exclusivamente para os membros premium. Faça upgrade para uma conta Premium para ter acesso a todo o conteúdo premium.
+                    <p className="font-semibold text-slate-800">Acesso Premium Necessário</p>
+                    <p className="text-slate-600 mt-1.5 leading-relaxed">
+                      Este modelo está disponível exclusivamente para membros premium. Faça upgrade para acessar todo o conteúdo premium da plataforma.
                     </p>
                   </div>
                 </div>

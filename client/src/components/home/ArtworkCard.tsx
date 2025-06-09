@@ -5,6 +5,7 @@ import type { Artwork } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { usePostActions } from "@/hooks/use-post-actions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -141,11 +142,18 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
           
           {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
           {artwork.isPro && (
-            <div className="badge-premium absolute top-2 right-2 z-10 bg-black/70 text-[#FFC107] rounded-full w-4 h-4 lg:w-8 lg:h-8 flex items-center justify-center shadow-md relative">
-              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="#FFC107" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-crown lg:w-4 lg:h-4">
-                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
-              </svg>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="badge-premium absolute top-2 right-2 z-10 bg-gradient-to-br from-slate-800 to-slate-900 backdrop-blur-sm text-white rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg border border-slate-600/30 transition-all duration-300 hover:scale-110 hover:shadow-xl cursor-pointer">
+                    <Crown className="w-3 h-3 lg:w-4 lg:h-4 text-amber-400 drop-shadow-sm" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-48 text-center">
+                  <p className="text-sm font-medium">Esse é um modelo premium, exclusivo do Design para Estética</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           
           {/* Hover actions - botões de curtir e salvar */}
