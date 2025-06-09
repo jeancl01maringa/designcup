@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle } from "lucide-react";
+import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -68,6 +68,23 @@ export default function PlansPage() {
     return price.replace('R$', '').trim();
   };
 
+  // Função para obter ícone do plano
+  const getPlanIcon = (plan: Plan) => {
+    if (plan.isGratuito) {
+      return <Star className="h-6 w-6 text-blue-600" />;
+    }
+    if (plan.periodo.toLowerCase().includes('mensal')) {
+      return <Zap className="h-6 w-6 text-orange-600" />;
+    }
+    if (plan.periodo.toLowerCase().includes('trimestral')) {
+      return <CheckCircle className="h-6 w-6 text-green-600" />;
+    }
+    if (plan.periodo.toLowerCase().includes('anual') || plan.periodo.toLowerCase().includes('vitalício')) {
+      return <Crown className="h-6 w-6 text-purple-600" />;
+    }
+    return <Sparkles className="h-6 w-6 text-blue-600" />;
+  };
+
   // Filtramos apenas os planos ativos do período selecionado
   const activePlans = filteredPlans?.filter(plan => plan.isActive) || [];
 
@@ -90,14 +107,14 @@ export default function PlansPage() {
     }
   ];
 
-  // Ordenados para garantir que o plano principal apareça primeiro
+  // Ordenar planos: gratuito primeiro, depois principal, depois outros por valor
   const sortedPlans = [...activePlans].sort((a, b) => {
-    // Plano principal sempre primeiro
-    if (a.isPrincipal && !b.isPrincipal) return -1;
-    if (!a.isPrincipal && b.isPrincipal) return 1;
-    // Gratuito depois do principal e antes dos pagos
+    // Gratuito sempre primeiro
     if (a.isGratuito && !b.isGratuito) return -1;
     if (!a.isGratuito && b.isGratuito) return 1;
+    // Plano principal depois do gratuito
+    if (a.isPrincipal && !b.isPrincipal) return -1;
+    if (!a.isPrincipal && b.isPrincipal) return 1;
     // Por preço (do mais barato ao mais caro)
     const valorA = parseFloat(a.valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const valorB = parseFloat(b.valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
@@ -224,7 +241,12 @@ export default function PlansPage() {
                   </div>
                 )}
                 
-                <CardHeader className="text-center pt-8 pb-1">
+                <CardHeader className="text-center pt-6 pb-1">
+                  {/* Ícone circular */}
+                  <div className="mx-auto mb-4 w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                    {getPlanIcon(plan)}
+                  </div>
+                  
                   <CardTitle className={`text-2xl font-bold ${
                     plan.isGratuito 
                       ? 'text-gray-500' 
@@ -241,9 +263,9 @@ export default function PlansPage() {
                     ) : (
                       <div className="flex flex-col items-center">
                         <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-xl text-gray-600">R$</span>
+                          <span className="text-xl text-gray-600 font-light">R$</span>
                           <span className="text-gray-900">{formatPrice(plan.valor)}</span>
-                          <span className="text-sm text-gray-500">/{plan.periodo.toLowerCase().includes('anual') ? 'ano' : plan.periodo.toLowerCase().includes('mensal') ? 'mês' : plan.periodo.toLowerCase()}</span>
+                          <span className="text-sm text-gray-500 font-light">/{plan.periodo.toLowerCase().includes('anual') ? 'ano' : plan.periodo.toLowerCase().includes('mensal') ? 'mês' : plan.periodo.toLowerCase()}</span>
                         </div>
                         {isAnnual && !plan.isGratuito && (
                           <div className="bg-green-100 text-green-700 text-sm font-medium mt-2 px-3 py-1 rounded-full">
@@ -263,7 +285,7 @@ export default function PlansPage() {
                       plan.beneficios.split('\n').map((benefit, index) => (
                         <li key={index} className="flex items-center text-sm">
                           <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className={plan.isGratuito ? '' : 'font-medium'}>
+                          <span className="font-light text-gray-700">
                             {benefit.trim()}
                           </span>
                         </li>
@@ -271,7 +293,7 @@ export default function PlansPage() {
                     ) : (
                       <li className="flex items-center text-sm">
                         <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                        <span>Plano sem benefícios descritos</span>
+                        <span className="font-light text-gray-700">Plano sem benefícios descritos</span>
                       </li>
                     )}
                   </ul>
