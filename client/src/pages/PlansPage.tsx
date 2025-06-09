@@ -61,17 +61,20 @@ export default function PlansPage() {
 
   // Função para calcular preço com desconto anual
   const calculatePrice = (originalPrice: string) => {
-    const price = parseFloat(originalPrice.replace(',', '.'));
+    // Remove "R$" e espaços, depois converte para número
+    const cleanPrice = originalPrice.replace('R$', '').trim().replace(',', '.');
+    const price = parseFloat(cleanPrice);
     if (isAnnual && !isNaN(price)) {
       const discountedPrice = price * 0.75; // 25% de desconto
       return discountedPrice.toFixed(2).replace('.', ',');
     }
-    return originalPrice;
+    return cleanPrice.replace('.', ',');
   };
 
   // Função para calcular preço original (sem desconto)
   const getOriginalPrice = (price: string) => {
-    const priceNum = parseFloat(price.replace(',', '.'));
+    const cleanPrice = price.replace('R$', '').trim().replace(',', '.');
+    const priceNum = parseFloat(cleanPrice);
     if (isAnnual && !isNaN(priceNum)) {
       const originalPrice = priceNum / 0.75; // Preço original antes do desconto
       return originalPrice.toFixed(2).replace('.', ',');
@@ -275,52 +278,20 @@ export default function PlansPage() {
                 
                 <CardContent className="flex-1 py-6">
                   <ul className="space-y-3">
-                    {plan.isGratuito ? (
-                      <>
-                        <li className="flex items-center text-sm">
+                    {plan.beneficios ? (
+                      plan.beneficios.split('\n').map((benefit, index) => (
+                        <li key={index} className="flex items-center text-sm">
                           <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>5 downloads por mês</span>
+                          <span className={plan.isGratuito ? '' : 'font-medium'}>
+                            {benefit.trim()}
+                          </span>
                         </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Acesso à galeria básica</span>
-                        </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Sem marca d'água</span>
-                        </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span>Suporte via e-mail</span>
-                        </li>
-                      </>
+                      ))
                     ) : (
-                      <>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-medium">+500 Artes Premium</span>
-                        </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-medium">Atualizações Mensais</span>
-                        </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-medium">Suporte Exclusivo</span>
-                        </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-medium">Downloads Ilimitados</span>
-                        </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-medium">Acesso a todas categorias</span>
-                        </li>
-                        <li className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-medium">Novos designs semanais</span>
-                        </li>
-                      </>
+                      <li className="flex items-center text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                        <span>Plano sem benefícios descritos</span>
+                      </li>
                     )}
                   </ul>
                 </CardContent>
