@@ -17,7 +17,7 @@ export default function Home() {
               <span className="mr-2">🎨</span>
               Artes de alta qualidade para sua Clínica
             </h3>
-            <p className="text-[#5c3a2d] text-sm font-light">
+            <p className="text-gray-600 text-sm font-light">
               Modelos premium, editáveis e prontos para usar
             </p>
             <div className="flex items-center mt-2">
