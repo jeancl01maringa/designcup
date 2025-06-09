@@ -153,7 +153,7 @@ function App() {
         <Context.Provider value={value}>
           <div className="flex flex-col min-h-screen">
             {showHeaderFooter && <Header />}
-            <main className="flex-grow">
+            <main className={`flex-grow ${showHeaderFooter ? "pt-16" : ""}`}>
               <Router />
             </main>
             {showHeaderFooter && <Footer />}
