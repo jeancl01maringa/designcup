@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -173,12 +173,12 @@ export default function PlansPage() {
             Escolha entre nossos planos flexíveis e comece a criar designs incríveis hoje mesmo
           </p>
           
-          {/* Seletor de Tipo de Plano */}
+          {/* Seletor de Período */}
           <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-8">
             <button
-              onClick={() => setPlanType('mensal')}
+              onClick={() => setIsAnnual(false)}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                planType === 'mensal'
+                !isAnnual
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -186,14 +186,17 @@ export default function PlansPage() {
               Mensal
             </button>
             <button
-              onClick={() => setPlanType('anual')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                planType === 'anual'
+              onClick={() => setIsAnnual(true)}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all relative ${
+                isAnnual
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Anual
+              <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 py-0.5">
+                -25%
+              </Badge>
             </button>
           </div>
         </div>
@@ -247,10 +250,22 @@ export default function PlansPage() {
                     {plan.isGratuito ? (
                       <span className="text-gray-500">Grátis</span>
                     ) : (
-                      <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-xl text-gray-600">R$</span>
-                        <span className="text-gray-900">{plan.valor}</span>
-                        <span className="text-sm text-gray-500">/mês</span>
+                      <div className="flex flex-col items-center">
+                        {isAnnual && getOriginalPrice(plan.valor) && (
+                          <div className="text-sm text-gray-400 line-through mb-1">
+                            De R$ {getOriginalPrice(plan.valor)}
+                          </div>
+                        )}
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="text-xl text-gray-600">R$</span>
+                          <span className="text-gray-900">{calculatePrice(plan.valor)}</span>
+                          <span className="text-sm text-gray-500">/{isAnnual ? 'ano' : 'mês'}</span>
+                        </div>
+                        {isAnnual && (
+                          <div className="text-sm text-green-600 font-medium mt-1">
+                            Economize 25%
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
