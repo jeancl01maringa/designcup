@@ -107,29 +107,23 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           <h3 className="text-white font-bold text-lg">{user.username}</h3>
           <p className="text-white/90 text-sm mb-3">{user.email}</p>
           
-          {/* Seção do Plano - logo abaixo do email */}
-          <div className="mb-2">
-            <span className="text-white/70 text-xs">Plano atual</span>
-            <p className="text-white text-sm font-medium">{getPlanName()}</p>
-          </div>
-          
           {/* Botão de upgrade para usuários gratuitos */}
           {(!userPlan || userPlan.planName === 'Plano Gratuito') && (
             <button
               onClick={() => handleClick('/planos')}
-              className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 text-sm w-full"
+              className="bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2 text-sm w-full border border-gray-200"
             >
-              <Crown className="w-4 h-4" />
+              <Crown className="w-4 h-4 text-amber-500" />
               Assinar Premium
             </button>
           )}
           
           {/* Para usuários premium */}
           {userPlan && userPlan.planName !== 'Plano Gratuito' && (
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black py-2 px-4 rounded-lg">
+            <div className="bg-amber-100 text-amber-800 py-2 px-4 rounded-md border border-amber-200">
               <div className="flex items-center justify-center gap-2">
-                <Crown className="w-4 h-4" />
-                <span className="font-semibold text-sm">Premium Ativo</span>
+                <Crown className="w-4 h-4 text-amber-600" />
+                <span className="font-medium text-sm">Premium</span>
               </div>
             </div>
           )}
