@@ -220,12 +220,13 @@ const MobileUserMenu = () => {
     return (
       <div className="flex md:hidden items-center gap-2">
         <Button 
-          variant="ghost" 
+          variant="default" 
           size="sm" 
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-3 py-1.5 text-xs"
           onClick={() => navigate("/auth")}
         >
-          <LogIn className="h-4 w-4" />
+          <LogIn className="h-3 w-3" />
+          <span>Entrar</span>
         </Button>
       </div>
     );
