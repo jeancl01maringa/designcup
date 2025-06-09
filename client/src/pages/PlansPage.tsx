@@ -74,18 +74,18 @@ export default function PlansPage() {
       return <Star className="h-6 w-6 text-blue-600" />;
     }
     if (plan.periodo.toLowerCase().includes('vitalício')) {
-      return <Infinity className="h-6 w-6 text-green-600" />;
+      return <Infinity className="h-6 w-6 text-purple-600" />;
     }
     if (plan.periodo.toLowerCase().includes('mensal')) {
-      return <RefreshCw className="h-6 w-6 text-green-600" />;
+      return <RefreshCw className="h-6 w-6 text-orange-600" />;
     }
     if (plan.periodo.toLowerCase().includes('trimestral')) {
       return <CheckCircle className="h-6 w-6 text-green-600" />;
     }
     if (plan.periodo.toLowerCase().includes('anual')) {
-      return <Crown className="h-6 w-6 text-green-600" />;
+      return <Crown className="h-6 w-6 text-purple-600" />;
     }
-    return <Sparkles className="h-6 w-6 text-green-600" />;
+    return <Sparkles className="h-6 w-6 text-blue-600" />;
   };
 
   // Filtramos apenas os planos ativos do período selecionado
@@ -285,14 +285,29 @@ export default function PlansPage() {
                 <CardContent className="flex-1 py-6">
                   <ul className="space-y-3">
                     {plan.beneficios ? (
-                      plan.beneficios.split('\n').map((benefit, index) => (
-                        <li key={index} className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-light text-gray-700">
-                            {benefit.trim()}
-                          </span>
-                        </li>
-                      ))
+                      plan.beneficios.split('\n').map((benefit, index) => {
+                        const benefitText = benefit.trim();
+                        const isRestricted = plan.isGratuito && 
+                          (benefitText.toLowerCase().includes('downloads ilimitados') || 
+                           benefitText.toLowerCase().includes('modelos premium'));
+                        
+                        return (
+                          <li key={index} className="flex items-center text-sm">
+                            {isRestricted ? (
+                              <X className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                            )}
+                            <span className={`font-light ${
+                              isRestricted 
+                                ? 'text-gray-400 line-through' 
+                                : 'text-gray-700'
+                            }`}>
+                              {benefitText}
+                            </span>
+                          </li>
+                        );
+                      })
                     ) : (
                       <li className="flex items-center text-sm">
                         <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
@@ -309,7 +324,7 @@ export default function PlansPage() {
                         className={`w-full h-12 text-base font-semibold ${
                           plan.isGratuito 
                             ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
-                            : 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
                         }`}
                         variant={plan.isGratuito ? 'outline' : 'default'}
                       >
@@ -322,7 +337,7 @@ export default function PlansPage() {
                         className={`w-full h-12 text-base font-semibold ${
                           plan.isGratuito 
                             ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
-                            : 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
                         }`}
                         variant={plan.isGratuito ? 'outline' : 'default'}
                       >
