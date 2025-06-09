@@ -81,8 +81,6 @@ export default function ArtDetailPage() {
   
   // Estado para controlar qual formato está sendo exibido
   const [currentFormatIndex, setCurrentFormatIndex] = useState(0);
-  
-  // Estado para controlar expansão dos formatos disponíveis
   const [formatsExpanded, setFormatsExpanded] = useState(false);
   
   // Garantir que a página sempre inicie no topo
