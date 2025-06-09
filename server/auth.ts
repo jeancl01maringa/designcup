@@ -109,30 +109,35 @@ export function setupAuth(app: Express) {
     }),
   );
 
+  // Session cache for users to reduce database hits
+  const userCache = new Map<number, { user: any; timestamp: number }>();
+  const CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
+
   passport.serializeUser((user, done) => {
-    console.log("PASSPORT serializeUser - User ID:", user.id);
     done(null, user.id);
   });
   
   passport.deserializeUser(async (id: number, done) => {
     try {
-      console.log("PASSPORT deserializeUser - Buscando usuário com ID:", id);
-      
+      // Check cache first
+      const cached = userCache.get(id);
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return done(null, cached.user);
+      }
+
       const user = await storage.getUser(id);
       
       if (!user) {
-        console.error("PASSPORT deserializeUser - Usuário não encontrado com ID:", id);
         return done(new Error("Usuário não encontrado"), null);
       }
       
-      // Se o usuário existe, garante que a propriedade isAdmin seja um booleano
       const userWithAdmin = {
         ...user,
         isAdmin: Boolean(user.isAdmin)
       };
       
-      // Log para depuração
-      console.log("PASSPORT deserializeUser - Objeto do usuário:", JSON.stringify(userWithAdmin));
+      // Cache the user for future requests
+      userCache.set(id, { user: userWithAdmin, timestamp: Date.now() });
       
       done(null, userWithAdmin);
     } catch (err) {
@@ -183,7 +188,7 @@ export function setupAuth(app: Express) {
         // Garantir que isAdmin esteja presente no objeto de resposta e remover a senha
         const responseUser = {
           ...user,
-          isAdmin: Boolean(user.isAdmin ?? user.is_admin), // Converter para booleano
+          isAdmin: Boolean(user.isAdmin), // Converter para booleano
           password: undefined // Remover a senha do objeto de resposta por segurança
         };
         
@@ -213,7 +218,7 @@ export function setupAuth(app: Express) {
     
     const safeUser = {
       ...user,
-      isAdmin: Boolean(user.isAdmin ?? user.is_admin), // Garantir que isAdmin seja um booleano
+      isAdmin: Boolean(user.isAdmin), // Garantir que isAdmin seja um booleano
       password: undefined // Remover a senha por segurança
     };
     

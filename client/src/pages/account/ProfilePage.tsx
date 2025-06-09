@@ -86,7 +86,7 @@ export default function ProfilePage() {
 
   // Sync profile data when it loads
   useEffect(() => {
-    if (profileData && profileData.bio !== undefined) {
+    if (profileData && Object.keys(profileData).length > 0) {
       setEditableData(prev => ({
         ...prev,
         biografia: profileData.bio || "",
@@ -94,7 +94,7 @@ export default function ProfilePage() {
         localizacao: profileData.localizacao || "",
       }));
     }
-  }, [profileData?.bio, profileData?.site, profileData?.localizacao]);
+  }, [profileData]);
 
   // Mutation para upload de foto
   const uploadPhotoMutation = useMutation({
