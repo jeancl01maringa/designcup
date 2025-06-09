@@ -631,10 +631,10 @@ export default function ArtDetailPage() {
   }
   
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
+    <div className="container mx-auto py-4 px-4 max-w-6xl">
       <Button 
         variant="ghost" 
-        className="mb-6"
+        className="mb-4 ml-0"
         onClick={() => setLocation('/')}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -642,9 +642,9 @@ export default function ArtDetailPage() {
       </Button>
       
       {/* Layout principal em duas colunas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Coluna da esquerda - Imagem da arte */}
-        <div className="relative">
+        <div className="relative lg:col-span-3">
           {/* Label do formato */}
           <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
             {formatLabel(currentPost?.formato || 'Feed')}
