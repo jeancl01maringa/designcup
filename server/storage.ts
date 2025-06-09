@@ -272,12 +272,19 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("DATABASE createUser - Recebendo dados:", JSON.stringify(insertUser));
       
-      // Mapear isAdmin para is_admin no banco de dados
+      // Mapear isAdmin para is_admin no banco de dados e incluir todos os campos obrigatórios
       const dbUser = {
         username: insertUser.username,
         email: insertUser.email,
         password: insertUser.password,
         is_admin: insertUser.isAdmin || false,
+        telefone: null,
+        profile_image: null,
+        bio: null,
+        tipo: 'free' as const,
+        plano_id: null,
+        data_vencimento: null,
+        active: true,
       };
       
       console.log("DATABASE createUser - Enviando para o banco:", JSON.stringify(dbUser));
@@ -307,7 +314,14 @@ export class DatabaseStorage implements IStorage {
         email: data.email,
         password: data.password,
         isAdmin: isAdmin,
-        createdAt: new Date(data.created_at)
+        telefone: data.telefone || null,
+        profileImage: data.profile_image || null,
+        bio: data.bio || null,
+        createdAt: new Date(data.created_at),
+        tipo: data.tipo || 'free',
+        plano_id: data.plano_id || null,
+        data_vencimento: data.data_vencimento ? new Date(data.data_vencimento) : null,
+        active: data.active || true
       };
       
       return user;
