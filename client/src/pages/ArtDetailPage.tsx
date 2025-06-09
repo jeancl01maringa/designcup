@@ -940,8 +940,8 @@ export default function ArtDetailPage() {
               {/* Aviso premium */}
               <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Crown size={14} className="text-amber-400 drop-shadow-sm" />
+                  <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5 border border-slate-600/20">
+                    <Crown size={14} className="text-amber-400 drop-shadow-sm" fill="currentColor" />
                   </div>
                   <div className="text-sm">
                     <p className="font-semibold text-slate-800">Acesso Premium Necessário</p>

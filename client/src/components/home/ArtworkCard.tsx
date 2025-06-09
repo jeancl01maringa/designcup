@@ -145,8 +145,8 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="badge-premium absolute top-2 right-2 z-10 bg-gradient-to-br from-slate-800 to-slate-900 backdrop-blur-sm text-white rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg border border-slate-600/30 transition-all duration-300 hover:scale-110 hover:shadow-xl cursor-pointer">
-                    <Crown className="w-3 h-3 lg:w-4 lg:h-4 text-amber-400 drop-shadow-sm" />
+                  <div className="badge-premium absolute top-2 right-2 z-10 bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-sm text-white rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg border border-slate-600/20 transition-all duration-300 hover:scale-110 hover:shadow-xl cursor-pointer">
+                    <Crown className="w-3 h-3 lg:w-4 lg:h-4 text-amber-400 drop-shadow-sm" fill="currentColor" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="left" className="max-w-48 text-center">
