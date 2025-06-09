@@ -248,6 +248,23 @@ export default function ArtDetailPage() {
     staleTime: 30 * 1000, // 30 segundos
   });
 
+  // Buscar número real de curtidas do post
+  const { data: likesData } = useQuery({
+    queryKey: ['/api/posts', postId, 'likes'],
+    queryFn: async () => {
+      if (!postId) return { count: 0 };
+      
+      const response = await fetch(`/api/posts/${postId}/likes`);
+      if (!response.ok) return { count: 0 };
+      
+      return response.json();
+    },
+    enabled: !!postId,
+    staleTime: 30 * 1000, // 30 segundos
+  });
+
+  const likesCount = likesData?.count || 0;
+
   // Sincronizar estado local com dados do servidor
   React.useEffect(() => {
     if (followStatus) {
@@ -760,11 +777,11 @@ export default function ArtDetailPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 flex items-center justify-center">
-                  <Eye size={13} className="text-gray-400" />
+                  <Heart size={13} className="text-gray-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-xs">Visualizações:</span>
-                  <span className="text-sm">{post.views || 3}</span>
+                  <span className="text-gray-500 text-xs">Curtidas:</span>
+                  <span className="text-sm">{likesCount}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
