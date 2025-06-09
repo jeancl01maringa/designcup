@@ -74,7 +74,7 @@ export default function PlansPage() {
       return <Star className="h-6 w-6 text-blue-600" />;
     }
     if (plan.periodo.toLowerCase().includes('mensal')) {
-      return <Zap className="h-6 w-6 text-orange-600" />;
+      return <RefreshCw className="h-6 w-6 text-orange-600" />;
     }
     if (plan.periodo.toLowerCase().includes('trimestral')) {
       return <CheckCircle className="h-6 w-6 text-green-600" />;
@@ -303,9 +303,18 @@ export default function PlansPage() {
                   {plan.urlHotmart ? (
                     <a href={plan.urlHotmart} target="_blank" rel="noopener noreferrer" className="w-full">
                       <Button 
-                        className={`w-full ${plan.isPrincipal ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' : ''}`}
-                        variant={plan.isPrincipal ? 'default' : 'outline'}
-                        size="lg"
+                        className={`w-full h-12 text-base font-semibold ${
+                          plan.isGratuito 
+                            ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
+                            : plan.periodo.toLowerCase().includes('mensal') 
+                            ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                            : plan.periodo.toLowerCase().includes('trimestral')
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : plan.periodo.toLowerCase().includes('anual') || plan.periodo.toLowerCase().includes('vitalício')
+                            ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                        variant={plan.isGratuito ? 'outline' : 'default'}
                       >
                         {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
                       </Button>
@@ -313,9 +322,18 @@ export default function PlansPage() {
                   ) : (
                     <Link href={getPlanActionUrl(plan)} className="w-full">
                       <Button 
-                        className={`w-full ${plan.isPrincipal ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' : ''}`}
-                        variant={plan.isPrincipal ? 'default' : 'outline'}
-                        size="lg"
+                        className={`w-full h-12 text-base font-semibold ${
+                          plan.isGratuito 
+                            ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
+                            : plan.periodo.toLowerCase().includes('mensal') 
+                            ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                            : plan.periodo.toLowerCase().includes('trimestral')
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : plan.periodo.toLowerCase().includes('anual') || plan.periodo.toLowerCase().includes('vitalício')
+                            ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                        variant={plan.isGratuito ? 'outline' : 'default'}
                       >
                         {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
                       </Button>
