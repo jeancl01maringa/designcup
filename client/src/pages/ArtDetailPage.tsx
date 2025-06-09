@@ -642,9 +642,9 @@ export default function ArtDetailPage() {
       </Button>
       
       {/* Layout principal em duas colunas */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Coluna da esquerda - Imagem da arte */}
-        <div className="relative md:col-span-3">
+        <div className="relative">
           {/* Label do formato */}
           <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
             {formatLabel(currentPost?.formato || 'Feed')}
