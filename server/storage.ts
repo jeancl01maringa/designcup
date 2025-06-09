@@ -270,9 +270,9 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
-      console.log("DATABASE createUser - Recebendo dados:", JSON.stringify(insertUser));
+      console.log("DATABASE createUser - Criando usuário:", insertUser.username, insertUser.email);
       
-      // Usar PostgreSQL direto para criar o usuário (mesmo método que funciona no login)
+      // Usar PostgreSQL direto - mesmo método que funciona no getUser
       const result = await pool.query(`
         INSERT INTO users (username, email, password, is_admin, telefone, profile_image, bio, tipo, plano_id, data_vencimento, active)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -292,23 +292,19 @@ export class DatabaseStorage implements IStorage {
       ]);
 
       if (!result.rows || result.rows.length === 0) {
-        throw new Error('Erro ao criar usuário no banco de dados');
+        throw new Error('Nenhum usuário foi criado');
       }
 
       const userData = result.rows[0];
-      console.log("DATABASE createUser - Resultado do banco:", JSON.stringify(userData));
+      console.log("DATABASE createUser - Usuário criado com ID:", userData.id);
       
-      // Converter is_admin para boolean usando o mesmo método
-      const isAdmin = userData.is_admin === true || userData.is_admin === 't';
-      console.log("DATABASE createUser - isAdmin convertido:", isAdmin);
-      
-      // Mapear para o formato esperado pela aplicação
+      // Mapear para o formato esperado pela aplicação usando o mesmo padrão do getUser
       const user: User = {
         id: userData.id,
         username: userData.username,
         email: userData.email,
         password: userData.password,
-        isAdmin: isAdmin,
+        isAdmin: userData.is_admin || false,
         telefone: userData.telefone || null,
         profileImage: userData.profile_image || null,
         bio: userData.bio || null,
@@ -321,7 +317,7 @@ export class DatabaseStorage implements IStorage {
       
       return user;
     } catch (error) {
-      console.error("DATABASE createUser - Exceção:", error);
+      console.error("DATABASE createUser - Erro ao criar usuário:", error);
       throw error;
     }
   }
