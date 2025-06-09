@@ -284,8 +284,24 @@ export default function PlansPage() {
                 
                 <CardContent className="flex-1 py-6">
                   <ul className="space-y-3">
-                    {plan.beneficios ? (
-                      plan.beneficios.split('\n').map((benefit, index) => {
+                    {(() => {
+                      // Para plano gratuito, adicionar os itens restritos
+                      let benefits = plan.beneficios ? plan.beneficios.split('\n') : [];
+                      
+                      if (plan.isGratuito) {
+                        // Adicionar os itens restritos se não existirem
+                        const hasDownloads = benefits.some(b => b.toLowerCase().includes('downloads ilimitados'));
+                        const hasModelos = benefits.some(b => b.toLowerCase().includes('modelos premium'));
+                        
+                        if (!hasDownloads) {
+                          benefits.push('Downloads Ilimitados');
+                        }
+                        if (!hasModelos) {
+                          benefits.push('Modelos Premium');
+                        }
+                      }
+                      
+                      return benefits.length > 0 ? benefits.map((benefit, index) => {
                         const benefitText = benefit.trim();
                         const isRestricted = plan.isGratuito && 
                           (benefitText.toLowerCase().includes('downloads ilimitados') || 
@@ -307,13 +323,13 @@ export default function PlansPage() {
                             </span>
                           </li>
                         );
-                      })
-                    ) : (
-                      <li className="flex items-center text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                        <span className="font-light text-gray-700">Plano sem benefícios descritos</span>
-                      </li>
-                    )}
+                      }) : [
+                        <li key="default" className="flex items-center text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <span className="font-light text-gray-700">Plano sem benefícios descritos</span>
+                        </li>
+                      ];
+                    })()}
                   </ul>
                 </CardContent>
                 
