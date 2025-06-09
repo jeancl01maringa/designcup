@@ -345,7 +345,7 @@ export default function LogoPage() {
                     <Button
                       onClick={handleUpload}
                       disabled={isUploading || updateLogoMutation.isPending}
-                      className="w-full"
+                      className="w-full bg-blue-600 hover:bg-blue-700"
                     >
                       {isUploading || updateLogoMutation.isPending ? (
                         <>

@@ -283,7 +283,7 @@ export default function SuportePage() {
                   <Button 
                     type="submit" 
                     disabled={isLoading || updateSupportMutation.isPending}
-                    className="min-w-[120px]"
+                    className="min-w-[120px] bg-blue-600 hover:bg-blue-700"
                   >
                     {(isLoading || updateSupportMutation.isPending) ? (
                       <>
@@ -402,7 +402,7 @@ export default function SuportePage() {
                   <Button 
                     type="submit" 
                     disabled={isSocialLoading || updateSocialMediaMutation.isPending}
-                    className="min-w-[120px]"
+                    className="min-w-[120px] bg-blue-600 hover:bg-blue-700"
                   >
                     {(isSocialLoading || updateSocialMediaMutation.isPending) ? (
                       <>

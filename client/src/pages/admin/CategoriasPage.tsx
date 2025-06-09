@@ -306,8 +306,7 @@ export default function CategoriasPage() {
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button
-                variant="default"
-                style={{ backgroundColor: "#1f4ed8" }}
+                className="bg-blue-600 hover:bg-blue-700"
                 onClick={() => setIsCreateDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-1" />
@@ -352,7 +351,7 @@ export default function CategoriasPage() {
                     </DialogClose>
                     <Button 
                       type="submit" 
-                      style={{ backgroundColor: "#1f4ed8" }}
+                      className="bg-blue-600 hover:bg-blue-700"
                       disabled={createMutation.isPending}
                     >
                       {createMutation.isPending ? "Salvando..." : "Salvar alterações"}
