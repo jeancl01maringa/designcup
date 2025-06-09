@@ -1181,8 +1181,8 @@ export default function ArtDetailPage() {
                 </div>
               )}
               
-              {/* Botão de seguir sempre visível para teste */}
-              {!authorLoading && author && (
+              {/* Botão de seguir ao lado do nome do autor */}
+              {!authorLoading && author && user && user.id !== author.id && (
                 <Button
                   size="sm"
                   onClick={handleFollow}
@@ -1193,6 +1193,17 @@ export default function ArtDetailPage() {
                   }
                 >
                   {followLoading ? "..." : (isFollowing ? "Seguindo" : "Seguir")}
+                </Button>
+              )}
+              
+              {/* Botão "Seguir" para demonstração quando não logado */}
+              {!user && !authorLoading && author && (
+                <Button
+                  size="sm"
+                  onClick={() => setLocation('/auth')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                >
+                  Seguir
                 </Button>
               )}
             </div>
