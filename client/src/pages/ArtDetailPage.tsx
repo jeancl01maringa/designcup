@@ -1182,7 +1182,7 @@ export default function ArtDetailPage() {
               )}
               
               {/* Botão de seguir alinhado à direita do autor */}
-              {!authorLoading && user && author && user.id !== author.id && author.isAdmin && (
+              {!authorLoading && author && user && user.id !== author.id && (
                 <Button
                   size="sm"
                   onClick={handleFollow}
