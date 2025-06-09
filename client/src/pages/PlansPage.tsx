@@ -49,6 +49,9 @@ export default function PlansPage() {
 
   // Filtrar planos por período
   const filteredPlans = allPlans?.filter(plan => {
+    // Plano gratuito aparece em ambos os períodos
+    if (plan.isGratuito) return true;
+    
     if (isAnnual) {
       return plan.periodo.toLowerCase().includes('anual') || 
              plan.periodo.toLowerCase().includes('ano');
@@ -59,27 +62,10 @@ export default function PlansPage() {
     }
   }) || [];
 
-  // Função para calcular preço com desconto anual
-  const calculatePrice = (originalPrice: string) => {
-    // Remove "R$" e espaços, depois converte para número
-    const cleanPrice = originalPrice.replace('R$', '').trim().replace(',', '.');
-    const price = parseFloat(cleanPrice);
-    if (isAnnual && !isNaN(price)) {
-      const discountedPrice = price * 0.75; // 25% de desconto
-      return discountedPrice.toFixed(2).replace('.', ',');
-    }
-    return cleanPrice.replace('.', ',');
-  };
-
-  // Função para calcular preço original (sem desconto)
-  const getOriginalPrice = (price: string) => {
-    const cleanPrice = price.replace('R$', '').trim().replace(',', '.');
-    const priceNum = parseFloat(cleanPrice);
-    if (isAnnual && !isNaN(priceNum)) {
-      const originalPrice = priceNum / 0.75; // Preço original antes do desconto
-      return originalPrice.toFixed(2).replace('.', ',');
-    }
-    return null;
+  // Função para limpar e formatar preço
+  const formatPrice = (price: string) => {
+    // Remove "R$" e espaços, mantém o preço original
+    return price.replace('R$', '').trim();
   };
 
   // Filtramos apenas os planos ativos do período selecionado
@@ -254,18 +240,13 @@ export default function PlansPage() {
                       <span className="text-gray-500">Grátis</span>
                     ) : (
                       <div className="flex flex-col items-center">
-                        {isAnnual && getOriginalPrice(plan.valor) && (
-                          <div className="text-sm text-gray-400 line-through mb-1">
-                            De R$ {getOriginalPrice(plan.valor)}
-                          </div>
-                        )}
                         <div className="flex items-baseline justify-center gap-1">
                           <span className="text-xl text-gray-600">R$</span>
-                          <span className="text-gray-900">{calculatePrice(plan.valor)}</span>
-                          <span className="text-sm text-gray-500">/{isAnnual ? 'ano' : 'mês'}</span>
+                          <span className="text-gray-900">{formatPrice(plan.valor)}</span>
+                          <span className="text-sm text-gray-500">/{plan.periodo.toLowerCase().includes('anual') ? 'ano' : plan.periodo.toLowerCase().includes('mensal') ? 'mês' : plan.periodo.toLowerCase()}</span>
                         </div>
-                        {isAnnual && (
-                          <div className="text-sm text-green-600 font-medium mt-1">
+                        {isAnnual && !plan.isGratuito && (
+                          <div className="bg-green-100 text-green-700 text-sm font-medium mt-2 px-3 py-1 rounded-full">
                             Economize 25%
                           </div>
                         )}
