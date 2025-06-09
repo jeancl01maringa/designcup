@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles } from "lucide-react";
+import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -202,19 +202,17 @@ export default function PlansPage() {
                   </div>
                 )}
                 
-                <CardHeader className="text-center pt-8 pb-4">
-                  <CardTitle className={`text-2xl font-bold mb-2 ${
+                <CardHeader className="text-center pt-8 pb-2">
+                  <CardTitle className={`text-2xl font-bold mb-1 ${
                     plan.isGratuito 
                       ? 'text-gray-500' 
-                      : plan.isPrincipal 
-                        ? 'text-black border-b-2 border-blue-500 pb-2' 
-                        : 'text-black'
+                      : 'text-black'
                   }`}>
                     {plan.name}
                   </CardTitle>
                 </CardHeader>
                 
-                <div className="text-center px-6 py-4">
+                <div className="text-center px-6 py-2">
                   <div className="text-4xl font-bold mb-2">
                     {plan.isGratuito ? (
                       <span className="text-gray-500">Grátis</span>
@@ -235,46 +233,46 @@ export default function PlansPage() {
                     {plan.isGratuito ? (
                       <>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>5 downloads por mês</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>Acesso à galeria básica</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>Sem marca d'água</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span>Suporte via e-mail</span>
                         </li>
                       </>
                     ) : (
                       <>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">+500 Artes Premium</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Atualizações Mensais</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Suporte Exclusivo</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Downloads Ilimitados</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Acesso a todas categorias</span>
                         </li>
                         <li className="flex items-center text-sm">
-                          <Check className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
                           <span className="font-medium">Novos designs semanais</span>
                         </li>
                       </>
