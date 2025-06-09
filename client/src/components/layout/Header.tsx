@@ -11,7 +11,8 @@ import {
   LogIn, 
   UserPlus,
   ChevronDown,
-  MessageSquare
+  MessageSquare,
+  X
 } from "lucide-react";
 import { UserDropdownMenu } from "./UserDropdownMenu";
 import { SupportContact } from "@/components/ui/SupportContact";
@@ -303,82 +304,129 @@ const MobileMenu = () => {
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
     { name: "Planos", path: "/planos" },
-    { name: "Tutoriais", path: "/tutoriais" }
+    { name: "Tutoriais", path: "/tutoriais" },
+    { name: "Suporte", path: "/suporte" }
   ];
   
   if (!isOpen) return null;
   
   return (
-    <div className="md:hidden">
-      <div className="px-4 pt-4 pb-6 space-y-1 bg-white border-t border-gray-100 shadow-lg">
-        {/* Navigation Links */}
-        <div className="space-y-1">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              href={item.path}
-              className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                location === item.path 
-                  ? 'bg-[#AA5E2F]/10 text-[#AA5E2F] border-l-4 border-[#AA5E2F]' 
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-[#AA5E2F]'
-              }`}
-              onClick={() => setIsOpen(false)}
-            >
-              {item.name}
-            </Link>
-          ))}
+    <div className="fixed inset-0 z-50 md:hidden">
+      {/* Overlay */}
+      <div className="fixed inset-0 bg-black/20" onClick={() => setIsOpen(false)} />
+      
+      {/* Menu Content */}
+      <div className="fixed inset-0 bg-white">
+        {/* Header do Menu */}
+        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-600" />
+          </button>
         </div>
         
-        {/* Support Contact for Mobile */}
-        <div className="border-t border-gray-100 pt-3 mt-3">
-          <SupportContact 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-start text-gray-600 hover:text-[#AA5E2F] hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm"
-          />
-        </div>
-        
-        {user ? (
-          <>
-            {/* User Info Section */}
-            <div className="border-t border-gray-100 pt-3 mt-3">
-              <div className="flex items-center px-3 py-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#AA5E2F] to-[#8B4513] flex items-center justify-center text-white text-xs font-bold mr-3">
-                  {user.username?.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user.username}</p>
-                  <p className="text-xs text-gray-500 capitalize">{user.tipo}</p>
-                </div>
-              </div>
-              
-              {/* Logout button */}
-              <button
-                className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
-                onClick={() => {
-                  logoutMutation.mutate();
-                  setIsOpen(false);
-                }}
-              >
-                <LogOut className="h-4 w-4 mr-3" />
-                <span>Sair</span>
-              </button>
+        {/* Content do Menu */}
+        <div className="px-4 py-6 space-y-6">
+          {/* Seção Navegação */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
+              Navegação
+            </h3>
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <Link 
+                  key={item.path} 
+                  href={item.path}
+                  className={`flex items-center px-3 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                    location === item.path 
+                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
             </div>
-          </>
-        ) : (
-          <div className="border-t border-gray-100 pt-3 mt-3">
-            <button
-              className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-medium text-[#AA5E2F] hover:bg-[#AA5E2F]/10 transition-all duration-200"
-              onClick={() => {
-                navigate("/auth");
-                setIsOpen(false);
-              }}
-            >
-              <LogIn className="h-4 w-4 mr-3" />
-              <span>Entrar</span>
-            </button>
           </div>
-        )}
+          
+          {/* Seção Conta */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
+              Conta
+            </h3>
+            <div className="space-y-1">
+              {user ? (
+                <>
+                  {/* Informações do usuário logado */}
+                  <div className="flex items-center px-3 py-3 rounded-lg bg-gray-50">
+                    <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
+                      {user.profileImage ? (
+                        <img 
+                          src={user.profileImage} 
+                          alt={user.username}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-600">
+                          <User className="h-5 w-5" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-medium text-gray-900 truncate">{user.username}</p>
+                      <p className="text-sm text-gray-500 capitalize">{user.tipo}</p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
+                    onClick={() => {
+                      logoutMutation.mutate();
+                      setIsOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    <span>Sair da conta</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                    onClick={() => {
+                      navigate("/auth");
+                      setIsOpen(false);
+                    }}
+                  >
+                    <LogIn className="h-5 w-5 mr-3" />
+                    <span>Entrar na minha conta</span>
+                  </button>
+                  
+                  <button
+                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
+                    onClick={() => {
+                      navigate("/auth");
+                      setIsOpen(false);
+                      // Ativar a tab de registro após navegar
+                      setTimeout(() => {
+                        document.querySelector('[value="register"]')?.dispatchEvent(
+                          new MouseEvent('click', { bubbles: true })
+                        );
+                      }, 100);
+                    }}
+                  >
+                    <UserPlus className="h-5 w-5 mr-3" />
+                    <span>Criar uma conta</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -402,9 +450,12 @@ const MobileMenuButton = () => {
 };
 
 export default function Header() {
+  const { isOpen } = useMobileMenu();
+  
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
+      {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
+      <div className={`container mx-auto px-4 py-3 md:py-4 flex items-center justify-between transition-all duration-300 ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         <Logo />
         <NavLinks />
         <div className="flex items-center space-x-3">
