@@ -202,8 +202,8 @@ export default function PlansPage() {
                   </div>
                 )}
                 
-                <CardHeader className="text-center pt-8 pb-2">
-                  <CardTitle className={`text-2xl font-bold mb-1 ${
+                <CardHeader className="text-center pt-8 pb-1">
+                  <CardTitle className={`text-2xl font-bold ${
                     plan.isGratuito 
                       ? 'text-gray-500' 
                       : 'text-black'
@@ -212,8 +212,8 @@ export default function PlansPage() {
                   </CardTitle>
                 </CardHeader>
                 
-                <div className="text-center px-6 py-2">
-                  <div className="text-4xl font-bold mb-2">
+                <div className="text-center px-6 pt-1 pb-3">
+                  <div className="text-4xl font-bold">
                     {plan.isGratuito ? (
                       <span className="text-gray-500">Grátis</span>
                     ) : (
