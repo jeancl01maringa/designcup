@@ -642,9 +642,9 @@ export default function ArtDetailPage() {
       </Button>
       
       {/* Layout principal em duas colunas */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-8">
         {/* Coluna da esquerda - Imagem da arte */}
-        <div className="relative lg:col-span-2">
+        <div className="relative lg:col-span-3">
           {/* Label do formato */}
           <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
             {formatLabel(currentPost?.formato || 'Feed')}
@@ -690,7 +690,7 @@ export default function ArtDetailPage() {
         </div>
         
         {/* Coluna da direita - Informações */}
-        <div className="space-y-5 border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
+        <div className="lg:col-span-4 space-y-5 border border-gray-100 rounded-lg p-6 bg-white shadow-sm">
           {/* Título e selo premium */}
           <div>
             <div className="flex items-center gap-3">
