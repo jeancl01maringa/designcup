@@ -99,8 +99,8 @@ export default function PlansPage() {
             <span className="text-sm font-medium text-blue-800">Escolha o plano ideal para você</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent">
-            Junte-se ao premium
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-black">
+            Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
           <p className="text-xl md:text-2xl mb-8 text-gray-600 max-w-4xl mx-auto">
@@ -163,7 +163,7 @@ export default function PlansPage() {
             {sortedPlans.map((plan) => (
               <Card key={plan.id} className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
                 plan.isPrincipal 
-                  ? 'border-blue-500 ring-2 ring-blue-500 shadow-xl bg-gradient-to-br from-blue-50 to-white' 
+                  ? 'border-blue-500 border shadow-xl bg-gradient-to-br from-blue-50 to-white' 
                   : 'border-gray-200 hover:border-blue-300 bg-white'
               }`}>
                 {/* Badge Superior */}
@@ -186,9 +186,6 @@ export default function PlansPage() {
                   <CardTitle className="text-2xl font-bold mb-2">
                     {plan.name}
                   </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    {plan.periodo}
-                  </CardDescription>
                 </CardHeader>
                 
                 <div className="text-center px-6 py-4">
@@ -196,14 +193,13 @@ export default function PlansPage() {
                     {plan.isGratuito ? (
                       <span className="text-green-600">Grátis</span>
                     ) : (
-                      <span className="text-gray-900">
-                        R$ {plan.valor}
-                      </span>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-xl text-gray-600">R$</span>
+                        <span className="text-gray-900">{plan.valor}</span>
+                        <span className="text-sm text-gray-500">/mês</span>
+                      </div>
                     )}
                   </div>
-                  {!plan.isGratuito && (
-                    <p className="text-sm text-gray-600">por {plan.periodo.toLowerCase()}</p>
-                  )}
                 </div>
                 
                 <Separator />
