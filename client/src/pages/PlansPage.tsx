@@ -26,9 +26,10 @@ interface Plan {
 
 export default function PlansPage() {
   const { toast } = useToast();
+  const [isAnnual, setIsAnnual] = useState(false);
 
   // Buscar planos
-  const { data: plans, isLoading, error } = useQuery<Plan[]>({
+  const { data: allPlans, isLoading, error } = useQuery<Plan[]>({
     queryKey: ['/api/plans'],
     queryFn: async () => {
       try {
@@ -46,11 +47,40 @@ export default function PlansPage() {
     }
   });
 
-  // Filtramos apenas os planos ativos
-  const activePlans = plans?.filter(plan => plan.isActive) || [];
+  // Filtrar planos por período
+  const filteredPlans = allPlans?.filter(plan => {
+    if (isAnnual) {
+      return plan.periodo.toLowerCase().includes('anual') || 
+             plan.periodo.toLowerCase().includes('ano');
+    } else {
+      return plan.periodo.toLowerCase().includes('mensal') || 
+             plan.periodo.toLowerCase().includes('mês') ||
+             plan.periodo.toLowerCase().includes('trimestral');
+    }
+  }) || [];
 
-  // Estado para alternar entre tipos de planos
-  const [planType, setPlanType] = React.useState<'mensal' | 'anual'>('mensal');
+  // Função para calcular preço com desconto anual
+  const calculatePrice = (originalPrice: string) => {
+    const price = parseFloat(originalPrice.replace(',', '.'));
+    if (isAnnual && !isNaN(price)) {
+      const discountedPrice = price * 0.75; // 25% de desconto
+      return discountedPrice.toFixed(2).replace('.', ',');
+    }
+    return originalPrice;
+  };
+
+  // Função para calcular preço original (sem desconto)
+  const getOriginalPrice = (price: string) => {
+    const priceNum = parseFloat(price.replace(',', '.'));
+    if (isAnnual && !isNaN(priceNum)) {
+      const originalPrice = priceNum / 0.75; // Preço original antes do desconto
+      return originalPrice.toFixed(2).replace('.', ',');
+    }
+    return null;
+  };
+
+  // Filtramos apenas os planos ativos do período selecionado
+  const activePlans = filteredPlans?.filter(plan => plan.isActive) || [];
 
   // Vantagens premium destacadas
   const premiumFeatures = [
