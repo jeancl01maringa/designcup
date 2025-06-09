@@ -503,7 +503,7 @@ export default function CategoriasPage() {
                   </DialogClose>
                   <Button 
                     type="submit" 
-                    style={{ backgroundColor: "#1f4ed8" }}
+                    className="bg-blue-600 hover:bg-blue-700"
                     disabled={updateMutation.isPending}
                   >
                     {updateMutation.isPending ? "Salvando..." : "Salvar alterações"}
