@@ -68,14 +68,14 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
   // Função para determinar o nome do plano dinamicamente
   const getPlanName = () => {
     if (planLoading) {
-      return 'CARREGANDO...';
+      return 'Carregando...';
     }
     
     if (userPlan) {
-      return `${userPlan.planName.toUpperCase()} (${userPlan.periodo.toUpperCase()} - R$ ${userPlan.valor})`;
+      return userPlan.planName;
     }
     
-    return 'CONTA GRATUITA';
+    return 'Plano Gratuito';
   };
 
   // Overlay para fechar o dropdown ao clicar fora

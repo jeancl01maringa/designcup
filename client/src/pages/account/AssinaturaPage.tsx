@@ -165,7 +165,7 @@ export default function AssinaturaPage() {
                         {planLoading ? (
                           <div className="animate-pulse bg-gray-200 h-6 w-48 rounded"></div>
                         ) : userPlan ? (
-                          `${userPlan.planName} (${userPlan.periodo} - R$ ${userPlan.valor})`
+                          userPlan.planName
                         ) : (
                           'Plano Gratuito'
                         )}
