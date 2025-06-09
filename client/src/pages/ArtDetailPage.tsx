@@ -804,7 +804,10 @@ export default function ArtDetailPage() {
             
             <div className="space-y-2">
               {/* Post atual sempre visível */}
-              <div className="border border-gray-200 rounded-lg p-3 bg-white">
+              <div 
+                className={`border border-gray-200 rounded-lg p-3 bg-white ${allGroupPosts.length > 1 ? 'cursor-pointer hover:border-blue-300 hover:shadow-sm' : ''} transition-all`}
+                onClick={() => allGroupPosts.length > 1 && setFormatsExpanded(!formatsExpanded)}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
@@ -826,12 +829,20 @@ export default function ArtDetailPage() {
                       <div className="text-xs text-gray-500">{getFormatDimensions(post?.formato || 'FEED')}</div>
                     </div>
                   </div>
-                  {allGroupPosts.length > 1 && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-blue-600">Atual</span>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {allGroupPosts.length > 1 && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-blue-600">Atual</span>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                      </div>
+                    )}
+                    {allGroupPosts.length > 1 && (
+                      <ChevronDown 
+                        size={16} 
+                        className={`text-gray-400 transition-transform ${formatsExpanded ? 'rotate-180' : ''}`}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
 
