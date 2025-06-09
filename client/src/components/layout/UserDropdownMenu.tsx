@@ -91,7 +91,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
       onClick={handleOverlayClick}
     >
       <div 
-        className="mr-4 w-[300px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200"
+        className="mr-4 w-[280px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho com fundo preto */}
