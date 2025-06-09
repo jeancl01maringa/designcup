@@ -885,31 +885,44 @@ export default function ArtDetailPage() {
           {!user ? (
             // Botão desabilitado para usuários não logados
             <div className="space-y-3">
-              <Button 
-                onClick={() => setLocation('/auth')}
-                className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
-                <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
-              </Button>
-              
-              {/* Aviso premium para artes premium quando não logado */}
-              {isPremium && (
-                <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <div className="flex items-start gap-2">
-                    <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-medium text-amber-800">Acesso Premium Necessário</p>
-                      <p className="text-amber-700 mt-1">
-                        Este produto está disponível exclusivamente para os membros premium. Faça upgrade para uma conta Premium para ter acesso a todo o conteúdo premium.
-                      </p>
+              {isPremium ? (
+                <>
+                  {/* Botão amarelo para artes premium quando não logado */}
+                  <Button 
+                    onClick={() => setLocation('/planos')}
+                    className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                  >
+                    <Crown size={16} className="text-white" />
+                    <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
+                    <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
+                  </Button>
+                  
+                  {/* Aviso premium */}
+                  <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm">
+                        <p className="font-medium text-amber-800">Acesso Premium Necessário</p>
+                        <p className="text-amber-700 mt-1">
+                          Este produto está disponível exclusivamente para os membros premium. Faça upgrade para uma conta Premium para ter acesso a todo o conteúdo premium.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </>
+              ) : (
+                /* Botão azul para artes gratuitas quando não logado */
+                <Button 
+                  onClick={() => setLocation('/auth')}
+                  className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                  <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
+                </Button>
               )}
             </div>
           ) : isPremium && !isUserPremium ? (
