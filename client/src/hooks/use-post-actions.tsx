@@ -20,6 +20,19 @@ export function usePostActions(postId: number) {
   // Buscar status atual do post (curtido/salvo)
   const { data: status } = useQuery<PostActionsState>({
     queryKey: ['/api/posts', postId, 'status'],
+    queryFn: async () => {
+      if (!postId || !user) return { liked: false, saved: false };
+      
+      try {
+        const response = await fetch(`/api/posts/${postId}/status`);
+        if (!response.ok) return { liked: false, saved: false };
+        
+        return response.json();
+      } catch (error) {
+        console.error('Erro ao buscar status do post:', error);
+        return { liked: false, saved: false };
+      }
+    },
     enabled: !!user && !!postId,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
@@ -38,8 +51,9 @@ export function usePostActions(postId: number) {
         saved: old?.saved || false
       }));
       
-      // Invalidar cache das páginas de curtidas
+      // Invalidar cache das páginas de curtidas e contagem
       queryClient.invalidateQueries({ queryKey: ['/api/user/liked-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts', postId, 'likes'] });
       
       toast({
         title: data.liked ? "Curtido!" : "Curtida removida",
