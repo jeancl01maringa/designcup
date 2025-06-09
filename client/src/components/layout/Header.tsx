@@ -117,7 +117,7 @@ const UserMenu = () => {
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-white shadow-sm transition-all duration-200"
+          className="flex items-center gap-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-sm transition-all duration-200"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-4 w-4" />
@@ -126,7 +126,7 @@ const UserMenu = () => {
         <Button 
           variant="outline" 
           size="sm"
-          className="flex items-center gap-1 border-primary text-primary hover:bg-primary hover:text-white bg-transparent transition-all duration-200"
+          className="flex items-center gap-1 border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB] hover:text-white bg-transparent transition-all duration-200"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
