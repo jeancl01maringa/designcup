@@ -803,10 +803,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const userPlanId = req.user.plano_id;
+      const userType = req.user.tipo;
 
-      console.log(`Buscando plano do usuário ${userId} - plano_id: ${userPlanId}`);
+      console.log(`Buscando plano do usuário ${userId} - plano_id: ${userPlanId}, tipo: ${userType}`);
 
-      if (!userPlanId) {
+      // Se o usuário é tipo "free", sempre retornar plano gratuito independente do plano_id
+      if (userType === 'free' || !userPlanId) {
+        console.log('Usuário tipo free, retornando plano gratuito');
         return res.json({
           planName: 'Plano Gratuito',
           periodo: 'Gratuito',
@@ -816,7 +819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
-        // Buscar o plano via PostgreSQL direto
+        // Buscar o plano via PostgreSQL direto apenas se o usuário é premium
         const result = await pool.query(`
           SELECT id, name, periodo, valor, is_active
           FROM plans 
@@ -834,11 +837,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isActive: plan.is_active
           });
         } else {
-          console.log(`Plano ${userPlanId} não encontrado, retornando dados padrão`);
+          console.log(`Plano ${userPlanId} não encontrado, retornando plano gratuito`);
           return res.json({
-            planName: 'Plano Personalizado',
-            periodo: 'Vitalício',
-            valor: 'Personalizado',
+            planName: 'Plano Gratuito',
+            periodo: 'Gratuito',
+            valor: 'R$ 0,00',
             isActive: true
           });
         }
