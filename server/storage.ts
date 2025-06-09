@@ -2821,7 +2821,8 @@ export class DatabaseStorage implements IStorage {
         is_gratuito: insertPlan.isGratuito ?? false,
         codigo_hotmart: insertPlan.codigoHotmart,
         url_hotmart: insertPlan.urlHotmart,
-        beneficios: insertPlan.beneficios
+        beneficios: insertPlan.beneficios,
+        itens_restritos: insertPlan.itensRestritos
       };
       
       // Primeiro tentamos com Supabase
@@ -2852,6 +2853,7 @@ export class DatabaseStorage implements IStorage {
             codigoHotmart: data.codigo_hotmart,
             urlHotmart: data.url_hotmart,
             beneficios: data.beneficios,
+            itensRestritos: data.itens_restritos,
             createdAt: new Date(data.created_at)
           };
         }
