@@ -632,20 +632,20 @@ export default function ArtDetailPage() {
   }
   
   return (
-    <div className="container mx-auto py-4 px-4 max-w-6xl">
+    <div className="container mx-auto py-4 px-6 max-w-7xl">
       <Button 
         variant="ghost" 
-        className="mb-4 ml-0"
+        className="mb-6 -ml-2"
         onClick={() => setLocation('/')}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Voltar
       </Button>
       
-      {/* Layout principal em duas colunas */}
-      <div className="grid grid-cols-1 lg:grid-cols-7 gap-8">
+      {/* Layout principal em duas colunas - proporção 50/50 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Coluna da esquerda - Imagem da arte */}
-        <div className="relative lg:col-span-3">
+        <div className="relative">
           {/* Label do formato */}
           <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
             {formatLabel(currentPost?.formato || 'Feed')}
@@ -691,7 +691,7 @@ export default function ArtDetailPage() {
         </div>
         
         {/* Coluna da direita - Informações */}
-        <div className="lg:col-span-4 space-y-5 border border-gray-100 rounded-lg p-6 bg-white shadow-sm">
+        <div className="space-y-6 border border-gray-100 rounded-lg p-6 bg-white shadow-sm">
           {/* Título e selo premium */}
           <div>
             <div className="flex items-center gap-3">
