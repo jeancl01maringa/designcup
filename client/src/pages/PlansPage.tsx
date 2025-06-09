@@ -195,7 +195,7 @@ export default function PlansPage() {
               }`}>
                 {/* Badge Superior */}
                 {plan.isPrincipal && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
                     <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 text-sm font-semibold shadow-lg">
                       <Crown className="h-4 w-4 mr-1" /> MELHOR OFERTA
                     </Badge>
