@@ -154,7 +154,7 @@ const UserMenu = () => {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10"
+          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
           onClick={() => navigate("/admin")}
         >
           <svg 
@@ -174,7 +174,7 @@ const UserMenu = () => {
             <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-          <span>Painel Admin</span>
+          <span>Admin</span>
         </Button>
       )}
       
