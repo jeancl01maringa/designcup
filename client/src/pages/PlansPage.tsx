@@ -196,15 +196,8 @@ export default function PlansPage() {
                 {/* Badge Superior */}
                 {plan.isPrincipal && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 text-sm font-semibold shadow-lg">
+                    <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 text-sm font-semibold shadow-lg">
                       <Crown className="h-4 w-4 mr-1" /> MELHOR OFERTA
-                    </Badge>
-                  </div>
-                )}
-                {plan.isGratuito && !plan.isPrincipal && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 text-sm font-semibold shadow-lg">
-                      <BadgeCheck className="h-4 w-4 mr-1" /> GRATUITO
                     </Badge>
                   </div>
                 )}
@@ -224,7 +217,7 @@ export default function PlansPage() {
                 <div className="text-center px-6 py-4">
                   <div className="text-4xl font-bold mb-2">
                     {plan.isGratuito ? (
-                      <span className="text-green-600">Grátis</span>
+                      <span className="text-gray-500">Grátis</span>
                     ) : (
                       <div className="flex items-baseline justify-center gap-1">
                         <span className="text-xl text-gray-600">R$</span>
