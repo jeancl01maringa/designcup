@@ -211,6 +211,43 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         {/* Divisor */}
         <div className="h-px bg-gray-200 mx-4"></div>
 
+        {/* Seção do Plano */}
+        <div className="p-4">
+          <div className="text-center">
+            <div className="mb-2">
+              <span className="text-sm text-gray-600">Plano atual:</span>
+              <p className="font-semibold text-gray-800">{getPlanName()}</p>
+            </div>
+            
+            {/* Mostrar botão de upgrade apenas para usuários gratuitos */}
+            {(!userPlan || userPlan.planName === 'Plano Gratuito') && (
+              <button
+                onClick={() => handleClick('/planos')}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <div className="w-5 h-5 bg-blue-800 rounded flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">PRO</span>
+                </div>
+                Assinar Premium
+              </button>
+            )}
+            
+            {/* Para usuários premium, mostrar informações do plano */}
+            {userPlan && userPlan.planName !== 'Plano Gratuito' && (
+              <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 px-4 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Infinity className="w-4 h-4" />
+                  <span className="font-semibold">Premium Ativo</span>
+                </div>
+                <p className="text-xs opacity-90">{userPlan.periodo}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Divisor */}
+        <div className="h-px bg-gray-200 mx-4"></div>
+
         {/* Suporte e Logout */}
         <ul className="py-2">
           {whatsappUrl && (
