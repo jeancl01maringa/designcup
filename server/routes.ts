@@ -4463,6 +4463,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar número de curtidas de um post
+  app.get('/api/posts/:id/likes', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+
+      const result = await pool.query(
+        'SELECT COUNT(*) as count FROM likes WHERE post_id = $1',
+        [postId]
+      );
+
+      const count = parseInt(result.rows[0].count) || 0;
+      res.json({ count });
+    } catch (error: any) {
+      console.error('Erro ao buscar curtidas:', error);
+      res.status(500).json({ message: 'Erro ao buscar curtidas' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
