@@ -18,24 +18,24 @@ export default function HeroSection() {
         </div>
         
         {/* Main Heading */}
-        <h1 className="text-3xl md:text-4xl font-bold text-[#1D1D1D] leading-tight mb-6 font-montserrat">
+        <h1 className="text-3xl md:text-5xl font-bold text-[#1D1D1D] leading-tight mb-6 font-montserrat">
           A Melhor plataforma de<br />
-          <span className="text-[#AA5E2F]">Artes para Estética do Brasil</span>
+          <span className="text-[#AA5E2F] bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] bg-clip-text text-transparent">Artes para Estética do Brasil</span>
         </h1>
         
         {/* Description */}
-        <p className="text-[#4B4B4B] text-base mb-6 max-w-2xl font-sans font-light">
-          Artes 100% editáveis para sua clínica de estética, criadas para facilitar<br /> 
-          sua rotina com <span className="text-[#1D1D1D] font-normal">qualidade profissional</span>.
+        <p className="text-[#4B4B4B] text-lg md:text-xl mb-8 max-w-3xl font-sans font-light leading-relaxed">
+          <span className="text-[#1D1D1D] font-semibold">Artes 100% editáveis</span> para sua <span className="text-[#1D1D1D] font-semibold">clínica de estética,</span> criadas para facilitar<br /> 
+          sua rotina com <span className="text-[#1D1D1D] font-semibold">qualidade profissional.</span>
         </p>
         
         {/* Search Bar with Format Dropdown */}
-        <div className="w-full max-w-xl mt-6">
-          <div className="relative flex items-center">
+        <div className="w-full max-w-2xl mt-8">
+          <div className="relative flex items-center shadow-lg">
             <input
               type="text"
               placeholder="Busque por artes, categorias, temas..."
-              className="w-full py-3 px-5 pr-32 rounded-lg border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all font-sans"
+              className="w-full py-4 px-6 pr-32 rounded-xl border-2 border-white/50 bg-white/90 backdrop-blur-sm shadow-md focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
             />
             
             {/* Format Dropdown - Positioned to the right */}
@@ -52,8 +52,8 @@ export default function HeroSection() {
               </div>
             </div>
             
-            <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-3 rounded-md bg-black hover:bg-black/80 shadow-sm">
-              <Search className="h-4 w-4 text-white" />
+            <Button className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] hover:from-[#9A542A] hover:to-[#B86A35] shadow-lg transition-all duration-200">
+              <Search className="h-5 w-5 text-white" />
             </Button>
           </div>
         </div>
