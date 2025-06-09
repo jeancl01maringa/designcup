@@ -203,6 +203,7 @@ export default function PlanosPage() {
       codigoHotmart: plan.codigoHotmart,
       urlHotmart: plan.urlHotmart,
       beneficios: plan.beneficios,
+      itensRestritos: plan.itensRestritos || '',
     });
     setIsEditOpen(true);
   };
@@ -223,6 +224,7 @@ export default function PlanosPage() {
       codigoHotmart: '',
       urlHotmart: '',
       beneficios: '',
+      itensRestritos: '',
     });
     setCurrentPlan(null);
   };
@@ -376,6 +378,21 @@ export default function PlanosPage() {
                     placeholder="Ex:&#10;Acesso a todos os templates&#10;Suporte prioritário&#10;Atualizações ilimitadas"
                     rows={4}
                   />
+                </div>
+
+                {/* Itens restritos (para mostrar limitações) */}
+                <div className="space-y-2">
+                  <Label htmlFor="itensRestritos">Itens Restritos (um por linha)</Label>
+                  <Textarea 
+                    id="itensRestritos"
+                    value={formData.itensRestritos || ''}
+                    onChange={(e) => setFormData({ ...formData, itensRestritos: e.target.value })}
+                    placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
+                  </p>
                 </div>
 
                 <DialogFooter>
@@ -582,6 +599,21 @@ export default function PlanosPage() {
                 placeholder="Ex:&#10;Acesso a todos os templates&#10;Suporte prioritário&#10;Atualizações ilimitadas"
                 rows={4}
               />
+            </div>
+
+            {/* Itens restritos (para mostrar limitações) */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-itensRestritos">Itens Restritos (um por linha)</Label>
+              <Textarea 
+                id="edit-itensRestritos"
+                value={formData.itensRestritos || ''}
+                onChange={(e) => setFormData({ ...formData, itensRestritos: e.target.value })}
+                placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
+                rows={3}
+              />
+              <p className="text-xs text-gray-500">
+                Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
+              </p>
             </div>
 
             <DialogFooter>

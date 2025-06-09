@@ -260,6 +260,7 @@ export const plans = pgTable("plans", {
   codigoHotmart: text("codigo_hotmart").unique(), // Código do plano na Hotmart
   urlHotmart: text("url_hotmart"), // URL de checkout do Hotmart
   beneficios: text("beneficios"), // Lista de benefícios, um por linha
+  itensRestritos: text("itens_restritos"), // Lista de itens restritos, um por linha
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

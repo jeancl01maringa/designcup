@@ -2866,9 +2866,9 @@ export class DatabaseStorage implements IStorage {
         const query = `
           INSERT INTO plans (
             name, periodo, valor, is_active, is_principal, is_gratuito,
-            codigo_hotmart, url_hotmart, beneficios
+            codigo_hotmart, url_hotmart, beneficios, itens_restritos
           ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
           ) RETURNING *
         `;
         
@@ -2881,7 +2881,8 @@ export class DatabaseStorage implements IStorage {
           dbPlan.is_gratuito,
           dbPlan.codigo_hotmart,
           dbPlan.url_hotmart,
-          dbPlan.beneficios
+          dbPlan.beneficios,
+          dbPlan.itens_restritos
         ];
         
         const result = await pool.query(query, values);
@@ -2933,6 +2934,7 @@ export class DatabaseStorage implements IStorage {
       if (updatePlan.codigoHotmart !== undefined) dbPlan.codigo_hotmart = updatePlan.codigoHotmart;
       if (updatePlan.urlHotmart !== undefined) dbPlan.url_hotmart = updatePlan.urlHotmart;
       if (updatePlan.beneficios !== undefined) dbPlan.beneficios = updatePlan.beneficios;
+      if (updatePlan.itensRestritos !== undefined) dbPlan.itens_restritos = updatePlan.itensRestritos;
       
       // Se não há nada para atualizar, buscar o plano atual
       if (Object.keys(dbPlan).length === 0) {
