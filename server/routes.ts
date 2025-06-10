@@ -1045,11 +1045,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const category of allCategories) {
         if (!category.isActive) continue;
         
-        // Contar posts desta categoria
+        // Contar posts desta categoria usando a mesma lógica do feed (agrupamento)
         const query = `
-          SELECT COUNT(*) as post_count
-          FROM posts p
-          WHERE p.category_id = $1 AND p.status = 'aprovado' AND p.is_visible = true
+          WITH grouped_posts AS (
+            SELECT DISTINCT ON (COALESCE(group_id, 'single_' || id::text)) 
+              id, category_id
+            FROM posts 
+            WHERE category_id = $1 
+            AND status = 'aprovado' 
+            AND (is_visible IS NULL OR is_visible = true)
+            ORDER BY COALESCE(group_id, 'single_' || id::text), created_at ASC
+          )
+          SELECT COUNT(*) as post_count FROM grouped_posts
         `;
         
         const result = await pool.query(query, [category.id]);
