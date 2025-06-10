@@ -718,7 +718,7 @@ export default function ArtDetailPage() {
           
           {/* Navigation between formats if available */}
           {availablePosts.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2 bg-black/30 backdrop-blur-sm rounded-full px-3 py-2">
               {availablePosts.map((formatPost: any, index: number) => (
                 <button
                   key={`format-nav-${formatPost.id}-${index}`}
@@ -726,8 +726,8 @@ export default function ArtDetailPage() {
                     console.log(`Navegando para formato ${index}:`, formatPost.formato, formatPost.imageUrl);
                     setCurrentFormatIndex(index);
                   }}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentFormatIndex ? 'bg-white' : 'bg-white/50'
+                  className={`w-3 h-3 rounded-full transition-all duration-200 hover:scale-110 ${
+                    index === currentFormatIndex ? 'bg-white shadow-lg' : 'bg-white/60 hover:bg-white/80'
                   }`}
                   title={formatPost?.formato || `Formato ${index + 1}`}
                 />
