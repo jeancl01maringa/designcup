@@ -61,6 +61,7 @@ function Router() {
       <Route path="/mais" component={More} />
       <Route path="/artwork/:id" component={ArtworkDetail} />
       <Route path="/artes/:slug" component={ArtDetailPage} />
+      <Route path="/arte/:slug" component={ArtDetailPage} />
       <Route path="/preview/:id" component={ArtDetailPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/planos" component={PlansPage} />
