@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity } from "lucide-react";
+import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity, Calendar, Download } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -149,25 +149,6 @@ export default function PlansPage() {
           <p className="text-lg mb-4 text-gray-600 max-w-3xl mx-auto">
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
-          
-          {/* Estatísticas Destacadas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            {premiumFeatures.map((feature, index) => (
-              <div key={index} className="text-center">
-                <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full mb-2 ${
-                  index === 0 ? 'bg-blue-100 text-blue-600' :
-                  index === 1 ? 'bg-green-100 text-green-600' :
-                  'bg-purple-100 text-purple-600'
-                }`}>
-                  {React.cloneElement(feature.icon, {
-                    className: "h-4 w-4"
-                  })}
-                </div>
-                <div className="text-xl font-bold mb-1 text-gray-900">{feature.title}</div>
-                <div className="text-sm text-gray-600">{feature.description}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -373,9 +354,33 @@ export default function PlansPage() {
               <p className="text-lg text-gray-600">Benefícios exclusivos para todos os nossos clientes</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
+                  <Crown className="h-8 w-8" />
+                </div>
+                <h4 className="text-xl font-semibold mb-2">+500 Templates Premium</h4>
+                <p className="text-gray-600">Acesso completo à nossa biblioteca com centenas de templates profissionais.</p>
+              </div>
+              
               <div className="text-center p-6 bg-white rounded-lg shadow-lg">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4">
+                  <RefreshCw className="h-8 w-8" />
+                </div>
+                <h4 className="text-xl font-semibold mb-2">50+ Novos por Semana</h4>
+                <p className="text-gray-600">Conteúdo sempre atualizado com novos templates adicionados semanalmente.</p>
+              </div>
+              
+              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-4">
+                  <Headphones className="h-8 w-8" />
+                </div>
+                <h4 className="text-xl font-semibold mb-2">Suporte 24/7</h4>
+                <p className="text-gray-600">Atendimento premium disponível 24 horas por dia, 7 dias por semana.</p>
+              </div>
+              
+              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 text-amber-600 rounded-full mb-4">
                   <BadgeCheck className="h-8 w-8" />
                 </div>
                 <h4 className="text-xl font-semibold mb-2">Garantia de 7 dias</h4>
@@ -383,19 +388,19 @@ export default function PlansPage() {
               </div>
               
               <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
-                  <Headphones className="h-8 w-8" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-4">
+                  <Infinity className="h-8 w-8" />
                 </div>
-                <h4 className="text-xl font-semibold mb-2">Suporte Premium</h4>
-                <p className="text-gray-600">Nossa equipe está pronta para ajudar você a aproveitar ao máximo a plataforma.</p>
+                <h4 className="text-xl font-semibold mb-2">Download Ilimitado</h4>
+                <p className="text-gray-600">Baixe quantos templates quiser, sem limites de download.</p>
               </div>
               
               <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-4">
-                  <RefreshCw className="h-8 w-8" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 text-pink-600 rounded-full mb-4">
+                  <Zap className="h-8 w-8" />
                 </div>
                 <h4 className="text-xl font-semibold mb-2">Sempre Atualizado</h4>
-                <p className="text-gray-600">Novos templates e recursos adicionados semanalmente, sem custo extra.</p>
+                <p className="text-gray-600">Plataforma constantemente atualizada com novos recursos e melhorias.</p>
               </div>
             </div>
           </div>
