@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
 
 // Get environment variables with fallback
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -24,7 +25,37 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Helper function for uploading files to Supabase Storage with category organization
+// Helper function to compress and convert image to WebP format
+async function compressAndConvertToWebP(file: File): Promise<File> {
+  try {
+    // Compression options
+    const options = {
+      maxSizeMB: 1, // Maximum file size in MB
+      maxWidthOrHeight: 1920, // Maximum width or height
+      useWebWorker: true,
+      fileType: 'image/webp' as const,
+      initialQuality: 0.85, // 85% quality for good balance
+    };
+
+    // Compress and convert to WebP
+    const compressedFile = await imageCompression(file, options);
+    
+    // Ensure the file has the correct WebP extension and name
+    const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp');
+    const webpFile = new File([compressedFile], webpFileName, {
+      type: 'image/webp',
+      lastModified: Date.now()
+    });
+
+    console.log(`Image compressed: ${(file.size / 1024).toFixed(1)}KB → ${(webpFile.size / 1024).toFixed(1)}KB`);
+    return webpFile;
+  } catch (error) {
+    console.error('Compression failed:', error);
+    throw error;
+  }
+}
+
+// Helper function for uploading files to Supabase Storage with category organization and WebP conversion
 export async function uploadFileToSupabase(
   file: File, 
   bucket: string, 
@@ -32,8 +63,25 @@ export async function uploadFileToSupabase(
   categoryName?: string
 ): Promise<{ url: string; error: null } | { url: null; error: string }> {
   try {
-    // Organize by category if provided
+    let processedFile = file;
     let finalPath = path;
+    
+    // Compress and convert to WebP if it's an image
+    if (file.type.startsWith('image/')) {
+      try {
+        console.log(`Compressing and converting ${file.name} to WebP...`);
+        processedFile = await compressAndConvertToWebP(file);
+        console.log(`Compression successful: ${processedFile.name}`);
+        
+        // Update path to use WebP extension
+        finalPath = path.replace(/\.[^/.]+$/, '.webp');
+      } catch (compressionError) {
+        console.warn('Failed to compress/convert to WebP, using original file:', compressionError);
+        // Continue with original file if compression fails
+      }
+    }
+
+    // Organize by category if provided
     if (categoryName && bucket === 'images') {
       // Convert category name to folder-safe format
       const categoryFolder = categoryName.toLowerCase()
@@ -43,13 +91,15 @@ export async function uploadFileToSupabase(
         .replace(/^-|-$/g, '');         // remove leading/trailing hyphens
       
       // Extract filename from path
-      const fileName = path.split('/').pop() || path;
+      const fileName = finalPath.split('/').pop() || finalPath;
       finalPath = `${categoryFolder}/${fileName}`;
     }
 
+    console.log(`Uploading to Supabase: ${finalPath} (${(processedFile.size / 1024).toFixed(1)}KB)`);
+
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(finalPath, file, {
+      .upload(finalPath, processedFile, {
         cacheControl: '3600',
         upsert: true
       });
@@ -63,6 +113,7 @@ export async function uploadFileToSupabase(
       .from(bucket)
       .getPublicUrl(finalPath);
 
+    console.log(`Upload successful: ${publicUrl}`);
     return { url: publicUrl, error: null };
   } catch (error) {
     return { 
