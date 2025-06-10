@@ -1776,10 +1776,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tituloBase,
             uniqueCode,
             groupId,
-            formato: formatoData.formato,
+            formato: formatoData.formato || formatoData.type,
             formatoData: JSON.stringify(formatoData),
-            canvaUrl: formatoData.canvaUrl || '',
-            imageUrl: formatoData.imageUrl, // Usar a imagem específica deste formato
+            canvaUrl: formatoData.canvaUrl || formatoData.editUrl || '',
+            imageUrl: formatoData.imageUrl || formatoData.previewUrl || '', // Usar a imagem específica deste formato
           };
           
           // Criando o post para este formato com dados do autor
@@ -1932,8 +1932,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 
                 const formatUpdateData = {
                   ...baseUpdateData,
-                  imageUrl: formato.imageUrl,
-                  canvaUrl: formato.canvaUrl || '',
+                  imageUrl: formato.imageUrl || formato.previewUrl || existingPost.imageUrl, // Preservar imagem individual
+                  canvaUrl: formato.canvaUrl || formato.editUrl || existingPost.canvaUrl, // Preservar link individual
                   formatData: JSON.stringify(formato)
                   // Não incluir uniqueCode para manter o código único de cada post
                 };
