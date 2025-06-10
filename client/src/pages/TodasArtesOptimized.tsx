@@ -332,7 +332,16 @@ export default function TodasArtesOptimized() {
                 {columnPosts.map((post) => (
                   <ArtworkCard
                     key={`${post.id}-${post.formato}`}
-                    artwork={post}
+                    artwork={{
+                      id: post.id,
+                      title: post.title,
+                      description: post.description,
+                      imageUrl: post.imageUrl,
+                      createdAt: post.createdAt,
+                      isPro: post.isPro,
+                      format: post.formato || 'Feed',
+                      category: post.categoryId ? `Categoria ${post.categoryId}` : null
+                    }}
                   />
                 ))}
               </div>
