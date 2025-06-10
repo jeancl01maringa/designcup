@@ -135,18 +135,18 @@ export default function PlansPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-white text-gray-900 py-16 border-b">
+      <div className="bg-white text-gray-900 py-10 border-b">
         <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-6">
+          <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-4">
             <Sparkles className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-800">Escolha o plano ideal para você</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-black">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-black">
             Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
-          <p className="text-xl md:text-2xl mb-8 text-gray-600 max-w-4xl mx-auto">
+          <p className="text-xl md:text-2xl mb-6 text-gray-600 max-w-4xl mx-auto">
             Desbloqueie todo o potencial criativo com nossos templates profissionais. Comece grátis ou escolha um plano premium para acesso ilimitado.
           </p>
           
@@ -172,19 +172,19 @@ export default function PlansPage() {
       </div>
 
       {/* Plans Section */}
-      <div className="container px-4 py-16 mx-auto max-w-7xl">
-        <div className="text-center mb-12">
+      <div className="container px-4 py-10 mx-auto max-w-7xl">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 rounded-full px-4 py-2 mb-4">
             <Crown className="h-4 w-4" />
             <span className="text-sm font-medium">Todos os Planos</span>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Encontre o plano perfeito</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Encontre o plano perfeito</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
             Escolha entre nossos planos flexíveis e comece a criar designs incríveis hoje mesmo
           </p>
           
           {/* Seletor de Período */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-8">
+          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-6">
             <button
               onClick={() => setIsAnnual(false)}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
@@ -366,10 +366,10 @@ export default function PlansPage() {
         )}
 
         {/* Seção de garantias e benefícios adicionais */}
-        <div className="mt-20 bg-gray-50 py-16">
+        <div className="mt-12 bg-gray-50 py-10">
           <div className="container mx-auto px-4 max-w-6xl">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">Por que escolher nossos planos?</h3>
+            <div className="text-center mb-8">
+              <h3 className="text-3xl font-bold text-gray-900 mb-3">Por que escolher nossos planos?</h3>
               <p className="text-lg text-gray-600">Benefícios exclusivos para todos os nossos clientes</p>
             </div>
             
