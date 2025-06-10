@@ -119,9 +119,15 @@ export default function ProfilePage() {
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
       
-      // Invalidar cache para recarregar dados do usuário
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      // Forçar atualização completa dos dados do usuário
+      queryClient.removeQueries({ queryKey: ["/api/user"] });
+      queryClient.removeQueries({ queryKey: ["/api/profile"] });
+      
+      // Recarregar os dados imediatamente
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["/api/user"] });
+        queryClient.refetchQueries({ queryKey: ["/api/profile"] });
+      }, 100);
       
       // Limpar preview
       setSelectedImage(null);
@@ -353,7 +359,7 @@ export default function ProfilePage() {
                           {uploadPhotoMutation.isPending ? (
                             <>
                               <Upload className="h-4 w-4 mr-2 animate-spin" />
-                              Enviando...
+                              Convertendo para WebP...
                             </>
                           ) : (
                             <>
@@ -377,6 +383,9 @@ export default function ProfilePage() {
                     </p>
                     <p className="text-sm text-gray-500">
                       • Recomendado: imagens quadradas
+                    </p>
+                    <p className="text-sm text-green-600 font-medium">
+                      • Conversão automática para WebP para melhor performance
                     </p>
                   </div>
                 )}
