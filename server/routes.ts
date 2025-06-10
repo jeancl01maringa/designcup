@@ -3473,22 +3473,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Upload de foto para usuário #${userId}`);
 
       try {
-        // Criar diretório de uploads se não existir
-        const uploadsDir = path.join(process.cwd(), 'client', 'public', 'uploads', 'profiles');
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
+        // Validar tipo de arquivo
+        if (!file.mimetype.startsWith('image/')) {
+          return res.status(400).json({ message: 'Arquivo deve ser uma imagem' });
         }
 
+        // Validar tamanho (máximo 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          return res.status(400).json({ message: 'Arquivo muito grande. Máximo 5MB.' });
+        }
+
+        // Importar função de upload do Supabase
+        const { uploadImageToSupabase, ensureBucket } = await import('./supabase-upload.js');
+        
+        // Assegurar que o bucket perfis existe
+        await ensureBucket('perfis');
+
         // Gerar nome único para o arquivo
-        const fileExtension = path.extname(file.originalname);
-        const fileName = `profile_${userId}_${Date.now()}${fileExtension}`;
-        const filePath = path.join(uploadsDir, fileName);
+        const fileName = `profile_${userId}_${Date.now()}`;
+        
+        // Upload para Supabase Storage com conversão WebP
+        const uploadResult = await uploadImageToSupabase(
+          file.buffer,
+          file.originalname,
+          'perfis',
+          fileName
+        );
 
-        // Salvar arquivo localmente
-        fs.writeFileSync(filePath, file.buffer);
+        if (uploadResult.error) {
+          console.error('Erro no upload Supabase:', uploadResult.error);
+          return res.status(500).json({ 
+            message: 'Erro ao fazer upload para o Supabase',
+            error: uploadResult.error
+          });
+        }
 
-        // URL da imagem para o frontend
-        const imageUrl = `/uploads/profiles/${fileName}`;
+        const imageUrl = uploadResult.url;
+        if (!imageUrl) {
+          return res.status(500).json({ 
+            message: 'URL da imagem não foi retornada do Supabase' 
+          });
+        }
+        console.log(`Imagem de perfil salva no Supabase: ${imageUrl}`);
 
         // Verificar se o usuário existe usando o storage (mesma forma da autenticação)
         const currentUser = await storage.getUser(userId);
@@ -3500,7 +3526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Atualizar usando a mesma estrutura do storage
-        const updatedUser = await storage.updateUserProfileImage(userId, imageUrl);
+        const updatedUser = await storage.updateUserProfileImage(userId, imageUrl!);
 
         console.log(`Resultado da atualização:`, updatedUser);
 
@@ -4490,21 +4516,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Arquivo muito grande. Máximo 2MB.' });
       }
 
-      // Definir caminho e nome do arquivo
-      const logoPath = `/uploads/logos/logo_${Date.now()}.${file.mimetype.split('/')[1]}`;
-      const fullPath = path.join(process.cwd(), 'client', 'public', logoPath);
+      // Importar função de upload do Supabase
+      const { uploadImageToSupabase, ensureBucket } = await import('./supabase-upload.js');
+      
+      // Assegurar que o bucket logos existe
+      await ensureBucket('logos');
 
-      // Criar diretório se não existir
-      const logoDir = path.dirname(fullPath);
-      if (!fs.existsSync(logoDir)) {
-        fs.mkdirSync(logoDir, { recursive: true });
+      // Gerar nome único para o arquivo
+      const fileName = `logo_${Date.now()}`;
+      
+      // Upload para Supabase Storage com conversão WebP (exceto SVG)
+      const uploadResult = await uploadImageToSupabase(
+        file.buffer,
+        file.originalname,
+        'logos',
+        fileName
+      );
+
+      if (uploadResult.error) {
+        console.error('Erro no upload Supabase:', uploadResult.error);
+        return res.status(500).json({ 
+          message: 'Erro ao fazer upload para o Supabase',
+          error: uploadResult.error
+        });
       }
 
-      // Salvar arquivo
-      fs.writeFileSync(fullPath, file.buffer);
+      const logoPath = uploadResult.url;
+      if (!logoPath) {
+        return res.status(500).json({ 
+          message: 'URL do logo não foi retornada do Supabase' 
+        });
+      }
+      console.log(`Logo salvo no Supabase: ${logoPath}`);
 
       // Salvar no banco de dados
-      const setting = await storage.setSetting('logo_plataforma', logoPath, 'Logo personalizado da plataforma');
+      const setting = await storage.setSetting('logo_plataforma', logoPath!, 'Logo personalizado da plataforma');
       
       res.json({
         success: true,
