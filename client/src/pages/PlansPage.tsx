@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity } from "lucide-react";
+import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity, Calendar, Gift, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,7 +20,7 @@ interface Plan {
   isGratuito?: boolean;
   isPrincipal?: boolean;
   itensInclusos?: string[];
-  itensRestritos?: string[];
+  itensRestritos?: string[] | string;
   urlHotmart?: string;
   active?: boolean;
   periodo?: string;
@@ -80,14 +80,20 @@ export default function PlansPage() {
     
     const basePrice = parsePrice(plan.valor || '0');
     
-    // Se o plano for mensal e estivermos visualizando anual, aplicar desconto
-    if (plan.periodo?.toLowerCase() === 'mensal' && isAnnual) {
-      return basePrice * 12 * 0.75; // 25% de desconto no anual
+    // Para planos anuais e vitalício, sempre mostrar o valor completo
+    if (plan.periodo?.toLowerCase() === 'anual' || plan.periodo?.toLowerCase() === 'vitalicio') {
+      return basePrice;
     }
     
-    // Se o plano for anual e estivermos visualizando mensal, calcular valor mensal
-    if (plan.periodo?.toLowerCase() === 'anual' && !isAnnual) {
-      return (basePrice / 12) / 0.75; // Preço mensal sem desconto
+    // Para planos mensais
+    if (plan.periodo?.toLowerCase() === 'mensal') {
+      if (isAnnual) {
+        // Se visualizando como anual, aplicar desconto no total anual
+        return basePrice * 12 * 0.75; // 25% de desconto no total anual
+      } else {
+        // Mostrar valor mensal normal
+        return basePrice;
+      }
     }
     
     return basePrice;
@@ -96,20 +102,40 @@ export default function PlansPage() {
   const getPlanPeriod = (plan: Plan) => {
     if (plan.isGratuito) return 'Para sempre';
     
-    if (isAnnual) {
+    // Para planos anuais e vitalício, sempre mostrar o período original
+    if (plan.periodo?.toLowerCase() === 'anual') {
       return 'por ano';
-    } else {
-      return 'por mês';
     }
+    if (plan.periodo?.toLowerCase() === 'vitalicio') {
+      return 'vitalício';
+    }
+    if (plan.periodo?.toLowerCase() === 'trimestral') {
+      return 'por trimestre';
+    }
+    
+    // Para planos mensais, mostrar baseado na visualização
+    if (plan.periodo?.toLowerCase() === 'mensal') {
+      return isAnnual ? 'por ano' : 'por mês';
+    }
+    
+    return 'por mês';
   };
 
   const renderPlanItems = (plan: Plan) => {
-    const beneficios = plan.beneficios ? plan.beneficios.split('\n').filter(item => item.trim()) : [];
-    const itensRestritos = plan.itensRestritos ? plan.itensRestritos.split('\n').filter(item => item.trim()) : [];
+    const beneficios = plan.beneficios ? plan.beneficios.split('\n').filter((item: string) => item.trim()) : [];
+    
+    let itensRestritos: string[] = [];
+    if (plan.itensRestritos) {
+      if (typeof plan.itensRestritos === 'string') {
+        itensRestritos = plan.itensRestritos.split('\n').filter((item: string) => item.trim());
+      } else if (Array.isArray(plan.itensRestritos)) {
+        itensRestritos = plan.itensRestritos.filter((item: string) => item.trim());
+      }
+    }
     
     const allItems: string[] = [
       ...beneficios,
-      ...itensRestritos.map(item => `❌ ${item}`)
+      ...itensRestritos.map((item: string) => `❌ ${item}`)
     ];
 
     if (allItems.length === 0) {
@@ -145,6 +171,28 @@ export default function PlansPage() {
         <span className="text-sm">{item.replace('❌ ', '')}</span>
       </li>
     ));
+  };
+
+  const getPlanIcon = (plan: Plan) => {
+    if (plan.isGratuito) {
+      return <Gift className="h-8 w-8 text-green-600 mb-2" />;
+    }
+    
+    const periodo = plan.periodo?.toLowerCase();
+    if (periodo === 'mensal') {
+      return <Calendar className="h-8 w-8 text-blue-600 mb-2" />;
+    }
+    if (periodo === 'trimestral') {
+      return <Clock className="h-8 w-8 text-purple-600 mb-2" />;
+    }
+    if (periodo === 'anual') {
+      return <Star className="h-8 w-8 text-orange-600 mb-2" />;
+    }
+    if (periodo === 'vitalicio') {
+      return <Crown className="h-8 w-8 text-amber-600 mb-2" />;
+    }
+    
+    return <Sparkles className="h-8 w-8 text-blue-600 mb-2" />;
   };
 
   const getButtonLink = (plan: Plan) => {
@@ -234,7 +282,10 @@ export default function PlansPage() {
                   )}
 
                   <CardHeader className="text-center pb-4">
-                    <CardTitle className="text-xl font-bold text-gray-900">{plan.name}</CardTitle>
+                    <div className="flex flex-col items-center">
+                      {getPlanIcon(plan)}
+                      <CardTitle className="text-xl font-bold text-gray-900">{plan.name}</CardTitle>
+                    </div>
                     <div className="mt-4">
                       {plan.isGratuito ? (
                         <div className="text-4xl font-bold text-green-600">Grátis</div>
