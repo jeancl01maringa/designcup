@@ -2481,22 +2481,18 @@ export class DatabaseStorage implements IStorage {
 
   async getVisiblePosts(): Promise<Post[]> {
     try {
-      console.log("DATABASE getVisiblePosts - Buscando posts visíveis para o feed com agrupamento");
+      console.log("DATABASE getVisiblePosts - Buscando TODOS os posts visíveis (múltiplos formatos)");
       
-      // Query para buscar apenas uma versão por grupo (prioriza o primeiro formato criado)
+      // Query para buscar TODOS os posts visíveis (não agrupados)
       const query = `
-        WITH grouped_posts AS (
-          SELECT DISTINCT ON (COALESCE(group_id, 'single_' || id::text)) 
-            id, title, description, image_url, unique_code, category_id, status,
-            created_at, published_at, formato, group_id, titulo_base,
-            is_pro, license_type, canva_url, formato_data, tags, formats,
-            format_data, is_visible, user_id
-          FROM posts 
-          WHERE status = 'aprovado' 
-          AND (is_visible IS NULL OR is_visible = true)
-          ORDER BY COALESCE(group_id, 'single_' || id::text), created_at ASC
-        )
-        SELECT * FROM grouped_posts
+        SELECT 
+          id, title, description, image_url, unique_code, category_id, status,
+          created_at, published_at, formato, group_id, titulo_base,
+          is_pro, license_type, canva_url, formato_data, tags, formats,
+          format_data, is_visible, user_id
+        FROM posts 
+        WHERE status = 'aprovado' 
+        AND (is_visible IS NULL OR is_visible = true)
         ORDER BY created_at DESC
       `;
       
