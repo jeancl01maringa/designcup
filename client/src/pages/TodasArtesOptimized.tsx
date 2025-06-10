@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight } from "lucide-react";
 
-const ITEMS_PER_PAGE = 30; // Aumentado para reduzir paginação
+const ITEMS_PER_PAGE = 30;
 
-// Hook otimizado para calcular o número de colunas com debounce
+// Hook otimizado para colunas responsivas
 function useResponsiveColumns() {
   const [columns, setColumns] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -40,7 +40,7 @@ function useResponsiveColumns() {
         else newColumns = 5;
         
         setColumns(prev => prev !== newColumns ? newColumns : prev);
-      }, 150); // Debounce de 150ms
+      }, 150);
     };
 
     window.addEventListener('resize', updateColumns);
@@ -53,7 +53,7 @@ function useResponsiveColumns() {
   return columns;
 }
 
-// Distribuir posts em colunas para layout masonry
+// Distribuir posts em colunas
 function distributePostsInColumns(posts: Post[], columns: number): Post[][] {
   const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
   
@@ -65,7 +65,7 @@ function distributePostsInColumns(posts: Post[], columns: number): Post[][] {
   return columnArrays;
 }
 
-export default function TodasArtes() {
+export default function TodasArtesOptimized() {
   const [location, setLocation] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -86,8 +86,7 @@ export default function TodasArtes() {
     error,
   } = useQuery<Post[]>({
     queryKey: ["/api/posts/visible"],
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos (gcTime substitui cacheTime no React Query v5)
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -96,8 +95,7 @@ export default function TodasArtes() {
     isLoading: loadingCategories,
   } = useQuery<any[]>({
     queryKey: ["/api/categories/with-posts"],
-    staleTime: 10 * 60 * 1000, // 10 minutos - categorias mudam menos
-    gcTime: 20 * 60 * 1000, // 20 minutos
+    staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -105,7 +103,6 @@ export default function TodasArtes() {
 
   // Extrair formatos únicos dos posts existentes
   const availableFormats = useMemo(() => {
-    if (!posts) return [];
     const formats: string[] = [];
     posts.forEach(post => {
       if (post.formato && !formats.includes(post.formato)) {
@@ -115,9 +112,9 @@ export default function TodasArtes() {
     return formats.sort();
   }, [posts]);
 
-  // Filtrar e paginar posts
+  // Filtrar e paginar posts com otimização
   const { filteredPosts, totalPages, paginatedPosts, columnArrays } = useMemo(() => {
-    let allPosts = posts || [];
+    let allPosts = [...posts];
 
     // Aplicar filtros
     if (selectedCategory !== "all") {
@@ -138,9 +135,9 @@ export default function TodasArtes() {
 
     // Aplicar ordenação
     if (sortOrder === "recent") {
-      allPosts = [...allPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      allPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else if (sortOrder === "oldest") {
-      allPosts = [...allPosts].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      allPosts.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     }
 
     // Calcular paginação
@@ -150,7 +147,7 @@ export default function TodasArtes() {
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const paginatedItems = allPosts.slice(startIndex, endIndex);
 
-    // Distribuir em colunas para masonry
+    // Distribuir em colunas
     const columnArraysResult = distributePostsInColumns(paginatedItems, columns);
 
     return {
@@ -161,26 +158,26 @@ export default function TodasArtes() {
     };
   }, [posts, selectedCategory, selectedFormat, selectedType, sortOrder, currentPage, columns]);
 
-  // Atualizar URL quando a página muda
-  const handlePageChange = (page: number) => {
+  // Handlers otimizados
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     const newUrl = page === 1 ? '/todas-artes' : `/todas-artes?page=${page}`;
     setLocation(newUrl);
     window.scrollTo(0, 0);
-  };
+  }, [setLocation]);
 
   // Resetar página quando filtros mudam
   useEffect(() => {
     setCurrentPage(1);
     setLocation('/todas-artes');
-  }, [selectedCategory, selectedFormat, selectedType, sortOrder]);
+  }, [selectedCategory, selectedFormat, selectedType, sortOrder, setLocation]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {Array.from({ length: 20 }).map((_, i) => (
+            {Array.from({ length: 30 }).map((_, i) => (
               <Skeleton key={i} className="h-48 w-full rounded-lg" />
             ))}
           </div>
@@ -227,13 +224,13 @@ export default function TodasArtes() {
               </label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Todas categorias" />
+                  <SelectValue placeholder="Todas as categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas categorias</SelectItem>
-                  {categories && Array.isArray(categories) && categories.map((category: any) => (
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
+                      {category.name} ({category.post_count || 0})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -247,11 +244,11 @@ export default function TodasArtes() {
               </label>
               <Select value={selectedFormat} onValueChange={setSelectedFormat}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos formatos" />
+                  <SelectValue placeholder="Todos os formatos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos formatos</SelectItem>
-                  {availableFormats.map((format: string) => (
+                  <SelectItem value="all">Todos os formatos</SelectItem>
+                  {availableFormats.map((format) => (
                     <SelectItem key={format} value={format}>
                       {format}
                     </SelectItem>
@@ -267,12 +264,22 @@ export default function TodasArtes() {
               </label>
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos tipos" />
+                  <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos tipos</SelectItem>
-                  <SelectItem value="free">Gratuitos</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="free">
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 mr-2 text-gray-400" />
+                      Gratuito
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="premium">
+                    <div className="flex items-center">
+                      <Crown className="h-4 w-4 mr-2 text-yellow-500" />
+                      Premium
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -284,7 +291,7 @@ export default function TodasArtes() {
               </label>
               <Select value={sortOrder} onValueChange={setSortOrder}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Recentes" />
+                  <SelectValue placeholder="Ordenação" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recent">Mais recentes</SelectItem>
@@ -295,40 +302,37 @@ export default function TodasArtes() {
           </div>
         </div>
 
-        {/* Estatísticas */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-            <Star className="h-3 w-3 mr-1" />
-            {filteredPosts.length} designs encontrados
-          </Badge>
-          <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
-            <Crown className="h-3 w-3 mr-1" />
-            {filteredPosts.filter(p => p.isPro === true || p.licenseType === 'premium').length} premium
-          </Badge>
-          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-            <ImageIcon className="h-3 w-3 mr-1" />
-            {filteredPosts.filter(p => p.isPro !== true && p.licenseType !== 'premium').length} gratuitos
-          </Badge>
+        {/* Informações dos resultados */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <Badge variant="outline" className="px-3 py-1">
+              {filteredPosts.length} resultados
+            </Badge>
+            {selectedCategory !== "all" && (
+              <Badge variant="secondary">
+                Categoria: {categories.find(c => c.id.toString() === selectedCategory)?.name}
+              </Badge>
+            )}
+            {selectedFormat !== "all" && (
+              <Badge variant="secondary">Formato: {selectedFormat}</Badge>
+            )}
+            {selectedType !== "all" && (
+              <Badge variant="secondary">
+                Tipo: {selectedType === "premium" ? "Premium" : "Gratuito"}
+              </Badge>
+            )}
+          </div>
         </div>
 
-        {/* Grid masonry Pinterest-style */}
+        {/* Grid de Posts */}
         {paginatedPosts.length > 0 ? (
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="flex gap-4">
             {columnArrays.map((columnPosts, columnIndex) => (
-              <div key={columnIndex} className="space-y-4">
+              <div key={columnIndex} className="flex-1 space-y-4">
                 {columnPosts.map((post) => (
                   <ArtworkCard
-                    key={post.id}
-                    artwork={{
-                      id: post.id,
-                      title: post.title,
-                      description: post.description || "",
-                      imageUrl: post.imageUrl || "/placeholder.jpg",
-                      category: post.categoryId?.toString() || "outros",
-                      createdAt: new Date(post.createdAt),
-                      isPro: post.isPro === true || post.licenseType === 'premium',
-                      format: post.formato || "1:1"
-                    }}
+                    key={`${post.id}-${post.formato}`}
+                    artwork={post}
                   />
                 ))}
               </div>
@@ -336,42 +340,72 @@ export default function TodasArtes() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Nenhum resultado encontrado
+            <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Nenhuma arte encontrada
             </h3>
-            <p className="text-gray-600">
-              Tente ajustar os filtros para encontrar mais designs.
+            <p className="text-gray-600 mb-4">
+              Tente ajustar os filtros para ver mais resultados.
             </p>
+            <Button 
+              onClick={() => {
+                setSelectedCategory("all");
+                setSelectedFormat("all");
+                setSelectedType("all");
+              }}
+              variant="outline"
+            >
+              Limpar filtros
+            </Button>
           </div>
         )}
 
         {/* Paginação */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center space-x-4 mt-12">
+          <div className="flex items-center justify-center space-x-2 mt-8">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="flex items-center"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Página anterior
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
             </Button>
 
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">
-                Página {currentPage} de {totalPages}
-              </span>
-            </div>
+            {/* Números das páginas */}
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+
+              return (
+                <Button
+                  key={pageNum}
+                  variant={currentPage === pageNum ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
 
             <Button
+              variant="outline"
+              size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
             >
-              Próxima página
-              <ChevronRight className="h-4 w-4 ml-1" />
+              Próxima
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         )}

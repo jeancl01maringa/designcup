@@ -4439,6 +4439,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cache para posts visíveis com TTL de 5 minutos
+  let visiblePostsCache: { data: any[], timestamp: number } | null = null;
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+  // Endpoint otimizado com cache para posts visíveis
+  app.get('/api/posts/visible', async (req, res) => {
+    try {
+      const now = Date.now();
+      
+      // Cache headers para melhor performance
+      res.set('Cache-Control', 'public, max-age=300'); // 5 minutos de cache no navegador
+      
+      // Verificar se temos cache válido
+      if (visiblePostsCache && (now - visiblePostsCache.timestamp) < CACHE_TTL) {
+        return res.json(visiblePostsCache.data);
+      }
+
+      // Buscar dados frescos
+      const posts = await storage.getVisiblePosts();
+      
+      // Atualizar cache
+      visiblePostsCache = {
+        data: posts,
+        timestamp: now
+      };
+      
+      res.json(posts);
+    } catch (error) {
+      console.error("Erro ao buscar posts visíveis:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
   // Upload route for Supabase Storage
   app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
