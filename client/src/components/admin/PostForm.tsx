@@ -106,6 +106,22 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         stories: { ...defaultFormatFile }
       };
 
+      // Se tem formatos do grupo (edição em lote), popular os dados
+      if (initialData.formatos && Array.isArray(initialData.formatos)) {
+        initialData.formatos.forEach((formato: any) => {
+          const formatKey = formato.formato?.toLowerCase() as PostFormat;
+          if (formatKey && formatFiles[formatKey]) {
+            formatFiles[formatKey] = {
+              imageFile: null,
+              imagePreview: formato.imageUrl || '',
+              imageUrl: formato.imageUrl || '',
+              canvaUrl: formato.canvaUrl || '',
+              links: formato.links || []
+            };
+          }
+        });
+      }
+
       setFormData({
         title: initialData.title,
         categoryId: initialData.categoryId,
@@ -115,7 +131,8 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         tags: initialData.tags || [],
         formats: (initialData.formats as PostFormat[]) || [],
         formatFiles: formatFiles,
-        uniqueCode: initialData.uniqueCode || uniquePostId
+        uniqueCode: initialData.uniqueCode || uniquePostId,
+        groupId: initialData.groupId
       });
     }
   }, [isEdit, initialData, uniquePostId]);
