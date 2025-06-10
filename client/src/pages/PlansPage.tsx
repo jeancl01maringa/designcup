@@ -220,7 +220,7 @@ export default function PlansPage() {
           </p>
           
           {/* Seletor de Período */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-8">
+          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-12">
             <button
               onClick={() => setIsAnnual(false)}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
@@ -265,7 +265,7 @@ export default function PlansPage() {
               <p className="text-gray-600">Nenhum plano disponível no momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
               {sortedPlans.map((plan) => (
                 <Card key={plan.id} className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
                   plan.isPrincipal 
@@ -274,7 +274,7 @@ export default function PlansPage() {
                 }`}>
                   {/* Badge Superior */}
                   {plan.isPrincipal && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-10">
                       <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 text-sm font-semibold shadow-lg">
                         <Crown className="h-4 w-4 mr-1" /> MELHOR OFERTA
                       </Badge>
