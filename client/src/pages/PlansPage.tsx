@@ -65,9 +65,12 @@ export default function PlansPage() {
   };
 
   const renderPlanItems = (plan: Plan) => {
+    const includedItems = Array.isArray(plan.itensInclusos) ? plan.itensInclusos : [];
+    const restrictedItems = Array.isArray(plan.itensRestritos) ? plan.itensRestritos : [];
+    
     const allItems: string[] = [
-      ...(plan.itensInclusos || []),
-      ...(plan.itensRestritos || []).map(item => `❌ ${item}`)
+      ...includedItems,
+      ...restrictedItems.map(item => `❌ ${item}`)
     ];
 
     if (allItems.length === 0) {
