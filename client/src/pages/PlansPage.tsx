@@ -302,7 +302,7 @@ export default function PlansPage() {
                               {getPlanPrice(plan).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                             <span className="text-sm text-gray-600 ml-1">
-                              {isAnnual ? '/ano' : '/mês'}
+                              /{getPlanPeriod(plan).replace('por ', '')}
                             </span>
                           </div>
                         </div>
