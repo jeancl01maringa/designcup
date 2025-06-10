@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { uploadToSupabase } from "@/lib/admin/uploadToSupabase";
+import { uploadFileToSupabase } from "@/lib/supabase";
 import { Post, Category, Tag as TagType } from "@shared/schema";
 import { nanoid, cn } from "@/lib/utils";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
@@ -546,32 +546,47 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       
       // Toast de carregamento
       toast({
-        title: "Enviando imagem...",
+        title: "Convertendo para WebP...",
         description: "Aguarde enquanto otimizamos sua imagem.",
       });
       
-      // Caminho no Supabase com ID único da postagem
-      const filePath = `posts/${formData.uniqueCode}/${format}_${file.name}`;
+      // Criar caminho personalizado para o arquivo no Supabase
+      const customPath = `posts/${formData.uniqueCode}/${format}_${file.name}`;
       
-      // Upload e otimização (para WebP) no Supabase
-      const imageUrl = await uploadToSupabase(file, filePath, true);
+      // Buscar nome da categoria para organização
+      const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+      const categoryName = selectedCategory?.name || 'geral';
       
-      if (imageUrl) {
+      // Upload usando a nova implementação com organização por categoria e conversão WebP
+      const uploadResult = await uploadFileToSupabase(file, "images", customPath, categoryName);
+      
+      // Verificar se a URL retornada é válida
+      if (uploadResult.url && uploadResult.url.startsWith('http')) {
         setFormData(prev => ({
           ...prev,
           formatFiles: {
             ...prev.formatFiles,
             [format]: {
               ...prev.formatFiles[format],
-              imagePreview: imageUrl
+              imagePreview: uploadResult.url
             }
           }
         }));
         
         toast({
           title: "Imagem carregada!",
-          description: "Imagem otimizada e armazenada com sucesso.",
+          description: "Conversão WebP concluída com sucesso.",
           variant: "default",
+        });
+        
+        // Registrar o sucesso no console para debug
+        console.log(`Imagem ${format} carregada com sucesso:`, uploadResult.url);
+      } else {
+        console.error("Erro no upload:", uploadResult.error);
+        toast({
+          title: "Erro no upload",
+          description: uploadResult.error || "Não foi possível fazer upload da imagem.",
+          variant: "destructive",
         });
       }
     } catch (error) {

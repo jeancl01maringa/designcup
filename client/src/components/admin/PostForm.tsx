@@ -198,7 +198,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       
       // Toast de carregamento
       toast({
-        title: "Enviando imagem...",
+        title: "Convertendo para WebP...",
         description: "Aguarde enquanto otimizamos sua imagem.",
       });
       
@@ -209,11 +209,12 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
       const categoryName = selectedCategory?.name || 'geral';
       
-      // Upload usando a nova implementação com organização por categoria
-      const imageUrl = await uploadFileToSupabase(file, "images", customPath, categoryName);
+      // Upload usando a nova implementação com organização por categoria e conversão WebP
+      const uploadResult = await uploadFileToSupabase(file, "images", customPath, categoryName);
       
       // Verificar se a URL retornada é válida
-      if (imageUrl && typeof imageUrl === 'string' && (imageUrl as string).startsWith('http')) {
+      if (uploadResult.url && uploadResult.url.startsWith('http')) {
+        const imageUrl = uploadResult.url;
         // Garantir que ainda estamos trabalhando com o mesmo arquivo
         // verificando se o formato ainda está sendo renderizado
         setFormData(prev => {
@@ -246,22 +247,19 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         
         toast({
           title: "Imagem carregada!",
-          description: "Imagem otimizada e armazenada com sucesso.",
+          description: "Conversão WebP concluída com sucesso.",
           variant: "default",
         });
         
         // Registrar o sucesso no console para debug
-        console.log(`Imagem ${format} carregada com sucesso:`, imageUrl);
+        console.log(`Imagem ${format} carregada com sucesso:`, uploadResult.url);
       } else {
-        console.error("URL inválida retornada pelo upload:", imageUrl);
+        console.error("Erro no upload:", uploadResult.error);
         toast({
-          title: "Problema com Supabase Storage",
-          description: "As imagens não puderam ser salvas devido às políticas de segurança do Supabase.",
+          title: "Erro no upload",
+          description: uploadResult.error || "Não foi possível fazer upload da imagem.",
           variant: "destructive",
         });
-        
-        // Mostrar alerta sobre configuração RLS necessária
-        // O alerta será exibido automaticamente no render condicional
       }
     } catch (error) {
       console.error("Erro ao fazer upload da imagem:", error);
