@@ -1,0 +1,45 @@
+🛠️ Corrigir completamente a lógica de criação, edição e visualização de artes com múltiplos formatos.
+
+⚠️ O problema atual:
+- Quando subimos uma arte com vários formatos (Feed, Story, Cartaz), o sistema salva cada formato de forma isolada e desconectada.
+- Isso está gerando vários bugs: não carrega o grupo na edição, não troca corretamente na página de ID, preview e link duplicado entre formatos, etc.
+
+✅ O comportamento correto deve ser este:
+
+1. PUBLICAÇÃO:
+- Quando o usuário subir uma arte com vários formatos, deve ser criado um grupo (ex: `group_id` ou `post_group_id`).
+- Cada formato deve ser salvo com:
+  - `group_id` (referência ao grupo/lote).
+  - `type` (ex: Feed, Story, etc).
+  - `image_url` (preview diferente por formato).
+  - `canva_link` (link diferente por formato).
+  - `dimensions`, etc.
+
+2. VISUALIZAÇÃO (página de ID):
+- Quando o usuário acessa `/post/:id`, deve ser carregado:
+  - A arte principal (por ID).
+  - Todos os outros formatos do mesmo grupo (`group_id`) como “Formatos Disponíveis”.
+- Ao clicar em outro formato, deve atualizar:
+  - A imagem de preview.
+  - O botão de link.
+  - O texto do formato (Feed, Story...).
+  - Sem recarregar a página toda.
+
+3. EDIÇÃO (admin):
+- Ao clicar em “Editar”, o sistema deve:
+  - Carregar todos os formatos do grupo.
+  - Mostrar uma lista com imagem + link de cada formato.
+- Ao salvar, cada formato é atualizado separadamente.
+- A ordem, preview e links precisam ser mantidos por formato.
+
+📌 IMPORTANTE:
+- A estrutura no banco precisa conter um campo como `group_id` (ou `post_id` se preferirem usar como principal) para associar todos os formatos.
+- A edição deve permitir atualizar múltiplos formatos de uma vez.
+- Nenhum formato pode sobrescrever dados de outro.
+
+🔄 Exemplo:
+- Criei uma arte com 3 formatos (Feed, Story, Cartaz).
+- Cada um aparece no feed corretamente.
+- Ao editar, os 3 aparecem juntos.
+- Ao acessar o post Feed, consigo trocar para Cartaz e ver o preview e link corretos.
+

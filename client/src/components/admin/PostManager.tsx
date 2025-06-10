@@ -663,7 +663,11 @@ export function PostManager() {
                                     formato: p.formato,
                                     imageUrl: p.imageUrl,
                                     canvaUrl: p.canvaUrl || '',
-                                    links: []
+                                    links: p.canvaUrl ? [{
+                                      id: crypto.randomUUID().substring(0, 8),
+                                      provider: 'canva',
+                                      url: p.canvaUrl
+                                    }] : []
                                   }));
                                   
                                   // Log para debug
@@ -691,22 +695,22 @@ export function PostManager() {
                                       Feed: {
                                         imageFile: null,
                                         imagePreview: groupFormats.find(f => f.formato === 'Feed')?.imageUrl || null,
-                                        links: []
+                                        links: groupFormats.find(f => f.formato === 'Feed')?.links || []
                                       },
                                       Stories: {
                                         imageFile: null,
                                         imagePreview: groupFormats.find(f => f.formato === 'Stories')?.imageUrl || null,
-                                        links: []
+                                        links: groupFormats.find(f => f.formato === 'Stories')?.links || []
                                       },
                                       Cartaz: {
                                         imageFile: null,
                                         imagePreview: groupFormats.find(f => f.formato === 'Cartaz')?.imageUrl || null,
-                                        links: []
+                                        links: groupFormats.find(f => f.formato === 'Cartaz')?.links || []
                                       },
                                       Banner: {
                                         imageFile: null,
                                         imagePreview: groupFormats.find(f => f.formato === 'Banner')?.imageUrl || null,
-                                        links: []
+                                        links: groupFormats.find(f => f.formato === 'Banner')?.links || []
                                       }
                                     },
                                     uniqueCode: combinedPost.uniqueCode,

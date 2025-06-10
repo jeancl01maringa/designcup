@@ -1768,7 +1768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? `${parsedData.data.uniqueCode}-${formatoData.formato}` 
             : crypto.randomUUID().substring(0, 8);
           
-          // Preparando os dados para este formato específico
+          // Preparando os dados únicos para este formato específico
           const postData = {
             ...parsedData.data,
             userId: req.user!.id,
@@ -1778,9 +1778,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             groupId,
             formato: formatoData.formato || formatoData.type,
             formatoData: JSON.stringify(formatoData),
-            canvaUrl: formatoData.canvaUrl || formatoData.editUrl || '',
-            imageUrl: formatoData.imageUrl || formatoData.previewUrl || '', // Usar a imagem específica deste formato
+            canvaUrl: formatoData.canvaUrl || formatoData.editUrl || formatoData.links?.[0]?.url || '',
+            imageUrl: formatoData.imageUrl || formatoData.previewUrl || '', // Imagem única para este formato
           };
+          
+          console.log(`Criando formato ${formatoData.formato || formatoData.type} com dados únicos:`, {
+            imageUrl: postData.imageUrl,
+            canvaUrl: postData.canvaUrl,
+            groupId: postData.groupId
+          });
           
           // Criando o post para este formato com dados do autor
           const post = await storage.createPost(postData, req.user);
