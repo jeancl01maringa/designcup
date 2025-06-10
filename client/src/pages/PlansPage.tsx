@@ -204,18 +204,18 @@ export default function PlansPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-white text-gray-900 pt-1 pb-6 border-b">
+      <div className="bg-white text-gray-900 pt-4 pb-6 border-b">
         <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-4">
+          <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-2">
             <Sparkles className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-800">Escolha o plano ideal para você</span>
           </div>
           
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 text-black">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-black">
             Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
-          <p className="text-lg mb-6 text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg mb-4 text-gray-600 max-w-3xl mx-auto">
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
           
