@@ -55,16 +55,16 @@ export async function uploadImageToSupabase(
     let processedBuffer = buffer;
     let finalPath = path;
     
-    // Comprimir e converter para WebP se for imagem
-    if (originalName.match(/\.(jpg|jpeg|png|gif|bmp|tiff)$/i)) {
-      try {
-        console.log(`Comprimindo e convertendo ${originalName} para WebP...`);
-        processedBuffer = await compressAndConvertToWebP(buffer, originalName);
-        finalPath = path.replace(/\.[^/.]+$/, '.webp');
-        console.log(`Conversão bem-sucedida: ${finalPath}`);
-      } catch (compressionError) {
-        console.warn('Falha na conversão WebP, usando original:', compressionError);
-      }
+    // Sempre comprimir e converter para WebP para imagens
+    try {
+      console.log(`Comprimindo e convertendo ${originalName} para WebP...`);
+      processedBuffer = await compressAndConvertToWebP(buffer, originalName);
+      // Garantir que o path tenha extensão .webp
+      finalPath = path.replace(/\.[^/.]+$/, '') + '.webp';
+      console.log(`Conversão bem-sucedida: ${finalPath}`);
+    } catch (compressionError) {
+      console.warn('Falha na conversão WebP, usando original:', compressionError);
+      // Em caso de falha, manter o path original
     }
 
     console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
