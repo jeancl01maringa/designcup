@@ -3525,15 +3525,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: 'Usuário não encontrado na verificação' });
         }
 
+        // Adicionar timestamp para forçar reload da imagem
+        const imageUrlWithTimestamp = `${imageUrl}?t=${Date.now()}`;
+        
         // Atualizar usando a mesma estrutura do storage
-        const updatedUser = await storage.updateUserProfileImage(userId, imageUrl!);
+        const updatedUser = await storage.updateUserProfileImage(userId, imageUrlWithTimestamp);
 
         console.log(`Resultado da atualização:`, updatedUser);
 
-        console.log(`Foto de perfil atualizada para usuário #${userId}: ${imageUrl}`);
+        console.log(`Foto de perfil atualizada para usuário #${userId}: ${imageUrlWithTimestamp}`);
         return res.json({ 
           message: 'Foto de perfil atualizada com sucesso',
-          profileImage: imageUrl,
+          profileImage: imageUrlWithTimestamp,
           user: updatedUser
         });
 
