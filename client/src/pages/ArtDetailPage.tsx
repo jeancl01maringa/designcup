@@ -226,11 +226,27 @@ export default function ArtDetailPage() {
           formato: p.formato,
           imageUrl: p.imageUrl
         })));
+        console.log('POSTS DISPONÍVEIS PARA NAVEGAÇÃO:', availablePosts.length);
       } else {
         console.log('NENHUM POST RELACIONADO ENCONTRADO');
       }
     }
-  }, [post, relatedPosts]);
+  }, [post, relatedPosts, availablePosts]);
+
+  // Debug da navegação entre formatos
+  React.useEffect(() => {
+    if (currentPost && post) {
+      console.log('FORMATO ATIVO MUDOU:', {
+        index: currentFormatIndex,
+        postAtivo: {
+          id: currentPost.id,
+          formato: currentPost.formato,
+          imageUrl: currentPost.imageUrl
+        },
+        totalFormatos: availablePosts.length
+      });
+    }
+  }, [currentFormatIndex, currentPost]);
   
   // Reset index quando mudar de post
   useEffect(() => {
@@ -497,23 +513,26 @@ export default function ArtDetailPage() {
   // Extrair o Link do Canva dos dados do post
   const getCanvaUrl = (): string => {
     try {
-      console.log("Verificando URL do Canva no post:", post);
-      console.log("Dados do formatData:", post?.formatData || post?.format_data);
+      // Usar o post do formato atualmente selecionado
+      const activePost = currentPost || post;
+      console.log("Verificando URL do Canva no post ativo:", activePost);
+      console.log("Formato atual:", activePost?.formato);
+      console.log("Dados do formatData:", activePost?.formatData || activePost?.format_data);
       
-      // 1. Verificar se temos URL do Canva diretamente no post
-      if (post?.canvaUrl) {
-        console.log("Usando canvaUrl diretamente do post:", post.canvaUrl);
-        return post.canvaUrl;
+      // 1. Verificar se temos URL do Canva diretamente no post ativo
+      if (activePost?.canvaUrl) {
+        console.log("Usando canvaUrl diretamente do post ativo:", activePost.canvaUrl);
+        return activePost.canvaUrl;
       }
       
       // 2. Verificar se tem o campo no snake_case
-      if (post?.canva_url) {
-        console.log("Usando canva_url do post:", post.canva_url);
-        return post.canva_url;
+      if (activePost?.canva_url) {
+        console.log("Usando canva_url do post ativo:", activePost.canva_url);
+        return activePost.canva_url;
       }
       
       // 3. Verificar dados de formato tanto no camelCase quanto snake_case
-      const formatDataString = post?.formatData || post?.format_data;
+      const formatDataString = activePost?.formatData || activePost?.format_data;
       
       if (formatDataString) {
         console.log("FormatData encontrado:", formatDataString);
@@ -702,8 +721,11 @@ export default function ArtDetailPage() {
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
               {availablePosts.map((formatPost: any, index: number) => (
                 <button
-                  key={index}
-                  onClick={() => setCurrentFormatIndex(index)}
+                  key={`format-nav-${formatPost.id}-${index}`}
+                  onClick={() => {
+                    console.log(`Navegando para formato ${index}:`, formatPost.formato, formatPost.imageUrl);
+                    setCurrentFormatIndex(index);
+                  }}
                   className={`w-3 h-3 rounded-full transition-colors ${
                     index === currentFormatIndex ? 'bg-white' : 'bg-white/50'
                   }`}
@@ -716,7 +738,7 @@ export default function ArtDetailPage() {
           {/* Imagem principal otimizada com cache */}
           <div className="overflow-hidden rounded-lg shadow-md">
             <img 
-              src={currentPost?.imageUrl || post?.imageUrl || "/placeholder.jpg"}
+              src={currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg"}
               alt={currentPost?.title || post?.title}
               className="w-full h-auto object-cover"
               loading="lazy"
