@@ -14,6 +14,8 @@ interface Plan {
   id: number;
   name: string;
   valor?: string;
+  valorOriginal?: string;
+  porcentagemEconomia?: string;
   price?: number;
   period?: string;
   originalPrice?: number;
@@ -292,10 +294,10 @@ export default function PlansPage() {
                               /{getPlanPeriod(plan).replace('por ', '').replace('para ', '')}
                             </span>
                           </div>
-                          {plan.periodo?.toLowerCase() === 'anual' && (
+                          {plan.porcentagemEconomia && (
                             <div className="mt-2">
                               <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
-                                Economize 25%
+                                Economize {plan.porcentagemEconomia}
                               </span>
                             </div>
                           )}

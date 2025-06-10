@@ -203,6 +203,8 @@ export default function PlanosPage() {
       name: plan.name,
       periodo: plan.periodo,
       valor: plan.valor,
+      valorOriginal: plan.valorOriginal || '',
+      porcentagemEconomia: plan.porcentagemEconomia || '',
       isActive: plan.isActive,
       isPrincipal: plan.isPrincipal,
       isGratuito: plan.isGratuito,
@@ -224,6 +226,8 @@ export default function PlanosPage() {
       name: '',
       periodo: 'Mensal',
       valor: '',
+      valorOriginal: '',
+      porcentagemEconomia: '',
       isActive: true,
       isPrincipal: false,
       isGratuito: false,
@@ -320,6 +324,34 @@ export default function PlanosPage() {
                         required
                         disabled={formData.isGratuito}
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="valorOriginal">Valor Original (de)</Label>
+                      <Input 
+                        id="valorOriginal"
+                        value={formData.valorOriginal || ''}
+                        onChange={(e) => setFormData({ ...formData, valorOriginal: e.target.value })}
+                        placeholder="Ex: 147,00"
+                        disabled={formData.isGratuito}
+                      />
+                      <p className="text-xs text-gray-500">
+                        Valor original antes do desconto (ex: R$ 497,00)
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="porcentagemEconomia">Porcentagem de Economia</Label>
+                      <Input 
+                        id="porcentagemEconomia"
+                        value={formData.porcentagemEconomia || ''}
+                        onChange={(e) => setFormData({ ...formData, porcentagemEconomia: e.target.value })}
+                        placeholder="Ex: 25%"
+                        disabled={formData.isGratuito}
+                      />
+                      <p className="text-xs text-gray-500">
+                        Porcentagem de economia a ser exibida (ex: "Economize 25%")
+                      </p>
                     </div>
 
                     {/* Configurações */}
