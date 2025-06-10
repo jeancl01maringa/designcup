@@ -119,15 +119,15 @@ export default function ProfilePage() {
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
       
-      // Forçar atualização completa dos dados do usuário
-      queryClient.removeQueries({ queryKey: ["/api/user"] });
-      queryClient.removeQueries({ queryKey: ["/api/profile"] });
-      
-      // Recarregar os dados imediatamente
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ["/api/user"] });
-        queryClient.refetchQueries({ queryKey: ["/api/profile"] });
-      }, 100);
+      // Atualizar diretamente o cache do usuário com nova imagem
+      queryClient.setQueryData(["/api/user"], (old: any) => ({
+        ...old,
+        profileImage: data.profileImage,
+      }));
+
+      // Revalidar todas as queries envolvidas
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
       
       // Limpar preview
       setSelectedImage(null);

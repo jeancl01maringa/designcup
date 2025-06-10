@@ -1,0 +1,75 @@
+// Solução completa para o bug de atualização de imagem de perfil
+
+// 1. BACKEND - Ajustar upload com timestamp consistente
+// server/supabase-upload.ts
+async function uploadImageToSupabase(buffer, originalName, bucketName, fileName) {
+  const webpBuffer = await sharp(buffer).webp({ quality: 85 }).toBuffer();
+
+  const timestamp = Date.now();
+  const finalPath = `${fileName}_${timestamp}.webp`;
+  const { data, error } = await supabase.storage
+    .from(bucketName)
+    .upload(finalPath, webpBuffer, { contentType: 'image/webp', upsert: true });
+
+  const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucketName}/${finalPath}?t=${timestamp}`;
+  return { url: publicUrl, error };
+}
+
+// 2. BACKEND - Ajustar resposta no routes.ts
+// server/routes.ts
+app.post('/api/profile/upload-photo', upload.single('image'), async (req, res) => {
+  const file = req.file;
+  const userId = req.user.id;
+
+  const { url: imageUrlWithTimestamp } = await uploadImageToSupabase(file.buffer, file.originalname, 'perfis', `profile_${userId}`);
+  const updatedUser = await storage.updateUserProfileImage(userId, imageUrlWithTimestamp);
+
+  return res.json({
+    success: true,
+    user: { ...updatedUser, profileImage: imageUrlWithTimestamp },
+    profileImage: imageUrlWithTimestamp
+  });
+});
+
+// 3. FRONTEND - Corrigir mutation e atualização de cache
+// client/src/pages/account/ProfilePage.tsx
+const uploadPhotoMutation = useMutation({
+  mutationFn: async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await fetch('/api/profile/upload-photo', {
+      method: 'POST',
+      body: formData,
+    });
+    return response.json();
+  },
+  onSuccess: (data) => {
+    // Atualiza diretamente o cache do usuário com nova imagem
+    queryClient.setQueryData(["/api/user"], (old: any) => ({
+      ...old,
+      profileImage: data.profileImage,
+    }));
+
+    // Revalida todas as queries envolvidas
+    queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+  }
+});
+
+// 4. FRONTEND - Propagação global
+// client/src/hooks/use-auth.tsx (Exemplo com Zustand ou Context)
+import { create } from 'zustand';
+
+export const useAuthStore = create((set) => ({
+  user: null,
+  setUser: (newUser) => set({ user: newUser }),
+  updateProfileImage: (newUrl) => set((state) => ({
+    user: { ...state.user, profileImage: newUrl }
+  }))
+}));
+
+// Exemplo de uso após upload:
+useAuthStore.getState().updateProfileImage(data.profileImage);
+
+// 5. COMPONENTES (ex: Header)
+<img src={user?.profileImage} key={user?.profileImage} /> // key força rerender

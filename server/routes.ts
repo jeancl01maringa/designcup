@@ -3489,55 +3489,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Assegurar que o bucket perfis existe
         await ensureBucket('perfis');
 
-        // Gerar nome único para o arquivo
-        const fileName = `profile_${userId}_${Date.now()}`;
-        
-        // Upload para Supabase Storage com conversão WebP
+        // Upload para Supabase Storage com conversão WebP e timestamp
         const uploadResult = await uploadImageToSupabase(
           file.buffer,
           file.originalname,
           'perfis',
-          fileName
+          `profile_${userId}`
         );
 
-        if (uploadResult.error) {
-          console.error('Erro no upload Supabase:', uploadResult.error);
+        if (uploadResult.error || !uploadResult.url) {
           return res.status(500).json({ 
-            message: 'Erro ao fazer upload para o Supabase',
+            message: 'Erro no upload da imagem',
             error: uploadResult.error
           });
         }
 
-        const imageUrl = uploadResult.url;
-        if (!imageUrl) {
-          return res.status(500).json({ 
-            message: 'URL da imagem não foi retornada do Supabase' 
-          });
-        }
-        console.log(`Imagem de perfil salva no Supabase: ${imageUrl}`);
+        // Atualizar perfil no banco
+        const updatedUser = await storage.updateUserProfileImage(userId, uploadResult.url);
 
-        // Verificar se o usuário existe usando o storage (mesma forma da autenticação)
-        const currentUser = await storage.getUser(userId);
+        console.log(`Foto de perfil atualizada para usuário #${userId}: ${uploadResult.url}`);
         
-        console.log(`Verificando usuário #${userId}:`, currentUser);
-
-        if (!currentUser) {
-          return res.status(404).json({ message: 'Usuário não encontrado na verificação' });
-        }
-
-        // Adicionar timestamp para forçar reload da imagem
-        const imageUrlWithTimestamp = `${imageUrl}?t=${Date.now()}`;
-        
-        // Atualizar usando a mesma estrutura do storage
-        const updatedUser = await storage.updateUserProfileImage(userId, imageUrlWithTimestamp);
-
-        console.log(`Resultado da atualização:`, updatedUser);
-
-        console.log(`Foto de perfil atualizada para usuário #${userId}: ${imageUrlWithTimestamp}`);
-        return res.json({ 
-          message: 'Foto de perfil atualizada com sucesso',
-          profileImage: imageUrlWithTimestamp,
-          user: updatedUser
+        return res.json({
+          success: true,
+          user: { ...updatedUser, profileImage: uploadResult.url },
+          profileImage: uploadResult.url
         });
 
       } catch (storageError: any) {

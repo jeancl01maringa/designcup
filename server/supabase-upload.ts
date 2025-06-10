@@ -49,39 +49,24 @@ export async function uploadImageToSupabase(
   buffer: Buffer,
   originalName: string,
   bucket: string,
-  path: string
+  fileName: string
 ): Promise<{ url: string | null; error: string | null }> {
   try {
-    let processedBuffer = buffer;
-    let finalPath = path;
+    // Converter para WebP com Sharp
+    const webpBuffer = await sharp(buffer).webp({ quality: 85 }).toBuffer();
+
+    // Gerar timestamp único para evitar cache
+    const timestamp = Date.now();
+    const finalPath = `${fileName}_${timestamp}.webp`;
     
-    // Sempre comprimir e converter para WebP para imagens
-    try {
-      console.log(`Comprimindo e convertendo ${originalName} para WebP...`);
-      processedBuffer = await compressAndConvertToWebP(buffer, originalName);
-      // Garantir que o path tenha extensão .webp
-      finalPath = path.replace(/\.[^/.]+$/, '') + '.webp';
-      console.log(`Conversão bem-sucedida: ${finalPath}`);
-    } catch (compressionError) {
-      console.warn('Falha na conversão WebP, usando original:', compressionError);
-      // Em caso de falha, manter o path original
-    }
+    console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(webpBuffer.length / 1024).toFixed(1)}KB)`);
 
-    console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
-
-    // Determinar o contentType correto
-    const contentType = finalPath.endsWith('.webp') ? 'image/webp' :
-                       originalName.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' :
-                       originalName.match(/\.png$/i) ? 'image/png' :
-                       originalName.match(/\.gif$/i) ? 'image/gif' : 'image/jpeg';
-
-    // Upload para o Supabase
+    // Upload para o Supabase com upsert
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(finalPath, processedBuffer, {
-        cacheControl: '3600',
-        upsert: true,
-        contentType
+      .upload(finalPath, webpBuffer, { 
+        contentType: 'image/webp', 
+        upsert: true 
       });
 
     if (error) {
@@ -89,10 +74,8 @@ export async function uploadImageToSupabase(
       return { url: null, error: error.message };
     }
 
-    // Obter URL pública
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(finalPath);
+    // Obter URL pública com timestamp para cache-busting
+    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
 
     console.log(`Upload bem-sucedido: ${publicUrl}`);
     return { url: publicUrl, error: null };
