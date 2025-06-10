@@ -36,11 +36,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
+    refetch: refetchUser,
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
     queryFn: async () => {
       try {
-        const res = await fetch("/api/user");
+        // Adicionar timestamp para evitar cache do navegador
+        const res = await fetch(`/api/user?t=${Date.now()}`);
         if (res.status === 401) {
           console.log("[AUTH] Usuário não autenticado (401)");
           return null;

@@ -111,7 +111,7 @@ export function setupAuth(app: Express) {
 
   // Session cache for users to reduce database hits
   const userCache = new Map<number, { user: any; timestamp: number }>();
-  const CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
+  const CACHE_DURATION = 30 * 1000; // Reduzido para 30 segundos para evitar dados desatualizados
 
   passport.serializeUser((user, done) => {
     done(null, user.id);
@@ -119,16 +119,13 @@ export function setupAuth(app: Express) {
   
   passport.deserializeUser(async (id: number, done) => {
     try {
-      // Check cache first
-      const cached = userCache.get(id);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return done(null, cached.user);
-      }
-
+      // Sempre buscar dados atualizados do banco para garantir consistência
       const user = await storage.getUser(id);
       
       if (!user) {
         console.warn(`Usuário com ID ${id} não encontrado. Invalidando sessão.`);
+        // Limpar cache do usuário
+        userCache.delete(id);
         return done(null, false);
       }
       
@@ -137,7 +134,7 @@ export function setupAuth(app: Express) {
         isAdmin: Boolean(user.isAdmin)
       };
       
-      // Cache the user for future requests
+      // Atualizar cache com dados frescos
       userCache.set(id, { user: userWithAdmin, timestamp: Date.now() });
       
       done(null, userWithAdmin);
@@ -208,23 +205,33 @@ export function setupAuth(app: Express) {
     });
   });
 
-  app.get("/api/user", (req, res) => {
+  app.get("/api/user", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Não autenticado" });
     
-    // Remover a senha e garantir que isAdmin esteja presente
-    const user = req.user;
-    
-    // Debug para verificar o que está vindo nos objetos
-    console.log("USER OBJECT ORIGINAL:", JSON.stringify(user));
-    
-    const safeUser = {
-      ...user,
-      isAdmin: Boolean(user.isAdmin), // Garantir que isAdmin seja um booleano
-      password: undefined // Remover a senha por segurança
-    };
-    
-    console.log("USER OBJECT FINAL:", JSON.stringify(safeUser));
-    
-    res.json(safeUser);
+    try {
+      // Buscar dados atualizados diretamente do banco para evitar cache desatualizado
+      const userId = req.user.id;
+      const freshUser = await storage.getUser(userId);
+      
+      if (!freshUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Invalidar cache do usuário para forçar dados atualizados
+      userCache.delete(userId);
+      
+      const safeUser = {
+        ...freshUser,
+        isAdmin: Boolean(freshUser.isAdmin),
+        password: undefined // Remover a senha por segurança
+      };
+      
+      console.log("USER DATA ATUALIZADO:", JSON.stringify(safeUser));
+      
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Erro ao buscar dados do usuário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
   });
 }
