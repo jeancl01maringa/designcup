@@ -263,6 +263,36 @@ export default function ArtDetailPage() {
     setCurrentFormatIndex(0);
   }, [postId]);
 
+  // Formatar objetos para exibição
+  const formatLabel = (format: string | null | undefined) => {
+    if (!format) return 'FEED'; // Valor padrão se não houver formato
+
+    const formatMap: Record<string, string> = {
+      'feed': 'FEED',
+      'stories': 'STORIES',
+      'post': 'POST',
+      'reels': 'REELS',
+      'carousel': 'CARROSSEL'
+    };
+    
+    return formatMap[format.toLowerCase()] || format.toUpperCase();
+  };
+  
+  // Obter dimensões do formato
+  const getFormatDimensions = (format: string | null | undefined): string => {
+    if (!format) return '1080×1080px • Quadrado'; // Valor padrão se não houver formato
+    
+    const dimensionsMap: Record<string, string> = {
+      'feed': '1080×1080px • Quadrado',
+      'stories': '1080×1920px • Vertical',
+      'reels': '1080×1920px • Vertical',
+      'carousel': '1080×1080px • Quadrado',
+      'post': '1080×1350px • Retrato'
+    };
+    
+    return dimensionsMap[format.toLowerCase()] || '1080×1080px';
+  };
+
   // Criar array de formatos disponíveis com base nos posts relacionados
   const availableFormats = React.useMemo(() => {
     if (!post) return [];
@@ -483,36 +513,6 @@ export default function ArtDetailPage() {
     staleTime: 5 * 60 * 1000, // 5 minutos em cache
     retry: false
   });
-  
-  // Formatar objetos para exibição
-  const formatLabel = (format: string | null | undefined) => {
-    if (!format) return 'FEED'; // Valor padrão se não houver formato
-
-    const formatMap: Record<string, string> = {
-      'feed': 'FEED',
-      'stories': 'STORIES',
-      'post': 'POST',
-      'reels': 'REELS',
-      'carousel': 'CARROSSEL'
-    };
-    
-    return formatMap[format.toLowerCase()] || format.toUpperCase();
-  };
-  
-  // Obter dimensões do formato
-  const getFormatDimensions = (format: string | null | undefined): string => {
-    if (!format) return '1080×1080px • Quadrado'; // Valor padrão se não houver formato
-    
-    const dimensionsMap: Record<string, string> = {
-      'feed': '1080×1080px • Quadrado',
-      'stories': '1080×1920px • Vertical',
-      'reels': '1080×1920px • Vertical',
-      'carousel': '1080×1080px • Quadrado',
-      'post': '1080×1350px • Retrato'
-    };
-    
-    return dimensionsMap[format.toLowerCase()] || '1080×1080px';
-  };
   
   // Determinar se é premium (verificar todos os possíveis campos)
   const isPremium = post?.licenseType === 'premium' || post?.is_pro || post?.isPro;
