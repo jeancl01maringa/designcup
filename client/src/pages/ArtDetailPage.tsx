@@ -83,6 +83,16 @@ export default function ArtDetailPage() {
   const [currentFormatIndex, setCurrentFormatIndex] = useState(0);
   const [formatsExpanded, setFormatsExpanded] = useState(false);
   
+  // Estado para controlar qual formato está selecionado
+  const [selectedFormat, setSelectedFormat] = useState<{
+    id: number;
+    name: string;
+    previewUrl: string;
+    linkCanva?: string;
+    dimensions: string;
+    isCurrent: boolean;
+  } | null>(null);
+  
   // Garantir que a página sempre inicie no topo
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -252,6 +262,50 @@ export default function ArtDetailPage() {
   useEffect(() => {
     setCurrentFormatIndex(0);
   }, [postId]);
+
+  // Criar array de formatos disponíveis com base nos posts relacionados
+  const availableFormats = React.useMemo(() => {
+    if (!post) return [];
+
+    // Começar com o post atual
+    const formats = [{
+      id: post.id,
+      name: formatLabel(post.formato),
+      previewUrl: post.imageUrl || post.image_url || '',
+      linkCanva: post.canvaUrl || post.canva_url,
+      dimensions: getFormatDimensions(post.formato),
+      formato: post.formato || 'feed',
+      isCurrent: true
+    }];
+
+    // Adicionar posts relacionados do mesmo grupo
+    if (relatedPosts && relatedPosts.length > 0) {
+      relatedPosts.forEach((relatedPost: any) => {
+        if (relatedPost.id !== post.id) {
+          formats.push({
+            id: relatedPost.id,
+            name: formatLabel(relatedPost.formato),
+            previewUrl: relatedPost.imageUrl || relatedPost.image_url || '',
+            linkCanva: relatedPost.canvaUrl || relatedPost.canva_url,
+            dimensions: getFormatDimensions(relatedPost.formato),
+            formato: relatedPost.formato || 'feed',
+            isCurrent: false
+          });
+        }
+      });
+    }
+
+    return formats;
+  }, [post, relatedPosts]);
+
+  // Inicializar selectedFormat com o formato atual do post
+  useEffect(() => {
+    if (post && availableFormats.length > 0) {
+      // Encontrar o formato atual ou usar o primeiro disponível
+      const currentFormat = availableFormats.find(f => f.isCurrent) || availableFormats[0];
+      setSelectedFormat(currentFormat);
+    }
+  }, [post, availableFormats]);
 
   // Buscar quantidade de posts do autor
   const { data: authorStats } = useQuery({
@@ -707,7 +761,7 @@ export default function ArtDetailPage() {
         <div className="relative">
           {/* Label do formato */}
           <span className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-10">
-            {formatLabel(currentPost?.formato || 'Feed')}
+            {selectedFormat?.name || formatLabel(currentPost?.formato || 'Feed')}
           </span>
           
           {/* Selo premium */}
@@ -739,12 +793,12 @@ export default function ArtDetailPage() {
           {/* Imagem principal otimizada com cache */}
           <div className="overflow-hidden rounded-lg shadow-md">
             <img 
-              src={currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg"}
-              alt={currentPost?.title || post?.title}
+              src={selectedFormat?.previewUrl || currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg"}
+              alt={selectedFormat?.name || currentPost?.title || post?.title}
               className="w-full h-auto object-cover"
               loading="lazy"
               onError={(e) => {
-                console.error('Erro ao carregar imagem:', currentPost?.imageUrl);
+                console.error('Erro ao carregar imagem:', selectedFormat?.previewUrl);
                 const target = e.target as HTMLImageElement;
                 target.src = "/placeholder.jpg";
               }}
@@ -810,7 +864,7 @@ export default function ArtDetailPage() {
                 <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-white"></div>
                 <div className="flex flex-col">
                   <span className="text-gray-500 text-xs">Formato:</span>
-                  <span className="text-sm">{formatLabel(currentPost?.formato || 'Feed')}</span>
+                  <span className="text-sm">{selectedFormat?.name || formatLabel(currentPost?.formato || 'Feed')}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -912,48 +966,38 @@ export default function ArtDetailPage() {
               <div className={`overflow-hidden transition-all duration-300 space-y-2 ${
                 formatsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
               }`}>
-                {allGroupPosts
-                  .filter((groupPost: any) => groupPost.id !== Number(postId))
-                  .map((groupPost: any, index: number) => (
+                {availableFormats
+                  .filter(format => !format.isCurrent)
+                  .map((format, index: number) => (
                     <div 
-                      key={`format-option-${groupPost.id}-${index}`}
-                      className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
+                      key={`format-option-${format.id}-${index}`}
+                      className={`border rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all ${
+                        selectedFormat?.id === format.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
                       onClick={() => {
-                        // Gerar slug limpo e consistente
-                        const cleanTitle = groupPost.title
-                          .toLowerCase()
-                          .normalize('NFD')
-                          .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-                          .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
-                          .replace(/\s+/g, '-') // Substitui espaços por hífens
-                          .replace(/-+/g, '-') // Remove hífens múltiplos
-                          .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
-                        
-                        const slug = `${groupPost.id}-${cleanTitle}`;
-                        
-                        // Navegação otimizada sem recarregamento
-                        setLocation(`/artes/${slug}`);
+                        console.log('Trocando formato para:', format);
+                        setSelectedFormat(format);
                       }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
                             <img 
-                              src={groupPost.imageUrl || groupPost.image_url} 
-                              alt={groupPost.title} 
+                              src={format.previewUrl} 
+                              alt={format.name} 
                               className="w-full h-full object-cover"
                             />
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                              {formatLabel(groupPost.formato || 'FEED')}
-                              {groupPost.isPro && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                                  Premium
+                              {format.name}
+                              {selectedFormat?.id === format.id && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                  Selecionado
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-gray-500">{getFormatDimensions(groupPost.formato || 'FEED')}</div>
+                            <div className="text-xs text-gray-500">{format.dimensions}</div>
                           </div>
                         </div>
                         <ChevronRight size={16} className="text-gray-400" />
