@@ -191,6 +191,7 @@ const UserMenu = () => {
               src={user.profileImage} 
               alt={user.username}
               className="w-full h-full object-cover"
+              key={user.profileImage}
             />
           ) : (
             <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
