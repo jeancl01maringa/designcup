@@ -135,36 +135,36 @@ export default function PlansPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-white text-gray-900 pt-1 pb-10 border-b">
+      <div className="bg-white text-gray-900 pt-1 pb-6 border-b">
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-4">
             <Sparkles className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-800">Escolha o plano ideal para você</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-black">
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 text-black">
             Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
-          <p className="text-xl md:text-2xl mb-6 text-gray-600 max-w-4xl mx-auto">
-            Desbloqueie todo o potencial criativo com nossos templates profissionais. Comece grátis ou escolha um plano premium para acesso ilimitado.
+          <p className="text-lg mb-4 text-gray-600 max-w-3xl mx-auto">
+            Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
           
           {/* Estatísticas Destacadas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
             {premiumFeatures.map((feature, index) => (
               <div key={index} className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full mb-2 ${
                   index === 0 ? 'bg-blue-100 text-blue-600' :
                   index === 1 ? 'bg-green-100 text-green-600' :
                   'bg-purple-100 text-purple-600'
                 }`}>
                   {React.cloneElement(feature.icon, {
-                    className: "h-5 w-5"
+                    className: "h-4 w-4"
                   })}
                 </div>
-                <div className="text-3xl font-bold mb-2 text-gray-900">{feature.title}</div>
-                <div className="text-gray-600">{feature.description}</div>
+                <div className="text-xl font-bold mb-1 text-gray-900">{feature.title}</div>
+                <div className="text-sm text-gray-600">{feature.description}</div>
               </div>
             ))}
           </div>
