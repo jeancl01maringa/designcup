@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Plan {
   id: number;
   name: string;
+  valor?: string;
   price?: number;
   period?: string;
   originalPrice?: number;
@@ -23,6 +24,7 @@ interface Plan {
   urlHotmart?: string;
   active?: boolean;
   periodo?: string;
+  beneficios?: string;
 }
 
 export default function PlansPage() {
@@ -37,6 +39,13 @@ export default function PlansPage() {
     queryKey: ["/api/plans"],
   });
 
+  // Função para converter valor string para number
+  const parsePrice = (valor: string) => {
+    if (!valor) return 0;
+    const cleanValue = valor.replace(/[R$\s]/g, '').replace(',', '.');
+    return parseFloat(cleanValue) || 0;
+  };
+
   // Ordenar planos: Free primeiro, depois por preço
   const sortedPlans = plans
     .filter((plan: Plan) => plan.active !== false)
@@ -44,7 +53,9 @@ export default function PlansPage() {
       if (a.isGratuito && !b.isGratuito) return -1;
       if (!a.isGratuito && b.isGratuito) return 1;
       if (a.isGratuito && b.isGratuito) return 0;
-      return (a.price || 0) - (b.price || 0);
+      const priceA = parsePrice(a.valor || '0');
+      const priceB = parsePrice(b.valor || '0');
+      return priceA - priceB;
     });
 
   const formatPrice = (price: number) => {
@@ -67,15 +78,15 @@ export default function PlansPage() {
   const getPlanPrice = (plan: Plan) => {
     if (plan.isGratuito) return 0;
     
-    const basePrice = plan.price || 0;
+    const basePrice = parsePrice(plan.valor || '0');
     
     // Se o plano for mensal e estivermos visualizando anual, aplicar desconto
-    if (plan.periodo === 'mensal' && isAnnual) {
+    if (plan.periodo?.toLowerCase() === 'mensal' && isAnnual) {
       return basePrice * 12 * 0.75; // 25% de desconto no anual
     }
     
     // Se o plano for anual e estivermos visualizando mensal, calcular valor mensal
-    if (plan.periodo === 'anual' && !isAnnual) {
+    if (plan.periodo?.toLowerCase() === 'anual' && !isAnnual) {
       return (basePrice / 12) / 0.75; // Preço mensal sem desconto
     }
     
@@ -93,12 +104,12 @@ export default function PlansPage() {
   };
 
   const renderPlanItems = (plan: Plan) => {
-    const includedItems = Array.isArray(plan.itensInclusos) ? plan.itensInclusos : [];
-    const restrictedItems = Array.isArray(plan.itensRestritos) ? plan.itensRestritos : [];
+    const beneficios = plan.beneficios ? plan.beneficios.split('\n').filter(item => item.trim()) : [];
+    const itensRestritos = plan.itensRestritos ? plan.itensRestritos.split('\n').filter(item => item.trim()) : [];
     
     const allItems: string[] = [
-      ...includedItems,
-      ...restrictedItems.map(item => `❌ ${item}`)
+      ...beneficios,
+      ...itensRestritos.map(item => `❌ ${item}`)
     ];
 
     if (allItems.length === 0) {
@@ -228,19 +239,25 @@ export default function PlansPage() {
                       {plan.isGratuito ? (
                         <div className="text-4xl font-bold text-green-600">Grátis</div>
                       ) : (
-                        <div className="flex items-center justify-center gap-2">
-                          {isAnnual && plan.periodo === 'mensal' && (
-                            <span className="text-lg text-gray-400 line-through">
-                              {formatPrice((plan.price || 0) * 12)}
+                        <div className="flex flex-col items-center justify-center">
+                          {isAnnual && plan.periodo?.toLowerCase() === 'mensal' && (
+                            <span className="text-lg text-gray-400 line-through mb-1">
+                              {formatPrice(parsePrice(plan.valor || '0') * 12)}
                             </span>
                           )}
-                          <div className="text-4xl font-bold text-gray-900">
-                            {formatPrice(getPlanPrice(plan))}
+                          <div className="flex items-baseline">
+                            <span className="text-2xl font-bold text-gray-900">R$</span>
+                            <span className="text-4xl font-bold text-gray-900 ml-1">
+                              {getPlanPrice(plan).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            <span className="text-sm text-gray-600 ml-1">
+                              {isAnnual ? '/ano' : '/mês'}
+                            </span>
                           </div>
                         </div>
                       )}
                       <div className="text-sm text-gray-600 mt-1">
-                        {getPlanPeriod(plan)}
+                        {plan.isGratuito ? 'Para sempre' : ''}
                       </div>
                     </div>
                   </CardHeader>
