@@ -1350,25 +1350,32 @@ export default function ArtDetailPage() {
         </div>
       </div>
       
-      {/* Seção de artes relacionadas */}
+      {/* Seção de artes relacionadas - Layout masonry Pinterest */}
       {relatedArtworks && relatedArtworks.length > 0 && (
         <div className="mt-12">
           <h2 className="text-xl font-bold mb-6">Artes relacionadas</h2>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {relatedArtworks.map((item: RelatedFormat) => (
-              <ArtworkCard
-                key={item.id}
-                artwork={{
-                  id: item.id,
-                  title: item.title,
-                  description: "",
-                  imageUrl: item.imageUrl || "/placeholder.jpg",
-                  category: "outros",
-                  createdAt: new Date(item.createdAt || Date.now()),
-                  isPro: Boolean(item.licenseType === 'premium' || item.isPro),
-                  format: item.formato || "1:1"
-                }}
-              />
+          <div className="flex gap-4">
+            {/* Criando 4 colunas para o layout masonry */}
+            {[0, 1, 2, 3].map((colIndex) => (
+              <div key={colIndex} className="flex-1 space-y-4">
+                {relatedArtworks
+                  .filter((_, index) => index % 4 === colIndex)
+                  .map((item: RelatedFormat) => (
+                    <ArtworkCard
+                      key={item.id}
+                      artwork={{
+                        id: item.id,
+                        title: item.title,
+                        description: "",
+                        imageUrl: item.imageUrl || "/placeholder.jpg",
+                        category: "outros",
+                        createdAt: new Date(item.createdAt || Date.now()),
+                        isPro: Boolean(item.licenseType === 'premium' || item.isPro),
+                        format: item.formato || "1:1"
+                      }}
+                    />
+                  ))}
+              </div>
             ))}
           </div>
         </div>
