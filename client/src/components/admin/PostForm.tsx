@@ -181,9 +181,6 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       // Criar preview para exibição imediata
       const previewUrl = URL.createObjectURL(file);
       
-      // Criar um ID para referenciar esta imagem específica
-      const imageId = `${format}_${Date.now()}`;
-      
       setFormData(prev => ({
         ...prev,
         formatFiles: {
@@ -215,35 +212,18 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       // Verificar se a URL retornada é válida
       if (uploadResult.url && uploadResult.url.startsWith('http')) {
         const imageUrl = uploadResult.url;
-        // Garantir que ainda estamos trabalhando com o mesmo arquivo
-        // verificando se o formato ainda está sendo renderizado
-        setFormData(prev => {
-          // Se o formato não está mais nos formatos selecionados, não atualizamos
-          if (!prev.formats.includes(format)) {
-            return prev;
-          }
-          
-          // Verificar se ainda estamos lidando com o mesmo arquivo
-          // Se já tiver outro arquivo, não sobreescrevemos
-          const currentFile = prev.formatFiles[format].imageFile;
-          
-          // Se não tiver mais arquivo ou tiver sido removido, não atualizamos
-          if (!currentFile) {
-            return prev;
-          }
-          
-          // Atualizar a URL para a permanente do Supabase
-          return {
-            ...prev,
-            formatFiles: {
-              ...prev.formatFiles,
-              [format]: {
-                ...prev.formatFiles[format],
-                imagePreview: imageUrl
-              }
+        
+        // Atualizar SEMPRE a URL independente do modo (criação ou edição)
+        setFormData(prev => ({
+          ...prev,
+          formatFiles: {
+            ...prev.formatFiles,
+            [format]: {
+              ...prev.formatFiles[format],
+              imagePreview: imageUrl
             }
-          };
-        });
+          }
+        }));
         
         toast({
           title: "Imagem carregada!",
