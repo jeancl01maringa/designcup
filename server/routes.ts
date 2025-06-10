@@ -1573,6 +1573,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error fetching approved posts' });
     }
   });
+
+  // Endpoint para obter todos os formatos únicos disponíveis nos posts
+  app.get('/api/posts/formats', async (req, res) => {
+    try {
+      console.log('Buscando todos os formatos únicos disponíveis nos posts...');
+      
+      const query = `
+        SELECT DISTINCT formato as name
+        FROM posts 
+        WHERE status = 'aprovado' 
+        AND (is_visible IS NULL OR is_visible = true)
+        AND formato IS NOT NULL 
+        AND formato != ''
+        ORDER BY formato ASC
+      `;
+      
+      const result = await pool.query(query);
+      const formats = result.rows.map(row => row.name);
+      
+      console.log(`Encontrados ${formats.length} formatos únicos:`, formats);
+      
+      res.json(formats);
+    } catch (error) {
+      console.error('Error fetching unique formats:', error);
+      res.status(500).json({ message: 'Error fetching formats' });
+    }
+  });
   
   // Endpoint público para obter posts relacionados (variações de formato)
   app.get('/api/posts/formats/:groupId', async (req, res) => {
