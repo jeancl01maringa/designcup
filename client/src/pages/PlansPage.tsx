@@ -285,6 +285,11 @@ export default function PlansPage() {
                         <div className="text-4xl font-bold text-gray-900">Grátis</div>
                       ) : (
                         <div className="flex flex-col items-center justify-center">
+                          {plan.valorOriginal && (
+                            <div className="text-sm text-gray-500 line-through mb-1">
+                              De R$ {parseFloat(plan.valorOriginal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          )}
                           <div className="flex items-baseline">
                             <span className="text-2xl font-bold text-gray-900">R$</span>
                             <span className="text-4xl font-bold text-gray-900 ml-1">
