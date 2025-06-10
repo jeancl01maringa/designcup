@@ -56,11 +56,11 @@ export default function PlansPage() {
       const periodo = plan.periodo?.toLowerCase();
       
       if (isAnnual) {
-        // No modo anual, mostrar planos anuais, vitalício e trimestral
-        return periodo === 'anual' || periodo === 'vitalicio' || periodo === 'trimestral';
+        // No modo anual, mostrar planos anuais e vitalício
+        return periodo === 'anual' || periodo === 'vitalicio';
       } else {
-        // No modo mensal, mostrar apenas planos mensais
-        return periodo === 'mensal';
+        // No modo mensal, mostrar planos mensais e trimestral
+        return periodo === 'mensal' || periodo === 'trimestral';
       }
     });
 
