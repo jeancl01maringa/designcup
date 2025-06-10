@@ -567,6 +567,12 @@ export default function ArtDetailPage() {
   // Extrair o Link do Canva dos dados do post
   const getCanvaUrl = (): string => {
     try {
+      // 1. Primeiro verificar se há um formato selecionado com link do Canva
+      if (selectedFormat?.linkCanva) {
+        console.log("Usando link do Canva do formato selecionado:", selectedFormat.linkCanva);
+        return selectedFormat.linkCanva;
+      }
+      
       // Usar o post do formato atualmente selecionado
       const activePost = currentPost || post;
       console.log("Verificando URL do Canva no post ativo:", activePost);
@@ -574,13 +580,13 @@ export default function ArtDetailPage() {
       console.log("Index do formato ativo:", currentFormatIndex);
       console.log("Dados do formatData:", activePost?.formatData || activePost?.format_data);
       
-      // 1. Verificar se temos URL do Canva diretamente no post ativo
+      // 2. Verificar se temos URL do Canva diretamente no post ativo
       if (activePost?.canvaUrl) {
         console.log("Usando canvaUrl diretamente do post ativo:", activePost.canvaUrl);
         return activePost.canvaUrl;
       }
       
-      // 2. Verificar se tem o campo no snake_case
+      // 3. Verificar se tem o campo no snake_case
       if (activePost?.canva_url) {
         console.log("Usando canva_url do post ativo:", activePost.canva_url);
         return activePost.canva_url;
