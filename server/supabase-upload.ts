@@ -3,7 +3,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import imageCompression from 'browser-image-compression';
+import sharp from 'sharp';
 
 // Configuração do Supabase
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/"/g, '');
@@ -16,33 +16,26 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
- * Comprime e converte imagem para WebP
+ * Comprime e converte imagem para WebP usando Sharp
  */
 async function compressAndConvertToWebP(buffer: Buffer, originalName: string): Promise<Buffer> {
   try {
-    // Determinar o tipo MIME correto baseado na extensão
-    const mimeType = originalName.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' : 
-                     originalName.match(/\.png$/i) ? 'image/png' :
-                     originalName.match(/\.gif$/i) ? 'image/gif' : 'image/jpeg';
+    console.log(`Comprimindo e convertendo ${originalName} para WebP...`);
     
-    // Criar File object a partir do buffer com tipo MIME correto
-    const file = new File([buffer], originalName, { type: mimeType });
+    // Usar Sharp para comprimir e converter para WebP
+    const compressedBuffer = await sharp(buffer)
+      .resize(1920, 1920, { 
+        fit: 'inside', 
+        withoutEnlargement: true 
+      })
+      .webp({ 
+        quality: 85,
+        effort: 4
+      })
+      .toBuffer();
     
-    // Configurações de compressão
-    const options = {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 1920,
-      useWebWorker: false, // Não usar web worker no servidor
-      fileType: 'image/webp' as const,
-      initialQuality: 0.85,
-    };
-
-    // Comprimir e converter
-    const compressedFile = await imageCompression(file, options);
-    
-    // Converter de volta para Buffer
-    const arrayBuffer = await compressedFile.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+    console.log(`Conversão WebP bem-sucedida: ${originalName} -> ${(compressedBuffer.length / 1024).toFixed(1)}KB`);
+    return compressedBuffer;
   } catch (error) {
     console.warn('Falha na compressão WebP, usando original:', error);
     return buffer;
@@ -76,13 +69,19 @@ export async function uploadImageToSupabase(
 
     console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
 
+    // Determinar o contentType correto
+    const contentType = finalPath.endsWith('.webp') ? 'image/webp' :
+                       originalName.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' :
+                       originalName.match(/\.png$/i) ? 'image/png' :
+                       originalName.match(/\.gif$/i) ? 'image/gif' : 'image/jpeg';
+
     // Upload para o Supabase
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(finalPath, processedBuffer, {
         cacheControl: '3600',
         upsert: true,
-        contentType: finalPath.endsWith('.webp') ? 'image/webp' : undefined
+        contentType
       });
 
     if (error) {
