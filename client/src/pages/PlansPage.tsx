@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity, Calendar, Download } from "lucide-react";
+import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,120 +13,99 @@ import { useToast } from "@/hooks/use-toast";
 interface Plan {
   id: number;
   name: string;
-  periodo: string;
-  valor: string;
-  isActive: boolean;
-  isPrincipal: boolean;
-  isGratuito: boolean;
-  codigoHotmart: string | null;
-  urlHotmart: string | null;
-  beneficios: string | null;
-  itensRestritos?: string | null;
-  createdAt: string;
+  price?: number;
+  period?: string;
+  originalPrice?: number;
+  isGratuito?: boolean;
+  isPrincipal?: boolean;
+  itensInclusos?: string[];
+  itensRestritos?: string[];
+  urlHotmart?: string;
+  active?: boolean;
+  periodo?: string;
 }
 
 export default function PlansPage() {
-  const { toast } = useToast();
   const [isAnnual, setIsAnnual] = useState(false);
+  const { toast } = useToast();
 
-  // Buscar planos
-  const { data: allPlans, isLoading, error } = useQuery<Plan[]>({
-    queryKey: ['/api/plans'],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/plans');
-        return response.json();
-      } catch (error) {
-        console.error("Erro ao buscar planos:", error);
-        toast({
-          title: "Erro ao carregar planos",
-          description: "Não foi possível carregar os planos no momento.",
-          variant: "destructive",
-        });
-        return [];
-      }
-    }
+  const {
+    data: plans = [],
+    isLoading,
+    error,
+  } = useQuery<Plan[]>({
+    queryKey: ["/api/plans"],
   });
 
-  // Filtrar planos por período
-  const filteredPlans = allPlans?.filter(plan => {
-    // Plano gratuito aparece em ambos os períodos
-    if (plan.isGratuito) return true;
-    
-    if (isAnnual) {
-      return plan.periodo.toLowerCase().includes('anual') || 
-             plan.periodo.toLowerCase().includes('ano');
-    } else {
-      return plan.periodo.toLowerCase().includes('mensal') || 
-             plan.periodo.toLowerCase().includes('mês') ||
-             plan.periodo.toLowerCase().includes('trimestral');
-    }
-  }) || [];
+  // Ordenar planos: Free primeiro, depois por preço
+  const sortedPlans = plans
+    .filter((plan: Plan) => plan.active !== false)
+    .sort((a: Plan, b: Plan) => {
+      if (a.isGratuito && !b.isGratuito) return -1;
+      if (!a.isGratuito && b.isGratuito) return 1;
+      if (a.isGratuito && b.isGratuito) return 0;
+      return (a.price || 0) - (b.price || 0);
+    });
 
-  // Função para limpar e formatar preço
-  const formatPrice = (price: string) => {
-    // Remove "R$" e espaços, mantém o preço original
-    return price.replace('R$', '').trim();
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(price);
   };
 
-  // Função para obter ícone do plano
-  const getPlanIcon = (plan: Plan) => {
-    if (plan.isGratuito) {
-      return <Star className="h-6 w-6 text-blue-600" />;
-    }
-    if (plan.periodo.toLowerCase().includes('vitalício')) {
-      return <Infinity className="h-6 w-6 text-purple-600" />;
-    }
-    if (plan.periodo.toLowerCase().includes('mensal')) {
-      return <RefreshCw className="h-6 w-6 text-orange-600" />;
-    }
-    if (plan.periodo.toLowerCase().includes('trimestral')) {
-      return <CheckCircle className="h-6 w-6 text-green-600" />;
-    }
-    if (plan.periodo.toLowerCase().includes('anual')) {
-      return <Crown className="h-6 w-6 text-purple-600" />;
-    }
-    return <Sparkles className="h-6 w-6 text-blue-600" />;
+  const formatPeriod = (period: string) => {
+    const periodMap: { [key: string]: string } = {
+      'mensal': 'mês',
+      'anual': 'ano',
+      'vitalicio': 'vitalício',
+      'sempre': 'sempre',
+    };
+    return periodMap[period?.toLowerCase()] || period;
   };
 
-  // Filtramos apenas os planos ativos do período selecionado
-  const activePlans = filteredPlans?.filter(plan => plan.isActive) || [];
+  const renderPlanItems = (plan: Plan) => {
+    const allItems: string[] = [
+      ...(plan.itensInclusos || []),
+      ...(plan.itensRestritos || []).map(item => `❌ ${item}`)
+    ];
 
-  // Vantagens premium destacadas
-  const premiumFeatures = [
-    {
-      icon: <Palette className="h-5 w-5 text-white" />,
-      title: "+500",
-      description: "Templates Premium"
-    },
-    {
-      icon: <RefreshCw className="h-5 w-5 text-white" />,
-      title: "50+",
-      description: "Novos por Semana"
-    },
-    {
-      icon: <Headphones className="h-5 w-5 text-white" />,
-      title: "24/7",
-      description: "Suporte Premium"
+    if (allItems.length === 0) {
+      const defaultItems = plan.isGratuito 
+        ? [
+            "Acesso limitado a templates",
+            "Suporte básico",
+            "❌ Templates premium",
+            "❌ Suporte prioritário"
+          ]
+        : [
+            "Acesso completo aos templates",
+            "Suporte premium 24/7",
+            "Downloads ilimitados",
+            "Atualizações automáticas"
+          ];
+      
+      return defaultItems.map((item, index) => (
+        <li key={index} className={`flex items-start gap-3 ${item.startsWith('❌') ? 'text-gray-400' : ''}`}>
+          <div className={`mt-1 ${item.startsWith('❌') ? 'text-red-500' : 'text-green-500'}`}>
+            {item.startsWith('❌') ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+          </div>
+          <span className="text-sm">{item.replace('❌ ', '')}</span>
+        </li>
+      ));
     }
-  ];
 
-  // Ordenar planos: gratuito primeiro, depois principal, depois outros por valor
-  const sortedPlans = [...activePlans].sort((a, b) => {
-    // Gratuito sempre primeiro
-    if (a.isGratuito && !b.isGratuito) return -1;
-    if (!a.isGratuito && b.isGratuito) return 1;
-    // Plano principal depois do gratuito
-    if (a.isPrincipal && !b.isPrincipal) return -1;
-    if (!a.isPrincipal && b.isPrincipal) return 1;
-    // Por preço (do mais barato ao mais caro)
-    const valorA = parseFloat(a.valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-    const valorB = parseFloat(b.valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-    return valorA - valorB;
-  });
+    return allItems.map((item, index) => (
+      <li key={index} className={`flex items-start gap-3 ${item.startsWith('❌') ? 'text-gray-400' : ''}`}>
+        <div className={`mt-1 ${item.startsWith('❌') ? 'text-red-500' : 'text-green-500'}`}>
+          {item.startsWith('❌') ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+        </div>
+        <span className="text-sm">{item.replace('❌ ', '')}</span>
+      </li>
+    ));
+  };
 
-  // Função para obter URL de ação do plano
-  const getPlanActionUrl = (plan: Plan): string => {
+  const getButtonLink = (plan: Plan) => {
     if (plan.urlHotmart) return plan.urlHotmart;
     if (plan.isGratuito) return "/register";
     return "#";
@@ -156,7 +135,7 @@ export default function PlansPage() {
               onClick={() => setIsAnnual(false)}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                 !isAnnual
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -164,9 +143,9 @@ export default function PlansPage() {
             </button>
             <button
               onClick={() => setIsAnnual(true)}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all relative ${
+              className={`relative px-6 py-2 rounded-md text-sm font-medium transition-all ${
                 isAnnual
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -184,152 +163,102 @@ export default function PlansPage() {
               <p className="mt-4 text-gray-600">Carregando planos...</p>
             </div>
           ) : error ? (
-          <div className="text-center py-12">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-              <X className="h-6 w-6 text-red-600" />
+            <div className="text-center py-12">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <X className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold">Erro ao carregar planos</h3>
+              <p className="mt-2 text-gray-600">Tente novamente mais tarde.</p>
             </div>
-            <h3 className="mt-4 text-lg font-semibold">Erro ao carregar planos</h3>
-            <p className="mt-2 text-gray-600">Tente novamente mais tarde.</p>
-          </div>
-        ) : sortedPlans.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Nenhum plano disponível no momento.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {sortedPlans.map((plan) => (
-              <Card key={plan.id} className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
-                plan.isPrincipal 
-                  ? 'border-blue-500 border shadow-xl bg-gradient-to-br from-blue-50 to-white' 
-                  : 'border-gray-200 hover:border-blue-300 bg-white'
-              }`}>
-                {/* Badge Superior */}
-                {plan.isPrincipal && (
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
-                    <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 text-sm font-semibold shadow-lg">
-                      <Crown className="h-4 w-4 mr-1" /> MELHOR OFERTA
-                    </Badge>
-                  </div>
-                )}
-                
-                <CardHeader className="text-center pt-6 pb-1">
-                  {/* Ícone circular */}
-                  <div className="mx-auto mb-4 w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                    {getPlanIcon(plan)}
-                  </div>
-                  
-                  <CardTitle className={`text-2xl font-bold ${
-                    plan.isGratuito 
-                      ? 'text-gray-500' 
-                      : 'text-black'
-                  }`}>
-                    {plan.name}
-                  </CardTitle>
-                </CardHeader>
-                
-                <div className="text-center px-6 pt-1 pb-3">
-                  <div className="text-4xl font-bold">
-                    {plan.isGratuito ? (
-                      <span className="text-gray-500">Grátis</span>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-xl text-gray-600 font-light">R$</span>
-                          <span className="text-gray-900">{formatPrice(plan.valor)}</span>
-                          <span className="text-sm text-gray-500 font-light">/{plan.periodo.toLowerCase().includes('anual') ? 'ano' : plan.periodo.toLowerCase().includes('mensal') ? 'mês' : plan.periodo.toLowerCase()}</span>
-                        </div>
-                        {isAnnual && !plan.isGratuito && (
-                          <div className="bg-green-100 text-green-700 text-sm font-medium mt-2 px-3 py-1 rounded-full">
-                            Economize 25%
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <CardContent className="flex-1 py-6">
-                  <ul className="space-y-3">
-                    {(() => {
-                      // Combinar benefícios disponíveis e itens restritos
-                      let allItems = [];
-                      
-                      // Adicionar benefícios disponíveis
-                      if (plan.beneficios) {
-                        allItems = plan.beneficios.split('\n').map(item => ({
-                          text: item.trim(),
-                          isRestricted: false
-                        }));
-                      }
-                      
-                      // Adicionar itens restritos se existirem
-                      if (plan.itensRestritos) {
-                        const restrictedItems = plan.itensRestritos.split('\n').map(item => ({
-                          text: item.trim(),
-                          isRestricted: true
-                        }));
-                        allItems = [...allItems, ...restrictedItems];
-                      }
-                      
-                      return allItems.length > 0 ? allItems.map((item, index) => (
-                        <li key={index} className="flex items-center text-sm">
-                          {item.isRestricted ? (
-                            <X className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          )}
-                          <span className={`font-light ${
-                            item.isRestricted 
-                              ? 'text-gray-400 line-through' 
-                              : 'text-gray-700'
-                          }`}>
-                            {item.text}
-                          </span>
-                        </li>
-                      )) : [
-                        <li key="default" className="flex items-center text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0" />
-                          <span className="font-light text-gray-700">Plano sem benefícios descritos</span>
-                        </li>
-                      ];
-                    })()}
-                  </ul>
-                </CardContent>
-                
-                <CardFooter className="pt-0 pb-6">
-                  {plan.urlHotmart ? (
-                    <a href={plan.urlHotmart} target="_blank" rel="noopener noreferrer" className="w-full">
-                      <Button 
-                        className={`w-full h-12 text-base font-semibold ${
-                          plan.isGratuito 
-                            ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
-                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                        }`}
-                        variant={plan.isGratuito ? 'outline' : 'default'}
-                      >
-                        {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
-                      </Button>
-                    </a>
-                  ) : (
-                    <Link href={getPlanActionUrl(plan)} className="w-full">
-                      <Button 
-                        className={`w-full h-12 text-base font-semibold ${
-                          plan.isGratuito 
-                            ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
-                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                        }`}
-                        variant={plan.isGratuito ? 'outline' : 'default'}
-                      >
-                        {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
-                      </Button>
-                    </Link>
+          ) : sortedPlans.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Nenhum plano disponível no momento.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {sortedPlans.map((plan) => (
+                <Card key={plan.id} className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
+                  plan.isPrincipal 
+                    ? 'border-blue-500 border shadow-xl bg-gradient-to-br from-blue-50 to-white' 
+                    : 'border-gray-200 hover:border-blue-300 bg-white'
+                }`}>
+                  {/* Badge Superior */}
+                  {plan.isPrincipal && (
+                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
+                      <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 text-sm font-semibold shadow-lg">
+                        <Crown className="h-4 w-4 mr-1" /> MELHOR OFERTA
+                      </Badge>
+                    </div>
                   )}
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+
+                  <CardHeader className="text-center pb-4">
+                    <CardTitle className="text-xl font-bold text-gray-900">{plan.name}</CardTitle>
+                    <div className="mt-4">
+                      {plan.isGratuito ? (
+                        <div className="text-4xl font-bold text-green-600">Grátis</div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          {plan.originalPrice && plan.originalPrice > (plan.price || 0) && (
+                            <span className="text-lg text-gray-400 line-through">
+                              {formatPrice(plan.originalPrice)}
+                            </span>
+                          )}
+                          <div className="text-4xl font-bold text-gray-900">
+                            {formatPrice(plan.price || 0)}
+                          </div>
+                        </div>
+                      )}
+                      <div className="text-sm text-gray-600 mt-1">
+                        {plan.isGratuito ? 'Para sempre' : `por ${formatPeriod(plan.periodo || plan.period || 'mês')}`}
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="flex-grow">
+                    <ul className="space-y-3">
+                      {renderPlanItems(plan)}
+                    </ul>
+                  </CardContent>
+
+                  <CardFooter className="pt-6">
+                    {plan.urlHotmart ? (
+                      <a
+                        href={plan.urlHotmart}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full"
+                      >
+                        <Button 
+                          className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
+                            plan.isPrincipal
+                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+                              : plan.isGratuito
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-gray-900 hover:bg-gray-800 text-white'
+                          }`}
+                        >
+                          {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
+                        </Button>
+                      </a>
+                    ) : (
+                      <Link href={getButtonLink(plan)} className="w-full">
+                        <Button 
+                          className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
+                            plan.isPrincipal
+                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+                              : plan.isGratuito
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-gray-900 hover:bg-gray-800 text-white'
+                          }`}
+                        >
+                          {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
+                        </Button>
+                      </Link>
+                    )}
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -337,59 +266,58 @@ export default function PlansPage() {
       {/* Seção de garantias e benefícios adicionais */}
       <div className="bg-gray-50 py-10">
         <div className="container mx-auto px-4 max-w-6xl">
-            <div className="text-center mb-8">
-              <h3 className="text-3xl font-bold text-gray-900 mb-3">Por que escolher nossos planos?</h3>
-              <p className="text-lg text-gray-600">Benefícios exclusivos para todos os nossos clientes</p>
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold text-gray-900 mb-3">Por que escolher nossos planos?</h3>
+            <p className="text-lg text-gray-600">Benefícios exclusivos para todos os nossos clientes</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
+                <Crown className="h-8 w-8" />
+              </div>
+              <h4 className="text-xl font-semibold mb-2">+500 Templates Premium</h4>
+              <p className="text-gray-600">Acesso completo à nossa biblioteca com centenas de templates profissionais.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
-                  <Crown className="h-8 w-8" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2">+500 Templates Premium</h4>
-                <p className="text-gray-600">Acesso completo à nossa biblioteca com centenas de templates profissionais.</p>
+            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4">
+                <RefreshCw className="h-8 w-8" />
               </div>
-              
-              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4">
-                  <RefreshCw className="h-8 w-8" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2">50+ Novos por Semana</h4>
-                <p className="text-gray-600">Conteúdo sempre atualizado com novos templates adicionados semanalmente.</p>
+              <h4 className="text-xl font-semibold mb-2">50+ Novos por Semana</h4>
+              <p className="text-gray-600">Conteúdo sempre atualizado com novos templates adicionados semanalmente.</p>
+            </div>
+            
+            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-4">
+                <Headphones className="h-8 w-8" />
               </div>
-              
-              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-4">
-                  <Headphones className="h-8 w-8" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2">Suporte 24/7</h4>
-                <p className="text-gray-600">Atendimento premium disponível 24 horas por dia, 7 dias por semana.</p>
+              <h4 className="text-xl font-semibold mb-2">Suporte 24/7</h4>
+              <p className="text-gray-600">Atendimento premium disponível 24 horas por dia, 7 dias por semana.</p>
+            </div>
+            
+            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 text-amber-600 rounded-full mb-4">
+                <BadgeCheck className="h-8 w-8" />
               </div>
-              
-              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 text-amber-600 rounded-full mb-4">
-                  <BadgeCheck className="h-8 w-8" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2">Garantia de 7 dias</h4>
-                <p className="text-gray-600">Não ficou satisfeito? Devolvemos 100% do seu dinheiro em até 7 dias.</p>
+              <h4 className="text-xl font-semibold mb-2">Garantia de 7 dias</h4>
+              <p className="text-gray-600">Não ficou satisfeito? Devolvemos 100% do seu dinheiro em até 7 dias.</p>
+            </div>
+            
+            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-4">
+                <Infinity className="h-8 w-8" />
               </div>
-              
-              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-4">
-                  <Infinity className="h-8 w-8" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2">Download Ilimitado</h4>
-                <p className="text-gray-600">Baixe quantos templates quiser, sem limites de download.</p>
+              <h4 className="text-xl font-semibold mb-2">Download Ilimitado</h4>
+              <p className="text-gray-600">Baixe quantos templates quiser, sem limites de download.</p>
+            </div>
+            
+            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 text-pink-600 rounded-full mb-4">
+                <Zap className="h-8 w-8" />
               </div>
-              
-              <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 text-pink-600 rounded-full mb-4">
-                  <Zap className="h-8 w-8" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2">Sempre Atualizado</h4>
-                <p className="text-gray-600">Plataforma constantemente atualizada com novos recursos e melhorias.</p>
-              </div>
+              <h4 className="text-xl font-semibold mb-2">Sempre Atualizado</h4>
+              <p className="text-gray-600">Plataforma constantemente atualizada com novos recursos e melhorias.</p>
             </div>
           </div>
         </div>
