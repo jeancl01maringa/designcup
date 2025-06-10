@@ -516,6 +516,65 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     }
   };
 
+  // Função para fazer upload de arquivos pendentes antes do submit
+  const uploadPendingFiles = async () => {
+    const uploadPromises: Promise<void>[] = [];
+    
+    for (const format of formData.formats) {
+      const formatFile = formData.formatFiles[format];
+      
+      // Se tem arquivo pendente (File object), fazer upload
+      if (formatFile.imageFile instanceof File) {
+        console.log(`Fazendo upload do arquivo para formato ${format}:`, formatFile.imageFile.name);
+        
+        const uploadPromise = (async () => {
+          try {
+            // Criar caminho personalizado para o arquivo no Supabase
+            const timestamp = Date.now();
+            const customPath = `uploads/${timestamp}_${formatFile.imageFile!.name.replace(/\s+/g, '_')}`;
+            
+            // Upload usando a função do Supabase
+            const imageUrl = await uploadFileToSupabase(formatFile.imageFile!, customPath, "images");
+            
+            if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+              console.log(`Upload concluído para ${format}:`, imageUrl);
+              
+              // Atualizar o estado com a URL final
+              setFormData(prev => ({
+                ...prev,
+                formatFiles: {
+                  ...prev.formatFiles,
+                  [format]: {
+                    ...prev.formatFiles[format],
+                    imagePreview: imageUrl,
+                    imageFile: null // Limpar o arquivo após upload
+                  }
+                }
+              }));
+            } else {
+              throw new Error(`Upload falhou para formato ${format}`);
+            }
+          } catch (error) {
+            console.error(`Erro no upload para formato ${format}:`, error);
+            throw error;
+          }
+        })();
+        
+        uploadPromises.push(uploadPromise);
+      }
+    }
+    
+    // Aguardar todos os uploads completarem
+    if (uploadPromises.length > 0) {
+      console.log(`Iniciando upload de ${uploadPromises.length} arquivo(s)...`);
+      await Promise.all(uploadPromises);
+      console.log("Todos os uploads concluídos!");
+      
+      // Dar tempo para o estado ser atualizado
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  };
+
   const submitForm = async () => {
     try {
       if (!hasAnyContent()) {
@@ -525,6 +584,66 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
           variant: "destructive",
         });
         return;
+      }
+      
+      // CRÍTICO: Fazer upload de arquivos pendentes ANTES de preparar os dados
+      console.log("Verificando uploads pendentes antes do submit...");
+      
+      // Fazer upload de arquivos com File objects
+      const uploadPromises: Promise<void>[] = [];
+      
+      for (const format of formData.formats) {
+        const formatFile = formData.formatFiles[format];
+        
+        // Se tem arquivo pendente (File object), fazer upload
+        if (formatFile.imageFile instanceof File) {
+          console.log(`Fazendo upload do arquivo para formato ${format}:`, formatFile.imageFile.name);
+          
+          const uploadPromise = (async () => {
+            try {
+              // Criar caminho personalizado para o arquivo no Supabase
+              const timestamp = Date.now();
+              const customPath = `uploads/${timestamp}_${formatFile.imageFile!.name.replace(/\s+/g, '_')}`;
+              
+              // Upload usando a função do Supabase
+              const imageUrl = await uploadFileToSupabase(formatFile.imageFile!, customPath, "images");
+              
+              if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+                console.log(`Upload concluído para ${format}:`, imageUrl);
+                
+                // Atualizar o estado com a URL final
+                setFormData(prev => ({
+                  ...prev,
+                  formatFiles: {
+                    ...prev.formatFiles,
+                    [format]: {
+                      ...prev.formatFiles[format],
+                      imagePreview: imageUrl,
+                      imageFile: null // Limpar o arquivo após upload
+                    }
+                  }
+                }));
+              } else {
+                throw new Error(`Upload falhou para formato ${format}`);
+              }
+            } catch (error) {
+              console.error(`Erro no upload para formato ${format}:`, error);
+              throw error;
+            }
+          })();
+          
+          uploadPromises.push(uploadPromise);
+        }
+      }
+      
+      // Aguardar todos os uploads completarem
+      if (uploadPromises.length > 0) {
+        console.log(`Iniciando upload de ${uploadPromises.length} arquivo(s)...`);
+        await Promise.all(uploadPromises);
+        console.log("Todos os uploads concluídos!");
+        
+        // Dar tempo para o estado ser atualizado
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
       
       const postData = preparePostData();
