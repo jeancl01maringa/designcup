@@ -135,7 +135,7 @@ export default function PlansPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-white text-gray-900 py-10 border-b">
+      <div className="bg-white text-gray-900 pt-4 pb-10 border-b">
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-4">
             <Sparkles className="h-4 w-4 text-blue-600" />
