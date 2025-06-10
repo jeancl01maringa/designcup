@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Post } from "@shared/schema";
@@ -9,32 +9,52 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight } from "lucide-react";
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 30; // Aumentado para reduzir paginação
 
-// Hook para calcular o número de colunas baseado na largura da tela
+// Hook otimizado para calcular o número de colunas com debounce
 function useResponsiveColumns() {
-  const [columns, setColumns] = useState(4);
+  const [columns, setColumns] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth;
+      if (width < 640) return 2;
+      else if (width < 768) return 2;
+      else if (width < 1024) return 3;
+      else if (width < 1280) return 4;
+      else return 5;
+    }
+    return 4;
+  });
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const updateColumns = () => {
-      const width = window.innerWidth;
-      if (width < 640) setColumns(2);      // mobile - 2 columns
-      else if (width < 768) setColumns(2); // sm
-      else if (width < 1024) setColumns(3); // md
-      else if (width < 1280) setColumns(4); // lg
-      else setColumns(5);                   // xl+
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const width = window.innerWidth;
+        let newColumns = 4;
+        if (width < 640) newColumns = 2;
+        else if (width < 768) newColumns = 2;
+        else if (width < 1024) newColumns = 3;
+        else if (width < 1280) newColumns = 4;
+        else newColumns = 5;
+        
+        setColumns(prev => prev !== newColumns ? newColumns : prev);
+      }, 150); // Debounce de 150ms
     };
 
-    updateColumns();
     window.addEventListener('resize', updateColumns);
-    return () => window.removeEventListener('resize', updateColumns);
+    return () => {
+      window.removeEventListener('resize', updateColumns);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   return columns;
 }
 
-// Distribuir posts em colunas para layout masonry
-function distributePostsInColumns(posts: Post[], columns: number) {
+// Versão memoizada da distribuição de posts em colunas
+const distributePostsInColumns = React.memo((posts: Post[], columns: number) => {
   const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
   
   posts.forEach((post, index) => {
@@ -43,7 +63,7 @@ function distributePostsInColumns(posts: Post[], columns: number) {
   });
   
   return columnArrays;
-}
+});
 
 export default function TodasArtes() {
   const [location, setLocation] = useLocation();
