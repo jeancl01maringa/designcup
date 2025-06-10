@@ -412,15 +412,15 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     const formatData = formData.formats.map(format => {
       const preview = formData.formatFiles[format].imagePreview;
       
-      // Apenas usar URL se for HTTP válida (não blob)
+      // Usar URL válida (HTTP) - blobs devem ter sido convertidos em URLs finais pelo upload
       let imageUrl = "";
       if (preview) {
         if (preview.startsWith("http")) {
           imageUrl = preview;
         } else if (preview.startsWith("blob:")) {
-          // Evitar salvar URLs blob que não serão válidas após recarga da página
-          imageUrl = "";
-          console.warn(`Ignorando URL temporária (blob) para ${format} no formato final`);
+          // URLs blob ainda presentes indicam que o upload não foi concluído
+          console.warn(`URL temporária (blob) ainda presente para ${format}. Upload pode não ter sido concluído.`);
+          imageUrl = ""; // Não salvar blob URLs
         }
       }
       
@@ -516,64 +516,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
     }
   };
 
-  // Função para fazer upload de arquivos pendentes antes do submit
-  const uploadPendingFiles = async () => {
-    const uploadPromises: Promise<void>[] = [];
-    
-    for (const format of formData.formats) {
-      const formatFile = formData.formatFiles[format];
-      
-      // Se tem arquivo pendente (File object), fazer upload
-      if (formatFile.imageFile instanceof File) {
-        console.log(`Fazendo upload do arquivo para formato ${format}:`, formatFile.imageFile.name);
-        
-        const uploadPromise = (async () => {
-          try {
-            // Criar caminho personalizado para o arquivo no Supabase
-            const timestamp = Date.now();
-            const customPath = `uploads/${timestamp}_${formatFile.imageFile!.name.replace(/\s+/g, '_')}`;
-            
-            // Upload usando a função do Supabase
-            const imageUrl = await uploadFileToSupabase(formatFile.imageFile!, customPath, "images");
-            
-            if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
-              console.log(`Upload concluído para ${format}:`, imageUrl);
-              
-              // Atualizar o estado com a URL final
-              setFormData(prev => ({
-                ...prev,
-                formatFiles: {
-                  ...prev.formatFiles,
-                  [format]: {
-                    ...prev.formatFiles[format],
-                    imagePreview: imageUrl,
-                    imageFile: null // Limpar o arquivo após upload
-                  }
-                }
-              }));
-            } else {
-              throw new Error(`Upload falhou para formato ${format}`);
-            }
-          } catch (error) {
-            console.error(`Erro no upload para formato ${format}:`, error);
-            throw error;
-          }
-        })();
-        
-        uploadPromises.push(uploadPromise);
-      }
-    }
-    
-    // Aguardar todos os uploads completarem
-    if (uploadPromises.length > 0) {
-      console.log(`Iniciando upload de ${uploadPromises.length} arquivo(s)...`);
-      await Promise.all(uploadPromises);
-      console.log("Todos os uploads concluídos!");
-      
-      // Dar tempo para o estado ser atualizado
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  };
+
 
   const submitForm = async () => {
     try {
@@ -606,10 +549,14 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
               const customPath = `uploads/${timestamp}_${formatFile.imageFile!.name.replace(/\s+/g, '_')}`;
               
               // Upload usando a função do Supabase
-              const imageUrl = await uploadFileToSupabase(formatFile.imageFile!, customPath, "images");
+              const uploadResult = await uploadFileToSupabase(formatFile.imageFile!, "images", customPath);
               
-              if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
-                console.log(`Upload concluído para ${format}:`, imageUrl);
+              if (uploadResult.error) {
+                throw new Error(`Upload falhou para formato ${format}: ${uploadResult.error}`);
+              }
+              
+              if (uploadResult.url) {
+                console.log(`Upload concluído para ${format}:`, uploadResult.url);
                 
                 // Atualizar o estado com a URL final
                 setFormData(prev => ({
@@ -618,13 +565,13 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                     ...prev.formatFiles,
                     [format]: {
                       ...prev.formatFiles[format],
-                      imagePreview: imageUrl,
+                      imagePreview: uploadResult.url,
                       imageFile: null // Limpar o arquivo após upload
                     }
                   }
                 }));
               } else {
-                throw new Error(`Upload falhou para formato ${format}`);
+                throw new Error(`Upload falhou para formato ${format}: URL não retornada`);
               }
             } catch (error) {
               console.error(`Erro no upload para formato ${format}:`, error);
