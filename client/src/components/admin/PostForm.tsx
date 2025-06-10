@@ -107,15 +107,13 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       };
 
       // Se tem formatos do grupo (edição em lote), popular os dados
-      if (initialData.formatos && Array.isArray(initialData.formatos)) {
-        initialData.formatos.forEach((formato: any) => {
+      if ((initialData as any).formatos && Array.isArray((initialData as any).formatos)) {
+        (initialData as any).formatos.forEach((formato: any) => {
           const formatKey = formato.formato?.toLowerCase() as PostFormat;
           if (formatKey && formatFiles[formatKey]) {
             formatFiles[formatKey] = {
               imageFile: null,
               imagePreview: formato.imageUrl || '',
-              imageUrl: formato.imageUrl || '',
-              canvaUrl: formato.canvaUrl || '',
               links: formato.links || []
             };
           }
@@ -126,7 +124,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         title: initialData.title,
         categoryId: initialData.categoryId,
         status: initialData.status as 'aprovado' | 'rascunho' | 'rejeitado',
-        description: initialData.description,
+        description: initialData.description || "",
         licenseType: initialData.licenseType || "premium",
         tags: initialData.tags || [],
         formats: (initialData.formats as PostFormat[]) || [],
@@ -208,7 +206,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       const customPath = `posts/${formData.uniqueCode}/${format}_${file.name}`;
       
       // Upload usando a nova implementação
-      const imageUrl = await uploadFileToSupabase(file, customPath);
+      const imageUrl = await uploadFileToSupabase(file, customPath, "images");
       
       // Verificar se a URL retornada é válida
       if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
@@ -531,18 +529,21 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       
       const postData = preparePostData();
       
-      // Verifica se há pelo menos uma imagem (mesmo que seja blob temporário) ou link
-      const hasAnyImageOrLink = formData.formats.some(format => 
-        formData.formatFiles[format].imagePreview || formData.formatFiles[format].links.length > 0
-      );
-      
-      if (!hasAnyImageOrLink) {
-        toast({
-          title: "Conteúdo necessário",
-          description: "Adicione pelo menos uma imagem ou link para continuar.",
-          variant: "destructive",
-        });
-        return;
+      // Para edição, permitir submissão mesmo sem novos uploads se já tem dados
+      if (!isEdit) {
+        // Apenas validar conteúdo para novos posts
+        const hasAnyImageOrLink = formData.formats.some(format => 
+          formData.formatFiles[format].imagePreview || formData.formatFiles[format].links.length > 0
+        );
+        
+        if (!hasAnyImageOrLink) {
+          toast({
+            title: "Conteúdo necessário",
+            description: "Adicione pelo menos uma imagem ou link para continuar.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
       
       // Usar a função onSubmit que foi passada como prop
