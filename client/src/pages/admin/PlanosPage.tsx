@@ -22,6 +22,8 @@ interface Plan {
   name: string;
   periodo: string;
   valor: string;
+  valorOriginal?: string | null;
+  porcentagemEconomia?: string | null;
   isActive: boolean;
   isPrincipal: boolean;
   isGratuito: boolean;
@@ -37,6 +39,8 @@ interface PlanInput {
   name: string;
   periodo: string;
   valor: string;
+  valorOriginal?: string | null;
+  porcentagemEconomia?: string | null;
   isActive: boolean;
   isPrincipal: boolean;
   isGratuito: boolean;
@@ -56,6 +60,8 @@ export default function PlanosPage() {
     name: '',
     periodo: 'Mensal',
     valor: '',
+    valorOriginal: '',
+    porcentagemEconomia: '',
     isActive: true,
     isPrincipal: false,
     isGratuito: false,

@@ -254,6 +254,8 @@ export const plans = pgTable("plans", {
   name: text("name").notNull(),
   periodo: text("periodo").notNull(), // Mensal, Anual, etc.
   valor: text("valor").notNull(), // Formato monetário (R$ XX,XX)
+  valorOriginal: text("valor_original"), // Valor original antes do desconto (R$ XX,XX)
+  porcentagemEconomia: text("porcentagem_economia"), // Porcentagem de economia (ex: "25%")
   isActive: boolean("is_active").default(true).notNull(),
   isPrincipal: boolean("is_principal").default(false), // Indica se é o plano principal
   isGratuito: boolean("is_gratuito").default(false), // Indica se é o plano gratuito
