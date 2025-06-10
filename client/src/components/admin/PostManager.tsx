@@ -654,8 +654,10 @@ export function PostManager() {
                                 const response = await apiRequest('GET', `/api/admin/posts/related/${post.groupId}`);
                                 const relatedPosts = await response.json();
                                 
-                                if (relatedPosts && relatedPosts.length > 1) {
-                                  // Se há múltiplos posts no grupo, carregar o post principal com dados do grupo
+                                console.log("Carregando grupo para edição:", post.groupId, "com", relatedPosts.length, "posts");
+                                
+                                if (relatedPosts && relatedPosts.length > 0) {
+                                  // Se há posts no grupo, carregar o post principal com dados do grupo
                                   const mainPost = relatedPosts.find((p: Post) => p.id === post.id) || relatedPosts[0];
                                   const groupFormats = relatedPosts.map((p: Post) => ({
                                     formato: p.formato,
@@ -664,12 +666,58 @@ export function PostManager() {
                                     links: []
                                   }));
                                   
+                                  // Log para debug
+                                  console.log("EDIT MODE: Carregando dados da postagem", mainPost.id);
+                                  console.log("EDIT MODE: Formato extraído do campo formato:", mainPost.formato);
+                                  if (mainPost.imageUrl) {
+                                    console.log("EDIT MODE: Imagem carregada para formato:", mainPost.formato, mainPost.imageUrl);
+                                  }
+                                  
                                   // Criar post combinado para edição em lote
                                   const combinedPost = {
                                     ...mainPost,
                                     formatos: groupFormats,
                                     formats: relatedPosts.map((p: Post) => p.formato).filter(Boolean)
                                   };
+                                  
+                                  console.log("EDIT MODE: Definindo form data:", {
+                                    title: combinedPost.title,
+                                    categoryId: combinedPost.categoryId,
+                                    status: combinedPost.status,
+                                    description: combinedPost.description,
+                                    licenseType: combinedPost.licenseType,
+                                    formats: combinedPost.formats,
+                                    formatFiles: {
+                                      Feed: {
+                                        imageFile: null,
+                                        imagePreview: groupFormats.find(f => f.formato === 'Feed')?.imageUrl || null,
+                                        links: []
+                                      },
+                                      Stories: {
+                                        imageFile: null,
+                                        imagePreview: groupFormats.find(f => f.formato === 'Stories')?.imageUrl || null,
+                                        links: []
+                                      },
+                                      Cartaz: {
+                                        imageFile: null,
+                                        imagePreview: groupFormats.find(f => f.formato === 'Cartaz')?.imageUrl || null,
+                                        links: []
+                                      },
+                                      Banner: {
+                                        imageFile: null,
+                                        imagePreview: groupFormats.find(f => f.formato === 'Banner')?.imageUrl || null,
+                                        links: []
+                                      }
+                                    },
+                                    uniqueCode: combinedPost.uniqueCode,
+                                    groupId: combinedPost.groupId,
+                                    isVisible: combinedPost.isVisible
+                                  });
+                                  
+                                  const activeFormat = combinedPost.formato || combinedPost.formats?.[0];
+                                  if (activeFormat) {
+                                    console.log("EDIT MODE: Aba ativa definida para:", activeFormat);
+                                  }
                                   
                                   setSelectedPost(combinedPost);
                                 } else {
