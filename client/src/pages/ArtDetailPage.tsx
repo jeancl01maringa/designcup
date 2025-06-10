@@ -210,6 +210,28 @@ export default function ArtDetailPage() {
   const availablePosts = relatedPosts.length > 0 ? relatedPosts : [post].filter(Boolean);
   const currentPost = availablePosts[currentFormatIndex] || post;
   
+  // Debug dos posts relacionados
+  React.useEffect(() => {
+    if (post) {
+      console.log('POST ATUAL:', {
+        id: post.id,
+        groupId: post.groupId,
+        formato: post.formato,
+        title: post.title
+      });
+      
+      if (relatedPosts.length > 0) {
+        console.log('POSTS RELACIONADOS ENCONTRADOS:', relatedPosts.map(p => ({
+          id: p.id,
+          formato: p.formato,
+          imageUrl: p.imageUrl
+        })));
+      } else {
+        console.log('NENHUM POST RELACIONADO ENCONTRADO');
+      }
+    }
+  }, [post, relatedPosts]);
+  
   // Reset index quando mudar de post
   useEffect(() => {
     setCurrentFormatIndex(0);
