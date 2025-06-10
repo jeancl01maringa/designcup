@@ -785,7 +785,9 @@ export default function ArtDetailPage() {
                   key={`format-nav-${formatPost.id}-${index}`}
                   onClick={() => {
                     console.log(`Navegando para formato ${index}:`, formatPost.formato, formatPost.imageUrl);
-                    setCurrentFormatIndex(index);
+                    // Navegar para a página específica do formato
+                    const formatSlug = `${formatPost.id}-${post.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
+                    setLocation(`/arte/${formatSlug}`);
                   }}
                   className={`w-3 h-3 rounded-full transition-all duration-200 hover:scale-110 ${
                     index === currentFormatIndex ? 'bg-white shadow-lg' : 'bg-white/60 hover:bg-white/80'
@@ -1009,8 +1011,10 @@ export default function ArtDetailPage() {
                       key={`format-option-${format.id}-${index}`}
                       className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
                       onClick={() => {
-                        console.log('Trocando formato para:', format);
-                        setSelectedFormat(format);
+                        console.log('Navegando para a página do formato:', format);
+                        // Navegar para a página específica do formato usando seu ID único
+                        const formatSlug = `${format.id}-${post.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
+                        setLocation(`/arte/${formatSlug}`);
                       }}
                     >
                       <div className="flex items-center justify-between">
