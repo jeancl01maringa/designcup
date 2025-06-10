@@ -2832,6 +2832,8 @@ export class DatabaseStorage implements IStorage {
         name: insertPlan.name,
         periodo: insertPlan.periodo,
         valor: insertPlan.valor,
+        valor_original: insertPlan.valorOriginal,
+        porcentagem_economia: insertPlan.porcentagemEconomia,
         is_active: insertPlan.isActive ?? true,
         is_principal: insertPlan.isPrincipal ?? false,
         is_gratuito: insertPlan.isGratuito ?? false,
@@ -2863,6 +2865,8 @@ export class DatabaseStorage implements IStorage {
             name: data.name,
             periodo: data.periodo,
             valor: data.valor,
+            valorOriginal: data.valor_original,
+            porcentagemEconomia: data.porcentagem_economia,
             isActive: data.is_active,
             isPrincipal: data.is_principal,
             isGratuito: data.is_gratuito,
@@ -2883,10 +2887,10 @@ export class DatabaseStorage implements IStorage {
       try {
         const query = `
           INSERT INTO plans (
-            name, periodo, valor, is_active, is_principal, is_gratuito,
+            name, periodo, valor, valor_original, porcentagem_economia, is_active, is_principal, is_gratuito,
             codigo_hotmart, url_hotmart, beneficios, itens_restritos
           ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
           ) RETURNING *
         `;
         
@@ -2894,6 +2898,8 @@ export class DatabaseStorage implements IStorage {
           dbPlan.name,
           dbPlan.periodo,
           dbPlan.valor,
+          dbPlan.valor_original,
+          dbPlan.porcentagem_economia,
           dbPlan.is_active,
           dbPlan.is_principal,
           dbPlan.is_gratuito,
@@ -2915,12 +2921,15 @@ export class DatabaseStorage implements IStorage {
             name: plan.name,
             periodo: plan.periodo,
             valor: plan.valor,
+            valorOriginal: plan.valor_original,
+            porcentagemEconomia: plan.porcentagem_economia,
             isActive: plan.is_active,
             isPrincipal: plan.is_principal,
             isGratuito: plan.is_gratuito,
             codigoHotmart: plan.codigo_hotmart,
             urlHotmart: plan.url_hotmart,
             beneficios: plan.beneficios,
+            itensRestritos: plan.itens_restritos,
             createdAt: new Date(plan.created_at)
           };
         }
@@ -2946,6 +2955,8 @@ export class DatabaseStorage implements IStorage {
       if (updatePlan.name !== undefined) dbPlan.name = updatePlan.name;
       if (updatePlan.periodo !== undefined) dbPlan.periodo = updatePlan.periodo;
       if (updatePlan.valor !== undefined) dbPlan.valor = updatePlan.valor;
+      if (updatePlan.valorOriginal !== undefined) dbPlan.valor_original = updatePlan.valorOriginal;
+      if (updatePlan.porcentagemEconomia !== undefined) dbPlan.porcentagem_economia = updatePlan.porcentagemEconomia;
       if (updatePlan.isActive !== undefined) dbPlan.is_active = updatePlan.isActive;
       if (updatePlan.isPrincipal !== undefined) dbPlan.is_principal = updatePlan.isPrincipal;
       if (updatePlan.isGratuito !== undefined) dbPlan.is_gratuito = updatePlan.isGratuito;
