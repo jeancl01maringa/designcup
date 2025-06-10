@@ -130,7 +130,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         formats: (initialData.formats as PostFormat[]) || [],
         formatFiles: formatFiles,
         uniqueCode: initialData.uniqueCode || uniquePostId,
-        groupId: initialData.groupId
+        groupId: initialData.groupId ?? undefined
       });
     }
   }, [isEdit, initialData, uniquePostId]);
@@ -209,7 +209,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       const imageUrl = await uploadFileToSupabase(file, customPath, "images");
       
       // Verificar se a URL retornada é válida
-      if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+      if (imageUrl && typeof imageUrl === 'string' && (imageUrl as string).startsWith('http')) {
         // Garantir que ainda estamos trabalhando com o mesmo arquivo
         // verificando se o formato ainda está sendo renderizado
         setFormData(prev => {
