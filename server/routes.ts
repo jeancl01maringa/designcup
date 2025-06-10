@@ -4439,6 +4439,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload route for Supabase Storage
+  app.post('/api/upload', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      }
+
+      const { bucket, path } = req.body;
+      if (!bucket || !path) {
+        return res.status(400).json({ error: 'Bucket e caminho são obrigatórios' });
+      }
+
+      // Upload usando o cliente administrativo do Supabase (bypassa RLS)
+      const { uploadImageToSupabase } = await import('./supabase-upload');
+      
+      const result = await uploadImageToSupabase(
+        req.file.buffer,
+        req.file.originalname,
+        bucket,
+        path
+      );
+
+      if (result.error) {
+        return res.status(500).json({ error: result.error });
+      }
+
+      res.json({ url: result.url });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: 'Erro interno no upload' });
+    }
+  });
+
   // Settings routes
   app.get('/api/settings', async (req, res) => {
     try {

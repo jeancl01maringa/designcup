@@ -125,6 +125,28 @@ export async function uploadFileToSupabase(
 
     console.log(`Uploading to Supabase: ${bucket}/${finalPath} (${(processedFile.size / 1024).toFixed(1)}KB)`);
 
+    // Try upload via backend API first (bypasses RLS policies)
+    try {
+      const formData = new FormData();
+      formData.append('file', processedFile);
+      formData.append('bucket', bucket);
+      formData.append('path', finalPath);
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`Upload via API successful: ${result.url}`);
+        return { url: result.url, error: null };
+      }
+    } catch (apiError) {
+      console.warn('Upload via API failed, trying direct:', apiError);
+    }
+
+    // Fallback to direct upload
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(finalPath, processedFile, {
