@@ -46,9 +46,25 @@ export default function PlansPage() {
     return parseFloat(cleanValue) || 0;
   };
 
-  // Ordenar planos: Free primeiro, depois por preço
-  const sortedPlans = plans
+  // Filtrar e ordenar planos baseado na seleção
+  const filteredPlans = plans
     .filter((plan: Plan) => plan.active !== false)
+    .filter((plan: Plan) => {
+      // Sempre mostrar plano gratuito
+      if (plan.isGratuito) return true;
+      
+      const periodo = plan.periodo?.toLowerCase();
+      
+      if (isAnnual) {
+        // No modo anual, mostrar planos anuais, vitalício e trimestral
+        return periodo === 'anual' || periodo === 'vitalicio' || periodo === 'trimestral';
+      } else {
+        // No modo mensal, mostrar apenas planos mensais
+        return periodo === 'mensal';
+      }
+    });
+
+  const sortedPlans = filteredPlans
     .sort((a: Plan, b: Plan) => {
       if (a.isGratuito && !b.isGratuito) return -1;
       if (!a.isGratuito && b.isGratuito) return 1;
@@ -194,6 +210,32 @@ export default function PlansPage() {
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
           
+          {/* Seletor de Período */}
+          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-12">
+            <button
+              onClick={() => setIsAnnual(false)}
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                !isAnnual
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Mensal
+            </button>
+            <button
+              onClick={() => setIsAnnual(true)}
+              className={`relative px-6 py-2 rounded-md text-sm font-medium transition-all ml-1 ${
+                isAnnual
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Anual
+              <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 py-0.5">
+                -25%
+              </Badge>
+            </button>
+          </div>
 
 
           {/* Plans Grid */}
