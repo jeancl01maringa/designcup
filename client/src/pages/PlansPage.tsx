@@ -78,45 +78,20 @@ export default function PlansPage() {
   const getPlanPrice = (plan: Plan) => {
     if (plan.isGratuito) return 0;
     
-    const basePrice = parsePrice(plan.valor || '0');
-    
-    // Para planos anuais e vitalício, sempre mostrar o valor completo
-    if (plan.periodo?.toLowerCase() === 'anual' || plan.periodo?.toLowerCase() === 'vitalicio') {
-      return basePrice;
-    }
-    
-    // Para planos mensais
-    if (plan.periodo?.toLowerCase() === 'mensal') {
-      if (isAnnual) {
-        // Se visualizando como anual, aplicar desconto no total anual
-        return basePrice * 12 * 0.75; // 25% de desconto no total anual
-      } else {
-        // Mostrar valor mensal normal
-        return basePrice;
-      }
-    }
-    
-    return basePrice;
+    // Sempre retorna o valor real do plano sem modificações
+    return parsePrice(plan.valor || '0');
   };
 
   const getPlanPeriod = (plan: Plan) => {
     if (plan.isGratuito) return 'Para sempre';
     
-    // Para planos anuais e vitalício, sempre mostrar o período original
-    if (plan.periodo?.toLowerCase() === 'anual') {
-      return 'por ano';
-    }
-    if (plan.periodo?.toLowerCase() === 'vitalicio') {
-      return 'vitalício';
-    }
-    if (plan.periodo?.toLowerCase() === 'trimestral') {
-      return 'por trimestre';
-    }
-    
-    // Para planos mensais, mostrar baseado na visualização
-    if (plan.periodo?.toLowerCase() === 'mensal') {
-      return isAnnual ? 'por ano' : 'por mês';
-    }
+    // Retorna o período real do plano sem modificações
+    const periodo = plan.periodo?.toLowerCase();
+    if (periodo === 'anual') return 'por ano';
+    if (periodo === 'vitalicio') return 'vitalício';
+    if (periodo === 'trimestral') return 'por trimestre';
+    if (periodo === 'mensal') return 'por mês';
+    if (periodo === 'sempre') return 'para sempre';
     
     return 'por mês';
   };
@@ -219,32 +194,7 @@ export default function PlansPage() {
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
           
-          {/* Seletor de Período */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-12">
-            <button
-              onClick={() => setIsAnnual(false)}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                !isAnnual
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Mensal
-            </button>
-            <button
-              onClick={() => setIsAnnual(true)}
-              className={`relative px-6 py-2 rounded-md text-sm font-medium transition-all ml-1 ${
-                isAnnual
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Anual
-              <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 py-0.5">
-                -25%
-              </Badge>
-            </button>
-          </div>
+
 
           {/* Plans Grid */}
           {isLoading ? (
@@ -291,18 +241,13 @@ export default function PlansPage() {
                         <div className="text-4xl font-bold text-green-600">Grátis</div>
                       ) : (
                         <div className="flex flex-col items-center justify-center">
-                          {isAnnual && plan.periodo?.toLowerCase() === 'mensal' && (
-                            <span className="text-lg text-gray-400 line-through mb-1">
-                              {formatPrice(parsePrice(plan.valor || '0') * 12)}
-                            </span>
-                          )}
                           <div className="flex items-baseline">
                             <span className="text-2xl font-bold text-gray-900">R$</span>
                             <span className="text-4xl font-bold text-gray-900 ml-1">
                               {getPlanPrice(plan).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                             <span className="text-sm text-gray-600 ml-1">
-                              /{getPlanPeriod(plan).replace('por ', '')}
+                              /{getPlanPeriod(plan).replace('por ', '').replace('para ', '')}
                             </span>
                           </div>
                         </div>
