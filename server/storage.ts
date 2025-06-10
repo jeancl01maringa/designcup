@@ -371,7 +371,7 @@ export class DatabaseStorage implements IStorage {
         UPDATE users 
         SET profile_image = $1
         WHERE id = $2
-        RETURNING id, username, email, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+        RETURNING id, username, email, is_admin, created_at, telefone, profile_image, bio, tipo, plano_id, data_vencimento, active
       `, [imageUrl, id]);
 
       if (!result.rows || result.rows.length === 0) {
