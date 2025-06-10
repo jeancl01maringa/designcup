@@ -64,6 +64,34 @@ export default function PlansPage() {
     return periodMap[period?.toLowerCase()] || period;
   };
 
+  const getPlanPrice = (plan: Plan) => {
+    if (plan.isGratuito) return 0;
+    
+    const basePrice = plan.price || 0;
+    
+    // Se o plano for mensal e estivermos visualizando anual, aplicar desconto
+    if (plan.periodo === 'mensal' && isAnnual) {
+      return basePrice * 12 * 0.75; // 25% de desconto no anual
+    }
+    
+    // Se o plano for anual e estivermos visualizando mensal, calcular valor mensal
+    if (plan.periodo === 'anual' && !isAnnual) {
+      return (basePrice / 12) / 0.75; // Preço mensal sem desconto
+    }
+    
+    return basePrice;
+  };
+
+  const getPlanPeriod = (plan: Plan) => {
+    if (plan.isGratuito) return 'Para sempre';
+    
+    if (isAnnual) {
+      return 'por ano';
+    } else {
+      return 'por mês';
+    }
+  };
+
   const renderPlanItems = (plan: Plan) => {
     const includedItems = Array.isArray(plan.itensInclusos) ? plan.itensInclusos : [];
     const restrictedItems = Array.isArray(plan.itensRestritos) ? plan.itensRestritos : [];
@@ -133,7 +161,7 @@ export default function PlansPage() {
           </p>
           
           {/* Seletor de Período */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-6">
+          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-8">
             <button
               onClick={() => setIsAnnual(false)}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
@@ -146,7 +174,7 @@ export default function PlansPage() {
             </button>
             <button
               onClick={() => setIsAnnual(true)}
-              className={`relative px-6 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`relative px-6 py-2 rounded-md text-sm font-medium transition-all ml-1 ${
                 isAnnual
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -201,18 +229,18 @@ export default function PlansPage() {
                         <div className="text-4xl font-bold text-green-600">Grátis</div>
                       ) : (
                         <div className="flex items-center justify-center gap-2">
-                          {plan.originalPrice && plan.originalPrice > (plan.price || 0) && (
+                          {isAnnual && plan.periodo === 'mensal' && (
                             <span className="text-lg text-gray-400 line-through">
-                              {formatPrice(plan.originalPrice)}
+                              {formatPrice((plan.price || 0) * 12)}
                             </span>
                           )}
                           <div className="text-4xl font-bold text-gray-900">
-                            {formatPrice(plan.price || 0)}
+                            {formatPrice(getPlanPrice(plan))}
                           </div>
                         </div>
                       )}
                       <div className="text-sm text-gray-600 mt-1">
-                        {plan.isGratuito ? 'Para sempre' : `por ${formatPeriod(plan.periodo || plan.period || 'mês')}`}
+                        {getPlanPeriod(plan)}
                       </div>
                     </div>
                   </CardHeader>
@@ -234,10 +262,10 @@ export default function PlansPage() {
                         <Button 
                           className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
                             plan.isPrincipal
-                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
                               : plan.isGratuito
                               ? 'bg-green-600 hover:bg-green-700 text-white'
-                              : 'bg-gray-900 hover:bg-gray-800 text-white'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
                           }`}
                         >
                           {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
@@ -248,10 +276,10 @@ export default function PlansPage() {
                         <Button 
                           className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
                             plan.isPrincipal
-                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
                               : plan.isGratuito
                               ? 'bg-green-600 hover:bg-green-700 text-white'
-                              : 'bg-gray-900 hover:bg-gray-800 text-white'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
                           }`}
                         >
                           {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
