@@ -179,25 +179,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             </button>
           </div>
           
-          {/* Botão de editar ao passar o mouse */}
-          <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
-            <Button 
-              className="bg-black/70 hover:bg-black/90 text-white rounded-full px-6 py-1 h-8 text-xs shadow-md z-10"
-              onClick={handleEditClick}
-            >
-              {artwork.isPro ? (
-                <>
-                  <Lock className="h-3.5 w-3.5 mr-1.5" />
-                  Desbloquear
-                </>
-              ) : (
-                <>
-                  <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                  Editar
-                </>
-              )}
-            </Button>
-          </div>
+
         </div>
       </Link>
     </div>
