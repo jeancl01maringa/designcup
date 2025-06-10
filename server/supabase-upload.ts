@@ -6,11 +6,11 @@ import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
 
 // Configuração do Supabase
-const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '');
-const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY?.replace(/"/g, '');
+const supabaseUrl = process.env.SUPABASE_URL?.replace(/"/g, '');
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/"/g, '');
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Variáveis VITE_SUPABASE_URL e VITE_SUPABASE_SERVICE_ROLE_KEY são obrigatórias');
+  throw new Error('Variáveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -20,8 +20,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
  */
 async function compressAndConvertToWebP(buffer: Buffer, originalName: string): Promise<Buffer> {
   try {
-    // Criar File object a partir do buffer
-    const file = new File([buffer], originalName);
+    // Determinar o tipo MIME correto baseado na extensão
+    const mimeType = originalName.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' : 
+                     originalName.match(/\.png$/i) ? 'image/png' :
+                     originalName.match(/\.gif$/i) ? 'image/gif' : 'image/jpeg';
+    
+    // Criar File object a partir do buffer com tipo MIME correto
+    const file = new File([buffer], originalName, { type: mimeType });
     
     // Configurações de compressão
     const options = {
