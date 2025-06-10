@@ -1,105 +1,137 @@
-import { supabaseAdmin } from './supabase';
-import fs from 'fs';
-import path from 'path';
-import { log } from './vite';
+/**
+ * Utilitário para upload de imagens no Supabase Storage com conversão WebP
+ */
 
-// Função para fazer o upload de uma imagem para o Supabase Storage
-export async function uploadImageToSupabase(filePath: string, targetPath: string): Promise<string | null> {
+import { createClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
+
+// Configuração do Supabase
+const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '');
+const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY?.replace(/"/g, '');
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Variáveis VITE_SUPABASE_URL e VITE_SUPABASE_SERVICE_ROLE_KEY são obrigatórias');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+/**
+ * Comprime e converte imagem para WebP
+ */
+async function compressAndConvertToWebP(buffer: Buffer, originalName: string): Promise<Buffer> {
   try {
-    console.log(`Iniciando upload de ${filePath} para Supabase...`);
+    // Criar File object a partir do buffer
+    const file = new File([buffer], originalName);
     
-    // Verificar se o arquivo existe
-    if (!fs.existsSync(filePath)) {
-      console.error(`Arquivo ${filePath} não encontrado`);
-      return null;
-    }
+    // Configurações de compressão
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: false, // Não usar web worker no servidor
+      fileType: 'image/webp' as const,
+      initialQuality: 0.85,
+    };
+
+    // Comprimir e converter
+    const compressedFile = await imageCompression(file, options);
     
-    // Ler o arquivo
-    const fileBuffer = fs.readFileSync(filePath);
-    
-    // Realizar o upload para o bucket 'images'
-    const { data, error } = await supabaseAdmin.storage
-      .from('images')
-      .upload(targetPath, fileBuffer, {
-        contentType: getContentType(filePath),
-        upsert: true
-      });
-    
-    if (error) {
-      console.error(`Erro ao fazer upload para o Supabase: ${error.message}`);
-      return null;
-    }
-    
-    // Obter URL pública da imagem
-    const { data: urlData } = supabaseAdmin.storage
-      .from('images')
-      .getPublicUrl(data.path);
-    
-    console.log(`Upload bem-sucedido: ${urlData.publicUrl}`);
-    return urlData.publicUrl;
+    // Converter de volta para Buffer
+    const arrayBuffer = await compressedFile.arrayBuffer();
+    return Buffer.from(arrayBuffer);
   } catch (error) {
-    console.error('Erro ao fazer upload da imagem:', error);
-    return null;
+    console.warn('Falha na compressão WebP, usando original:', error);
+    return buffer;
   }
 }
 
-// Função para extrair o tipo de conteúdo (MIME type) com base na extensão do arquivo
-function getContentType(filePath: string): string {
-  const extension = path.extname(filePath).toLowerCase();
-  
-  switch (extension) {
-    case '.jpg':
-    case '.jpeg':
-      return 'image/jpeg';
-    case '.png':
-      return 'image/png';
-    case '.gif':
-      return 'image/gif';
-    case '.webp':
-      return 'image/webp';
-    case '.svg':
-      return 'image/svg+xml';
-    default:
-      return 'application/octet-stream';
-  }
-}
-
-// Função para migrar imagens para o Supabase
-export async function migrateImagesToSupabase() {
+/**
+ * Faz upload de imagem para o Supabase Storage
+ */
+export async function uploadImageToSupabase(
+  buffer: Buffer,
+  originalName: string,
+  bucket: string,
+  path: string
+): Promise<{ url: string | null; error: string | null }> {
   try {
-    const assetsDir = path.resolve('./attached_assets');
+    let processedBuffer = buffer;
+    let finalPath = path;
     
-    // Verificar se o diretório existe
-    if (!fs.existsSync(assetsDir)) {
-      log('Diretório de assets não encontrado: ' + assetsDir);
-      return;
-    }
-    
-    // Listar arquivos
-    const files = fs.readdirSync(assetsDir);
-    const imageFiles = files.filter(file => {
-      const ext = path.extname(file).toLowerCase();
-      return ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext);
-    });
-    
-    log(`Encontradas ${imageFiles.length} imagens para migrar para o Supabase`);
-    
-    // Fazer upload de cada imagem
-    for (const file of imageFiles) {
-      const filePath = path.join(assetsDir, file);
-      const targetPath = `assets/${file}`; // Caminho no Supabase Storage
-      
-      const url = await uploadImageToSupabase(filePath, targetPath);
-      
-      if (url) {
-        log(`Migração de imagem concluída: ${file} -> ${url}`);
-      } else {
-        log(`Falha ao migrar imagem: ${file}`);
+    // Comprimir e converter para WebP se for imagem
+    if (originalName.match(/\.(jpg|jpeg|png|gif|bmp|tiff)$/i)) {
+      try {
+        console.log(`Comprimindo e convertendo ${originalName} para WebP...`);
+        processedBuffer = await compressAndConvertToWebP(buffer, originalName);
+        finalPath = path.replace(/\.[^/.]+$/, '.webp');
+        console.log(`Conversão bem-sucedida: ${finalPath}`);
+      } catch (compressionError) {
+        console.warn('Falha na conversão WebP, usando original:', compressionError);
       }
     }
-    
-    log('Migração de imagens concluída');
+
+    console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
+
+    // Upload para o Supabase
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(finalPath, processedBuffer, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: finalPath.endsWith('.webp') ? 'image/webp' : undefined
+      });
+
+    if (error) {
+      console.error('Erro no upload Supabase:', error);
+      return { url: null, error: error.message };
+    }
+
+    // Obter URL pública
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(finalPath);
+
+    console.log(`Upload bem-sucedido: ${publicUrl}`);
+    return { url: publicUrl, error: null };
+
   } catch (error) {
-    log('Erro ao migrar imagens para o Supabase: ' + error);
+    console.error('Erro geral no upload:', error);
+    return { 
+      url: null, 
+      error: error instanceof Error ? error.message : 'Erro desconhecido no upload' 
+    };
+  }
+}
+
+/**
+ * Assegura que o bucket existe e tem as políticas corretas
+ */
+export async function ensureBucket(bucketName: string): Promise<boolean> {
+  try {
+    // Verificar se o bucket existe
+    const { data: bucket, error: getBucketError } = await supabase.storage.getBucket(bucketName);
+    
+    if (getBucketError) {
+      // Tentar criar o bucket
+      console.log(`Criando bucket ${bucketName}...`);
+      const { error: createError } = await supabase.storage.createBucket(bucketName, {
+        public: true,
+        allowedMimeTypes: ['image/*'],
+        fileSizeLimit: 5242880 // 5MB
+      });
+      
+      if (createError) {
+        console.error(`Erro ao criar bucket ${bucketName}:`, createError);
+        return false;
+      }
+    } else if (!bucket.public) {
+      // Tornar o bucket público se não for
+      console.log(`Tornando bucket ${bucketName} público...`);
+      await supabase.storage.updateBucket(bucketName, { public: true });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Erro ao verificar/criar bucket ${bucketName}:`, error);
+    return false;
   }
 }
