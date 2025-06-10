@@ -205,8 +205,12 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       // Criar caminho personalizado para o arquivo no Supabase
       const customPath = `posts/${formData.uniqueCode}/${format}_${file.name}`;
       
-      // Upload usando a nova implementação
-      const imageUrl = await uploadFileToSupabase(file, customPath, "images");
+      // Buscar nome da categoria para organização
+      const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+      const categoryName = selectedCategory?.name || 'geral';
+      
+      // Upload usando a nova implementação com organização por categoria
+      const imageUrl = await uploadFileToSupabase(file, "images", customPath, categoryName);
       
       // Verificar se a URL retornada é válida
       if (imageUrl && typeof imageUrl === 'string' && (imageUrl as string).startsWith('http')) {
@@ -548,8 +552,12 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
               const timestamp = Date.now();
               const customPath = `uploads/${timestamp}_${formatFile.imageFile!.name.replace(/\s+/g, '_')}`;
               
-              // Upload usando a função do Supabase
-              const uploadResult = await uploadFileToSupabase(formatFile.imageFile!, "images", customPath);
+              // Buscar nome da categoria para organização
+              const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+              const categoryName = selectedCategory?.name || 'geral';
+              
+              // Upload usando a função do Supabase com organização por categoria
+              const uploadResult = await uploadFileToSupabase(formatFile.imageFile!, "images", customPath, categoryName);
               
               if (uploadResult.error) {
                 throw new Error(`Upload falhou para formato ${format}: ${uploadResult.error}`);

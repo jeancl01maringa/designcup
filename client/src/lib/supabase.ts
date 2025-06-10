@@ -24,16 +24,32 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Helper function for uploading files to Supabase Storage
+// Helper function for uploading files to Supabase Storage with category organization
 export async function uploadFileToSupabase(
   file: File, 
   bucket: string, 
-  path: string
+  path: string,
+  categoryName?: string
 ): Promise<{ url: string; error: null } | { url: null; error: string }> {
   try {
+    // Organize by category if provided
+    let finalPath = path;
+    if (categoryName && bucket === 'images') {
+      // Convert category name to folder-safe format
+      const categoryFolder = categoryName.toLowerCase()
+        .replace(/\s+/g, '-')           // spaces to hyphens
+        .replace(/[^a-z0-9-]/g, '')     // remove special chars
+        .replace(/-+/g, '-')            // multiple hyphens to single
+        .replace(/^-|-$/g, '');         // remove leading/trailing hyphens
+      
+      // Extract filename from path
+      const fileName = path.split('/').pop() || path;
+      finalPath = `${categoryFolder}/${fileName}`;
+    }
+
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(path, file, {
+      .upload(finalPath, file, {
         cacheControl: '3600',
         upsert: true
       });
@@ -45,7 +61,7 @@ export async function uploadFileToSupabase(
     // Get the public URL
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
-      .getPublicUrl(path);
+      .getPublicUrl(finalPath);
 
     return { url: publicUrl, error: null };
   } catch (error) {
