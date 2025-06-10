@@ -517,6 +517,7 @@ export default function ArtDetailPage() {
       const activePost = currentPost || post;
       console.log("Verificando URL do Canva no post ativo:", activePost);
       console.log("Formato atual:", activePost?.formato);
+      console.log("Index do formato ativo:", currentFormatIndex);
       console.log("Dados do formatData:", activePost?.formatData || activePost?.format_data);
       
       // 1. Verificar se temos URL do Canva diretamente no post ativo
