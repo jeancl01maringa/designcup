@@ -3652,16 +3652,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: 'Usuário não encontrado na verificação de perfil' });
         }
 
-        // Atualizar usando a mesma estrutura do storage
-        const updatedUser = await storage.updateUserProfile(userId, { username, email });
+        // Atualizar dados do perfil diretamente no banco
+        const updateFields = [];
+        const updateValues = [];
+        let paramIndex = 1;
 
-        console.log(`Resultado da atualização de perfil:`, updatedUser);
+        if (username !== undefined) {
+          updateFields.push(`username = $${paramIndex}`);
+          updateValues.push(username);
+          paramIndex++;
+        }
 
-        console.log(`Perfil atualizado para usuário #${userId}`);
-        return res.json({ 
-          message: 'Perfil atualizado com sucesso',
-          user: updatedUser
-        });
+        if (email !== undefined) {
+          updateFields.push(`email = $${paramIndex}`);
+          updateValues.push(email);
+          paramIndex++;
+        }
+
+        if (telefone !== undefined) {
+          updateFields.push(`telefone = $${paramIndex}`);
+          updateValues.push(telefone);
+          paramIndex++;
+        }
+
+        if (biografia !== undefined) {
+          updateFields.push(`bio = $${paramIndex}`);
+          updateValues.push(biografia);
+          paramIndex++;
+        }
+
+        if (updateFields.length === 0) {
+          return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
+        }
+
+        // Adicionar ID do usuário
+        updateValues.push(userId);
+
+        const updateQuery = `
+          UPDATE users 
+          SET ${updateFields.join(', ')} 
+          WHERE id = $${paramIndex}
+          RETURNING id, username, email, telefone, profile_image as "profileImage", 
+                   bio, created_at as "createdAt", 
+                   COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, 
+                   COALESCE(active, true) as active, is_admin as "isAdmin"
+        `;
+
+        const result = await pool.query(updateQuery, updateValues);
+
+        if (result.rows && result.rows.length > 0) {
+          const updatedUser = result.rows[0];
+          console.log(`Perfil atualizado para usuário #${userId}:`, updatedUser.username);
+          
+          return res.json({ 
+            message: 'Perfil atualizado com sucesso',
+            user: updatedUser
+          });
+        } else {
+          return res.status(404).json({ message: 'Usuário não encontrado para atualização' });
+        }
 
       } catch (dbError: any) {
         console.error(`Erro ao atualizar perfil do usuário #${userId}:`, dbError);
