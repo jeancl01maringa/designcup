@@ -2533,7 +2533,13 @@ export class DatabaseStorage implements IStorage {
         return ensurePremiumFields(rawPost);
       });
       
-      console.log(`DATABASE getVisiblePosts - Encontrados ${posts.length} posts visíveis (agrupados)`);
+      console.log(`DATABASE getVisiblePosts - Encontrados ${posts.length} posts visíveis (TODOS os formatos)`);
+      
+      // Log dos últimos 6 posts para debug
+      const recentPosts = posts.slice(0, 6);
+      recentPosts.forEach(post => {
+        console.log(`Post ${post.id}: ${post.title} - Formato: ${post.formato} - Imagem: ${post.imageUrl}`);
+      });
       return posts;
     } catch (error) {
       console.error("DATABASE getVisiblePosts - Erro:", error);
