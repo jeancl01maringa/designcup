@@ -119,12 +119,15 @@ export default function ProfilePage() {
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
       
-      // Forçar atualização imediata do cache do usuário
+      // Usar a nova URL da imagem retornada pelo servidor
+      const newImageUrl = data.newImageUrl || data.profileImage;
+      
+      // Forçar atualização imediata do cache do usuário com timestamp para evitar cache do navegador
       queryClient.setQueryData(["/api/user"], (old: any) => {
         if (!old) return old;
         return {
           ...old,
-          profileImage: data.profileImage,
+          profileImage: `${newImageUrl}?t=${Date.now()}`,
         };
       });
 
@@ -133,13 +136,16 @@ export default function ProfilePage() {
         if (!old) return old;
         return {
           ...old,
-          profileImage: data.profileImage,
+          profileImage: `${newImageUrl}?t=${Date.now()}`,
         };
       });
 
-      // Invalidar cache para garantir reload
+      // Invalidar todos os caches relacionados ao usuário
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      
+      // Forçar re-render do Header que pode ter cache da imagem
+      queryClient.refetchQueries({ queryKey: ["/api/user"] });
       
       // Limpar preview
       setSelectedImage(null);

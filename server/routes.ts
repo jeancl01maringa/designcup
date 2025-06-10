@@ -3509,10 +3509,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`Foto de perfil atualizada para usuário #${userId}: ${uploadResult.url}`);
         
+        // Garantir que a resposta contém a URL correta da nova imagem
+        const responseUser = {
+          ...updatedUser,
+          profileImage: uploadResult.url
+        };
+        
         return res.json({
           success: true,
-          user: { ...updatedUser, profileImage: uploadResult.url },
-          profileImage: uploadResult.url
+          user: responseUser,
+          profileImage: uploadResult.url,
+          newImageUrl: uploadResult.url // Campo adicional para garantir a atualização
         });
 
       } catch (storageError: any) {
