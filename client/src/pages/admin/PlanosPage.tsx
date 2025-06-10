@@ -585,6 +585,34 @@ export default function PlanosPage() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="edit-valorOriginal">Valor Original (de)</Label>
+                  <Input 
+                    id="edit-valorOriginal"
+                    value={formData.valorOriginal || ''}
+                    onChange={(e) => setFormData({ ...formData, valorOriginal: e.target.value })}
+                    placeholder="Ex: 147,00"
+                    disabled={formData.isGratuito}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Valor original antes do desconto (ex: R$ 497,00)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-porcentagemEconomia">Porcentagem de Economia</Label>
+                  <Input 
+                    id="edit-porcentagemEconomia"
+                    value={formData.porcentagemEconomia || ''}
+                    onChange={(e) => setFormData({ ...formData, porcentagemEconomia: e.target.value })}
+                    placeholder="Ex: 25%"
+                    disabled={formData.isGratuito}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Porcentagem de economia a ser exibida (ex: "Economize 25%")
+                  </p>
+                </div>
+
                 {/* Configurações */}
                 <div className="space-y-3">
                   <h5 className="font-medium text-sm text-gray-700">Configurações</h5>

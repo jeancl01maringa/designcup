@@ -2761,12 +2761,15 @@ export class DatabaseStorage implements IStorage {
             name: data.name,
             periodo: data.periodo,
             valor: data.valor,
+            valorOriginal: data.valor_original,
+            porcentagemEconomia: data.porcentagem_economia,
             isActive: data.is_active,
             isPrincipal: data.is_principal,
             isGratuito: data.is_gratuito,
             codigoHotmart: data.codigo_hotmart,
             urlHotmart: data.url_hotmart,
             beneficios: data.beneficios,
+            itensRestritos: data.itens_restritos,
             createdAt: new Date(data.created_at)
           };
         }
@@ -2795,12 +2798,15 @@ export class DatabaseStorage implements IStorage {
             name: plan.name,
             periodo: plan.periodo,
             valor: plan.valor,
+            valorOriginal: plan.valor_original,
+            porcentagemEconomia: plan.porcentagem_economia,
             isActive: plan.is_active,
             isPrincipal: plan.is_principal,
             isGratuito: plan.is_gratuito,
             codigoHotmart: plan.codigo_hotmart,
             urlHotmart: plan.url_hotmart,
             beneficios: plan.beneficios,
+            itensRestritos: plan.itens_restritos,
             createdAt: new Date(plan.created_at)
           };
         }
