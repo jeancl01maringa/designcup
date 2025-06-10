@@ -77,6 +77,18 @@ export default function TodasArtes() {
 
   const columns = useResponsiveColumns();
 
+  // Extrair formatos únicos dos posts existentes
+  const availableFormats = useMemo(() => {
+    if (!posts) return [];
+    const formats: string[] = [];
+    posts.forEach(post => {
+      if (post.formato && !formats.includes(post.formato)) {
+        formats.push(post.formato);
+      }
+    });
+    return formats.sort();
+  }, [posts]);
+
   // Filtrar e paginar posts
   const { filteredPosts, totalPages, paginatedPosts, columnArrays } = useMemo(() => {
     let allPosts = posts || [];
@@ -213,10 +225,11 @@ export default function TodasArtes() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos formatos</SelectItem>
-                  <SelectItem value="1:1">Quadrado (1:1)</SelectItem>
-                  <SelectItem value="16:9">Horizontal (16:9)</SelectItem>
-                  <SelectItem value="9:16">Vertical (9:16)</SelectItem>
-                  <SelectItem value="4:5">Post (4:5)</SelectItem>
+                  {availableFormats.map((format: string) => (
+                    <SelectItem key={format} value={format}>
+                      {format}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -327,10 +340,9 @@ export default function TodasArtes() {
             </div>
 
             <Button
-              variant="outline"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center"
+              className="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
             >
               Próxima página
               <ChevronRight className="h-4 w-4 ml-1" />
