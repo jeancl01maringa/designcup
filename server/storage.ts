@@ -387,6 +387,7 @@ export class DatabaseStorage implements IStorage {
         isAdmin: userData.is_admin || false,
         telefone: userData.telefone || null,
         profileImage: userData.profile_image || null,
+        bio: userData.bio || null,
         createdAt: new Date(userData.created_at),
         tipo: userData.tipo || 'free',
         plano_id: userData.plano_id || null,
