@@ -280,7 +280,7 @@ export default function PlansPage() {
                     </div>
                     <div className="mt-4">
                       {plan.isGratuito ? (
-                        <div className="text-4xl font-bold text-green-600">Grátis</div>
+                        <div className="text-4xl font-bold text-gray-900">Grátis</div>
                       ) : (
                         <div className="flex flex-col items-center justify-center">
                           <div className="flex items-baseline">
@@ -319,7 +319,7 @@ export default function PlansPage() {
                             plan.isPrincipal
                               ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
                               : plan.isGratuito
-                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              ? 'bg-gray-500 hover:bg-gray-600 text-white'
                               : 'bg-blue-600 hover:bg-blue-700 text-white'
                           }`}
                         >
@@ -333,7 +333,7 @@ export default function PlansPage() {
                             plan.isPrincipal
                               ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
                               : plan.isGratuito
-                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              ? 'bg-gray-500 hover:bg-gray-600 text-white'
                               : 'bg-blue-600 hover:bg-blue-700 text-white'
                           }`}
                         >
