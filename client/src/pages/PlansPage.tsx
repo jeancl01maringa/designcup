@@ -146,22 +146,8 @@ export default function PlansPage() {
             Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
-          <p className="text-lg mb-4 text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg mb-6 text-gray-600 max-w-3xl mx-auto">
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
-          </p>
-        </div>
-      </div>
-
-      {/* Plans Section */}
-      <div className="container px-4 py-10 mx-auto max-w-7xl">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 rounded-full px-4 py-2 mb-4">
-            <Crown className="h-4 w-4" />
-            <span className="text-sm font-medium">Todos os Planos</span>
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Encontre o plano perfeito</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
-            Escolha entre nossos planos flexíveis e comece a criar designs incríveis hoje mesmo
           </p>
           
           {/* Seletor de Período */}
@@ -190,14 +176,14 @@ export default function PlansPage() {
               </Badge>
             </button>
           </div>
-        </div>
 
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando planos...</p>
-          </div>
-        ) : error ? (
+          {/* Plans Grid */}
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-4 text-gray-600">Carregando planos...</p>
+            </div>
+          ) : error ? (
           <div className="text-center py-12">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
               <X className="h-6 w-6 text-red-600" />
@@ -344,11 +330,13 @@ export default function PlansPage() {
               </Card>
             ))}
           </div>
-        )}
+          )}
+        </div>
+      </div>
 
-        {/* Seção de garantias e benefícios adicionais */}
-        <div className="mt-12 bg-gray-50 py-10">
-          <div className="container mx-auto px-4 max-w-6xl">
+      {/* Seção de garantias e benefícios adicionais */}
+      <div className="bg-gray-50 py-10">
+        <div className="container mx-auto px-4 max-w-6xl">
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold text-gray-900 mb-3">Por que escolher nossos planos?</h3>
               <p className="text-lg text-gray-600">Benefícios exclusivos para todos os nossos clientes</p>
