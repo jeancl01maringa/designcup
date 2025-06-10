@@ -45,6 +45,7 @@ import SeguindoPage from "@/pages/account/SeguindoPage";
 import EdicoesRecentesPage from "@/pages/account/EdicoesRecentesPage";
 import AssinaturaPage from "@/pages/account/AssinaturaPage";
 import PublicProfilePage from "@/pages/ProfilePage";
+import TodasArtes from "@/pages/TodasArtes";
 
 function Router() {
   const [location] = useLocation();
@@ -63,6 +64,7 @@ function Router() {
       <Route path="/preview/:id" component={ArtDetailPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/planos" component={PlansPage} />
+      <Route path="/todas-artes" component={TodasArtes} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
       

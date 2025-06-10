@@ -186,6 +186,18 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
           </p>
         </div>
       )}
+
+      {/* Botão Ver todas as artes */}
+      {filteredPosts.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <a 
+            href="/todas-artes"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+          >
+            👉 Ver todas as artes
+          </a>
+        </div>
+      )}
     </div>
   );
 }
