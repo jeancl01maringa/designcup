@@ -55,6 +55,28 @@ async function compressAndConvertToWebP(file: File): Promise<File> {
   }
 }
 
+// Helper function to sanitize file names for Supabase Storage
+function sanitizeFileName(fileName: string): string {
+  return fileName
+    .toLowerCase()
+    // Remove or replace special characters
+    .replace(/[áàâãäå]/g, 'a')
+    .replace(/[éèêë]/g, 'e')
+    .replace(/[íìîï]/g, 'i')
+    .replace(/[óòôõö]/g, 'o')
+    .replace(/[úùûü]/g, 'u')
+    .replace(/[ç]/g, 'c')
+    .replace(/[ñ]/g, 'n')
+    // Replace spaces and special chars with underscores
+    .replace(/[\s\-\(\)\.]/g, '_')
+    // Remove any remaining special characters
+    .replace(/[^a-z0-9_]/g, '')
+    // Replace multiple underscores with single
+    .replace(/_+/g, '_')
+    // Remove leading/trailing underscores
+    .replace(/^_|_$/g, '');
+}
+
 // Helper function for uploading files to Supabase Storage with category organization and WebP conversion
 export async function uploadFileToSupabase(
   file: File, 
@@ -73,29 +95,35 @@ export async function uploadFileToSupabase(
         processedFile = await compressAndConvertToWebP(file);
         console.log(`Compression successful: ${processedFile.name}`);
         
-        // Update path to use WebP extension
-        finalPath = path.replace(/\.[^/.]+$/, '.webp');
+        // Update path to use WebP extension and sanitized name
+        const sanitizedName = sanitizeFileName(file.name.replace(/\.[^/.]+$/, ''));
+        finalPath = `${sanitizedName}_${Date.now()}.webp`;
       } catch (compressionError) {
         console.warn('Failed to compress/convert to WebP, using original file:', compressionError);
-        // Continue with original file if compression fails
+        // Sanitize original filename
+        finalPath = sanitizeFileName(path);
       }
     }
 
-    // Organize by category if provided
+    // Organize by category in uploads folder
     if (categoryName && bucket === 'images') {
       // Convert category name to folder-safe format
       const categoryFolder = categoryName.toLowerCase()
-        .replace(/\s+/g, '-')           // spaces to hyphens
-        .replace(/[^a-z0-9-]/g, '')     // remove special chars
-        .replace(/-+/g, '-')            // multiple hyphens to single
-        .replace(/^-|-$/g, '');         // remove leading/trailing hyphens
+        .replace(/\s+/g, '')            // remove spaces
+        .replace(/[áàâãäå]/g, 'a')
+        .replace(/[éèêë]/g, 'e')
+        .replace(/[íìîï]/g, 'i')
+        .replace(/[óòôõö]/g, 'o')
+        .replace(/[úùûü]/g, 'u')
+        .replace(/[ç]/g, 'c')
+        .replace(/[^a-z0-9]/g, '');     // remove any remaining special chars
       
       // Extract filename from path
       const fileName = finalPath.split('/').pop() || finalPath;
-      finalPath = `${categoryFolder}/${fileName}`;
+      finalPath = `uploads/${fileName}`;
     }
 
-    console.log(`Uploading to Supabase: ${finalPath} (${(processedFile.size / 1024).toFixed(1)}KB)`);
+    console.log(`Uploading to Supabase: ${bucket}/${finalPath} (${(processedFile.size / 1024).toFixed(1)}KB)`);
 
     const { data, error } = await supabase.storage
       .from(bucket)
@@ -105,6 +133,7 @@ export async function uploadFileToSupabase(
       });
 
     if (error) {
+      console.error('Erro no upload:', error.message);
       return { url: null, error: error.message };
     }
 
@@ -116,6 +145,7 @@ export async function uploadFileToSupabase(
     console.log(`Upload successful: ${publicUrl}`);
     return { url: publicUrl, error: null };
   } catch (error) {
+    console.error('Erro geral no upload:', error);
     return { 
       url: null, 
       error: error instanceof Error ? error.message : 'Unknown upload error' 
