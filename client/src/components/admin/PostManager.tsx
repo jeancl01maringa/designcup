@@ -647,8 +647,41 @@ export function PostManager() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8"
-                          onClick={() => {
-                            setSelectedPost(post);
+                          onClick={async () => {
+                            // Se o post tem groupId, buscar todos os posts do grupo para edição em lote
+                            if (post.groupId) {
+                              try {
+                                const response = await apiRequest('GET', `/api/admin/posts/related/${post.groupId}`);
+                                const relatedPosts = await response.json();
+                                
+                                if (relatedPosts && relatedPosts.length > 1) {
+                                  // Se há múltiplos posts no grupo, carregar o post principal com dados do grupo
+                                  const mainPost = relatedPosts.find((p: Post) => p.id === post.id) || relatedPosts[0];
+                                  const groupFormats = relatedPosts.map((p: Post) => ({
+                                    formato: p.formato,
+                                    imageUrl: p.imageUrl,
+                                    canvaUrl: p.canvaUrl || '',
+                                    links: []
+                                  }));
+                                  
+                                  // Criar post combinado para edição em lote
+                                  const combinedPost = {
+                                    ...mainPost,
+                                    formatos: groupFormats,
+                                    formats: relatedPosts.map((p: Post) => p.formato).filter(Boolean)
+                                  };
+                                  
+                                  setSelectedPost(combinedPost);
+                                } else {
+                                  setSelectedPost(post);
+                                }
+                              } catch (error) {
+                                console.error('Erro ao buscar posts relacionados:', error);
+                                setSelectedPost(post);
+                              }
+                            } else {
+                              setSelectedPost(post);
+                            }
                             setIsEditModalOpen(true);
                           }}
                         >
