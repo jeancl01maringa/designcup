@@ -1779,7 +1779,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             formato: formatoData.formato || formatoData.type,
             formatoData: JSON.stringify(formatoData),
             canvaUrl: formatoData.canvaUrl || formatoData.editUrl || formatoData.links?.[0]?.url || '',
-            imageUrl: formatoData.imageUrl || formatoData.previewUrl || '', // Imagem única para este formato
+            imageUrl: (formatoData.imageUrl && !formatoData.imageUrl.startsWith('blob:')) 
+              ? formatoData.imageUrl 
+              : (formatoData.previewUrl && !formatoData.previewUrl.startsWith('blob:'))
+                ? formatoData.previewUrl 
+                : '', // Validar URLs de imagem para evitar blob URLs
           };
           
           console.log(`Criando formato ${formatoData.formato || formatoData.type} com dados únicos:`, {
@@ -1936,13 +1940,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Criar uma cópia dos dados de atualização sem o uniqueCode
                 const { uniqueCode, ...baseUpdateData } = updateData;
                 
+                // Preparar dados específicos para este formato, preservando URLs válidas
+                let imageUrl = existingPost.imageUrl; // Manter URL existente por padrão
+                
+                // Usar nova URL apenas se for válida (não blob)
+                if (formato.imageUrl && !formato.imageUrl.startsWith('blob:')) {
+                  imageUrl = formato.imageUrl;
+                } else if (formato.previewUrl && !formato.previewUrl.startsWith('blob:')) {
+                  imageUrl = formato.previewUrl;
+                }
+                
                 const formatUpdateData = {
                   ...baseUpdateData,
-                  imageUrl: formato.imageUrl || formato.previewUrl || existingPost.imageUrl, // Preservar imagem individual
+                  imageUrl: imageUrl, // Usar URL validada
                   canvaUrl: formato.canvaUrl || formato.editUrl || existingPost.canvaUrl, // Preservar link individual
                   formatData: JSON.stringify(formato)
                   // Não incluir uniqueCode para manter o código único de cada post
                 };
+                
+                console.log(`Atualizando formato ${formato.formato} - URL imagem: ${imageUrl}`);
                 
                 console.log(`Atualizando post ${existingPost.id} (${formato.formato})`);
                 const updatedPost = await storage.updatePost(existingPost.id, formatUpdateData);

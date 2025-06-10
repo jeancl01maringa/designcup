@@ -1951,7 +1951,24 @@ export class DatabaseStorage implements IStorage {
       
       if (post.title !== undefined) dbPost.title = post.title;
       if (post.description !== undefined) dbPost.description = post.description;
-      if (post.imageUrl !== undefined) dbPost.image_url = post.imageUrl;
+      if (post.imageUrl !== undefined) {
+        // Validar se a URL da imagem é válida (não é blob URL)
+        if (post.imageUrl.startsWith('blob:')) {
+          console.warn(`DATABASE updatePost - URL blob detectada, não salvando: ${post.imageUrl}`);
+          // Buscar a URL real do post existente
+          try {
+            const existingPost = await pool.query('SELECT image_url FROM posts WHERE id = $1', [id]);
+            if (existingPost.rows.length > 0 && existingPost.rows[0].image_url) {
+              console.log(`DATABASE updatePost - Mantendo URL existente: ${existingPost.rows[0].image_url}`);
+              dbPost.image_url = existingPost.rows[0].image_url;
+            }
+          } catch (error) {
+            console.error('DATABASE updatePost - Erro ao buscar URL existente:', error);
+          }
+        } else {
+          dbPost.image_url = post.imageUrl;
+        }
+      }
       if (post.uniqueCode !== undefined) dbPost.unique_code = post.uniqueCode;
       if (post.categoryId !== undefined) dbPost.category_id = post.categoryId;
       if (post.status !== undefined) dbPost.status = post.status;
