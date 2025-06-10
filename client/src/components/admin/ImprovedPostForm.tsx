@@ -353,15 +353,28 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     }
   }, [open, isEdit, initialData?.id]); // Removidas dependências que causavam re-render
   
-  // Rastrear mudanças no formulário quando esses valores específicos mudarem
+  // Rastrear mudanças REAIS no formulário comparando com dados iniciais
   useEffect(() => {
-    // Verifica se o formulário tem algum conteúdo preenchido
-    const hasContent = formData.title.trim() !== "" || formData.categoryId !== null;
-    // Só atualiza o estado se for diferente do valor atual
-    if (hasContent !== hasUnsavedChanges) {
-      setHasUnsavedChanges(hasContent);
+    if (!isEdit || !initialData) {
+      // Para novos posts, qualquer conteúdo conta como mudança
+      const hasContent = formData.title.trim() !== "" || formData.categoryId !== null;
+      if (hasContent !== hasUnsavedChanges) {
+        setHasUnsavedChanges(hasContent);
+      }
+      return;
     }
-  }, [formData.title, formData.categoryId, hasUnsavedChanges]);
+
+    // Para edição, comparar com dados originais para detectar mudanças REAIS
+    const hasRealChanges = 
+      formData.title !== (initialData.title || "") ||
+      formData.categoryId !== (initialData.categoryId || null) ||
+      formData.description !== (initialData.description || "") ||
+      formData.licenseType !== (initialData.licenseType || "premium");
+    
+    if (hasRealChanges !== hasUnsavedChanges) {
+      setHasUnsavedChanges(hasRealChanges);
+    }
+  }, [formData.title, formData.categoryId, formData.description, formData.licenseType, hasUnsavedChanges, isEdit, initialData]);
 
   // Tags removidas - SEO baseado apenas no título
 
@@ -777,10 +790,27 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
   // Manipulador para fechar o modal
   const handleDialogChange = async (open: boolean) => {
-    // Se estiver fechando o modal e tiver mudanças não salvas
-    if (!open && hasUnsavedChanges && formData.title.trim() !== "" && formData.categoryId !== null) {
-      // Verificar se atende aos requisitos mínimos e salvar como rascunho
-      await validateAndSaveAsDraft();
+    // Se estiver fechando o modal e tiver mudanças não salvas REAIS
+    if (!open && hasUnsavedChanges && isEdit && initialData) {
+      // Para edição: só salvar como rascunho se houve mudanças reais nos dados
+      const hasRealChanges = 
+        formData.title !== (initialData.title || "") ||
+        formData.categoryId !== (initialData.categoryId || null) ||
+        formData.description !== (initialData.description || "") ||
+        formData.licenseType !== (initialData.licenseType || "premium");
+      
+      if (hasRealChanges && formData.title.trim() !== "" && formData.categoryId !== null) {
+        console.log("AUTO-SAVE: Detectadas mudanças reais, salvando como rascunho");
+        await validateAndSaveAsDraft();
+      } else {
+        console.log("AUTO-SAVE: Nenhuma mudança real detectada, não salvando");
+      }
+    } else if (!open && hasUnsavedChanges && !isEdit) {
+      // Para novos posts: salvar como rascunho se há conteúdo
+      if (formData.title.trim() !== "" && formData.categoryId !== null) {
+        console.log("AUTO-SAVE: Novo post com conteúdo, salvando como rascunho");
+        await validateAndSaveAsDraft();
+      }
     }
     
     // Chamar o manipulador original
