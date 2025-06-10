@@ -972,14 +972,42 @@ export default function ArtDetailPage() {
               <div className={`overflow-hidden transition-all duration-300 space-y-2 ${
                 formatsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
               }`}>
+                {/* Primeiro mostra o formato selecionado como "Atual" se for diferente do post atual */}
+                {selectedFormat && selectedFormat.id !== post.id && (
+                  <div 
+                    className="border border-blue-500 bg-blue-50 rounded-lg p-3 cursor-pointer hover:border-blue-600 hover:shadow-sm transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                          <img 
+                            src={selectedFormat.previewUrl} 
+                            alt={selectedFormat.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                            {selectedFormat.name}
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-blue-600">Atual</span>
+                              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500">{selectedFormat.dimensions}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Depois mostra os outros formatos disponíveis */}
                 {availableFormats
-                  .filter(format => !format.isCurrent)
+                  .filter(format => !format.isCurrent && (!selectedFormat || selectedFormat.id !== format.id))
                   .map((format, index: number) => (
                     <div 
                       key={`format-option-${format.id}-${index}`}
-                      className={`border rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all ${
-                        selectedFormat?.id === format.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}
+                      className="border border-gray-200 rounded-lg p-3 bg-white cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
                       onClick={() => {
                         console.log('Trocando formato para:', format);
                         setSelectedFormat(format);
@@ -995,13 +1023,8 @@ export default function ArtDetailPage() {
                             />
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                            <div className="text-sm font-medium text-gray-900">
                               {format.name}
-                              {selectedFormat?.id === format.id && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                                  Selecionado
-                                </span>
-                              )}
                             </div>
                             <div className="text-xs text-gray-500">{format.dimensions}</div>
                           </div>
