@@ -292,6 +292,13 @@ export default function PlansPage() {
                               /{getPlanPeriod(plan).replace('por ', '').replace('para ', '')}
                             </span>
                           </div>
+                          {plan.periodo?.toLowerCase() === 'anual' && (
+                            <div className="mt-2">
+                              <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+                                Economize 25%
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
                       <div className="text-sm text-gray-600 mt-1">
