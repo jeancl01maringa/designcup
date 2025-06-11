@@ -246,10 +246,13 @@ export default function TodasArtesOptimized() {
             </Button>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Todos os Designs
+            {searchTerm ? `Resultados da busca para "${searchTerm}"` : "Todos os Designs"}
           </h1>
           <p className="text-gray-600 text-lg">
-            Explore nossa coleção completa de templates profissionais para impulsionar seu negócio.
+            {searchTerm 
+              ? `Aproximadamente ${filteredPosts.length > 0 ? filteredPosts.length : '0'} resultados, se você não encontrou o que procura, tente outra palavra-chave.`
+              : "Explore nossa coleção completa de templates profissionais para impulsionar seu negócio."
+            }
           </p>
         </div>
 
