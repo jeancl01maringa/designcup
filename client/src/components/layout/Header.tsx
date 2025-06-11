@@ -25,7 +25,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Logo = () => {
-  const { logoUrl, hasCustomLogo } = usePlatformLogo();
+  const { logoUrl, hasCustomLogo, isLoading } = usePlatformLogo();
+  
+  // Se ainda está carregando, não mostra nada para evitar flash do logo padrão
+  if (isLoading) {
+    return (
+      <div className="flex items-center">
+        <Link href="/" className="flex items-center">
+          <div className="h-6 md:h-8 w-32 md:w-40 bg-transparent" />
+        </Link>
+      </div>
+    );
+  }
   
   return (
     <div className="flex items-center">
@@ -36,31 +47,34 @@ const Logo = () => {
             alt="Logo da Plataforma" 
             className="h-6 md:h-8 w-auto max-w-[150px] md:max-w-[200px] object-contain"
             onError={(e) => {
-              // Fallback para o logo padrão em caso de erro
+              // Em caso de erro, mostra o logo padrão
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
-              target.nextElementSibling?.classList.remove('hidden');
+              const fallback = document.createElement('div');
+              fallback.className = 'flex items-center';
+              fallback.innerHTML = `
+                <svg class="h-5 md:h-7 w-5 md:w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" />
+                  <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" stroke-width="2" fill="none" />
+                </svg>
+                <span class="ml-2 font-bold text-sm md:text-lg lg:text-xl">
+                  <span class="text-[#1D1D1D]">Design</span><span class="text-[#AA5E2F]">paraEstética</span>
+                </span>
+              `;
+              target.parentNode?.appendChild(fallback);
             }}
           />
         ) : (
-          <svg className="h-5 md:h-7 w-5 md:w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-            <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
-          </svg>
-        )}
-        
-        {/* Logo padrão como fallback, oculto quando há logo personalizado */}
-        <div className={hasCustomLogo ? 'hidden' : 'flex items-center'}>
-          {!hasCustomLogo && (
+          <div className="flex items-center">
             <svg className="h-5 md:h-7 w-5 md:w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
               <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
             </svg>
-          )}
-          <span className="ml-2 font-bold text-sm md:text-lg lg:text-xl">
-            <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
-          </span>
-        </div>
+            <span className="ml-2 font-bold text-sm md:text-lg lg:text-xl">
+              <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
+            </span>
+          </div>
+        )}
       </Link>
     </div>
   );
