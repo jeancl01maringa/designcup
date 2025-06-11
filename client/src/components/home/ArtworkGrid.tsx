@@ -194,8 +194,8 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
             href="/todas-artes"
             className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
           >
-            <ArrowRight className="w-4 h-4 mr-2" />
             Ver todas as artes
+            <ArrowRight className="w-4 h-4 ml-2" />
           </a>
         </div>
       )}

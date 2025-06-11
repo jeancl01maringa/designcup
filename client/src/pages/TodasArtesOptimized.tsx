@@ -412,6 +412,7 @@ export default function TodasArtesOptimized() {
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300"
             >
               Próxima
               <ChevronRight className="h-4 w-4" />
