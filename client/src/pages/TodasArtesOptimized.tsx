@@ -75,11 +75,30 @@ export default function TodasArtesOptimized() {
   const [sortOrder, setSortOrder] = useState("recent");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Extrair página da URL
+  // Extrair parâmetros da URL (página e filtros de pesquisa)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const page = parseInt(urlParams.get('page') || '1');
+    const search = urlParams.get('search') || '';
+    const format = urlParams.get('format') || '';
+    
     setCurrentPage(page);
+    
+    // Aplicar filtros de pesquisa vindos da home
+    if (search) {
+      setSearchTerm(search);
+    }
+    
+    if (format && format !== 'all') {
+      // Mapear os formatos da home para os filtros da página
+      const formatMap: Record<string, string> = {
+        'feed': 'Feed',
+        'poster': 'Cartaz', 
+        'stories': 'Stories',
+        'images': 'Imagens'
+      };
+      setSelectedFormat(formatMap[format] || 'all');
+    }
   }, [location]);
 
   const {

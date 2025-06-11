@@ -1,7 +1,20 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
 import { Star, Users, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function HeroSection() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFormat, setSelectedFormat] = useState("all");
+  const [, navigate] = useLocation();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      const formatParam = selectedFormat !== "all" ? `&format=${selectedFormat}` : "";
+      navigate(`/todas-artes?search=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
+    }
+  };
   return (
     <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] py-8 md:py-12">
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
@@ -31,17 +44,23 @@ export default function HeroSection() {
         
         {/* Search Bar with Format Dropdown */}
         <div className="w-full max-w-2xl mt-8">
-          <div className="relative flex items-center shadow-lg">
+          <form onSubmit={handleSearch} className="relative flex items-center shadow-lg">
             <input
               type="text"
               placeholder="Busque por artes, categorias, temas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full py-4 px-6 pr-40 rounded-xl border-2 border-white/50 bg-white/90 backdrop-blur-sm shadow-md focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
             />
             
             {/* Format Dropdown - Positioned to the right */}
             <div className="absolute right-16 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-3">
               <div className="relative">
-                <select className="text-sm font-normal appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 pl-1 cursor-pointer min-w-[90px] text-gray-600 font-sans">
+                <select 
+                  value={selectedFormat}
+                  onChange={(e) => setSelectedFormat(e.target.value)}
+                  className="text-sm font-normal appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 pl-1 cursor-pointer min-w-[90px] text-gray-600 font-sans"
+                >
                   <option value="all">Formatos</option>
                   <option value="feed">Feed</option>
                   <option value="poster">Cartaz</option>
@@ -52,10 +71,13 @@ export default function HeroSection() {
               </div>
             </div>
             
-            <Button className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-black hover:bg-black/80 shadow-lg transition-all duration-200">
+            <Button 
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-black hover:bg-black/80 shadow-lg transition-all duration-200"
+            >
               <Search className="h-5 w-5 text-white" />
             </Button>
-          </div>
+          </form>
         </div>
       </div>
     </section>
