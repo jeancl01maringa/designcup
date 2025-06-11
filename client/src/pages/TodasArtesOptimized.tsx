@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight, ArrowLeft, Search } from "lucide-react";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -72,6 +73,7 @@ export default function TodasArtesOptimized() {
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [sortOrder, setSortOrder] = useState("recent");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Extrair página da URL
   useEffect(() => {
@@ -133,6 +135,13 @@ export default function TodasArtesOptimized() {
       }
     }
 
+    // Filtro de pesquisa por título
+    if (searchTerm.trim()) {
+      allPosts = allPosts.filter(post => 
+        post.title.toLowerCase().includes(searchTerm.toLowerCase().trim())
+      );
+    }
+
     // Aplicar ordenação
     if (sortOrder === "recent") {
       allPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -156,7 +165,7 @@ export default function TodasArtesOptimized() {
       paginatedPosts: paginatedItems,
       columnArrays: columnArraysResult
     };
-  }, [posts, selectedCategory, selectedFormat, selectedType, sortOrder, currentPage, columns]);
+  }, [posts, selectedCategory, selectedFormat, selectedType, sortOrder, currentPage, columns, searchTerm]);
 
   // Handlers otimizados
   const handlePageChange = useCallback((page: number) => {
@@ -227,7 +236,24 @@ export default function TodasArtesOptimized() {
 
         {/* Filtros */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {/* Campo de Pesquisa */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pesquisar por título
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Ex: Teste 17, Botox..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
             {/* Filtro de Categoria */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -372,6 +398,7 @@ export default function TodasArtesOptimized() {
                 setSelectedCategory("all");
                 setSelectedFormat("all");
                 setSelectedType("all");
+                setSearchTerm("");
               }}
               variant="outline"
             >
