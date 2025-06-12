@@ -49,8 +49,8 @@ router.post('/', async (req, res) => {
             tipo_plano, data_assinatura, acesso_vitalicio, is_active, 
             email_confirmed
           )
-          VALUES ($1, $2, $3, '', 'premium', '2', $4, true, $5, 'hotmart', $6, $5, false, true, true)
-        `, [email, username, tempPassword, endDate, now, planType]);
+          VALUES ($1, $2, $3, '', 'premium', '2', $4, true, CURRENT_TIMESTAMP, 'hotmart', $5, CURRENT_TIMESTAMP, false, true, true)
+        `, [email, username, tempPassword, endDate, planType]);
         
         console.log(`✅ Novo usuário criado: ${name} (${email})`);
       } else {
@@ -61,10 +61,10 @@ router.post('/', async (req, res) => {
             tipo_plano = $2, 
             data_vencimento = $3, 
             origem_assinatura = 'hotmart',
-            data_assinatura = $4,
+            data_assinatura = CURRENT_TIMESTAMP,
             active = true
           WHERE email = $1
-        `, [email, planType, endDate, now]);
+        `, [email, planType, endDate]);
         
         console.log(`✅ Usuário atualizado para premium: ${name} (${email})`);
       }
@@ -107,9 +107,16 @@ router.post('/', async (req, res) => {
         message: 'Usuário criado ou atualizado com sucesso' 
       });
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Erro ao processar PURCHASE_APPROVED:', err);
-      return res.status(500).json({ error: 'Erro ao processar webhook' });
+      console.error('❌ Stack trace:', err.stack);
+      console.error('❌ Código do erro:', err.code);
+      console.error('❌ Detalhes do erro:', err.detail);
+      return res.status(500).json({ 
+        error: 'Erro ao processar webhook', 
+        details: err.message,
+        code: err.code 
+      });
     }
   }
 
