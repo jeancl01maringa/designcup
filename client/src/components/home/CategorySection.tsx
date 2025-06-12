@@ -184,7 +184,7 @@ export default function CategorySection() {
   if (categoriesWithPosts.length === 0) {
     return (
       <section className="py-8 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4">
+        <div className="container-global">
           <div className="mb-6">
             <h3 className="text-[#1d1d1f] font-semibold text-lg font-inter mb-1 flex items-center">
               <span className="mr-2">📁</span>
@@ -208,7 +208,7 @@ export default function CategorySection() {
   
   return (
     <section className="py-8 bg-white border-b border-gray-100">
-      <div className="container mx-auto px-4">
+      <div className="container-global">
         {/* Header */}
         <div className="mb-6">
           <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
