@@ -384,15 +384,15 @@ export default function PlansPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4">
                 <RefreshCw className="h-8 w-8" />
               </div>
-              <h4 className="text-xl font-semibold mb-2">50+ Novos por Semana</h4>
-              <p className="text-gray-600">Conteúdo sempre atualizado com novos templates adicionados semanalmente.</p>
+              <h4 className="text-xl font-semibold mb-2">Qualidade Premium</h4>
+              <p className="text-gray-600">Artes de altíssima qualidade criadas por designers profissionais experientes.</p>
             </div>
             
             <div className="text-center p-6 bg-white rounded-lg shadow-lg">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-4">
                 <Headphones className="h-8 w-8" />
               </div>
-              <h4 className="text-xl font-semibold mb-2">Suporte 24/7</h4>
+              <h4 className="text-xl font-semibold mb-2">Suporte Exclusivo</h4>
               <p className="text-gray-600">Atendimento premium disponível 24 horas por dia, 7 dias por semana.</p>
             </div>
             
