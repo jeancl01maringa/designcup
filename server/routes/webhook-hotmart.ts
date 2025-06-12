@@ -45,11 +45,11 @@ router.post('/', async (req, res) => {
         await pool.query(`
           INSERT INTO users (
             email, username, password, telefone, tipo, plano_id, 
-            data_vencimento, active, created_at, origem_assinatura, 
+            data_vencimento, active, origem_assinatura, 
             tipo_plano, data_assinatura, acesso_vitalicio, is_active, 
             email_confirmed
           )
-          VALUES ($1, $2, $3, '', 'premium', '2', $4, true, CURRENT_TIMESTAMP, 'hotmart', $5, CURRENT_TIMESTAMP, false, true, true)
+          VALUES ($1, $2, $3, '', 'premium', '2', $4, true, 'hotmart', $5, CURRENT_TIMESTAMP, false, true, true)
         `, [email, username, tempPassword, endDate, planType]);
         
         console.log(`✅ Novo usuário criado: ${name} (${email})`);

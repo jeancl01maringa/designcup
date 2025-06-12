@@ -46,6 +46,7 @@ import EdicoesRecentesPage from "@/pages/account/EdicoesRecentesPage";
 import AssinaturaPage from "@/pages/account/AssinaturaPage";
 import PublicProfilePage from "@/pages/ProfilePage";
 import TodasArtes from "@/pages/TodasArtesOptimized";
+import AssinaturasPage from "@/pages/admin/AssinaturasPage";
 
 function Router() {
   const [location] = useLocation();

@@ -4687,6 +4687,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para estatísticas de assinaturas
+  app.get('/api/admin/subscriptions/stats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const stats = await pool.query(`
+        SELECT 
+          COUNT(*) as total_subscriptions,
+          COUNT(CASE WHEN status = 'active' THEN 1 END) as active_subscriptions,
+          COUNT(CASE WHEN status = 'canceled' THEN 1 END) as canceled_subscriptions,
+          COUNT(CASE WHEN origin = 'hotmart' THEN 1 END) as hotmart_subscriptions
+        FROM subscriptions
+      `);
+
+      res.json(stats.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao buscar estatísticas de assinaturas:', error);
+      res.status(500).json({ message: 'Erro ao buscar estatísticas' });
+    }
+  });
+
+  // Endpoint para lista de assinaturas
+  app.get('/api/admin/subscriptions', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const subscriptions = await pool.query(`
+        SELECT 
+          s.id,
+          s.user_id,
+          u.username,
+          u.email,
+          s.plan_type,
+          s.status,
+          s.start_date,
+          s.end_date,
+          s.transaction_id,
+          s.origin,
+          s.last_event,
+          s.created_at
+        FROM subscriptions s
+        JOIN users u ON s.user_id = u.id
+        ORDER BY s.created_at DESC
+      `);
+
+      res.json(subscriptions.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar assinaturas:', error);
+      res.status(500).json({ message: 'Erro ao buscar assinaturas' });
+    }
+  });
+
   // Registrar webhook do Hotmart
   app.use('/webhook/hotmart', webhookHotmart);
 
