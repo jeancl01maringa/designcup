@@ -95,27 +95,33 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         className="mr-4 w-[280px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Cabeçalho com fundo preto */}
-        <div className="bg-black pt-8 pb-4 px-6 text-center">
-          <div className="w-20 h-20 mx-auto mb-2 rounded-full border-4 border-white overflow-hidden">
-            <img 
-              src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=1D1D1D&color=fff`} 
-              alt={user.username}
-              className="w-full h-full object-cover"
-            />
+        {/* Cabeçalho com fundo escuro e layout alinhado à esquerda */}
+        <div className="bg-gray-800 pt-6 pb-4 px-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden flex-shrink-0">
+              <img 
+                src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=1D1D1D&color=fff`} 
+                alt={user.username}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-white font-medium text-base truncate">{user.username}</h3>
+              <p className="text-gray-300 text-sm truncate">{user.email}</p>
+            </div>
           </div>
-          <h3 className="text-white font-bold text-lg">{user.username}</h3>
-          <p className="text-white/90 text-sm mb-3">{user.email}</p>
           
           {/* Botão de upgrade para usuários gratuitos */}
           {(!userPlan || userPlan.planName === 'Plano Gratuito') && (
-            <button
-              onClick={() => handleClick('/planos')}
-              className="bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2 text-sm w-full border border-gray-200"
-            >
-              <Crown className="w-4 h-4 text-amber-500" />
-              Assinar Premium
-            </button>
+            <div className="mt-4">
+              <button
+                onClick={() => handleClick('/planos')}
+                className="bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2 text-sm w-full border border-gray-200"
+              >
+                <Crown className="w-4 h-4 text-amber-500" />
+                Assinar Premium
+              </button>
+            </div>
           )}
           
           {/* Para usuários premium */}
