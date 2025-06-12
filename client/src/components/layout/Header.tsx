@@ -174,7 +174,7 @@ const UserMenu = () => {
   console.log("[HEADER] isAdmin após conversão:", isAdmin);
   
   // Verificar se o usuário tem plano gratuito
-  const isFreeUser = !user.tipoPagamento || user.tipoPagamento === 'free' || user.tipoPagamento === 'gratuito';
+  const isFreeUser = !user.tipo || user.tipo === 'free';
   
   return (
     <div className="hidden md:flex items-center gap-2">
@@ -274,7 +274,7 @@ const MobileUserMenu = () => {
   }
   
   const isAdmin = Boolean(user.isAdmin);
-  const isFreeUser = !user.tipoPagamento || user.tipoPagamento === 'free' || user.tipoPagamento === 'gratuito';
+  const isFreeUser = !user.tipo || user.tipo === 'free';
   
   return (
     <div className="flex md:hidden items-center gap-2">
@@ -302,6 +302,18 @@ const MobileUserMenu = () => {
             <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
+        </Button>
+      )}
+      
+      {isFreeUser && (
+        <Button 
+          variant="default" 
+          size="sm"
+          className="flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-black shadow-sm transition-all duration-200 rounded-full font-medium px-2 text-xs"
+          onClick={() => navigate("/planos")}
+        >
+          <span className="text-sm">👑</span>
+          <span>Premium</span>
         </Button>
       )}
       
