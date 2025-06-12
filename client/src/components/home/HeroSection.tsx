@@ -149,7 +149,7 @@ export default function HeroSection() {
             
             <Button 
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-black hover:bg-black/80 shadow-lg transition-all duration-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-[#191c2c] hover:bg-[#14182a] shadow-lg transition-all duration-200"
             >
               <Search className="h-5 w-5 text-white" />
             </Button>

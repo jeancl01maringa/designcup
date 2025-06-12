@@ -255,7 +255,7 @@ const UserMenu = () => {
         <Button 
           variant="outline" 
           size="sm"
-          className="flex items-center gap-2 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
+          className="flex items-center gap-2 border-[#191c2c] text-[#191c2c] hover:bg-[#191c2c] hover:text-white bg-transparent transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
@@ -272,7 +272,7 @@ const UserMenu = () => {
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
+          className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white shadow-sm transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-4 w-4" />
@@ -375,7 +375,7 @@ const MobileUserMenu = () => {
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white px-3 py-1.5 text-xs rounded-full"
+          className="flex items-center gap-1 bg-[#191c2c] hover:bg-[#14182a] text-white px-3 py-1.5 text-xs rounded-full"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-3 w-3" />

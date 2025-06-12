@@ -114,7 +114,7 @@ export default function Categories() {
                 </div>
               </div>
               
-              <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-3 rounded-md bg-black hover:bg-black/80 shadow-sm">
+              <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-3 rounded-md bg-[#191c2c] hover:bg-[#14182a] shadow-sm">
                 <Search className="h-4 w-4 text-white" />
               </Button>
             </div>
