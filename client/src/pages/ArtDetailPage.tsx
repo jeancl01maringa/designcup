@@ -1038,13 +1038,6 @@ export default function ArtDetailPage() {
                     </div>
                   ))}
               </div>
-
-              {/* Mensagem quando há apenas um formato */}
-              {allGroupPosts.length === 1 && (
-                <div className="text-center py-2">
-                  <p className="text-xs text-gray-500">Este design possui apenas um formato disponível</p>
-                </div>
-              )}
             </div>
           </div>
           
