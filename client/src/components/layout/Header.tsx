@@ -129,14 +129,14 @@ const HeaderSearchBar = () => {
   }, []);
 
   return (
-    <form onSubmit={handleSearch} className="flex items-center max-w-lg w-full">
+    <form onSubmit={handleSearch} className="flex items-center max-w-2xl w-full mx-auto">
       <div className="relative flex items-center w-full">
         <input
           type="text"
           placeholder="Busque por artes, categorias, temas..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full py-2 px-4 pr-32 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] text-sm"
+          className="w-full py-2.5 px-4 pr-32 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] text-sm"
         />
         
         {/* Format Dropdown */}
