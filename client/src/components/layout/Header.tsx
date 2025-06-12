@@ -130,22 +130,22 @@ const HeaderSearchBar = () => {
 
   return (
     <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
-      <div className="relative flex items-center w-full">
+      <div className="relative flex items-center w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden">
         <input
           type="text"
           placeholder="Busque por artes, categorias, temas..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full py-2 px-3 pr-28 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] text-sm"
+          className="flex-1 py-2.5 px-3 border-0 focus:outline-none text-sm bg-transparent"
         />
         
         {/* Format Dropdown */}
-        <div className="relative border-l border-gray-300">
+        <div className="relative">
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className="flex items-center justify-between text-xs px-2 py-2 min-w-[75px] text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 focus:outline-none h-full"
+              className="flex items-center justify-between text-xs px-2 py-2.5 min-w-[75px] text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-l border-gray-200"
             >
               <span className="text-xs">{getFormatName(selectedFormat)}</span>
               <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
@@ -175,9 +175,9 @@ const HeaderSearchBar = () => {
         
         <Button 
           type="submit"
-          className="h-[30px] px-2.5 rounded-r-lg bg-black hover:bg-black/80 text-white"
+          className="h-[35px] px-3 bg-black hover:bg-black/80 text-white border-0 rounded-none"
         >
-          <Search className="h-3.5 w-3.5" />
+          <Search className="h-4 w-4" />
         </Button>
       </div>
     </form>
