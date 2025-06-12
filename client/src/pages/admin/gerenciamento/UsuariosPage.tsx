@@ -45,12 +45,25 @@ export default function UsuariosPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [editFormData, setEditFormData] = useState({
     username: "",
     email: "",
+    telefone: "",
+    isAdmin: false,
+    tipo: "free" as 'free' | 'premium',
+    plano_id: "",
+    data_vencimento: "",
+    active: true
+  });
+
+  const [createFormData, setCreateFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
     telefone: "",
     isAdmin: false,
     tipo: "free" as 'free' | 'premium',
@@ -132,6 +145,41 @@ export default function UsuariosPage() {
     onError: (error: Error) => {
       toast({
         title: "Erro ao excluir usuário",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation para criar usuário
+  const createUsuarioMutation = useMutation({
+    mutationFn: async (data: typeof createFormData) => {
+      const response = await apiRequest('POST', '/api/admin/usuarios', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/assinantes'] });
+      setIsCreateDialogOpen(false);
+      setCreateFormData({
+        username: "",
+        email: "",
+        password: "",
+        telefone: "",
+        isAdmin: false,
+        tipo: "free",
+        plano_id: "",
+        data_vencimento: "",
+        active: true
+      });
+      toast({
+        title: "Usuário criado",
+        description: "O novo usuário foi criado com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao criar usuário",
         description: error.message,
         variant: "destructive",
       });
@@ -299,17 +347,26 @@ export default function UsuariosPage() {
           description="Visualize e gerencie todos os usuários da plataforma" 
         />
 
-        {/* Barra de pesquisa */}
-        <div className="relative w-full md:w-96 mb-4">
-          <Input
-            placeholder="Buscar usuários..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+        {/* Barra de pesquisa e botão criar */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="relative w-full md:w-96">
+            <Input
+              placeholder="Buscar usuários..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
           </div>
+          <Button 
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Criar Novo Usuário
+          </Button>
         </div>
       
         {/* Tabela de usuários */}
@@ -614,6 +671,127 @@ export default function UsuariosPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog para criar usuário */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Criar Novo Usuário</DialogTitle>
+            <DialogDescription>
+              Preencha os dados para criar um novo usuário na plataforma.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-username">Nome de usuário</Label>
+                <Input
+                  id="create-username"
+                  value={createFormData.username}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="Digite o nome do usuário"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-email">E-mail</Label>
+                <Input
+                  id="create-email"
+                  type="email"
+                  value={createFormData.email}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Digite o e-mail"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-password">Senha</Label>
+                <Input
+                  id="create-password"
+                  type="password"
+                  value={createFormData.password}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Digite a senha"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-telefone">Telefone</Label>
+                <Input
+                  id="create-telefone"
+                  value={createFormData.telefone}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, telefone: e.target.value }))}
+                  placeholder="Digite o telefone"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-tipo">Tipo de usuário</Label>
+                <select 
+                  id="create-tipo"
+                  value={createFormData.tipo}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, tipo: e.target.value as 'free' | 'premium' }))}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="free">Gratuito</option>
+                  <option value="premium">Premium</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-plano">Plano</Label>
+                <select 
+                  id="create-plano"
+                  value={createFormData.plano_id}
+                  onChange={(e) => setCreateFormData(prev => ({ ...prev, plano_id: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  disabled={createFormData.tipo !== 'premium'}
+                >
+                  <option value="">Selecione um plano</option>
+                  {planos.filter(p => !p.isGratuito).map(plano => (
+                    <option key={plano.id} value={plano.id}>
+                      {plano.name} - {plano.periodo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="create-admin"
+                checked={createFormData.isAdmin}
+                onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, isAdmin: checked }))}
+              />
+              <Label htmlFor="create-admin">Usuário administrador</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="create-active"
+                checked={createFormData.active}
+                onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, active: checked }))}
+              />
+              <Label htmlFor="create-active">Usuário ativo</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsCreateDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => createUsuarioMutation.mutate(createFormData)}
+              disabled={createUsuarioMutation.isPending || !createFormData.username || !createFormData.email || !createFormData.password}
+            >
+              {createUsuarioMutation.isPending ? "Criando..." : "Criar Usuário"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
