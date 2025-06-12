@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Star, Users, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,40 @@ import { Button } from "@/components/ui/button";
 export default function HeroSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
+  const [showFormatDropdown, setShowFormatDropdown] = useState(false);
   const [, navigate] = useLocation();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const formats = [
+    { id: "all", name: "Formatos" },
+    { id: "feed", name: "Feed" },
+    { id: "poster", name: "Cartaz" },
+    { id: "stories", name: "Stories" },
+    { id: "images", name: "Imagens" }
+  ];
+
+  const selectFormat = (formatId: string) => {
+    setSelectedFormat(formatId);
+    setShowFormatDropdown(false);
+  };
+
+  const getFormatName = (formatId: string) => {
+    return formats.find(f => f.id === formatId)?.name || "Formatos";
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowFormatDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,20 +87,63 @@ export default function HeroSection() {
             />
             
             {/* Format Dropdown - Positioned to the right */}
-            <div className="absolute right-16 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-3">
-              <div className="relative">
-                <select 
-                  value={selectedFormat}
-                  onChange={(e) => setSelectedFormat(e.target.value)}
-                  className="text-sm font-normal appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 pl-1 cursor-pointer min-w-[90px] text-gray-600 font-sans"
+            <div className="absolute right-16 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-4">
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+                  className="flex items-center justify-between text-sm font-medium px-3 py-2 min-w-[110px] text-gray-700 bg-transparent hover:bg-gray-50 rounded-md transition-colors duration-150 focus:outline-none"
                 >
-                  <option value="all">Formatos</option>
-                  <option value="feed">Feed</option>
-                  <option value="poster">Cartaz</option>
-                  <option value="stories">Stories</option>
-                  <option value="images">Imagens</option>
-                </select>
-                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
+                  <span>{getFormatName(selectedFormat)}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
+                </button>
+                
+                {showFormatDropdown && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                    <div className="py-2">
+                      {formats.map(format => (
+                        <button
+                          key={format.id}
+                          type="button"
+                          onClick={() => selectFormat(format.id)}
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
+                            ${format.id === selectedFormat 
+                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
+                              : 'text-gray-700 hover:bg-gray-50'}`}
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            {format.id === 'feed' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'poster' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'stories' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'images' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'all' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                          <span>{format.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
