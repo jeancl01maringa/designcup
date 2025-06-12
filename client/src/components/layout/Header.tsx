@@ -152,17 +152,21 @@ const HeaderSearchBar = () => {
             </button>
             
             {showFormatDropdown && (
-              <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]">
+              <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] overflow-hidden">
                 <div className="py-1">
                   {formats.map(format => (
                     <button
                       key={format.id}
                       type="button"
-                      onClick={() => selectFormat(format.id)}
-                      className={`w-full text-left px-2 py-1.5 text-xs transition-colors duration-150
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        selectFormat(format.id);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus:bg-gray-100
                         ${format.id === selectedFormat 
                           ? 'bg-blue-50 text-blue-700 font-medium' 
-                          : 'text-gray-700 hover:bg-gray-50'}`}
+                          : 'text-gray-700'}`}
                     >
                       {format.name}
                     </button>
