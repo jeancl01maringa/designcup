@@ -58,7 +58,7 @@ export default function SearchSection() {
                 </button>
                 
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-20">
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-20">
                     <div className="py-2">
                       {formats.map(format => (
                         <button
