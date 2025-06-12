@@ -751,7 +751,7 @@ export default function ArtDetailPage() {
   }
   
   return (
-    <div className="container mx-auto py-4 px-6 max-w-7xl">
+    <div className="container-global py-4 max-w-7xl">
       <Button 
         variant="ghost" 
         className="mb-6 -ml-2"
