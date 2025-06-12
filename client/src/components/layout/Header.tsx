@@ -132,7 +132,7 @@ const UserMenu = () => {
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-sm transition-all duration-200"
+          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-4 w-4" />
@@ -141,7 +141,7 @@ const UserMenu = () => {
         <Button 
           variant="outline" 
           size="sm"
-          className="flex items-center gap-1 border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB] hover:text-white bg-transparent transition-all duration-200"
+          className="flex items-center gap-1 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
@@ -238,7 +238,7 @@ const MobileUserMenu = () => {
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-3 py-1.5 text-xs"
+          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white px-3 py-1.5 text-xs"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-3 w-3" />
@@ -411,7 +411,7 @@ const MobileMenu = () => {
               ) : (
                 <>
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-all duration-200"
+                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200"
                     onClick={() => {
                       navigate("/auth");
                       setIsOpen(false);
@@ -422,7 +422,7 @@ const MobileMenu = () => {
                   </button>
                   
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium border border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB] hover:text-white bg-transparent transition-all duration-200"
+                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium border border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200"
                     onClick={() => {
                       navigate("/auth");
                       setIsOpen(false);
