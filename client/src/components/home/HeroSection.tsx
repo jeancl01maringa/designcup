@@ -108,8 +108,8 @@ export default function HeroSection() {
                           onClick={() => selectFormat(format.id)}
                           className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
                             ${format.id === selectedFormat 
-                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
-                              : 'text-gray-700 hover:bg-gray-50'}`}
+                              ? 'bg-gray-100 text-gray-900 font-medium border-l-2 border-gray-400' 
+                              : 'text-gray-700 hover:bg-gray-100'}`}
                         >
                           <div className="w-5 h-5 flex items-center justify-center">
                             {format.id === 'feed' && (
