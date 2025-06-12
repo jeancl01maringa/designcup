@@ -129,7 +129,7 @@ const HeaderSearchBar = () => {
   }, []);
 
   return (
-    <form onSubmit={handleSearch} className="flex items-center max-w-2xl w-full mx-auto">
+    <form onSubmit={handleSearch} className="flex items-center w-full max-w-3xl">
       <div className="relative flex items-center w-full">
         <input
           type="text"
@@ -661,10 +661,19 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container-global py-4 flex items-center justify-between transition-all duration-300 h-[76px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
-        <Logo />
-        <NavLinks showSearchBar={showSearchInHeader} />
-        <div className="flex items-center space-x-3">
+      <div className={`container-global py-4 flex items-center transition-all duration-300 h-[76px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
+        {/* Logo - posicionado à esquerda */}
+        <div className="flex-shrink-0 w-48">
+          <Logo />
+        </div>
+        
+        {/* Barra de pesquisa centralizada ou links de navegação */}
+        <div className={`${showSearchInHeader ? 'flex-1 flex justify-center max-w-4xl' : ''}`}>
+          <NavLinks showSearchBar={showSearchInHeader} />
+        </div>
+        
+        {/* Botões do usuário - posicionados à direita */}
+        <div className="flex items-center space-x-3 flex-shrink-0 w-48 justify-end">
           <UserMenu />
           <MobileUserMenu />
           <MobileMenuButton />
