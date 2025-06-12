@@ -76,7 +76,7 @@ export default function Categories() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section - Exactly matching Home Page */}
       <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] py-8 md:py-12">
-        <div className="container mx-auto px-4 flex flex-col items-center text-center">
+        <div className="container-global flex flex-col items-center text-center">
           
           {/* Main Heading - Same fonts and styling as home */}
           <h1 className="text-3xl md:text-4xl font-bold text-[#1D1D1D] leading-tight mb-6 font-montserrat">

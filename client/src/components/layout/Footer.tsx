@@ -162,7 +162,7 @@ const FooterBottom = () => {
 export default function Footer() {
   return (
     <footer className="bg-white py-12 border-t border-gray-100">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container-global max-w-6xl">
         <FooterMainSection />
         <FooterBottom />
       </div>
