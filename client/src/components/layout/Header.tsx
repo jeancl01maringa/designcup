@@ -12,7 +12,8 @@ import {
   UserPlus,
   ChevronDown,
   MessageSquare,
-  X
+  X,
+  Crown
 } from "lucide-react";
 import { UserDropdownMenu } from "./UserDropdownMenu";
 import { SupportContact } from "@/components/ui/SupportContact";
@@ -132,7 +133,7 @@ const UserMenu = () => {
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200"
+          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-4 w-4" />
@@ -141,7 +142,7 @@ const UserMenu = () => {
         <Button 
           variant="outline" 
           size="sm"
-          className="flex items-center gap-1 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200"
+          className="flex items-center gap-1 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 rounded-full"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
@@ -155,6 +156,15 @@ const UserMenu = () => {
           <UserPlus className="h-4 w-4" />
           <span>Cadastre-se</span>
         </Button>
+        <Button 
+          variant="default" 
+          size="sm"
+          className="flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-black shadow-sm transition-all duration-200 rounded-full font-medium"
+          onClick={() => navigate("/planos")}
+        >
+          <span className="text-lg">👑</span>
+          <span>Assine o Premium</span>
+        </Button>
       </div>
     );
   }
@@ -163,13 +173,16 @@ const UserMenu = () => {
   const isAdmin = Boolean(user.isAdmin);
   console.log("[HEADER] isAdmin após conversão:", isAdmin);
   
+  // Verificar se o usuário tem plano gratuito
+  const isFreeUser = !user.tipoPagamento || user.tipoPagamento === 'free' || user.tipoPagamento === 'gratuito';
+  
   return (
     <div className="hidden md:flex items-center gap-2">
       {isAdmin && (
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50 rounded-full"
           onClick={() => navigate("/admin")}
         >
           <svg 
@@ -190,6 +203,18 @@ const UserMenu = () => {
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
           <span>Admin</span>
+        </Button>
+      )}
+      
+      {isFreeUser && (
+        <Button 
+          variant="default" 
+          size="sm"
+          className="flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-black shadow-sm transition-all duration-200 rounded-full font-medium"
+          onClick={() => navigate("/planos")}
+        >
+          <span className="text-lg">👑</span>
+          <span>Assine o Premium</span>
         </Button>
       )}
       
@@ -238,7 +263,7 @@ const MobileUserMenu = () => {
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white px-3 py-1.5 text-xs"
+          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white px-3 py-1.5 text-xs rounded-full"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-3 w-3" />
@@ -249,6 +274,7 @@ const MobileUserMenu = () => {
   }
   
   const isAdmin = Boolean(user.isAdmin);
+  const isFreeUser = !user.tipoPagamento || user.tipoPagamento === 'free' || user.tipoPagamento === 'gratuito';
   
   return (
     <div className="flex md:hidden items-center gap-2">
@@ -411,7 +437,7 @@ const MobileMenu = () => {
               ) : (
                 <>
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200"
+                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200"
                     onClick={() => {
                       navigate("/auth");
                       setIsOpen(false);
@@ -422,7 +448,7 @@ const MobileMenu = () => {
                   </button>
                   
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium border border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200"
+                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium border border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200"
                     onClick={() => {
                       navigate("/auth");
                       setIsOpen(false);
@@ -436,6 +462,17 @@ const MobileMenu = () => {
                   >
                     <UserPlus className="h-5 w-5 mr-3" />
                     <span>Criar uma conta</span>
+                  </button>
+                  
+                  <button
+                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-yellow-500 text-black hover:bg-yellow-600 transition-all duration-200"
+                    onClick={() => {
+                      navigate("/planos");
+                      setIsOpen(false);
+                    }}
+                  >
+                    <span className="text-lg mr-3">👑</span>
+                    <span>Assine o Premium</span>
                   </button>
                 </>
               )}
