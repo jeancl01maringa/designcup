@@ -50,27 +50,54 @@ export default function SearchSection() {
               <div className="relative">
                 <button
                   type="button"
-                  className="flex justify-between items-center text-sm px-4 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50"
+                  className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 min-w-[120px]"
                   onClick={() => setShowFormatDropdown(!showFormatDropdown)}
                 >
-                  <span>{selectedFormat}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 text-black" />
+                  <span className="text-gray-700 font-medium">{selectedFormat}</span>
+                  <ChevronDown className="ml-3 h-4 w-4 text-gray-500" />
                 </button>
                 
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                    <div className="py-1">
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-20">
+                    <div className="py-2">
                       {formats.map(format => (
                         <button
                           key={format.id}
                           type="button"
-                          className={`w-full text-left px-4 py-2 text-sm 
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
                             ${format.name === selectedFormat 
-                              ? 'bg-black text-white font-medium' 
-                              : 'hover:bg-gray-100'}`}
+                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
+                              : 'text-gray-700 hover:bg-gray-50'}`}
                           onClick={() => selectFormat(format.name)}
                         >
-                          {format.name}
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            {format.id === 'feed' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'square' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'stories' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'portrait' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {format.id === 'all' && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                          <span>{format.name}</span>
                         </button>
                       ))}
                     </div>
