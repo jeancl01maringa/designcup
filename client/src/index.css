@@ -16,27 +16,28 @@
   }
 }
 
-/* Container global padrão para todas as páginas - margens próximas das bordas */
+/* Container global padrão para todas as páginas - otimizado para telas grandes */
 @layer components {
   .container-global {
-    max-width: 1280px;
+    max-width: 1440px;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1280px) {
     .container-global {
-      padding-left: 0.75rem;
-      padding-right: 0.75rem;
+      max-width: 100%;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
     }
   }
 
   @media (max-width: 768px) {
     .container-global {
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
   }
 }

@@ -198,7 +198,7 @@ export default function PlansPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="bg-white text-gray-900 pt-4 pb-6 border-b">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container-global text-center">
           <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-2">
             <Sparkles className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-800">Escolha o plano ideal para você</span>
@@ -365,7 +365,7 @@ export default function PlansPage() {
 
       {/* Seção de garantias e benefícios adicionais */}
       <div className="bg-gray-50 py-10">
-        <div className="container mx-auto px-4 max-w-6xl">
+        <div className="container-global max-w-6xl">
           <div className="text-center mb-8">
             <h3 className="text-3xl font-bold text-gray-900 mb-3">Por que escolher nossos planos?</h3>
             <p className="text-lg text-gray-600">Benefícios exclusivos para todos os nossos clientes</p>
