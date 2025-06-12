@@ -101,6 +101,9 @@ export default function TodasArtes() {
     refetchOnWindowFocus: false,
   });
 
+  // Debug: verificar dados das categorias
+  console.log('DEBUG - Categories data:', categories);
+
   const columns = useResponsiveColumns();
 
   // Extrair formatos únicos dos posts existentes
