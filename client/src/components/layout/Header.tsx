@@ -97,7 +97,7 @@ const NavLinks = () => {
         <Link 
           key={item.path} 
           href={item.path}
-          className={`text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
+          className={`text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base transition-colors font-medium ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
         >
           {item.name}
         </Link>
@@ -106,7 +106,7 @@ const NavLinks = () => {
         variant="ghost" 
         size="sm" 
         showIcon={false}
-        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors p-0 h-auto"
+        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base transition-colors p-0 h-auto font-weight-500"
       />
     </nav>
   );
@@ -132,19 +132,19 @@ const UserMenu = () => {
       <div className="hidden md:flex items-center gap-3">
         <Button 
           variant="default" 
-          size="lg"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-6 py-3 h-12 text-base border-0"
+          size="sm"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-5 py-2 h-10 text-sm border-0"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
           </svg>
           <span>Assine o Premium</span>
         </Button>
         <Button 
           variant="outline" 
-          size="lg"
-          className="flex items-center gap-2 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 rounded-full px-6 py-3 h-12 text-base"
+          size="sm"
+          className="flex items-center gap-2 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
@@ -155,16 +155,16 @@ const UserMenu = () => {
             }, 100);
           }}
         >
-          <UserPlus className="h-5 w-5" />
+          <UserPlus className="h-4 w-4" />
           <span>Cadastre-se</span>
         </Button>
         <Button 
           variant="default" 
-          size="lg" 
-          className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full px-6 py-3 h-12 text-base"
+          size="sm" 
+          className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
           onClick={() => navigate("/auth")}
         >
-          <LogIn className="h-5 w-5" />
+          <LogIn className="h-4 w-4" />
           <span>Entrar</span>
         </Button>
       </div>
@@ -211,11 +211,11 @@ const UserMenu = () => {
       {isFreeUser && (
         <Button 
           variant="default" 
-          size="lg"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-6 py-3 h-12 text-base border-0"
+          size="sm"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-5 py-2 h-10 text-sm border-0"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
           </svg>
           <span>Assine o Premium</span>
@@ -527,7 +527,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container mx-auto px-4 py-6 md:py-8 flex items-center justify-between transition-all duration-300 min-h-[80px] md:min-h-[90px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
+      <div className={`container-global py-4 flex items-center justify-between transition-all duration-300 h-[76px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         <Logo />
         <NavLinks />
         <div className="flex items-center space-x-3">
