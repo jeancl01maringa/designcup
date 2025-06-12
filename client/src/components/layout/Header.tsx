@@ -129,15 +129,17 @@ const UserMenu = () => {
   
   if (!user) {
     return (
-      <div className="hidden md:flex items-center gap-2">
+      <div className="hidden md:flex items-center gap-3">
         <Button 
           variant="default" 
-          size="sm" 
-          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full"
-          onClick={() => navigate("/auth")}
+          size="sm"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-4 py-2 border-0"
+          onClick={() => navigate("/planos")}
         >
-          <LogIn className="h-4 w-4" />
-          <span>Entrar</span>
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+          <span>Premium</span>
         </Button>
         <Button 
           variant="outline" 
@@ -158,12 +160,12 @@ const UserMenu = () => {
         </Button>
         <Button 
           variant="default" 
-          size="sm"
-          className="flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-black shadow-sm transition-all duration-200 rounded-full font-medium"
-          onClick={() => navigate("/planos")}
+          size="sm" 
+          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full"
+          onClick={() => navigate("/auth")}
         >
-          <span className="text-lg">👑</span>
-          <span>Assine o Premium</span>
+          <LogIn className="h-4 w-4" />
+          <span>Entrar</span>
         </Button>
       </div>
     );
@@ -210,11 +212,13 @@ const UserMenu = () => {
         <Button 
           variant="default" 
           size="sm"
-          className="flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-black shadow-sm transition-all duration-200 rounded-full font-medium"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-4 py-2 border-0"
           onClick={() => navigate("/planos")}
         >
-          <span className="text-lg">👑</span>
-          <span>Assine o Premium</span>
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+          <span>Premium</span>
         </Button>
       )}
       
@@ -309,10 +313,12 @@ const MobileUserMenu = () => {
         <Button 
           variant="default" 
           size="sm"
-          className="flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-black shadow-sm transition-all duration-200 rounded-full font-medium px-2 text-xs"
+          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 text-xs"
           onClick={() => navigate("/planos")}
         >
-          <span className="text-sm">👑</span>
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
           <span>Premium</span>
         </Button>
       )}
@@ -449,14 +455,16 @@ const MobileMenu = () => {
               ) : (
                 <>
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200"
+                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300"
                     onClick={() => {
-                      navigate("/auth");
+                      navigate("/planos");
                       setIsOpen(false);
                     }}
                   >
-                    <LogIn className="h-5 w-5 mr-3" />
-                    <span>Entrar na minha conta</span>
+                    <svg className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <span>Assine o Premium</span>
                   </button>
                   
                   <button
@@ -477,14 +485,14 @@ const MobileMenu = () => {
                   </button>
                   
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-yellow-500 text-black hover:bg-yellow-600 transition-all duration-200"
+                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200"
                     onClick={() => {
-                      navigate("/planos");
+                      navigate("/auth");
                       setIsOpen(false);
                     }}
                   >
-                    <span className="text-lg mr-3">👑</span>
-                    <span>Assine o Premium</span>
+                    <LogIn className="h-5 w-5 mr-3" />
+                    <span>Entrar na minha conta</span>
                   </button>
                 </>
               )}
@@ -519,7 +527,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container mx-auto px-4 py-3 md:py-4 flex items-center justify-between transition-all duration-300 ${isOpen ? 'md:flex hidden' : 'flex'}`}>
+      <div className={`container mx-auto px-4 py-4 md:py-6 flex items-center justify-between transition-all duration-300 ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         <Logo />
         <NavLinks />
         <div className="flex items-center space-x-3">
