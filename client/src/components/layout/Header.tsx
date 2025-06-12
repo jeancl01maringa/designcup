@@ -132,19 +132,19 @@ const UserMenu = () => {
       <div className="hidden md:flex items-center gap-3">
         <Button 
           variant="default" 
-          size="sm"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-4 py-2 border-0"
+          size="lg"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-6 py-3 h-12 text-base border-0"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
           </svg>
           <span>Assine o Premium</span>
         </Button>
         <Button 
           variant="outline" 
-          size="sm"
-          className="flex items-center gap-1 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 rounded-full"
+          size="lg"
+          className="flex items-center gap-2 border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 rounded-full px-6 py-3 h-12 text-base"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
@@ -155,16 +155,16 @@ const UserMenu = () => {
             }, 100);
           }}
         >
-          <UserPlus className="h-4 w-4" />
+          <UserPlus className="h-5 w-5" />
           <span>Cadastre-se</span>
         </Button>
         <Button 
           variant="default" 
-          size="sm" 
-          className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full"
+          size="lg" 
+          className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm transition-all duration-200 rounded-full px-6 py-3 h-12 text-base"
           onClick={() => navigate("/auth")}
         >
-          <LogIn className="h-4 w-4" />
+          <LogIn className="h-5 w-5" />
           <span>Entrar</span>
         </Button>
       </div>
@@ -211,12 +211,12 @@ const UserMenu = () => {
       {isFreeUser && (
         <Button 
           variant="default" 
-          size="sm"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-4 py-2 border-0"
+          size="lg"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-6 py-3 h-12 text-base border-0"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
           </svg>
           <span>Assine o Premium</span>
         </Button>
@@ -313,13 +313,13 @@ const MobileUserMenu = () => {
         <Button 
           variant="default" 
           size="sm"
-          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 text-xs"
+          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-4 py-2 h-10 text-sm"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
           </svg>
-          <span>Assine o Premium</span>
+          <span>Premium</span>
         </Button>
       )}
       
@@ -455,20 +455,20 @@ const MobileMenu = () => {
               ) : (
                 <>
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300"
+                    className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 h-14"
                     onClick={() => {
                       navigate("/planos");
                       setIsOpen(false);
                     }}
                   >
-                    <svg className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    <svg className="h-6 w-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
                     </svg>
                     <span>Assine o Premium</span>
                   </button>
                   
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium border border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200"
+                    className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium border border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 h-14"
                     onClick={() => {
                       navigate("/auth");
                       setIsOpen(false);
@@ -480,18 +480,18 @@ const MobileMenu = () => {
                       }, 100);
                     }}
                   >
-                    <UserPlus className="h-5 w-5 mr-3" />
+                    <UserPlus className="h-6 w-6 mr-3" />
                     <span>Criar uma conta</span>
                   </button>
                   
                   <button
-                    className="flex items-center w-full px-3 py-3 rounded-full text-base font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200"
+                    className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200 h-14"
                     onClick={() => {
                       navigate("/auth");
                       setIsOpen(false);
                     }}
                   >
-                    <LogIn className="h-5 w-5 mr-3" />
+                    <LogIn className="h-6 w-6 mr-3" />
                     <span>Entrar na minha conta</span>
                   </button>
                 </>
@@ -527,7 +527,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container mx-auto px-4 py-4 md:py-6 flex items-center justify-between transition-all duration-300 ${isOpen ? 'md:flex hidden' : 'flex'}`}>
+      <div className={`container mx-auto px-4 py-6 md:py-8 flex items-center justify-between transition-all duration-300 min-h-[80px] md:min-h-[90px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         <Logo />
         <NavLinks />
         <div className="flex items-center space-x-3">
