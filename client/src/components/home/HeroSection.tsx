@@ -16,7 +16,7 @@ export default function HeroSection() {
     }
   };
   return (
-    <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] py-8 md:py-12">
+    <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] pt-20 pb-8 md:pb-12">
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         {/* Badges - Moved above the heading */}
         <div className="flex flex-wrap justify-center gap-6 mb-6">
