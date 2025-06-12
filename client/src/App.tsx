@@ -127,6 +127,9 @@ function Router() {
       <Route path="/admin/gerenciamento/monetizacao">
         <ProtectedRoute path="/admin/gerenciamento/monetizacao" component={MonetizacaoPage} requireAdmin={true} />
       </Route>
+      <Route path="/admin/assinaturas">
+        <ProtectedRoute path="/admin/assinaturas" component={AssinaturasPage} requireAdmin={true} />
+      </Route>
       <Route path="/admin/configuracoes/suporte">
         <ProtectedRoute path="/admin/configuracoes/suporte" component={SuportePage} requireAdmin={true} />
       </Route>
