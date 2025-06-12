@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { PageHeader } from "@/components/admin/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Users, CreditCard, TrendingUp, AlertTriangle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Users, CreditCard, TrendingUp, AlertTriangle, Settings, Webhook, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 interface Subscription {
   id: number;
@@ -33,6 +39,7 @@ interface SubscriptionStats {
 }
 
 export default function AssinaturasPage() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Buscar estatísticas das assinaturas
@@ -76,200 +83,269 @@ export default function AssinaturasPage() {
     }
   };
 
-  if (loadingStats || loadingSubscriptions) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Assinaturas Hotmart</h1>
-          <p className="text-muted-foreground">Gerenciamento de assinaturas e integração Hotmart</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const copyWebhookUrl = () => {
+    const webhookUrl = "https://92d39422-2239-4944-8f4e-4a5218744647-00-1vox6zp4kwkke.picard.replit.dev/webhook/hotmart";
+    navigator.clipboard.writeText(webhookUrl);
+    toast({
+      title: "URL copiada!",
+      description: "A URL do webhook foi copiada para a área de transferência.",
+    });
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Assinaturas Hotmart</h1>
-        <p className="text-muted-foreground">
-          Monitore assinaturas, pagamentos e a integração com Hotmart
-        </p>
-      </div>
+    <AdminLayout>
+      <Helmet>
+        <title>Assinaturas Hotmart - Admin</title>
+      </Helmet>
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Assinaturas</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_subscriptions || 0}</div>
-            <p className="text-xs text-muted-foreground">Todas as assinaturas</p>
-          </CardContent>
-        </Card>
+      <PageHeader 
+        title="Assinaturas Hotmart" 
+        subtitle="Gerenciamento de assinaturas e integração Hotmart" 
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Assinaturas Ativas</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats?.active_subscriptions || 0}</div>
-            <p className="text-xs text-muted-foreground">Usuários premium ativos</p>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="assinaturas" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="assinaturas" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Assinaturas
+          </TabsTrigger>
+          <TabsTrigger value="configuracao" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Configuração
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Via Hotmart</CardTitle>
-            <CreditCard className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats?.hotmart_subscriptions || 0}</div>
-            <p className="text-xs text-muted-foreground">Integração Hotmart</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats?.canceled_subscriptions || 0}</div>
-            <p className="text-xs text-muted-foreground">Assinaturas canceladas</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Configuração do Webhook */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuração do Webhook Hotmart</CardTitle>
-          <CardDescription>
-            URL do webhook para configurar na Hotmart
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium mb-2">URL do Webhook:</p>
-            <code className="block p-2 bg-white border rounded text-sm">
-              {window.location.origin}/webhook/hotmart
-            </code>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium mb-1">Eventos a configurar:</p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• PURCHASE_APPROVED</li>
-                <li>• SUBSCRIPTION_CANCELLATION</li>
-                <li>• PURCHASE_PROTEST</li>
-                <li>• PURCHASE_REFUNDED</li>
-                <li>• CHARGEBACK</li>
-              </ul>
+        <TabsContent value="assinaturas" className="space-y-6">
+          {loadingStats || loadingSubscriptions ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <Card key={i}>
+                    <CardHeader className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium mb-1">Status da integração:</p>
-              <Badge variant="outline" className="bg-green-50 text-green-700">
-                ✅ Webhook funcionando
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          ) : (
+            <>
+              {/* Estatísticas */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Assinaturas</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats?.total_subscriptions || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Todas as assinaturas registradas
+                    </p>
+                  </CardContent>
+                </Card>
 
-      {/* Lista de Assinaturas */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Assinaturas</CardTitle>
-          <CardDescription>
-            Visualize e gerencie todas as assinaturas da plataforma
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome, email ou ID da transação..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Ativas</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">{stats?.active_subscriptions || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Assinaturas em vigor
+                    </p>
+                  </CardContent>
+                </Card>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Plano</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Origem</TableHead>
-                  <TableHead>Início</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Transação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredSubscriptions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
-                      Nenhuma assinatura encontrada
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredSubscriptions.map((subscription) => (
-                    <TableRow key={subscription.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{subscription.username}</div>
-                          <div className="text-sm text-muted-foreground">{subscription.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {subscription.plan_type === 'mensal' ? 'Mensal' : 'Anual'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(subscription.status)}>
-                          {subscription.status === 'active' ? 'Ativa' : 
-                           subscription.status === 'canceled' ? 'Cancelada' : 'Expirada'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getOriginColor(subscription.origin)}>
-                          {subscription.origin === 'hotmart' ? 'Hotmart' : 'Manual'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(subscription.start_date), 'dd/MM/yyyy', { locale: ptBR })}
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(subscription.end_date), 'dd/MM/yyyy', { locale: ptBR })}
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-xs">{subscription.transaction_id || 'N/A'}</code>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">{stats?.canceled_subscriptions || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Assinaturas canceladas
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Via Hotmart</CardTitle>
+                    <CreditCard className="h-4 w-4 text-orange-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-orange-600">{stats?.hotmart_subscriptions || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Integração Hotmart
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Busca */}
+              <div className="flex items-center space-x-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por usuário, email ou transação..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+
+              {/* Tabela de Assinaturas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lista de Assinaturas</CardTitle>
+                  <CardDescription>
+                    Visualize e gerencie todas as assinaturas da plataforma
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Plano</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Origem</TableHead>
+                        <TableHead>Data Início</TableHead>
+                        <TableHead>Data Fim</TableHead>
+                        <TableHead>Transação</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSubscriptions.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center text-muted-foreground">
+                            Nenhuma assinatura encontrada
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredSubscriptions.map((subscription) => (
+                          <TableRow key={subscription.id}>
+                            <TableCell className="font-medium">{subscription.username}</TableCell>
+                            <TableCell>{subscription.email}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {subscription.plan_type === 'mensal' ? 'Mensal' : 'Anual'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(subscription.status)}>
+                                {subscription.status === 'active' ? 'Ativa' : 
+                                 subscription.status === 'canceled' ? 'Cancelada' : 
+                                 subscription.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getOriginColor(subscription.origin)}>
+                                {subscription.origin === 'hotmart' ? 'Hotmart' : 'Manual'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {format(new Date(subscription.start_date), 'dd/MM/yyyy', { locale: ptBR })}
+                            </TableCell>
+                            <TableCell>
+                              {format(new Date(subscription.end_date), 'dd/MM/yyyy', { locale: ptBR })}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">
+                              {subscription.transaction_id || '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="configuracao" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Webhook className="h-5 w-5" />
+                Configuração do Webhook Hotmart
+              </CardTitle>
+              <CardDescription>
+                Configure a integração com a Hotmart usando as informações abaixo
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">URL do Webhook</Label>
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="flex-1 p-3 bg-gray-50 rounded-md border">
+                    <code className="text-sm font-mono break-all">
+                      https://92d39422-2239-4944-8f4e-4a5218744647-00-1vox6zp4kwkke.picard.replit.dev/webhook/hotmart
+                    </code>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={copyWebhookUrl}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Use esta URL no painel da Hotmart para configurar o webhook
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Eventos para Configurar</Label>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">PURCHASE_APPROVED</Badge>
+                    <span className="text-sm text-muted-foreground">Compras aprovadas</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">SUBSCRIPTION_CANCELLATION</Badge>
+                    <span className="text-sm text-muted-foreground">Cancelamentos de assinatura</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">PURCHASE_PROTEST</Badge>
+                    <span className="text-sm text-muted-foreground">Contestações</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">PURCHASE_REFUNDED</Badge>
+                    <span className="text-sm text-muted-foreground">Reembolsos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">CHARGEBACK</Badge>
+                    <span className="text-sm text-muted-foreground">Chargebacks</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Método HTTP</Label>
+                <div className="mt-1">
+                  <Badge>POST</Badge>
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-blue-900">Status da Integração</h4>
+                    <p className="text-sm text-blue-700 mt-1">
+                      O webhook está funcionando e testado. Configure a URL acima no painel da Hotmart 
+                      para ativar a sincronização automática de assinaturas.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </AdminLayout>
   );
 }
