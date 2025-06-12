@@ -83,7 +83,7 @@ export default function HeroSection() {
               placeholder="Busque por artes, categorias, temas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-4 px-6 pr-40 rounded-xl border-2 border-white/50 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
+              className="w-full py-4 px-6 pr-40 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
             />
             
             {/* Format Dropdown - Positioned to the right */}
