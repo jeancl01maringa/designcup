@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
@@ -13,7 +13,8 @@ import {
   ChevronDown,
   MessageSquare,
   X,
-  Crown
+  Crown,
+  Search
 } from "lucide-react";
 import { UserDropdownMenu } from "./UserDropdownMenu";
 import { SupportContact } from "@/components/ui/SupportContact";
@@ -81,7 +82,109 @@ const Logo = () => {
   );
 };
 
-const NavLinks = () => {
+const HeaderSearchBar = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFormat, setSelectedFormat] = useState("all");
+  const [showFormatDropdown, setShowFormatDropdown] = useState(false);
+  const [, navigate] = useLocation();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const formats = [
+    { id: "all", name: "Formatos" },
+    { id: "feed", name: "Feed" },
+    { id: "poster", name: "Cartaz" },
+    { id: "stories", name: "Stories" },
+    { id: "images", name: "Imagens" }
+  ];
+
+  const selectFormat = (formatId: string) => {
+    setSelectedFormat(formatId);
+    setShowFormatDropdown(false);
+  };
+
+  const getFormatName = (formatId: string) => {
+    return formats.find(f => f.id === formatId)?.name || "Formatos";
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      const formatParam = selectedFormat !== "all" ? `&format=${selectedFormat}` : "";
+      navigate(`/todas-artes?search=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowFormatDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <form onSubmit={handleSearch} className="flex items-center max-w-lg w-full">
+      <div className="relative flex items-center w-full">
+        <input
+          type="text"
+          placeholder="Busque por artes, categorias, temas..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full py-2 px-4 pr-32 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] text-sm"
+        />
+        
+        {/* Format Dropdown */}
+        <div className="relative border-l border-gray-300">
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+              className="flex items-center justify-between text-xs px-3 py-2 min-w-[90px] text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 focus:outline-none h-full"
+            >
+              <span>{getFormatName(selectedFormat)}</span>
+              <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
+            </button>
+            
+            {showFormatDropdown && (
+              <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]">
+                <div className="py-1">
+                  {formats.map(format => (
+                    <button
+                      key={format.id}
+                      type="button"
+                      onClick={() => selectFormat(format.id)}
+                      className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150
+                        ${format.id === selectedFormat 
+                          ? 'bg-blue-50 text-blue-700 font-medium' 
+                          : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      {format.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <Button 
+          type="submit"
+          className="h-[34px] px-3 rounded-r-lg bg-black hover:bg-black/80 text-white"
+        >
+          <Search className="h-4 w-4" />
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+const NavLinks = ({ showSearchBar }: { showSearchBar: boolean }) => {
   const [location] = useLocation();
   
   const navItems = [
@@ -90,6 +193,10 @@ const NavLinks = () => {
     { name: "Planos", path: "/planos" },
     { name: "Tutoriais", path: "/tutoriais" }
   ];
+  
+  if (showSearchBar) {
+    return <HeaderSearchBar />;
+  }
   
   return (
     <nav className="hidden md:flex items-center space-x-6">
@@ -523,13 +630,40 @@ const MobileMenuButton = () => {
 
 export default function Header() {
   const { isOpen } = useMobileMenu();
+  const [location] = useLocation();
+  const [showSearchInHeader, setShowSearchInHeader] = useState(false);
+
+  // Only show search bar in header on home page when scrolled below original search section
+  useEffect(() => {
+    if (location !== '/') {
+      setShowSearchInHeader(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      // Check if user scrolled past the hero section (approximately 400px)
+      const scrollY = window.scrollY;
+      const heroSectionHeight = 400; // Approximate height where search bar is no longer visible
+      
+      setShowSearchInHeader(scrollY > heroSectionHeight);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    // Check initial scroll position
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [location]);
   
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
       <div className={`container-global py-4 flex items-center justify-between transition-all duration-300 h-[76px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         <Logo />
-        <NavLinks />
+        <NavLinks showSearchBar={showSearchInHeader} />
         <div className="flex items-center space-x-3">
           <UserMenu />
           <MobileUserMenu />
