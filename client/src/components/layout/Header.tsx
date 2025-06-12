@@ -129,14 +129,14 @@ const HeaderSearchBar = () => {
   }, []);
 
   return (
-    <form onSubmit={handleSearch} className="flex items-center w-full max-w-3xl">
+    <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
       <div className="relative flex items-center w-full">
         <input
           type="text"
           placeholder="Busque por artes, categorias, temas..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full py-2.5 px-4 pr-32 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] text-sm"
+          className="w-full py-2 px-3 pr-28 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] text-sm"
         />
         
         {/* Format Dropdown */}
@@ -145,21 +145,21 @@ const HeaderSearchBar = () => {
             <button
               type="button"
               onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className="flex items-center justify-between text-xs px-3 py-2 min-w-[90px] text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 focus:outline-none h-full"
+              className="flex items-center justify-between text-xs px-2 py-2 min-w-[75px] text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 focus:outline-none h-full"
             >
-              <span>{getFormatName(selectedFormat)}</span>
+              <span className="text-xs">{getFormatName(selectedFormat)}</span>
               <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
             </button>
             
             {showFormatDropdown && (
-              <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]">
+              <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]">
                 <div className="py-1">
                   {formats.map(format => (
                     <button
                       key={format.id}
                       type="button"
                       onClick={() => selectFormat(format.id)}
-                      className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150
+                      className={`w-full text-left px-2 py-1.5 text-xs transition-colors duration-150
                         ${format.id === selectedFormat 
                           ? 'bg-blue-50 text-blue-700 font-medium' 
                           : 'text-gray-700 hover:bg-gray-50'}`}
@@ -175,9 +175,9 @@ const HeaderSearchBar = () => {
         
         <Button 
           type="submit"
-          className="h-[34px] px-3 rounded-r-lg bg-black hover:bg-black/80 text-white"
+          className="h-[30px] px-2.5 rounded-r-lg bg-black hover:bg-black/80 text-white"
         >
-          <Search className="h-4 w-4" />
+          <Search className="h-3.5 w-3.5" />
         </Button>
       </div>
     </form>
@@ -661,19 +661,19 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container-global py-4 flex items-center transition-all duration-300 h-[76px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
+      <div className={`container-global py-3 flex items-center transition-all duration-300 h-[60px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
         {/* Logo - posicionado à esquerda */}
-        <div className="flex-shrink-0 w-48">
+        <div className="flex-shrink-0 w-36">
           <Logo />
         </div>
         
         {/* Barra de pesquisa centralizada ou links de navegação */}
-        <div className={`${showSearchInHeader ? 'flex-1 flex justify-center max-w-4xl' : ''}`}>
+        <div className={`${showSearchInHeader ? 'flex-1 flex justify-center max-w-3xl' : ''}`}>
           <NavLinks showSearchBar={showSearchInHeader} />
         </div>
         
         {/* Botões do usuário - posicionados à direita */}
-        <div className="flex items-center space-x-3 flex-shrink-0 w-48 justify-end">
+        <div className="flex items-center space-x-2 flex-shrink-0 w-36 justify-end">
           <UserMenu />
           <MobileUserMenu />
           <MobileMenuButton />
