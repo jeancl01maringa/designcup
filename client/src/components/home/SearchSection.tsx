@@ -36,7 +36,7 @@ export default function SearchSection() {
       <div className="container mx-auto px-4">
         <div className="max-w-xl mx-auto">
           <form className="flex flex-col" onSubmit={handleSearch}>
-            <div className="flex">
+            <div className="flex shadow-none">
               <div className="relative flex-grow">
                 <Input
                   type="text"
