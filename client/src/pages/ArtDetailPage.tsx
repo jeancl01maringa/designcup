@@ -689,7 +689,7 @@ export default function ArtDetailPage() {
   // Skeletons para loading
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container-global py-8">
         <Button 
           variant="ghost" 
           className="mb-6"
@@ -727,7 +727,7 @@ export default function ArtDetailPage() {
   // Mensagem de erro
   if (error || !post) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container-global py-8">
         <Button 
           variant="ghost" 
           className="mb-6"

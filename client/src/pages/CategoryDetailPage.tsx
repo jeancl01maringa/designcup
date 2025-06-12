@@ -28,7 +28,7 @@ export default function CategoryDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="pt-24 pb-8">
-          <div className="container mx-auto px-4">
+          <div className="container-global">
             <div className="animate-pulse">
               <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
               <div className="h-4 bg-gray-200 rounded w-96 mb-8"></div>
@@ -43,7 +43,7 @@ export default function CategoryDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="pt-24 pb-8">
-          <div className="container mx-auto px-4">
+          <div className="container-global">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Categoria não encontrada</h1>
               <Link href="/categorias">
@@ -62,7 +62,7 @@ export default function CategoryDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="pt-24 pb-8">
-        <div className="container mx-auto px-4">
+        <div className="container-global">
           {/* Breadcrumb */}
           <div className="mb-6">
             <Link href="/categorias">

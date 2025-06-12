@@ -129,7 +129,7 @@ export default function Categories() {
 
       {/* Categories Grid Section */}
       <section className="py-8 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4">
+        <div className="container-global">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
