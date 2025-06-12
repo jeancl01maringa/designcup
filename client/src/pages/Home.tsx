@@ -10,7 +10,7 @@ export default function Home() {
       
       {/* Feed Section with Title and Proper Margins */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
+        <div className="container-global">
           {/* Header seguindo o mesmo padrão da seção de categorias */}
           <div className="mb-6">
             <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">

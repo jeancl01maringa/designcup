@@ -106,7 +106,7 @@ const NavLinks = () => {
         variant="ghost" 
         size="sm" 
         showIcon={false}
-        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base transition-colors p-0 h-auto font-weight-500"
+        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base transition-colors p-0 h-auto"
       />
     </nav>
   );
