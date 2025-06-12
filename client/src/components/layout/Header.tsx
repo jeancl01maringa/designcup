@@ -175,7 +175,7 @@ const HeaderSearchBar = () => {
         
         <Button 
           type="submit"
-          className="h-[35px] px-3 bg-black hover:bg-black/80 text-white border-0 rounded-none"
+          className="h-[35px] px-3 bg-black hover:bg-black/80 text-white border-0 rounded-r-lg"
         >
           <Search className="h-4 w-4" />
         </Button>
@@ -290,7 +290,7 @@ const UserMenu = () => {
       {isAdmin && (
         <Button
           variant="outline"
-          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50 rounded-full px-3 py-1 h-8 text-xs"
+          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50 rounded-full px-3 h-[35px] text-xs"
           onClick={() => navigate("/admin")}
         >
           <svg 
@@ -316,7 +316,7 @@ const UserMenu = () => {
       {isFreeUser && (
         <Button 
           variant="default" 
-          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 py-1 h-8 text-xs border-0"
+          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 h-[35px] text-xs border-0"
           onClick={() => navigate("/planos")}
         >
           <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
