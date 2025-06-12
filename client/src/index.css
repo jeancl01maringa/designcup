@@ -16,17 +16,27 @@
   }
 }
 
-/* Container global padrão para todas as páginas - otimizado para telas grandes */
+/* Container global padrão para todas as páginas - otimizado para diferentes tamanhos de tela */
 @layer components {
   .container-global {
-    max-width: 1440px;
+    max-width: 1600px;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
-  @media (max-width: 1280px) {
+  /* Para telas 1920px (como a sua) - reduz margens laterais */
+  @media (min-width: 1600px) {
+    .container-global {
+      max-width: 1700px;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  /* Para telas médias */
+  @media (max-width: 1400px) {
     .container-global {
       max-width: 100%;
       padding-left: 1.5rem;
@@ -34,6 +44,15 @@
     }
   }
 
+  /* Para tablets */
+  @media (max-width: 1024px) {
+    .container-global {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+  }
+
+  /* Para mobile */
   @media (max-width: 768px) {
     .container-global {
       padding-left: 1rem;
