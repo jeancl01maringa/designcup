@@ -12,6 +12,7 @@ import * as crypto from "crypto";
 import multer from "multer";
 import * as path from "path";
 import * as fs from "fs";
+import webhookHotmart from "./routes/webhook-hotmart";
 
 // Configurar multer para upload de imagens
 const storage_multer = multer.memoryStorage();
@@ -4685,6 +4686,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Erro ao buscar curtidas' });
     }
   });
+
+  // Registrar webhook do Hotmart
+  app.use('/webhook/hotmart', webhookHotmart);
 
   const httpServer = createServer(app);
 
