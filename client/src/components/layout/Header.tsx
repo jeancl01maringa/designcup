@@ -199,12 +199,12 @@ const NavLinks = ({ showSearchBar }: { showSearchBar: boolean }) => {
   }
   
   return (
-    <nav className="hidden md:flex items-center space-x-6">
+    <nav className="hidden md:flex items-center space-x-5">
       {navItems.map((item) => (
         <Link 
           key={item.path} 
           href={item.path}
-          className={`text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base transition-colors font-medium ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
+          className={`text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
         >
           {item.name}
         </Link>
@@ -213,7 +213,7 @@ const NavLinks = ({ showSearchBar }: { showSearchBar: boolean }) => {
         variant="ghost" 
         size="sm" 
         showIcon={false}
-        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-base transition-colors p-0 h-auto"
+        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors p-0 h-auto"
       />
     </nav>
   );
@@ -290,21 +290,19 @@ const UserMenu = () => {
       {isAdmin && (
         <Button
           variant="outline"
-          size="sm"
-          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50 rounded-full"
+          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50 rounded-full px-3 py-1 h-8 text-xs"
           onClick={() => navigate("/admin")}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
+            width="14" 
+            height="14" 
             viewBox="0 0 24 24" 
             fill="none" 
             stroke="currentColor" 
             strokeWidth="2" 
             strokeLinecap="round" 
             strokeLinejoin="round"
-            className="mr-1"
           >
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
@@ -318,11 +316,10 @@ const UserMenu = () => {
       {isFreeUser && (
         <Button 
           variant="default" 
-          size="sm"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-5 py-2 h-10 text-sm border-0"
+          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 py-1 h-8 text-xs border-0"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
           </svg>
           <span>Assine o Premium</span>
@@ -661,7 +658,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container-global py-3 flex items-center transition-all duration-300 h-[60px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
+      <div className={`container-global py-4 flex items-center transition-all duration-300 h-[72px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
         {/* Logo - posicionado à esquerda */}
         <div className="flex-shrink-0 w-36">
           <Logo />
