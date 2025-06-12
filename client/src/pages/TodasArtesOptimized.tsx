@@ -461,6 +461,7 @@ export default function TodasArtesOptimized() {
                   variant={currentPage === pageNum ? "default" : "outline"}
                   size="sm"
                   onClick={() => handlePageChange(pageNum)}
+                  className={currentPage === pageNum ? "bg-[#191c2c] hover:bg-[#14182a] text-white border-[#191c2c]" : ""}
                 >
                   {pageNum}
                 </Button>
@@ -472,7 +473,7 @@ export default function TodasArtesOptimized() {
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300"
+              className="bg-[#191c2c] hover:bg-[#14182a] text-white border-[#191c2c] hover:border-[#14182a] disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300"
             >
               Próxima
               <ChevronRight className="h-4 w-4" />

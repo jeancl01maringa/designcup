@@ -368,7 +368,7 @@ export default function TodasArtes() {
             <Button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center bg-[#191c2c] hover:bg-[#14182a] text-white"
             >
               Próxima página
               <ChevronRight className="h-4 w-4 ml-1" />
