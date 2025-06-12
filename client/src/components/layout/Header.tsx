@@ -658,7 +658,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container-global py-4 flex items-center transition-all duration-300 h-[72px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
+      <div className={`container-global py-5 flex items-center transition-all duration-300 h-[94px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
         {/* Logo - posicionado à esquerda */}
         <div className="flex-shrink-0 w-36">
           <Logo />
