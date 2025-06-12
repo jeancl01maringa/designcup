@@ -348,7 +348,7 @@ export default function TodasArtes() {
 
         {/* Paginação */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center space-x-4 mt-12">
+          <div className="flex items-center justify-center space-x-4 mt-16">
             <Button
               variant="outline"
               onClick={() => handlePageChange(currentPage - 1)}

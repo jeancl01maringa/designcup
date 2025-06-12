@@ -431,7 +431,7 @@ export default function TodasArtesOptimized() {
 
         {/* Paginação */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center space-x-2 mt-8">
+          <div className="flex items-center justify-center space-x-2 mt-16">
             <Button
               variant="outline"
               size="sm"

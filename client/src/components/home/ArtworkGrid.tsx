@@ -189,7 +189,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
 
       {/* Botão Ver todas as artes */}
       {filteredPosts.length > 0 && (
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-16">
           <a 
             href="/todas-artes"
             className="inline-flex items-center px-6 py-3 bg-[#191c2c] hover:bg-[#14182a] text-white font-medium rounded-full transition-colors duration-200"
