@@ -153,6 +153,11 @@ export default function UsuariosPage() {
   // Mutation para criar usuário
   const createUsuarioMutation = useMutation({
     mutationFn: async (data: typeof createFormData) => {
+      // Validar se usuário premium tem plano selecionado
+      if (data.tipo === 'premium' && !data.plano_id) {
+        throw new Error('Usuários premium devem ter um plano do Hotmart selecionado');
+      }
+      
       const response = await apiRequest('POST', '/api/admin/usuarios', data);
       return response.json();
     },
@@ -781,7 +786,13 @@ export default function UsuariosPage() {
             </Button>
             <Button 
               onClick={() => createUsuarioMutation.mutate(createFormData)}
-              disabled={createUsuarioMutation.isPending || !createFormData.username || !createFormData.email || !createFormData.password}
+              disabled={
+                createUsuarioMutation.isPending || 
+                !createFormData.username || 
+                !createFormData.email || 
+                !createFormData.password ||
+                (createFormData.tipo === 'premium' && !createFormData.plano_id)
+              }
             >
               {createUsuarioMutation.isPending ? "Criando..." : "Criar Usuário"}
             </Button>
