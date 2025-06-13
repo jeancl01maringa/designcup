@@ -2934,30 +2934,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Buscar planos únicos da tabela subscriptions (dados reais do webhook)
       const query = `
         SELECT DISTINCT 
-          tipo_plano as id,
+          plan_type as id,
           CASE 
-            WHEN tipo_plano = 'mensal' THEN 'Plano Mensal Premium'
-            WHEN tipo_plano = 'anual' THEN 'Plano Anual Premium'
-            ELSE CONCAT('Plano ', INITCAP(tipo_plano))
+            WHEN plan_type = 'mensal' THEN 'Plano Mensal Premium'
+            WHEN plan_type = 'anual' THEN 'Plano Anual Premium'
+            ELSE CONCAT('Plano ', INITCAP(plan_type))
           END as name,
           CASE 
-            WHEN tipo_plano = 'mensal' THEN 'Mensal'
-            WHEN tipo_plano = 'anual' THEN 'Anual'
-            ELSE INITCAP(tipo_plano)
+            WHEN plan_type = 'mensal' THEN 'Mensal'
+            WHEN plan_type = 'anual' THEN 'Anual'
+            ELSE INITCAP(plan_type)
           END as periodo,
           CASE 
-            WHEN tipo_plano = 'mensal' THEN '29,90'
-            WHEN tipo_plano = 'anual' THEN '197,00'
+            WHEN plan_type = 'mensal' THEN '29,90'
+            WHEN plan_type = 'anual' THEN '197,00'
             ELSE '0,00'
           END as valor,
-          CONCAT('Acesso premium ', tipo_plano, ' via Hotmart') as description
+          CONCAT('Acesso premium ', plan_type, ' via Hotmart') as description
         FROM subscriptions 
-        WHERE tipo_plano IS NOT NULL 
-        AND tipo_plano != ''
+        WHERE plan_type IS NOT NULL 
+        AND plan_type != ''
         ORDER BY 
           CASE 
-            WHEN tipo_plano = 'mensal' THEN 1
-            WHEN tipo_plano = 'anual' THEN 2
+            WHEN plan_type = 'mensal' THEN 1
+            WHEN plan_type = 'anual' THEN 2
             ELSE 3
           END
       `;
