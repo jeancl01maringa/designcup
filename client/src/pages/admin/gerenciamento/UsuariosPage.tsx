@@ -31,14 +31,23 @@ interface Usuario {
   active: boolean;
 }
 
-// Interface para o plano
+// Interface para o plano do Hotmart
+interface HotmartPlano {
+  id: string;
+  name: string;
+  periodo: string;
+  valor: string;
+  description: string;
+}
+
+// Interface para o plano administrativo (para compatibilidade)
 interface Plano {
   id: number;
   name: string;
   periodo: string;
   valor: string;
   codigoHotmart: string;
-  codigo_hotmart?: string; // Campo no banco de dados
+  codigo_hotmart?: string;
 }
 
 export default function UsuariosPage() {
@@ -81,24 +90,14 @@ export default function UsuariosPage() {
     },
   });
 
-  // Buscar todos os planos disponíveis (agora compatível com as duas rotas)
-  const { data: planos = [], isLoading: isLoadingPlanos } = useQuery<Plano[]>({
-    queryKey: ['/api/admin/plans'], // Chave da rota em inglês para consistência
+  // Buscar planos específicos do Hotmart para criação de usuários
+  const { data: hotmartPlanos = [], isLoading: isLoadingPlanos } = useQuery<HotmartPlano[]>({
+    queryKey: ['/api/admin/hotmart-plans'],
     queryFn: async () => {
-      try {
-        // Tentar primeiramente com a rota em português para compatibilidade
-        const response = await apiRequest('GET', '/api/admin/planos');
-        const data = await response.json();
-        console.log('Planos recebidos (via /planos):', data);
-        return data;
-      } catch (error) {
-        // Se falhar, tentar com a rota em inglês
-        console.log('Tentando buscar planos via /plans após falha em /planos');
-        const response = await apiRequest('GET', '/api/admin/plans');
-        const data = await response.json();
-        console.log('Planos recebidos (via /plans):', data);
-        return data;
-      }
+      const response = await apiRequest('GET', '/api/admin/hotmart-plans');
+      const data = await response.json();
+      console.log('Planos do Hotmart recebidos:', data);
+      return data;
     },
   });
 
@@ -749,9 +748,9 @@ export default function UsuariosPage() {
                   disabled={createFormData.tipo !== 'premium'}
                 >
                   <option value="">Selecione um plano</option>
-                  {planos.filter(p => !p.isGratuito).map(plano => (
+                  {hotmartPlanos.map(plano => (
                     <option key={plano.id} value={plano.id}>
-                      {plano.name} - {plano.periodo}
+                      {plano.name} - {plano.periodo} - R$ {plano.valor}
                     </option>
                   ))}
                 </select>

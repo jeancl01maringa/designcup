@@ -2871,6 +2871,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint POST para criar usuário
+  app.post('/api/admin/usuarios', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { username, email, password, telefone, isAdmin, tipo, plano_id, active } = req.body;
+      
+      // Validação básica
+      if (!username || !email || !password) {
+        return res.status(400).json({ message: 'Nome, email e senha são obrigatórios' });
+      }
+
+      console.log('Criando novo usuário:', { username, email, tipo, isAdmin });
+      
+      // Verificar se email já existe
+      const existingUserCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+      if (existingUserCheck.rows.length > 0) {
+        return res.status(400).json({ message: 'Este email já está em uso' });
+      }
+      
+      // Gerar hash da senha
+      const hashedPassword = await hashPassword(password);
+      
+      try {
+        const result = await pool.query(`
+          INSERT INTO users (username, email, password, is_admin, telefone, tipo, plano_id, active)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
+            COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, true) as active
+        `, [username, email, hashedPassword, isAdmin || false, telefone || null, tipo || 'free', plano_id || null, active !== false]);
+        
+        const newUser = result.rows[0];
+        console.log(`Usuário criado com sucesso - ID: ${newUser.id}`);
+        
+        return res.status(201).json(newUser);
+      } catch (dbError: any) {
+        console.error('Erro ao criar usuário no banco:', dbError);
+        return res.status(500).json({ 
+          message: 'Erro ao criar usuário',
+          error: dbError.message
+        });
+      }
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ 
+        message: 'Erro ao criar usuário',
+        error: error.message
+      });
+    }
+  });
+
+  // Endpoint para obter apenas os planos do Hotmart (para criação de usuários)
+  app.get('/api/admin/hotmart-plans', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      // Definir planos específicos do webhook Hotmart
+      const hotmartPlans = [
+        {
+          id: 'PLAN001',
+          name: 'Plano Mensal Premium',
+          periodo: 'Mensal',
+          valor: '29,90',
+          description: 'Acesso completo mensal via Hotmart'
+        },
+        {
+          id: 'PLAN002', 
+          name: 'Plano Trimestral Premium',
+          periodo: 'Trimestral',
+          valor: '67,00',
+          description: 'Acesso completo trimestral via Hotmart'
+        },
+        {
+          id: 'PLAN003',
+          name: 'Plano Anual Premium', 
+          periodo: 'Anual',
+          valor: '197,00',
+          description: 'Acesso completo anual via Hotmart'
+        }
+      ];
+
+      console.log('Retornando planos específicos do Hotmart:', hotmartPlans.length);
+      res.json(hotmartPlans);
+    } catch (error: any) {
+      console.error('Error fetching Hotmart plans:', error);
+      res.status(500).json({ 
+        message: 'Erro ao buscar planos do Hotmart',
+        error: error.message
+      });
+    }
+  });
+
   // Rota para redefinir a senha de um usuário para o padrão
   app.patch('/api/admin/usuarios/:id/reset-password', async (req, res) => {
     try {
