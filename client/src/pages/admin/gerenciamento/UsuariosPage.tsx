@@ -308,20 +308,25 @@ export default function UsuariosPage() {
       return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Sem plano</Badge>;
     }
     
-    // Mapear códigos do Hotmart para nomes de planos
-    const hotmartPlanNames: Record<string, string> = {
-      'PLAN001': 'Plano Mensal Premium',
-      'PLAN002': 'Plano Trimestral Premium', 
-      'PLAN003': 'Plano Anual Premium'
-    };
+    // Buscar o plano nos dados reais do Hotmart
+    const plano = hotmartPlanos.find(p => p.id === usuario.plano_id);
     
-    const planName = hotmartPlanNames[usuario.plano_id] || `Plano ${usuario.plano_id}`;
-    
-    if (!planName) return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Plano desconhecido</Badge>;
+    if (!plano) {
+      // Fallback para planos conhecidos do webhook
+      const planName = usuario.plano_id === 'mensal' ? 'Plano Mensal Premium' : 
+                      usuario.plano_id === 'anual' ? 'Plano Anual Premium' : 
+                      `Plano ${usuario.plano_id}`;
+      
+      return (
+        <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
+          {planName}
+        </Badge>
+      );
+    }
     
     return (
       <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-        {planName}
+        {plano.name} ({plano.periodo})
       </Badge>
     );
   };

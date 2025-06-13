@@ -2924,39 +2924,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para obter apenas os planos do Hotmart (para criação de usuários)
+  // Endpoint para obter planos reais do webhook Hotmart
   app.get('/api/admin/hotmart-plans', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
-      // Definir planos específicos do webhook Hotmart
-      const hotmartPlans = [
-        {
-          id: 'PLAN001',
-          name: 'Plano Mensal Premium',
-          periodo: 'Mensal',
-          valor: '29,90',
-          description: 'Acesso completo mensal via Hotmart'
-        },
-        {
-          id: 'PLAN002', 
-          name: 'Plano Trimestral Premium',
-          periodo: 'Trimestral',
-          valor: '67,00',
-          description: 'Acesso completo trimestral via Hotmart'
-        },
-        {
-          id: 'PLAN003',
-          name: 'Plano Anual Premium', 
-          periodo: 'Anual',
-          valor: '197,00',
-          description: 'Acesso completo anual via Hotmart'
-        }
-      ];
+      // Buscar planos únicos da tabela subscriptions (dados reais do webhook)
+      const query = `
+        SELECT DISTINCT 
+          tipo_plano as id,
+          CASE 
+            WHEN tipo_plano = 'mensal' THEN 'Plano Mensal Premium'
+            WHEN tipo_plano = 'anual' THEN 'Plano Anual Premium'
+            ELSE CONCAT('Plano ', INITCAP(tipo_plano))
+          END as name,
+          CASE 
+            WHEN tipo_plano = 'mensal' THEN 'Mensal'
+            WHEN tipo_plano = 'anual' THEN 'Anual'
+            ELSE INITCAP(tipo_plano)
+          END as periodo,
+          CASE 
+            WHEN tipo_plano = 'mensal' THEN '29,90'
+            WHEN tipo_plano = 'anual' THEN '197,00'
+            ELSE '0,00'
+          END as valor,
+          CONCAT('Acesso premium ', tipo_plano, ' via Hotmart') as description
+        FROM subscriptions 
+        WHERE tipo_plano IS NOT NULL 
+        AND tipo_plano != ''
+        ORDER BY 
+          CASE 
+            WHEN tipo_plano = 'mensal' THEN 1
+            WHEN tipo_plano = 'anual' THEN 2
+            ELSE 3
+          END
+      `;
+      
+      const result = await pool.query(query);
+      
+      // Se não há planos na base, retornar planos padrão baseados na estrutura do webhook
+      let hotmartPlans = result.rows;
+      
+      if (hotmartPlans.length === 0) {
+        hotmartPlans = [
+          {
+            id: 'mensal',
+            name: 'Plano Mensal Premium',
+            periodo: 'Mensal',
+            valor: '29,90',
+            description: 'Acesso premium mensal via Hotmart'
+          },
+          {
+            id: 'anual',
+            name: 'Plano Anual Premium',
+            periodo: 'Anual',
+            valor: '197,00',
+            description: 'Acesso premium anual via Hotmart'
+          }
+        ];
+      }
 
-      console.log('Retornando planos específicos do Hotmart:', hotmartPlans.length);
+      console.log('Retornando planos reais do Hotmart:', hotmartPlans.length);
       res.json(hotmartPlans);
     } catch (error: any) {
       console.error('Error fetching Hotmart plans:', error);
