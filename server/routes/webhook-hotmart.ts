@@ -25,6 +25,7 @@ router.post('/', async (req, res) => {
     try {
       const email = payload.data?.buyer?.email?.toLowerCase().trim();
       const name = payload.data?.buyer?.name || 'Usuário';
+      const telefone = payload.data?.buyer?.phone || payload.data?.buyer?.telephone || '';
       const transactionId = payload.data?.purchase?.transaction;
       const planName = payload.data?.subscription?.plan?.name?.toLowerCase() || '';
       const planType = planName.includes('anual') ? 'anual' : 'mensal';
@@ -49,8 +50,8 @@ router.post('/', async (req, res) => {
             tipo_plano, data_assinatura, acesso_vitalicio, is_active, 
             email_confirmed
           )
-          VALUES ($1, $2, $3, '', 'premium', '2', $4, true, 'hotmart', $5, CURRENT_TIMESTAMP, false, true, true)
-        `, [email, username, tempPassword, endDate, planType]);
+          VALUES ($1, $2, $3, $4, 'premium', '2', $5, true, 'hotmart', $6, CURRENT_TIMESTAMP, false, true, true)
+        `, [email, username, tempPassword, telefone, endDate, planType]);
         
         console.log(`✅ Novo usuário criado: ${name} (${email})`);
       } else {
@@ -80,10 +81,10 @@ router.post('/', async (req, res) => {
         await pool.query(`
           INSERT INTO subscriptions (
             user_id, plan_type, start_date, end_date, status, 
-            transaction_id, origin, last_event, created_at
+            transaction_id, origin, last_event, telefone, created_at
           )
-          VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6)
-        `, [userId, planType, now, endDate, transactionId, now]);
+          VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6, $7)
+        `, [userId, planType, now, endDate, transactionId, telefone, now]);
         
         console.log(`✅ Nova assinatura criada para usuário ${userId}`);
       } else {
@@ -94,10 +95,11 @@ router.post('/', async (req, res) => {
             end_date = $3, 
             status = 'active', 
             transaction_id = $4, 
+            telefone = $5,
             last_event = 'PURCHASE_APPROVED',
             updated_at = CURRENT_TIMESTAMP
           WHERE user_id = $1
-        `, [userId, planType, endDate, transactionId]);
+        `, [userId, planType, endDate, transactionId, telefone]);
         
         console.log(`✅ Assinatura atualizada para usuário ${userId}`);
       }
