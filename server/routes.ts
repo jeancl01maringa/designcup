@@ -4843,6 +4843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           s.user_id,
           u.username,
           u.email,
+          u.telefone,
           s.plan_type,
           s.status,
           s.start_date,
@@ -4850,6 +4851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           s.transaction_id,
           s.origin,
           s.last_event,
+          s.telefone as subscription_telefone,
           s.created_at
         FROM subscriptions s
         JOIN users u ON s.user_id = u.id
