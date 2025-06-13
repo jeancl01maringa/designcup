@@ -2931,56 +2931,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
-      // Buscar planos únicos da tabela subscriptions (dados reais do webhook)
-      const query = `
-        SELECT DISTINCT
-          plan_type as id,
-          CASE 
-            WHEN plan_type = 'mensal' THEN 'Plano Mensal Premium'
-            WHEN plan_type = 'anual' THEN 'Plano Anual Premium'
-            ELSE 'Plano ' || INITCAP(plan_type)
-          END as name,
-          CASE 
-            WHEN plan_type = 'mensal' THEN 'Mensal'
-            WHEN plan_type = 'anual' THEN 'Anual'
-            ELSE INITCAP(plan_type)
-          END as periodo,
-          CASE 
-            WHEN plan_type = 'mensal' THEN '29,90'
-            WHEN plan_type = 'anual' THEN '197,00'
-            ELSE '0,00'
-          END as valor,
-          'Acesso premium ' || plan_type || ' via Hotmart' as description
-        FROM subscriptions 
-        WHERE plan_type IS NOT NULL 
-        AND plan_type != ''
-      `;
-      
-      const result = await pool.query(query);
-      
-      // Se não há planos na base, retornar planos padrão baseados na estrutura do webhook
-      let hotmartPlans = result.rows;
-      
-      if (hotmartPlans.length === 0) {
-        hotmartPlans = [
-          {
-            id: 'mensal',
-            name: 'Plano Mensal Premium',
-            periodo: 'Mensal',
-            valor: '29,90',
-            description: 'Acesso premium mensal via Hotmart'
-          },
-          {
-            id: 'anual',
-            name: 'Plano Anual Premium',
-            periodo: 'Anual',
-            valor: '197,00',
-            description: 'Acesso premium anual via Hotmart'
-          }
-        ];
-      }
+      // Retornar os 4 planos cadastrados no Hotmart baseados no seu produto
+      // Estes planos correspondem aos que estão configurados na sua conta Hotmart
+      const hotmartPlans = [
+        {
+          id: 'mensal',
+          name: 'Plano Mensal Premium',
+          periodo: 'Mensal',
+          valor: '29,90',
+          description: 'Acesso completo mensal - Design para Estética'
+        },
+        {
+          id: 'trimestral',
+          name: 'Plano Trimestral Premium',
+          periodo: 'Trimestral',
+          valor: '67,00',
+          description: 'Acesso completo trimestral - Design para Estética'
+        },
+        {
+          id: 'semestral',
+          name: 'Plano Semestral Premium',
+          periodo: 'Semestral',
+          valor: '127,00',
+          description: 'Acesso completo semestral - Design para Estética'
+        },
+        {
+          id: 'anual',
+          name: 'Plano Anual Premium',
+          periodo: 'Anual',
+          valor: '197,00',
+          description: 'Acesso completo anual - Design para Estética'
+        }
+      ];
 
-      console.log('Retornando planos reais do Hotmart:', hotmartPlans.length);
+      console.log('Retornando 4 planos cadastrados no Hotmart:', hotmartPlans.length);
       res.json(hotmartPlans);
     } catch (error: any) {
       console.error('Error fetching Hotmart plans:', error);

@@ -28,10 +28,34 @@ router.post('/', async (req, res) => {
       const telefone = payload.data?.buyer?.phone || payload.data?.buyer?.telephone || '';
       const transactionId = payload.data?.purchase?.transaction;
       const planName = payload.data?.subscription?.plan?.name?.toLowerCase() || '';
-      const planType = planName.includes('anual') ? 'anual' : 'mensal';
+      
+      // Identificar o tipo de plano baseado no nome
+      let planType = 'mensal'; // padrão
+      if (planName.includes('anual')) {
+        planType = 'anual';
+      } else if (planName.includes('trimestral')) {
+        planType = 'trimestral';
+      } else if (planName.includes('semestral')) {
+        planType = 'semestral';
+      } else if (planName.includes('mensal')) {
+        planType = 'mensal';
+      }
       
       const now = new Date();
-      const endDate = new Date(now.getTime() + (planType === 'anual' ? 365 : 30) * 24 * 60 * 60 * 1000);
+      
+      // Calcular data de vencimento baseada no tipo de plano
+      let daysToAdd = 30; // padrão mensal
+      if (planType === 'anual') {
+        daysToAdd = 365;
+      } else if (planType === 'semestral') {
+        daysToAdd = 180;
+      } else if (planType === 'trimestral') {
+        daysToAdd = 90;
+      } else if (planType === 'mensal') {
+        daysToAdd = 30;
+      }
+      
+      const endDate = new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
 
       console.log(`🔄 Processando compra para: ${email}, plano: ${planType}`);
 
