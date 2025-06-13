@@ -112,6 +112,9 @@ function Router() {
       <Route path="/admin/gerenciamento/tags">
         <ProtectedRoute path="/admin/gerenciamento/tags" component={TagsPage} requireAdmin={true} />
       </Route>
+      <Route path="/admin/usuarios">
+        <ProtectedRoute path="/admin/usuarios" component={UsuariosPage} requireAdmin={true} />
+      </Route>
       <Route path="/admin/gerenciamento/usuarios">
         <ProtectedRoute path="/admin/gerenciamento/usuarios" component={UsuariosPage} requireAdmin={true} />
       </Route>

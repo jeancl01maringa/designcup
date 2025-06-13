@@ -303,23 +303,20 @@ export default function UsuariosPage() {
       return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Sem plano</Badge>;
     }
     
-    // Tenta encontrar o plano primeiro pelo ID, depois pelo código Hotmart (para compatibilidade)
-    const planoId = parseInt(usuario.plano_id);
-    let plano = planos.find(p => p.id === planoId);
+    // Mapear códigos do Hotmart para nomes de planos
+    const hotmartPlanNames: Record<string, string> = {
+      'PLAN001': 'Plano Mensal Premium',
+      'PLAN002': 'Plano Trimestral Premium', 
+      'PLAN003': 'Plano Anual Premium'
+    };
     
-    // Se não encontrar pelo ID, tenta pelo código Hotmart para compatibilidade
-    if (!plano) {
-      plano = planos.find(p => 
-        p.codigoHotmart === usuario.plano_id || 
-        (p.codigo_hotmart && p.codigo_hotmart === usuario.plano_id)
-      );
-    }
+    const planName = hotmartPlanNames[usuario.plano_id] || `Plano ${usuario.plano_id}`;
     
-    if (!plano) return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Plano desconhecido</Badge>;
+    if (!planName) return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Plano desconhecido</Badge>;
     
     return (
       <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-        {plano.name} ({plano.periodo})
+        {planName}
       </Badge>
     );
   };
@@ -578,9 +575,9 @@ export default function UsuariosPage() {
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     <option value="">Selecione um plano</option>
-                    {planos.map(plano => (
-                      <option key={plano.id} value={plano.id.toString()}>
-                        {plano.name} - {plano.periodo} ({plano.valor})
+                    {hotmartPlanos.map(plano => (
+                      <option key={plano.id} value={plano.id}>
+                        {plano.name} - {plano.periodo} - R$ {plano.valor}
                       </option>
                     ))}
                   </select>
