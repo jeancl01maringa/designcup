@@ -75,6 +75,7 @@ Changelog:
 - June 23, 2025. Initial setup
 - June 23, 2025. Updated Assinaturas page table structure per user request: Status, Origem, Criado em, Expira em, Transação, Ações (3-dot menu). Removed price column from display while maintaining full Hotmart plan data capture in backend.
 - June 23, 2025. Fixed critical Hotmart webhook bug: corrected user creation API to only use valid database fields, implemented proper password hashing with scrypt, and verified complete webhook functionality for both purchase approval and cancellation flows.
+- June 23, 2025. Implemented corrected Hotmart webhook following user's documented model: plan data, expiration dates, and transaction codes now come directly from Hotmart webhook dispatches rather than local configurations. Webhook captures real Hotmart plan details including name, price, currency, and transaction ID for complete subscription management.
 
 ## User Preferences
 

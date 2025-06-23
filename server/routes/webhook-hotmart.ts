@@ -4,7 +4,6 @@ import { scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
 
 const scryptAsync = promisify(scrypt);
-
 const router = express.Router();
 
 // Função para hash da senha
@@ -36,106 +35,74 @@ router.post('/', async (req, res) => {
   console.log('📩 Webhook Hotmart recebido:', payload?.event || 'SEM EVENTO');
   console.log('📋 Payload completo:', JSON.stringify(payload, null, 2));
 
-  // Se não tem evento, retornar erro detalhado
-  if (!payload || !payload.event) {
-    console.log('❌ Payload inválido ou sem evento');
-    return res.status(400).json({ 
-      error: 'Payload inválido',
-      received: payload
-    });
-  }
-
   // LÓGICA DE COMPRA APROVADA
   if (isValidPurchase(payload)) {
     try {
       const email = payload.data?.buyer?.email?.toLowerCase().trim();
       const name = payload.data?.buyer?.name || 'Usuário';
-      const telefone = payload.data?.buyer?.phone || payload.data?.buyer?.telephone || '';
+      const telefone = payload.data?.buyer?.phone || '';
       const transactionId = payload.data?.purchase?.transaction;
       
-      // Capturar dados completos do plano do Hotmart
-      const planData = payload.data?.subscription?.plan || payload.data?.product || {};
-      const planName = planData?.name || '';
-      const planId = planData?.id || planData?.code || '';
-      const planPrice = planData?.price || payload.data?.purchase?.price || 0;
-      const planCurrency = planData?.currency || 'BRL';
+      // Captura dados do plano da Hotmart
+      const planName = payload.data?.subscription?.plan?.name || payload.data?.product?.name || 'Plano Premium';
+      const planType = planName?.toLowerCase().includes('anual') ? 'anual' : 'mensal';
       
-      console.log(`🎯 Dados do plano Hotmart capturados:`, {
-        id: planId,
-        name: planName,
-        price: planPrice,
-        currency: planCurrency
-      });
-      
-      // Identificar o tipo de plano baseado no nome
-      let planType = 'mensal'; // padrão
-      const planNameLower = planName.toLowerCase();
-      if (planNameLower.includes('anual') || planNameLower.includes('yearly')) {
-        planType = 'anual';
-      } else if (planNameLower.includes('trimestral') || planNameLower.includes('quarterly')) {
-        planType = 'trimestral';
-      } else if (planNameLower.includes('semestral') || planNameLower.includes('half')) {
-        planType = 'semestral';
-      } else if (planNameLower.includes('mensal') || planNameLower.includes('monthly')) {
-        planType = 'mensal';
-      }
+      console.log(`🎯 Dados da compra Hotmart: Email=${email}, Plano=${planName}, Tipo=${planType}, Transação=${transactionId}`);
       
       const now = new Date();
-      
-      // Calcular data de vencimento baseada no tipo de plano
-      let daysToAdd = 30; // padrão mensal
-      if (planType === 'anual') {
-        daysToAdd = 365;
-      } else if (planType === 'semestral') {
-        daysToAdd = 180;
-      } else if (planType === 'trimestral') {
-        daysToAdd = 90;
-      } else if (planType === 'mensal') {
-        daysToAdd = 30;
-      }
-      
-      const endDate = new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+      // Calcula data de expiração baseada no tipo de plano da Hotmart
+      const endDate = planType === 'anual' 
+        ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-      console.log(`🔄 Processando compra para: ${email}, plano: ${planType}`);
+      if (!email) {
+        console.log('❌ Email não encontrado no payload');
+        return res.status(400).json({ error: 'Email não encontrado' });
+      }
 
       // Verifica se usuário existe
       const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
       
       if (existingUser.rowCount === 0) {
-        // Cria novo usuário
+        // Cria novo usuário seguindo o modelo documentado
         const username = email.split('@')[0];
         const hashedPassword = await hashPassword('estetica@123'); // Senha padrão com hash
         
         await pool.query(`
           INSERT INTO users (
             email, username, password, telefone, tipo, plano_id, 
-            data_vencimento, active, created_at, is_admin, bio
+            data_vencimento, active, created_at, is_admin, bio,
+            origem_assinatura, tipo_plano, data_assinatura, acesso_vitalicio
           )
-          VALUES ($1, $2, $3, $4, 'premium', '2', $5, true, CURRENT_TIMESTAMP, false, 'Cliente Hotmart')
-        `, [email, username, hashedPassword, telefone, endDate]);
+          VALUES ($1, $2, $3, $4, 'premium', '2', $5, true, $6, false, 'Cliente Hotmart', 'hotmart', $7, $8, false)
+        `, [email, username, hashedPassword, telefone, endDate, now, planType, now]);
         
-        console.log(`✅ Novo usuário criado: ${name} (${email})`);
+        console.log(`✅ Novo usuário criado: ${name} (${email}) - Plano Hotmart: ${planName}`);
       } else {
-        // Atualiza usuário existente para premium
+        // Atualiza usuário existente para premium com dados da Hotmart
         await pool.query(`
           UPDATE users SET 
             tipo = 'premium', 
-            data_vencimento = $2, 
-            active = true
+            tipo_plano = $2, 
+            data_vencimento = $3, 
+            origem_assinatura = 'hotmart',
+            telefone = $4,
+            active = true,
+            data_assinatura = $5
           WHERE email = $1
-        `, [email, endDate]);
+        `, [email, planType, endDate, telefone, now]);
         
-        console.log(`✅ Usuário atualizado para premium: ${name} (${email})`);
+        console.log(`✅ Usuário atualizado para premium: ${name} (${email}) - Plano Hotmart: ${planName}`);
       }
 
-      // Gerencia assinatura na tabela subscriptions
+      // Gerencia assinatura na tabela subscriptions com dados completos da Hotmart
       const userResult = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
       const userId = userResult.rows[0].id;
       
       const existingSubscription = await pool.query('SELECT id FROM subscriptions WHERE user_id = $1', [userId]);
       
       if (existingSubscription.rowCount === 0) {
-        // Cria nova assinatura com dados completos do Hotmart
+        // Cria nova assinatura com dados completos da Hotmart
         await pool.query(`
           INSERT INTO subscriptions (
             user_id, plan_type, start_date, end_date, status, 
@@ -143,11 +110,17 @@ router.post('/', async (req, res) => {
             hotmart_plan_id, hotmart_plan_name, hotmart_plan_price, hotmart_currency
           )
           VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6, $7, $8, $9, $10, $11)
-        `, [userId, planType, now, endDate, transactionId, telefone, now, planId, planName, planPrice, planCurrency]);
+        `, [
+          userId, planType, now, endDate, transactionId, telefone, now,
+          payload.data?.product?.id || planType, // hotmart_plan_id vem da Hotmart
+          planName, // hotmart_plan_name vem da Hotmart  
+          payload.data?.product?.price || payload.data?.purchase?.price || 0, // hotmart_plan_price vem da Hotmart
+          payload.data?.product?.currency || 'BRL' // hotmart_currency vem da Hotmart
+        ]);
         
-        console.log(`✅ Nova assinatura criada para usuário ${userId} com plano ${planName}`);
+        console.log(`✅ Nova assinatura criada para usuário ${userId} com plano Hotmart ${planName}`);
       } else {
-        // Atualiza assinatura existente com dados completos do Hotmart
+        // Atualiza assinatura existente com dados completos da Hotmart
         await pool.query(`
           UPDATE subscriptions SET 
             plan_type = $2, 
@@ -162,9 +135,15 @@ router.post('/', async (req, res) => {
             hotmart_plan_price = $8,
             hotmart_currency = $9
           WHERE user_id = $1
-        `, [userId, planType, endDate, transactionId, telefone, planId, planName, planPrice, planCurrency]);
+        `, [
+          userId, planType, endDate, transactionId, telefone,
+          payload.data?.product?.id || planType, // hotmart_plan_id vem da Hotmart
+          planName, // hotmart_plan_name vem da Hotmart
+          payload.data?.product?.price || payload.data?.purchase?.price || 0, // hotmart_plan_price vem da Hotmart
+          payload.data?.product?.currency || 'BRL' // hotmart_currency vem da Hotmart
+        ]);
         
-        console.log(`✅ Assinatura atualizada para usuário ${userId} com plano ${planName}`);
+        console.log(`✅ Assinatura atualizada para usuário ${userId} com plano Hotmart ${planName}`);
       }
 
       return res.status(200).json({ 
@@ -179,8 +158,7 @@ router.post('/', async (req, res) => {
       console.error('❌ Detalhes do erro:', err.detail);
       return res.status(500).json({ 
         error: 'Erro ao processar webhook', 
-        details: err.message,
-        code: err.code 
+        details: err.message 
       });
     }
   }
@@ -204,7 +182,7 @@ router.post('/', async (req, res) => {
 
       console.log(`🔄 Processando cancelamento para: ${email}, evento: ${payload.event}`);
 
-      // Rebaixa usuário para free
+      // Rebaixa usuário para free seguindo o modelo documentado
       const userUpdateResult = await pool.query(`
         UPDATE users 
         SET tipo = 'free', 
