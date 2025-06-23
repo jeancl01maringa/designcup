@@ -73,6 +73,7 @@ A aplicação está configurada para deployment no Replit com as seguintes carac
 
 Changelog:
 - June 23, 2025. Initial setup
+- June 23, 2025. Updated Assinaturas page table structure per user request: Status, Origem, Criado em, Expira em, Transação, Ações (3-dot menu). Removed price column from display while maintaining full Hotmart plan data capture in backend.
 
 ## User Preferences
 
