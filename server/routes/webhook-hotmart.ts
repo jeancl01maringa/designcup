@@ -1,7 +1,18 @@
 import express from 'express';
 import { pool } from '../db';
+import { scrypt, randomBytes } from 'crypto';
+import { promisify } from 'util';
+
+const scryptAsync = promisify(scrypt);
 
 const router = express.Router();
+
+// Função para hash da senha
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 // Funções de validação
 function isValidPurchase(payload: any): boolean {
@@ -79,17 +90,15 @@ router.post('/', async (req, res) => {
       if (existingUser.rowCount === 0) {
         // Cria novo usuário
         const username = email.split('@')[0];
-        const tempPassword = 'estetica@123'; // Senha padrão
+        const hashedPassword = await hashPassword('estetica@123'); // Senha padrão com hash
         
         await pool.query(`
           INSERT INTO users (
             email, username, password, telefone, tipo, plano_id, 
-            data_vencimento, active, origem_assinatura, 
-            tipo_plano, data_assinatura, acesso_vitalicio, is_active, 
-            email_confirmed
+            data_vencimento, active, created_at, is_admin, bio
           )
-          VALUES ($1, $2, $3, $4, 'premium', '2', $5, true, 'hotmart', $6, CURRENT_TIMESTAMP, false, true, true)
-        `, [email, username, tempPassword, telefone, endDate, planType]);
+          VALUES ($1, $2, $3, $4, 'premium', '2', $5, true, CURRENT_TIMESTAMP, false, 'Cliente Hotmart')
+        `, [email, username, hashedPassword, telefone, endDate]);
         
         console.log(`✅ Novo usuário criado: ${name} (${email})`);
       } else {
@@ -97,13 +106,10 @@ router.post('/', async (req, res) => {
         await pool.query(`
           UPDATE users SET 
             tipo = 'premium', 
-            tipo_plano = $2, 
-            data_vencimento = $3, 
-            origem_assinatura = 'hotmart',
-            data_assinatura = CURRENT_TIMESTAMP,
+            data_vencimento = $2, 
             active = true
           WHERE email = $1
-        `, [email, planType, endDate]);
+        `, [email, endDate]);
         
         console.log(`✅ Usuário atualizado para premium: ${name} (${email})`);
       }
