@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Users, CreditCard, TrendingUp, AlertTriangle, Settings, Webhook, Copy } from "lucide-react";
+import { Search, Users, CreditCard, TrendingUp, AlertTriangle, Settings, Webhook, Copy, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -219,12 +220,12 @@ export default function AssinaturasPage() {
                         <TableHead>Usuário</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Plano</TableHead>
-                        <TableHead>Preço</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Origem</TableHead>
-                        <TableHead>Data Início</TableHead>
-                        <TableHead>Data Fim</TableHead>
+                        <TableHead>Criado em</TableHead>
+                        <TableHead>Expira em</TableHead>
                         <TableHead>Transação</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -250,14 +251,6 @@ export default function AssinaturasPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <div className="font-semibold text-green-600">
-                                {subscription.plan_price_display}
-                              </div>
-                              {subscription.hotmart_currency && subscription.hotmart_currency !== 'BRL' && (
-                                <span className="text-xs text-muted-foreground">{subscription.hotmart_currency}</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
                               <Badge className={getStatusColor(subscription.status)}>
                                 {subscription.status === 'active' ? 'Ativa' : 
                                  subscription.status === 'canceled' ? 'Cancelada' : 
@@ -277,6 +270,24 @@ export default function AssinaturasPage() {
                             </TableCell>
                             <TableCell className="font-mono text-xs">
                               {subscription.transaction_id || '-'}
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Abrir menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
+                                  <DropdownMenuItem>Editar assinatura</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">
+                                    Cancelar assinatura
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
                           </TableRow>
                         ))
