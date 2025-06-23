@@ -823,12 +823,11 @@ export default function ArtDetailPage() {
                 {post.title}
               </h1>
               {isPremium && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium" style={{backgroundColor: '#fef3c7', color: '#a76e40'}}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11.5 2L8 8l-5-1 2 7h14l2-7-5 1z"/>
-                    <circle cx="12" cy="6" r="1"/>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-lg border border-amber-300/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="drop-shadow-sm">
+                    <path d="M12 2L15.09 8.26L22 9L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9L8.91 8.26L12 2Z"/>
                   </svg>
-                  Premium
+                  <span className="drop-shadow-sm">Premium</span>
                 </div>
               )}
             </div>
