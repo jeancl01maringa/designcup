@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { storage, ensureTagTablesExist } from "./storage";
+import { storage, ensureTagTablesExist, ensureHotmartFieldsExist } from "./storage";
 import { setupSupabaseTables, migrateLocalDataToSupabase } from "./supabase";
 import { db } from "./db";
 
@@ -52,6 +52,10 @@ app.use((req, res, next) => {
     // Verificar e criar tabelas de tags
     log('Verificando e criando tabelas de tags...');
     await ensureTagTablesExist();
+
+    // Verificar e adicionar campos do Hotmart na tabela subscriptions
+    log('Verificando campos do Hotmart na tabela subscriptions...');
+    await ensureHotmartFieldsExist();
     
     // Migração desabilitada temporariamente para evitar travamento
     // log('Configurando tabelas no Supabase...');

@@ -4604,6 +4604,59 @@ export class DatabaseStorage implements IStorage {
 export const storage = new DatabaseStorage();
 
 // Função para garantir que a tabela de tags e post_tags existam
+export async function ensureHotmartFieldsExist() {
+  try {
+    console.log('Verificando a existência dos campos do Hotmart na tabela subscriptions...');
+    
+    // Verificar se as colunas já existem
+    const checkColumns = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'subscriptions' 
+      AND column_name IN ('hotmart_plan_id', 'hotmart_plan_name', 'hotmart_plan_price', 'hotmart_currency')
+    `);
+
+    const existingColumns = checkColumns.rows.map(row => row.column_name);
+    console.log('Colunas existentes na tabela subscriptions:', existingColumns);
+
+    // Adicionar colunas faltantes
+    const columnsToAdd = [
+      { name: 'hotmart_plan_id', type: 'TEXT', description: 'ID real do plano no Hotmart' },
+      { name: 'hotmart_plan_name', type: 'TEXT', description: 'Nome real do plano no Hotmart' },
+      { name: 'hotmart_plan_price', type: 'DECIMAL(10,2)', description: 'Preço real do plano' },
+      { name: 'hotmart_currency', type: 'VARCHAR(3) DEFAULT \'BRL\'', description: 'Moeda do plano' }
+    ];
+
+    for (const column of columnsToAdd) {
+      if (!existingColumns.includes(column.name)) {
+        console.log(`Adicionando coluna ${column.name} na tabela subscriptions...`);
+        
+        try {
+          await pool.query(`
+            ALTER TABLE subscriptions 
+            ADD COLUMN ${column.name} ${column.type}
+          `);
+          
+          console.log(`Coluna ${column.name} adicionada com sucesso`);
+        } catch (error: any) {
+          if (error.code === '42701') {
+            // Coluna já existe
+            console.log(`Coluna ${column.name} já existe (erro 42701)`);
+          } else {
+            console.error(`Erro ao adicionar coluna ${column.name}:`, error);
+          }
+        }
+      } else {
+        console.log(`Coluna ${column.name} já existe`);
+      }
+    }
+
+    console.log('Verificação dos campos do Hotmart concluída');
+  } catch (error: any) {
+    console.error('Erro ao verificar campos do Hotmart:', error);
+  }
+}
+
 export async function ensureTagTablesExist() {
   try {
     console.log("Verificando a existência das tabelas de tags...");
