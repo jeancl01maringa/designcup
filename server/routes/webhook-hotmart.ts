@@ -27,17 +27,31 @@ router.post('/', async (req, res) => {
       const name = payload.data?.buyer?.name || 'Usuário';
       const telefone = payload.data?.buyer?.phone || payload.data?.buyer?.telephone || '';
       const transactionId = payload.data?.purchase?.transaction;
-      const planName = payload.data?.subscription?.plan?.name?.toLowerCase() || '';
+      
+      // Capturar dados completos do plano do Hotmart
+      const planData = payload.data?.subscription?.plan || payload.data?.product || {};
+      const planName = planData?.name || '';
+      const planId = planData?.id || planData?.code || '';
+      const planPrice = planData?.price || payload.data?.purchase?.price || 0;
+      const planCurrency = planData?.currency || 'BRL';
+      
+      console.log(`🎯 Dados do plano Hotmart capturados:`, {
+        id: planId,
+        name: planName,
+        price: planPrice,
+        currency: planCurrency
+      });
       
       // Identificar o tipo de plano baseado no nome
       let planType = 'mensal'; // padrão
-      if (planName.includes('anual')) {
+      const planNameLower = planName.toLowerCase();
+      if (planNameLower.includes('anual') || planNameLower.includes('yearly')) {
         planType = 'anual';
-      } else if (planName.includes('trimestral')) {
+      } else if (planNameLower.includes('trimestral') || planNameLower.includes('quarterly')) {
         planType = 'trimestral';
-      } else if (planName.includes('semestral')) {
+      } else if (planNameLower.includes('semestral') || planNameLower.includes('half')) {
         planType = 'semestral';
-      } else if (planName.includes('mensal')) {
+      } else if (planNameLower.includes('mensal') || planNameLower.includes('monthly')) {
         planType = 'mensal';
       }
       
@@ -101,18 +115,19 @@ router.post('/', async (req, res) => {
       const existingSubscription = await pool.query('SELECT id FROM subscriptions WHERE user_id = $1', [userId]);
       
       if (existingSubscription.rowCount === 0) {
-        // Cria nova assinatura
+        // Cria nova assinatura com dados completos do Hotmart
         await pool.query(`
           INSERT INTO subscriptions (
             user_id, plan_type, start_date, end_date, status, 
-            transaction_id, origin, last_event, telefone, created_at
+            transaction_id, origin, last_event, telefone, created_at,
+            hotmart_plan_id, hotmart_plan_name, hotmart_plan_price, hotmart_currency
           )
-          VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6, $7)
-        `, [userId, planType, now, endDate, transactionId, telefone, now]);
+          VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6, $7, $8, $9, $10, $11)
+        `, [userId, planType, now, endDate, transactionId, telefone, now, planId, planName, planPrice, planCurrency]);
         
-        console.log(`✅ Nova assinatura criada para usuário ${userId}`);
+        console.log(`✅ Nova assinatura criada para usuário ${userId} com plano ${planName}`);
       } else {
-        // Atualiza assinatura existente
+        // Atualiza assinatura existente com dados completos do Hotmart
         await pool.query(`
           UPDATE subscriptions SET 
             plan_type = $2, 
@@ -121,11 +136,15 @@ router.post('/', async (req, res) => {
             transaction_id = $4, 
             telefone = $5,
             last_event = 'PURCHASE_APPROVED',
-            updated_at = CURRENT_TIMESTAMP
+            updated_at = CURRENT_TIMESTAMP,
+            hotmart_plan_id = $6,
+            hotmart_plan_name = $7,
+            hotmart_plan_price = $8,
+            hotmart_currency = $9
           WHERE user_id = $1
-        `, [userId, planType, endDate, transactionId, telefone]);
+        `, [userId, planType, endDate, transactionId, telefone, planId, planName, planPrice, planCurrency]);
         
-        console.log(`✅ Assinatura atualizada para usuário ${userId}`);
+        console.log(`✅ Assinatura atualizada para usuário ${userId} com plano ${planName}`);
       }
 
       return res.status(200).json({ 

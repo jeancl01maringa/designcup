@@ -2924,6 +2924,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para adicionar campos do Hotmart na tabela subscriptions
+  app.post('/api/admin/add-hotmart-fields', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      console.log('🔧 Adicionando campos de planos reais do Hotmart...');
+
+      try {
+        // Verificar se as colunas já existem
+        const checkColumns = await pool.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'subscriptions' 
+          AND column_name IN ('hotmart_plan_id', 'hotmart_plan_name', 'hotmart_plan_price', 'hotmart_currency')
+        `);
+
+        const existingColumns = checkColumns.rows.map(row => row.column_name);
+        console.log('📋 Colunas existentes:', existingColumns);
+
+        // Adicionar colunas faltantes
+        const columnsToAdd = [
+          { name: 'hotmart_plan_id', type: 'TEXT', description: 'ID real do plano no Hotmart' },
+          { name: 'hotmart_plan_name', type: 'TEXT', description: 'Nome real do plano no Hotmart' },
+          { name: 'hotmart_plan_price', type: 'DECIMAL(10,2)', description: 'Preço real do plano' },
+          { name: 'hotmart_currency', type: 'VARCHAR(3) DEFAULT \'BRL\'', description: 'Moeda do plano' }
+        ];
+
+        const addedColumns = [];
+        const existingColumnsFound = [];
+
+        for (const column of columnsToAdd) {
+          if (!existingColumns.includes(column.name)) {
+            console.log(`➕ Adicionando coluna ${column.name}...`);
+            
+            await pool.query(`
+              ALTER TABLE subscriptions 
+              ADD COLUMN ${column.name} ${column.type}
+            `);
+            
+            console.log(`✅ Coluna ${column.name} adicionada`);
+            addedColumns.push(column.name);
+          } else {
+            console.log(`⏭️ Coluna ${column.name} já existe`);
+            existingColumnsFound.push(column.name);
+          }
+        }
+
+        res.json({
+          success: true,
+          message: 'Campos de planos Hotmart configurados',
+          addedColumns,
+          existingColumnsFound,
+          totalColumns: columnsToAdd.length
+        });
+
+      } catch (dbError: any) {
+        console.error('❌ Erro de banco ao adicionar campos:', dbError);
+        res.status(500).json({ 
+          message: 'Erro de banco ao configurar campos',
+          error: dbError.message,
+          code: dbError.code
+        });
+      }
+
+    } catch (error: any) {
+      console.error('❌ Erro geral ao adicionar campos Hotmart:', error);
+      res.status(500).json({ 
+        message: 'Erro ao configurar campos do Hotmart',
+        error: error.message
+      });
+    }
+  });
+
   // Endpoint para obter planos reais do webhook Hotmart
   app.get('/api/admin/hotmart-plans', async (req, res) => {
     try {
