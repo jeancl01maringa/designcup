@@ -28,8 +28,22 @@ function isValidCancellation(payload: any): boolean {
 
 // Rota principal do webhook
 router.post('/', async (req, res) => {
+  console.log('🔥 WEBHOOK HOTMART CHAMADO!');
+  console.log('🕒 Timestamp:', new Date().toISOString());
+  console.log('📨 Headers:', JSON.stringify(req.headers, null, 2));
+  
   const payload = req.body;
-  console.log('📩 Webhook Hotmart recebido:', payload.event);
+  console.log('📩 Webhook Hotmart recebido:', payload?.event || 'SEM EVENTO');
+  console.log('📋 Payload completo:', JSON.stringify(payload, null, 2));
+
+  // Se não tem evento, retornar erro detalhado
+  if (!payload || !payload.event) {
+    console.log('❌ Payload inválido ou sem evento');
+    return res.status(400).json({ 
+      error: 'Payload inválido',
+      received: payload
+    });
+  }
 
   // LÓGICA DE COMPRA APROVADA
   if (isValidPurchase(payload)) {
@@ -232,6 +246,17 @@ router.post('/', async (req, res) => {
   return res.status(200).json({ 
     success: true, 
     message: 'Evento recebido mas não processado' 
+  });
+});
+
+// Endpoint de teste para verificar se o webhook está acessível
+router.get('/test', (req, res) => {
+  console.log('🧪 Endpoint de teste do webhook chamado');
+  res.json({ 
+    status: 'OK', 
+    message: 'Webhook está funcionando',
+    timestamp: new Date().toISOString(),
+    url: req.originalUrl
   });
 });
 
