@@ -107,7 +107,14 @@ router.post('/', async (req, res) => {
       
       if (existingUser.rowCount === 0) {
         // Cria novo usuário seguindo o modelo documentado
-        const username = email.split('@')[0];
+        let username = email.split('@')[0];
+        
+        // Garante username único
+        const existingUsername = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (existingUsername.rowCount > 0) {
+          username = `${username}_${Date.now()}`;
+        }
+        
         const hashedPassword = await hashPassword('estetica@123'); // Senha padrão com hash
         
         await pool.query(`
