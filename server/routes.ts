@@ -13,6 +13,7 @@ import multer from "multer";
 import * as path from "path";
 import * as fs from "fs";
 import webhookHotmart from "./routes/webhook-hotmart";
+import webhookHotmartFixed from "./routes/webhook-hotmart-fixed";
 
 // Configurar multer para upload de imagens
 const storage_multer = multer.memoryStorage();
@@ -32,8 +33,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Registrar webhook do Hotmart PRIMEIRO (antes de outros middlewares)
+  // Registrar webhooks do Hotmart PRIMEIRO (antes de outros middlewares)
   app.use('/webhook/hotmart', webhookHotmart);
+  app.use('/webhook/hotmart-fixed', webhookHotmartFixed);
   
   // Set up authentication
   setupAuth(app);
