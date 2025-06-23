@@ -40,14 +40,56 @@ router.post('/', async (req, res) => {
     try {
       const email = payload.data?.buyer?.email?.toLowerCase().trim();
       const name = payload.data?.buyer?.name || 'Usuário';
-      const telefone = payload.data?.buyer?.phone || '';
+      const telefone = payload.data?.buyer?.phone || payload.data?.buyer?.checkout_phone || '';
       const transactionId = payload.data?.purchase?.transaction;
       
       // Captura dados do plano da Hotmart
       const planName = payload.data?.subscription?.plan?.name || payload.data?.product?.name || 'Plano Premium';
       const planType = planName?.toLowerCase().includes('anual') ? 'anual' : 'mensal';
       
+      // Extrai preço corretamente do formato da Hotmart ANTES de tudo
+      let planPrice = 0;
+      let planCurrency = 'BRL';
+      
+      console.log('🔍 Debug preço original:', JSON.stringify({
+        purchasePrice: payload.data?.purchase?.price,
+        productPrice: payload.data?.product?.price
+      }));
+      
+      // Tenta extrair do purchase.price primeiro
+      if (payload.data?.purchase?.price) {
+        const priceData = payload.data.purchase.price;
+        if (typeof priceData === 'object' && priceData !== null && priceData.value !== undefined) {
+          planPrice = parseFloat(priceData.value) || 0;
+          planCurrency = priceData.currency_value || 'BRL';
+          console.log('✅ Preço extraído do purchase.price (objeto):', planPrice, planCurrency);
+        } else if (typeof priceData === 'number') {
+          planPrice = priceData;
+          console.log('✅ Preço extraído do purchase.price (número):', planPrice);
+        } else if (typeof priceData === 'string') {
+          planPrice = parseFloat(priceData) || 0;
+          console.log('✅ Preço extraído do purchase.price (string):', planPrice);
+        }
+      }
+      
+      // Se não encontrou no purchase, tenta no product
+      if (planPrice === 0 && payload.data?.product?.price) {
+        const priceData = payload.data.product.price;
+        if (typeof priceData === 'object' && priceData !== null && priceData.value !== undefined) {
+          planPrice = parseFloat(priceData.value) || 0;
+          planCurrency = priceData.currency_value || 'BRL';
+          console.log('✅ Preço extraído do product.price (objeto):', planPrice, planCurrency);
+        } else if (typeof priceData === 'number') {
+          planPrice = priceData;
+          console.log('✅ Preço extraído do product.price (número):', planPrice);
+        } else if (typeof priceData === 'string') {
+          planPrice = parseFloat(priceData) || 0;
+          console.log('✅ Preço extraído do product.price (string):', planPrice);
+        }
+      }
+      
       console.log(`🎯 Dados da compra Hotmart: Email=${email}, Plano=${planName}, Tipo=${planType}, Transação=${transactionId}`);
+      console.log(`💰 Preço final extraído: ${planPrice}, Moeda: ${planCurrency}`);
       
       const now = new Date();
       // Calcula data de expiração baseada no tipo de plano da Hotmart
@@ -112,10 +154,10 @@ router.post('/', async (req, res) => {
           VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6, $7, $8, $9, $10, $11)
         `, [
           userId, planType, now, endDate, transactionId, telefone, now,
-          payload.data?.product?.id || planType, // hotmart_plan_id vem da Hotmart
+          payload.data?.subscription?.plan?.id || payload.data?.product?.id || planType, // hotmart_plan_id vem da Hotmart
           planName, // hotmart_plan_name vem da Hotmart  
-          payload.data?.product?.price || payload.data?.purchase?.price || 0, // hotmart_plan_price vem da Hotmart
-          payload.data?.product?.currency || 'BRL' // hotmart_currency vem da Hotmart
+          planPrice, // hotmart_plan_price extraído corretamente
+          planCurrency // hotmart_currency extraído corretamente
         ]);
         
         console.log(`✅ Nova assinatura criada para usuário ${userId} com plano Hotmart ${planName}`);
@@ -137,10 +179,10 @@ router.post('/', async (req, res) => {
           WHERE user_id = $1
         `, [
           userId, planType, endDate, transactionId, telefone,
-          payload.data?.product?.id || planType, // hotmart_plan_id vem da Hotmart
+          payload.data?.subscription?.plan?.id || payload.data?.product?.id || planType, // hotmart_plan_id vem da Hotmart
           planName, // hotmart_plan_name vem da Hotmart
-          payload.data?.product?.price || payload.data?.purchase?.price || 0, // hotmart_plan_price vem da Hotmart
-          payload.data?.product?.currency || 'BRL' // hotmart_currency vem da Hotmart
+          planPrice, // hotmart_plan_price extraído corretamente
+          planCurrency // hotmart_currency extraído corretamente
         ]);
         
         console.log(`✅ Assinatura atualizada para usuário ${userId} com plano Hotmart ${planName}`);
