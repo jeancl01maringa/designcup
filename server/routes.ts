@@ -32,6 +32,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Registrar webhook do Hotmart PRIMEIRO (antes de outros middlewares)
+  app.use('/webhook/hotmart', webhookHotmart);
+  
   // Set up authentication
   setupAuth(app);
   
@@ -4938,9 +4941,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Erro ao buscar assinaturas' });
     }
   });
-
-  // Registrar webhook do Hotmart
-  app.use('/webhook/hotmart', webhookHotmart);
 
   const httpServer = createServer(app);
 
