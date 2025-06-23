@@ -43,46 +43,27 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   });
 
   const handleImageError = () => {
-    console.log(`Imagem falhou ao carregar: ${imageSrc}`);
+    if (imageError) return; // Evita loops infinitos
     
-    // First, try the correct path in Supabase Storage: images/uploads/
-    if (imageSrc.includes('supabase.co') && !imageSrc.includes('uploads/') && !imageError) {
+    // Tentar diferentes estratégias de recuperação
+    if (imageSrc.includes('supabase.co')) {
+      // Limpar parâmetros que podem causar problemas
+      const cleanUrl = imageSrc.split('?')[0];
+      if (cleanUrl !== imageSrc) {
+        setImageSrc(cleanUrl);
+        return;
+      }
+      
+      // Tentar caminho local como fallback
       const filename = imageSrc.split('/').pop()?.split('?')[0];
       if (filename) {
-        const baseUrl = imageSrc.split('/storage/v1/object/public/images/')[0];
-        const correctUrl = `${baseUrl}/storage/v1/object/public/images/uploads/${filename}`;
-        console.log(`Tentando caminho correto do storage: ${correctUrl}`);
-        setImageSrc(correctUrl);
+        setImageSrc(`/uploads/posts/${filename}`);
         return;
       }
     }
     
-    // If it's a Supabase URL and we haven't tried alternatives yet
-    if (imageSrc.includes('supabase.co') && !imageSrc.includes('?download=') && !imageError) {
-      const altUrl = `${imageSrc}?download=public`;
-      console.log(`Tentando URL alternativa: ${altUrl}`);
-      setImageSrc(altUrl);
-      return;
-    }
-    
-    // If still failing, try to convert to a local path
-    if (imageSrc.includes('supabase.co') && !imageError) {
-      // Extract filename from Supabase URL
-      const urlParts = imageSrc.split('/');
-      const filename = urlParts[urlParts.length - 1]?.split('?')[0];
-      if (filename) {
-        const localUrl = `/uploads/posts/${filename}`;
-        console.log(`Tentando caminho local: ${localUrl}`);
-        setImageSrc(localUrl);
-        return;
-      }
-    }
-    
-    // Final fallback - show placeholder
-    if (!imageError) {
-      console.log('Usando placeholder como fallback final');
-      setImageError(true);
-    }
+    // Se chegou aqui, usar placeholder
+    setImageError(true);
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
@@ -120,66 +101,86 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Link href={`/artes/${artwork.id}-${encodeURIComponent(artwork.title.toLowerCase().replace(/\s+/g, '-'))}`} className="block">
-        <div className="relative overflow-hidden w-full">
-          {/* 
-            Esta imagem mantém sua proporção original e natural sem qualquer transformação
-            Não estamos forçando nenhum aspect-ratio via CSS
-          */}
-          {imageError ? (
-            <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
-              <ImageIcon className="w-12 h-12 text-gray-400" />
-            </div>
-          ) : (
-            <img 
-              src={imageSrc} 
-              alt={artwork.title}
-              className="w-full h-auto object-cover display-block"
-              loading="lazy"
-              onError={handleImageError}
-            />
-          )}
-          
-          {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
-          {artwork.isPro && <PremiumCrown />}
-          
-          {/* Hover actions - botões de curtir e salvar */}
-          <div 
-            className={`hover-actions absolute bottom-3 right-3 flex gap-2 transition-opacity duration-300 ease-in-out z-20
-              ${hovered ? 'opacity-100' : 'opacity-0'}`}
-          >
-            <button 
+      <Link href={`/post/${artwork.id}`}>
+        <div className="relative">
+          {/* Image Container */}
+          <div className="relative w-full" style={{ aspectRatio: artwork.format === "9:16" ? '9/16' : artwork.format === "16:9" ? '16/9' : '1/1' }}>
+            {imageError ? (
+              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                <ImageIcon className="h-8 w-8 text-gray-400" />
+              </div>
+            ) : (
+              <img
+                src={imageSrc}
+                alt={artwork.title}
+                className="w-full h-full object-cover"
+                onError={handleImageError}
+                loading="lazy"
+              />
+            )}
+            
+            {/* Premium overlay */}
+            {artwork.isPro && (
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <div className="bg-white/90 backdrop-blur-sm rounded-full p-3">
+                  <PremiumCrown className="h-6 w-6" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Hover overlay com botões de ação */}
+          <div className={cn(
+            "absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300 flex items-center justify-center gap-2",
+            hovered && "opacity-100"
+          )}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleEditClick}
+              className="bg-white/90 hover:bg-white text-black"
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              Editar
+            </Button>
+          </div>
+
+          {/* Action buttons in corner */}
+          <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleLike();
+              }}
               disabled={isLiking}
               className={cn(
-                "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
+                "p-2 rounded-full transition-all duration-300 backdrop-blur-sm",
                 liked 
-                  ? 'bg-red-500 text-white' 
-                  : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500',
-                isLiking && "animate-bounce scale-110"
+                  ? "bg-red-500/90 text-white" 
+                  : "bg-white/90 text-gray-700 hover:bg-white hover:text-red-500"
               )}
-              onClick={handleLike}
-              aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
             >
               <Heart className="h-4 w-4 transition-all duration-300" fill={liked ? "currentColor" : "none"} />
             </button>
             
-            <button 
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSave();
+              }}
               disabled={isSaving}
               className={cn(
-                "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
+                "p-2 rounded-full transition-all duration-300 backdrop-blur-sm",
                 saved 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-500',
-                isSaving && "animate-bounce scale-110"
+                  ? "bg-blue-500/90 text-white" 
+                  : "bg-white/90 text-gray-700 hover:bg-white hover:text-blue-500"
               )}
-              onClick={handleSave}
-              aria-label={saved ? "Remover dos salvos" : "Salvar item"}
             >
               <Bookmark className="h-4 w-4 transition-all duration-300" fill={saved ? "currentColor" : "none"} />
             </button>
           </div>
-          
-
         </div>
       </Link>
     </div>
