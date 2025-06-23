@@ -119,11 +119,12 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               />
             )}
             
-            {/* Premium overlay */}
+            {/* Premium badge no canto superior direito */}
             {artwork.isPro && (
-              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                <div className="bg-white/90 backdrop-blur-sm rounded-full p-3">
-                  <PremiumCrown className="h-6 w-6" />
+              <div className="absolute top-2 left-2 z-10">
+                <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                  <PremiumCrown className="h-3 w-3" />
+                  <span className="text-xs font-medium">PRO</span>
                 </div>
               </div>
             )}
