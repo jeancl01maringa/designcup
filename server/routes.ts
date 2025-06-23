@@ -4904,6 +4904,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.email,
           u.telefone,
           s.plan_type,
+          s.hotmart_plan_id,
+          s.hotmart_plan_name,
+          s.hotmart_plan_price,
+          s.hotmart_currency,
           s.status,
           s.start_date,
           s.end_date,
@@ -4917,7 +4921,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY s.created_at DESC
       `);
 
-      res.json(subscriptions.rows);
+      // Processar os dados para incluir informações do plano real
+      const processedSubscriptions = subscriptions.rows.map(subscription => ({
+        ...subscription,
+        // Se temos dados do Hotmart, usar eles, senão fallback para plan_type
+        plan_display_name: subscription.hotmart_plan_name || `Plano ${subscription.plan_type}`,
+        plan_price_display: subscription.hotmart_plan_price ? 
+          `R$ ${parseFloat(subscription.hotmart_plan_price).toFixed(2).replace('.', ',')}` : 
+          'N/A',
+        plan_source: subscription.hotmart_plan_id ? 'Hotmart' : 'Sistema'
+      }));
+      
+      res.json(processedSubscriptions);
     } catch (error: any) {
       console.error('Erro ao buscar assinaturas:', error);
       res.status(500).json({ message: 'Erro ao buscar assinaturas' });

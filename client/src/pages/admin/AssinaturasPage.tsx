@@ -21,6 +21,13 @@ interface Subscription {
   username: string;
   email: string;
   plan_type: string;
+  hotmart_plan_id?: string;
+  hotmart_plan_name?: string;
+  hotmart_plan_price?: string;
+  hotmart_currency?: string;
+  plan_display_name: string;
+  plan_price_display: string;
+  plan_source: string;
   status: string;
   start_date: string;
   end_date: string;
@@ -212,6 +219,7 @@ export default function AssinaturasPage() {
                         <TableHead>Usuário</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Plano</TableHead>
+                        <TableHead>Preço</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Origem</TableHead>
                         <TableHead>Data Início</TableHead>
@@ -222,7 +230,7 @@ export default function AssinaturasPage() {
                     <TableBody>
                       {filteredSubscriptions.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center text-muted-foreground">
+                          <TableCell colSpan={9} className="text-center text-muted-foreground">
                             Nenhuma assinatura encontrada
                           </TableCell>
                         </TableRow>
@@ -232,9 +240,22 @@ export default function AssinaturasPage() {
                             <TableCell className="font-medium">{subscription.username}</TableCell>
                             <TableCell>{subscription.email}</TableCell>
                             <TableCell>
-                              <Badge variant="outline">
-                                {subscription.plan_type === 'mensal' ? 'Mensal' : 'Anual'}
-                              </Badge>
+                              <div className="flex flex-col space-y-1">
+                                <Badge variant="outline" className={subscription.plan_source === 'Hotmart' ? 'bg-orange-50 border-orange-200 text-orange-800' : ''}>
+                                  {subscription.plan_display_name}
+                                </Badge>
+                                {subscription.plan_source === 'Hotmart' && (
+                                  <span className="text-xs text-orange-600 font-medium">Via Hotmart</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-semibold text-green-600">
+                                {subscription.plan_price_display}
+                              </div>
+                              {subscription.hotmart_currency && subscription.hotmart_currency !== 'BRL' && (
+                                <span className="text-xs text-muted-foreground">{subscription.hotmart_currency}</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <Badge className={getStatusColor(subscription.status)}>
