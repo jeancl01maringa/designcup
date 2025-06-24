@@ -339,7 +339,7 @@ export default function PostagensPage() {
         );
       case 'rascunho':
         return (
-          <div className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-full text-xs">
+          <div className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-full text-xs">
             <Clock className="h-3 w-3" />
             <span>Rascunho</span>
           </div>

@@ -183,10 +183,10 @@ export default function AssinaturasPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Via Hotmart</CardTitle>
-                    <CreditCard className="h-4 w-4 text-blue-600" />
+                    <CreditCard className="h-4 w-4 text-amber-600" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-blue-600">{stats?.hotmart_subscriptions || 0}</div>
+                    <div className="text-2xl font-bold text-amber-600">{stats?.hotmart_subscriptions || 0}</div>
                     <p className="text-xs text-muted-foreground">
                       Integração Hotmart
                     </p>
@@ -241,7 +241,7 @@ export default function AssinaturasPage() {
                             <TableCell className="font-medium">{subscription.username}</TableCell>
                             <TableCell>{subscription.email}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className={subscription.plan_source === 'Hotmart' ? 'bg-blue-50 border-blue-200 text-blue-800' : ''}>
+                              <Badge variant="outline" className={subscription.plan_source === 'Hotmart' ? 'bg-amber-50 border-amber-200 text-amber-800' : ''}>
                                 {subscription.plan_display_name}
                               </Badge>
                             </TableCell>
@@ -253,7 +253,7 @@ export default function AssinaturasPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge className={getOriginColor(subscription.origin)}>
+                              <Badge className={subscription.origin === 'hotmart' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-gray-100 text-gray-700'}>
                                 {subscription.origin === 'hotmart' ? 'Hotmart' : 'Manual'}
                               </Badge>
                             </TableCell>
