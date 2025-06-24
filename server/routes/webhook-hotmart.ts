@@ -111,7 +111,7 @@ router.post('/', async (req, res) => {
         
         // Garante username único
         const existingUsername = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
-        if (existingUsername.rowCount > 0) {
+        if (existingUsername.rowCount && existingUsername.rowCount > 0) {
           username = `${username}_${Date.now()}`;
         }
         
