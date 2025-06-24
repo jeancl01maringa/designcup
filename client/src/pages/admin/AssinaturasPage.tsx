@@ -241,7 +241,7 @@ export default function AssinaturasPage() {
                             <TableCell className="font-medium">{subscription.username}</TableCell>
                             <TableCell>{subscription.email}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className={subscription.plan_source === 'Hotmart' ? 'bg-amber-50 border-amber-200 text-amber-800' : ''}>
+                              <Badge variant="outline" className={subscription.plan_source === 'Hotmart' ? 'bg-purple-50 border-purple-200 text-purple-800' : ''}>
                                 {subscription.plan_display_name}
                               </Badge>
                             </TableCell>
