@@ -426,7 +426,7 @@ export default function CategoriasPage() {
                         size="sm"
                         onClick={() => handleToggleStatus(category)}
                         title="Desativar"
-                        className="text-amber-600 border-amber-200 hover:bg-blue-50"
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
                       >
                         <AlertCircle className="h-4 w-4" />
                         <span className="sr-only sm:not-sr-only sm:ml-2">Desativar</span>
