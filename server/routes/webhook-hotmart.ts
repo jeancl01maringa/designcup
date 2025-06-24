@@ -187,6 +187,10 @@ router.post('/', async (req, res) => {
         try {
           await BrevoService.enviarConfirmacaoCompra(email, name, planName, planPrice);
           console.log('📧 Email de confirmação de compra enviado para:', email);
+          
+          // Notificar administrador sobre nova compra
+          await BrevoService.notificarNovaCompra('jean.maringa@hotmail.com', name, email, planName, planPrice);
+          console.log('📧 Notificação enviada ao administrador sobre nova compra');
         } catch (emailError) {
           console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
         }

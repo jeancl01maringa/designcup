@@ -170,6 +170,10 @@ export function setupAuth(app: Express) {
         await BrevoService.enviarBoasVindas(email, username);
         await BrevoService.adicionarContato(email, username, [1]); // Lista ID 1 para novos usuários
         console.log('📧 Email de boas-vindas enviado para:', email);
+        
+        // Notificar administrador sobre novo usuário
+        await BrevoService.notificarNovoUsuario('jean.maringa@hotmail.com', username, email);
+        console.log('📧 Notificação enviada ao administrador sobre novo usuário');
       } catch (emailError) {
         console.log('⚠️ Erro ao enviar email de boas-vindas:', emailError);
         // Não falha o registro se o email falhar
