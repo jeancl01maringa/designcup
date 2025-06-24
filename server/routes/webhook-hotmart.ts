@@ -2,6 +2,7 @@ import express from 'express';
 import { pool } from '../db';
 import { scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
+import BrevoService from '../services/brevo-service';
 
 const scryptAsync = promisify(scrypt);
 const router = express.Router();
@@ -127,6 +128,15 @@ router.post('/', async (req, res) => {
         `, [email, username, hashedPassword, telefone, endDate, now, planType, now]);
         
         console.log(`✅ Novo usuário criado: ${name} (${email}) - Plano Hotmart: ${planName}`);
+        
+        // Enviar email de boas-vindas para novo usuário
+        try {
+          await BrevoService.enviarBoasVindas(email, username);
+          await BrevoService.adicionarContato(email, username, [1]); // Lista ID 1 para novos usuários
+          console.log('📧 Email de boas-vindas enviado para:', email);
+        } catch (emailError) {
+          console.log('⚠️ Erro ao enviar email de boas-vindas:', emailError);
+        }
       } else {
         // Atualiza usuário existente para premium com dados da Hotmart
         await pool.query(`
@@ -168,6 +178,14 @@ router.post('/', async (req, res) => {
         ]);
         
         console.log(`✅ Nova assinatura criada para usuário ${userId} com plano Hotmart ${planName}`);
+        
+        // Enviar email de confirmação de compra
+        try {
+          await BrevoService.enviarConfirmacaoCompra(email, name, planName, planPrice);
+          console.log('📧 Email de confirmação de compra enviado para:', email);
+        } catch (emailError) {
+          console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
+        }
       } else {
         // Atualiza assinatura existente com dados completos da Hotmart
         await pool.query(`
@@ -253,6 +271,19 @@ router.post('/', async (req, res) => {
         `, [email, payload.event]);
 
         console.log(`✅ Usuário ${email} rebaixado para free devido a: ${payload.event}`);
+        
+        // Enviar email de cancelamento
+        try {
+          // Buscar nome do usuário para personalizar o email
+          const userResult = await pool.query('SELECT username FROM users WHERE email = $1', [email]);
+          const username = userResult.rows[0]?.username || email.split('@')[0];
+          
+          await BrevoService.enviarCancelamento(email, username);
+          console.log('📧 Email de cancelamento enviado para:', email);
+        } catch (emailError) {
+          console.log('⚠️ Erro ao enviar email de cancelamento:', emailError);
+        }
+        
         return res.status(200).json({ 
           success: true, 
           message: 'Usuário rebaixado com sucesso' 
