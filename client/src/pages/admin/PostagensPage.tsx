@@ -574,7 +574,7 @@ export default function PostagensPage() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => handleBatchStatusUpdate('rascunho')}
-                className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                className="text-amber-600 border-amber-200 hover:bg-blue-50"
               >
                 <Clock className="h-4 w-4 mr-1" />
                 Rascunho

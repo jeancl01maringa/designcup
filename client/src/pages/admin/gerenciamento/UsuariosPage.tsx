@@ -670,7 +670,7 @@ export default function UsuariosPage() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmResetPassword}
-              className="bg-yellow-600 text-white hover:bg-yellow-700"
+              className="bg-blue-600 text-white hover:bg-blue-700"
             >
               {resetPasswordMutation.isPending ? "Redefinindo..." : "Redefinir senha"}
             </AlertDialogAction>

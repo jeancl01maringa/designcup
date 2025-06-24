@@ -294,7 +294,7 @@ const UserMenu = () => {
       {isAdmin && (
         <Button
           variant="outline"
-          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50 rounded-full px-3 h-[35px] text-xs"
+          className="flex items-center gap-1 border-yellow-500 text-yellow-600 hover:bg-blue-50 rounded-full px-3 h-[35px] text-xs"
           onClick={() => navigate("/admin")}
         >
           <svg 
