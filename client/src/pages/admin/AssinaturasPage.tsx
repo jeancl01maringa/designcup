@@ -83,9 +83,9 @@ export default function AssinaturasPage() {
   const getOriginColor = (origin: string) => {
     switch (origin) {
       case 'hotmart':
-        return 'bg-orange-100 text-orange-800';
-      case 'manual':
         return 'bg-blue-100 text-blue-800';
+      case 'manual':
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -183,10 +183,10 @@ export default function AssinaturasPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Via Hotmart</CardTitle>
-                    <CreditCard className="h-4 w-4 text-orange-600" />
+                    <CreditCard className="h-4 w-4 text-blue-600" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-orange-600">{stats?.hotmart_subscriptions || 0}</div>
+                    <div className="text-2xl font-bold text-blue-600">{stats?.hotmart_subscriptions || 0}</div>
                     <p className="text-xs text-muted-foreground">
                       Integração Hotmart
                     </p>

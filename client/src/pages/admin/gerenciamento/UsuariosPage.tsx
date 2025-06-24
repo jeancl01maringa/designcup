@@ -492,7 +492,7 @@ export default function UsuariosPage() {
                         className="mr-1"
                         title="Redefinir senha para padrão"
                       >
-                        <KeyRound size={16} className="text-yellow-600" />
+                        <KeyRound size={16} className="text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"

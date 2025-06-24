@@ -35,7 +35,7 @@ export default function MarketingPage() {
       value: "231",
       description: "Este mês",
       icon: <MousePointer className="h-4 w-4" />,
-      color: "bg-orange-500/10 text-orange-500"
+      color: "bg-blue-500/10 text-blue-500"
     }
   ];
 

@@ -61,7 +61,7 @@ export default function Dashboard() {
       value: stats?.categoriesCount || 0,
       icon: <CalendarIcon className="h-4 w-4" />,
       description: "Categorias cadastradas",
-      color: "bg-orange-100 text-orange-700"
+      color: "bg-blue-100 text-blue-700"
     },
   ];
 

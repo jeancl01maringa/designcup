@@ -243,7 +243,7 @@ export default function PlanosPage() {
     return (
       <div className="flex flex-wrap gap-1">
         {plan.isPrincipal && (
-          <Badge className="bg-amber-500">
+          <Badge className="bg-blue-500">
             <Star className="h-3 w-3 mr-1" /> Principal
           </Badge>
         )}
