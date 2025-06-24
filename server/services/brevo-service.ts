@@ -290,6 +290,116 @@ export class BrevoService {
       textContent: `Olá ${nome}, sua assinatura premium foi cancelada. Sua conta continua ativa no plano gratuito e você pode reativar a qualquer momento.`
     });
   }
+
+  /**
+   * Email de notificação para administradores sobre novos usuários
+   */
+  static async notificarNovoUsuario(emailAdmin: string, nomeUsuario: string, emailUsuario: string): Promise<boolean> {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .info-box { background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>👤 Novo Usuário Cadastrado</h1>
+          </div>
+          <div class="content">
+            <h2>Olá, Administrador!</h2>
+            <p>Um novo usuário se cadastrou na plataforma Design para Estética.</p>
+            
+            <div class="info-box">
+              <h3>Dados do novo usuário:</h3>
+              <p><strong>Nome:</strong> ${nomeUsuario}</p>
+              <p><strong>Email:</strong> ${emailUsuario}</p>
+              <p><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+              <p><strong>Tipo:</strong> Usuário Gratuito</p>
+            </div>
+            
+            <p>O usuário recebeu um email de boas-vindas automaticamente e já pode acessar a plataforma.</p>
+          </div>
+          <div class="footer">
+            <p>Design para Estética - Notificação Administrativa</p>
+            <p>Este é um email automático, não responda esta mensagem.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return await this.enviarEmail({
+      to: emailAdmin,
+      subject: `👤 Novo usuário: ${nomeUsuario}`,
+      htmlContent,
+      textContent: `Novo usuário cadastrado: ${nomeUsuario} (${emailUsuario}) em ${new Date().toLocaleString('pt-BR')}`
+    });
+  }
+
+  /**
+   * Email de notificação para administradores sobre nova compra/assinatura
+   */
+  static async notificarNovaCompra(emailAdmin: string, nomeCliente: string, emailCliente: string, plano: string, valor: number): Promise<boolean> {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .info-box { background: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💰 Nova Compra Realizada</h1>
+          </div>
+          <div class="content">
+            <h2>Ótimas notícias!</h2>
+            <p>Uma nova compra foi realizada na plataforma via Hotmart.</p>
+            
+            <div class="info-box">
+              <h3>Detalhes da compra:</h3>
+              <p><strong>Cliente:</strong> ${nomeCliente}</p>
+              <p><strong>Email:</strong> ${emailCliente}</p>
+              <p><strong>Plano:</strong> ${plano}</p>
+              <p><strong>Valor:</strong> R$ ${valor.toFixed(2)}</p>
+              <p><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+              <p><strong>Status:</strong> Ativo</p>
+            </div>
+            
+            <p>O cliente foi automaticamente promovido para premium e recebeu email de confirmação.</p>
+          </div>
+          <div class="footer">
+            <p>Design para Estética - Notificação Administrativa</p>
+            <p>Este é um email automático, não responda esta mensagem.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return await this.enviarEmail({
+      to: emailAdmin,
+      subject: `💰 Nova compra: ${plano} - R$ ${valor.toFixed(2)}`,
+      htmlContent,
+      textContent: `Nova compra realizada: ${nomeCliente} (${emailCliente}) comprou ${plano} por R$ ${valor.toFixed(2)} em ${new Date().toLocaleString('pt-BR')}`
+    });
+  }
 }
 
 export default BrevoService;

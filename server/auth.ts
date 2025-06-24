@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
+import BrevoService from "./services/brevo-service";
 
 const PostgresSessionStore = connectPg(session);
 
@@ -163,6 +164,16 @@ export function setupAuth(app: Express) {
         password: await hashPassword(password),
         isAdmin: false, // Por padrão, novos usuários não são administradores
       });
+
+      // Enviar email de boas-vindas para novos usuários
+      try {
+        await BrevoService.enviarBoasVindas(email, username);
+        await BrevoService.adicionarContato(email, username, [1]); // Lista ID 1 para novos usuários
+        console.log('📧 Email de boas-vindas enviado para:', email);
+      } catch (emailError) {
+        console.log('⚠️ Erro ao enviar email de boas-vindas:', emailError);
+        // Não falha o registro se o email falhar
+      }
 
       req.login(user, (err) => {
         if (err) return next(err);
