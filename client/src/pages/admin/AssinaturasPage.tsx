@@ -241,14 +241,9 @@ export default function AssinaturasPage() {
                             <TableCell className="font-medium">{subscription.username}</TableCell>
                             <TableCell>{subscription.email}</TableCell>
                             <TableCell>
-                              <div className="flex flex-col space-y-1">
-                                <Badge variant="outline" className={subscription.plan_source === 'Hotmart' ? 'bg-blue-50 border-blue-200 text-blue-800' : ''}>
-                                  {subscription.plan_display_name}
-                                </Badge>
-                                {subscription.plan_source === 'Hotmart' && (
-                                  <span className="text-xs text-blue-600 font-medium">Via Hotmart</span>
-                                )}
-                              </div>
+                              <Badge variant="outline" className={subscription.plan_source === 'Hotmart' ? 'bg-blue-50 border-blue-200 text-blue-800' : ''}>
+                                {subscription.plan_display_name}
+                              </Badge>
                             </TableCell>
                             <TableCell>
                               <Badge className={getStatusColor(subscription.status)}>
