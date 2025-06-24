@@ -3177,10 +3177,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
-      console.log('Buscando todos os assinantes premium');
+      console.log('Buscando todos os assinantes premium com dados reais de vencimento');
       
       try {
-        // Buscar apenas usuários premium
+        // Buscar usuários premium com dados reais da tabela subscriptions
         const query = `
           SELECT 
             u.id, 
@@ -3190,12 +3190,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             u.created_at as "createdAt",
             u.tipo,
             u.plano_id,
-            u.data_vencimento,
+            COALESCE(s.end_date, u.data_vencimento) as data_vencimento,
             COALESCE(u.active, false) as active,
-            u.telefone
+            u.telefone,
+            s.hotmart_plan_name,
+            s.status as subscription_status,
+            s.origin as subscription_origin
           FROM users u
+          LEFT JOIN subscriptions s ON u.id = s.user_id AND s.status = 'active'
           WHERE u.tipo = 'premium'
-          ORDER BY u.data_vencimento ASC
+          ORDER BY COALESCE(s.end_date, u.data_vencimento) ASC
         `;
         
         const result = await pool.query(query);
