@@ -951,7 +951,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="max-w-3xl p-0">
+      <DialogContent className="max-w-4xl p-0">
         <DialogTitle className="sr-only">
           {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Publicação"}
         </DialogTitle>
