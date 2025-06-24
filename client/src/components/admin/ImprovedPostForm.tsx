@@ -983,30 +983,9 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         {step === 1 && (
           <>
             <div className="p-6 space-y-6">
-              {/* Nome da Postagem */}
-              <div className="space-y-2">
-                <Label htmlFor="title">Nome da Postagem</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  placeholder="Digite o nome da postagem"
-                />
-              </div>
-              
               {/* Categoria */}
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Label htmlFor="categoryId">Categoria</Label>
-                  <Button 
-                    variant="ghost" 
-                    className="h-auto py-0 px-2 text-blue-600 text-sm"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Nova Categoria
-                  </Button>
-                </div>
+                <Label htmlFor="categoryId">Categoria</Label>
                 <Select
                   value={formData.categoryId?.toString() || ""}
                   onValueChange={(value) => handleSelectChange("categoryId", value)}
@@ -1022,6 +1001,18 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              
+              {/* Nome da Postagem */}
+              <div className="space-y-2">
+                <Label htmlFor="title">Nome da Postagem</Label>
+                <Input
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="Digite o nome da postagem"
+                />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
