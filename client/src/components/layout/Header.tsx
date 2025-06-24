@@ -247,9 +247,7 @@ const UserMenu = () => {
           className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-5 py-2 h-10 text-sm border-0"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M5 16L3 12l5.5-3L12 4l3.5 5L21 12l-2 4zm7-10.5L9 9l-3 1.5L7 13h10l1-2.5L15 9l-3-3.5z"/>
-          </svg>
+          <Crown className="h-4 w-4" />
           <span>Assine o Premium</span>
         </Button>
         <Button 
@@ -323,9 +321,7 @@ const UserMenu = () => {
           className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 h-[35px] text-xs border-0"
           onClick={() => navigate("/planos")}
         >
-          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M5 16L3 12l5.5-3L12 4l3.5 5L21 12l-2 4zm7-10.5L9 9l-3 1.5L7 13h10l1-2.5L15 9l-3-3.5z"/>
-          </svg>
+          <Crown className="h-3 w-3" />
           <span>Assine o Premium</span>
         </Button>
       )}
