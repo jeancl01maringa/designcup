@@ -49,6 +49,7 @@ import TodasArtes from "@/pages/TodasArtesOptimized";
 import AssinaturasPage from "@/pages/admin/AssinaturasPage";
 import CursosPage from "@/pages/admin/CursosPage";
 import AdminModulosPage from "@/pages/admin/ModulosPage";
+import EditLessonPage from "@/pages/admin/EditLessonPage";
 import CursosUserPage from "@/pages/CursosPage";
 import CursoDetailPage from "@/pages/CursoDetailPage";
 

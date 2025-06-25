@@ -5525,12 +5525,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const query = `
         UPDATE lessons 
-        SET title = $1, description = $2, content = $3, type = $4, updated_at = NOW()
+        SET title = $1, description = COALESCE($2, description), content = COALESCE($3, content), type = COALESCE($4, type), updated_at = NOW()
         WHERE id = $5
         RETURNING id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex"
       `;
       
-      const result = await pool.query(query, [title, description, content, type, id]);
+      const result = await pool.query(query, [title, description || null, content || null, type || null, id]);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });
@@ -5567,6 +5567,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Erro ao excluir aula:', error);
       res.status(500).json({ message: 'Erro ao excluir aula' });
+    }
+  });
+
+  // Get single lesson
+  app.get('/api/admin/lessons/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      const query = `
+        SELECT 
+          id, 
+          module_id as "moduleId", 
+          title, 
+          description, 
+          content, 
+          type, 
+          order_index as "orderIndex",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM lessons 
+        WHERE id = $1
+      `;
+      
+      const result = await pool.query(query, [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao buscar aula:', error);
+      res.status(500).json({ message: 'Erro ao buscar aula' });
     }
   });
 

@@ -504,7 +504,7 @@ export default function ModulosPage() {
                                               </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                              <DropdownMenuItem onClick={() => handleTitleEdit('lesson', lesson.id, lesson.title)}>
+                                              <DropdownMenuItem onClick={() => setLocation(`/admin/aulas/${lesson.id}/editar`)}>
                                                 <Edit className="h-4 w-4 mr-2" />
                                                 Editar
                                               </DropdownMenuItem>
