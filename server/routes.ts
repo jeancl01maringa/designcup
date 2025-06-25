@@ -848,10 +848,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const subscription = result.rows[0];
           console.log(`Assinatura ativa encontrada: ${subscription.hotmart_plan_name}`);
           
+          // Mapear o tipo de plano para o nome correto
+          let planName = 'Premium';
+          let valor = 'N/A';
+          
+          if (subscription.plan_type === 'mensal' || subscription.hotmart_plan_name?.includes('Mensal')) {
+            planName = 'Plano Mensal Premium';
+            valor = 'R$ 29,90';
+          } else if (subscription.plan_type === 'trimestral' || subscription.hotmart_plan_name?.includes('Trimestral')) {
+            planName = 'Plano Trimestral Premium';
+            valor = 'R$ 67,00';
+          } else if (subscription.plan_type === 'semestral' || subscription.hotmart_plan_name?.includes('Semestral')) {
+            planName = 'Plano Semestral Premium';
+            valor = 'R$ 127,00';
+          } else if (subscription.plan_type === 'anual' || subscription.hotmart_plan_name?.includes('Anual')) {
+            planName = 'Plano Anual Premium';
+            valor = 'R$ 197,00';
+          }
+          
           return res.json({
-            planName: subscription.hotmart_plan_name || subscription.plan_type,
+            planName: planName,
             periodo: subscription.hotmart_plan_name?.includes('Anual') ? 'Anual' : 'Mensal',
-            valor: subscription.hotmart_plan_price ? `${subscription.hotmart_currency} ${subscription.hotmart_plan_price}` : 'N/A',
+            valor: subscription.hotmart_plan_price ? `R$ ${subscription.hotmart_plan_price}` : valor,
             isActive: subscription.status === 'active',
             startDate: subscription.start_date,
             expirationDate: subscription.end_date,
