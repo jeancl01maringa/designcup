@@ -5750,8 +5750,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           l.created_at as "createdAt",
           l.updated_at as "updatedAt",
           m.course_id as "courseId"
-        FROM course_lessons l
-        JOIN course_modules m ON l.module_id = m.id
+        FROM lessons l
+        JOIN modules m ON l.module_id = m.id
         WHERE l.id = $1
       `;
       

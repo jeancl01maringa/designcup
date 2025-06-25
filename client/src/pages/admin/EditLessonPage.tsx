@@ -162,6 +162,7 @@ export default function EditLessonPage() {
         isPremium: false,
         coverImage: "",
         extraMaterials: [],
+        coverImageFile: null,
       });
     }
   }, [lesson]);
