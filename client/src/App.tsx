@@ -69,6 +69,12 @@ function Router() {
       <Route path="/preview/:id" component={ArtDetailPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/planos" component={PlansPage} />
+      <Route path="/cursos">
+        <ProtectedRoute path="/cursos" component={CursosUserPage} />
+      </Route>
+      <Route path="/curso/:id">
+        <ProtectedRoute path="/curso/:id" component={CursoDetailPage} />
+      </Route>
       <Route path="/todas-artes" component={TodasArtes} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
