@@ -338,72 +338,14 @@ export default function LessonViewPage() {
                   </div>
                 )}
 
-                {/* 2. Navegação entre aulas */}
-                <div className="flex justify-between items-center py-4 border-t border-b">
+                {/* 2. Navegação e Avaliação */}
+                <div className="flex items-center justify-between py-4 border-t border-b">
+                  <div className="text-sm text-muted-foreground">
+                    Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
+                  </div>
+                  
                   <div className="flex items-center gap-4">
-                    <div className="text-sm text-muted-foreground">
-                      Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setLocation(`/cursos/${courseId}`)}
-                        className="flex items-center gap-2"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        Voltar
-                      </Button>
-                      
-                      <Button 
-                        onClick={markAsCompleted}
-                        variant={completedLessons.has(lessonId) ? "default" : "outline"}
-                        className="flex items-center gap-2"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        {completedLessons.has(lessonId) ? 'Concluída' : 'Marcar como concluída'}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {prevLesson && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => navigateToLesson(prevLesson.id)}
-                        className="flex items-center gap-2"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        Anterior
-                      </Button>
-                    )}
-
-                    {nextLesson ? (
-                      <Button 
-                        onClick={() => navigateToLesson(nextLesson.id)}
-                        className="flex items-center gap-2"
-                      >
-                        Próximo
-                        <ArrowLeft className="h-4 w-4 rotate-180" />
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="outline"
-                        onClick={() => setLocation(`/cursos/${courseId}`)}
-                        className="flex items-center gap-2"
-                      >
-                        Concluir
-                        <CheckCircle className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 2.5. Sistema de Avaliação */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Avaliação da Aula</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Como você avalia esta aula?</span>
+                    {/* Sistema de Avaliação com 5 estrelas */}
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -414,7 +356,7 @@ export default function LessonViewPage() {
                           className="p-1 hover:scale-110 transition-transform"
                         >
                           <Star
-                            className={`h-5 w-5 ${
+                            className={`h-4 w-4 ${
                               star <= (hoveredRating || userRating)
                                 ? 'fill-yellow-400 text-yellow-400'
                                 : 'text-gray-300'
@@ -423,10 +365,41 @@ export default function LessonViewPage() {
                         </button>
                       ))}
                     </div>
-                    {userRating > 0 && (
-                      <span className="text-sm text-muted-foreground ml-2">
-                        {userRating} de 5 estrelas
-                      </span>
+                    
+                    {/* Botão Concluir */}
+                    <Button 
+                      onClick={markAsCompleted}
+                      variant={completedLessons.has(lessonId) ? "default" : "outline"}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      {completedLessons.has(lessonId) ? 'Concluída' : 'Concluir'}
+                    </Button>
+                    
+                    {/* Botão Anterior */}
+                    {prevLesson && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigateToLesson(prevLesson.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Anterior
+                      </Button>
+                    )}
+
+                    {/* Botão Próximo */}
+                    {nextLesson && (
+                      <Button 
+                        onClick={() => navigateToLesson(nextLesson.id)}
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        Próximo
+                        <ArrowLeft className="h-4 w-4 rotate-180" />
+                      </Button>
                     )}
                   </div>
                 </div>
