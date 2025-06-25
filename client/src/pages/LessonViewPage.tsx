@@ -236,7 +236,7 @@ export default function LessonViewPage() {
                     <div className="space-y-1">
                       {module.lessons.map((lesson) => {
                         const isActive = lesson.id === lessonId;
-                        const isCompleted = completedLessons.has(lesson.id);
+                        const isCompleted = isLessonCompleted(lesson.id);
                         
                         return (
                           <button
@@ -385,16 +385,16 @@ export default function LessonViewPage() {
                     {/* Botão Concluir */}
                     <Button 
                       onClick={markAsCompleted}
-                      variant={completedLessons.has(lessonId) ? "default" : "outline"}
+                      variant={isLessonCompleted(lessonId) ? "default" : "outline"}
                       size="sm"
                       className={`flex items-center gap-2 ${
-                        completedLessons.has(lessonId) 
+                        isLessonCompleted(lessonId) 
                           ? 'bg-green-300 hover:bg-green-400 text-green-900 border-green-400' 
                           : 'hover:bg-green-100 hover:text-green-800 hover:border-green-300'
                       }`}
                     >
                       <CheckCircle className="h-4 w-4" />
-                      {completedLessons.has(lessonId) ? 'Concluída' : 'Concluir'}
+                      {isLessonCompleted(lessonId) ? 'Concluída' : 'Concluir'}
                     </Button>
                     
                     {/* Botão Anterior */}
