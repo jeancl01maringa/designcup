@@ -64,6 +64,22 @@ export default function ModulosPage() {
     }))
   });
 
+  // Criar módulo
+  const createModuleMutation = useMutation({
+    mutationFn: async (data: { title: string }) => {
+      const res = await apiRequest("POST", `/api/admin/courses/${courseId}/modules`, {
+        title: data.title,
+        description: "",
+        orderIndex: (modules.length + 1)
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Módulo criado com sucesso!" });
+    },
+  });
+
   // Criar aula
   const createLessonMutation = useMutation({
     mutationFn: async (data: { moduleId: number; title: string }) => {
@@ -316,11 +332,13 @@ export default function ModulosPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => createLessonMutation.mutate({ moduleId: modules[0]?.id || 1, title: "Nova aula" })}>
+                <DropdownMenuItem 
+                  onClick={() => modules.length > 0 ? createLessonMutation.mutate({ moduleId: modules[0]?.id || 1, title: "Nova aula" }) : toast({ title: "Crie um módulo primeiro!", variant: "destructive" })}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Aula
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleAddModule}>
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Módulo
                 </DropdownMenuItem>

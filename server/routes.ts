@@ -5686,8 +5686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id, 
           title, 
           description, 
-          cover_image as "coverImage", 
-          is_premium as "isPremium"
+          cover_image as "coverImage"
         FROM courses 
         WHERE id = $1
       `;
@@ -5777,6 +5776,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Erro ao buscar aula:', error);
       res.status(500).json({ message: 'Erro ao buscar aula' });
+    }
+  });
+
+  // Criar módulo
+  app.post('/api/admin/courses/:courseId/modules', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const courseId = parseInt(req.params.courseId);
+      const { title, description = '', orderIndex = 1 } = req.body;
+      
+      if (!title) {
+        return res.status(400).json({ message: 'Título é obrigatório' });
+      }
+
+      const result = await pool.query(`
+        INSERT INTO modules (course_id, title, description, order_index) 
+        VALUES ($1, $2, $3, $4) 
+        RETURNING id, course_id as "courseId", title, description, order_index as "orderIndex"
+      `, [courseId, title, description, orderIndex]);
+
+      res.status(201).json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao criar módulo:', error);
+      res.status(500).json({ message: 'Erro ao criar módulo' });
     }
   });
 
