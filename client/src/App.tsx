@@ -112,6 +112,9 @@ function Router() {
       <Route path="/admin/cursos/:courseId/modulos">
         <ProtectedRoute path="/admin/cursos/:courseId/modulos" component={AdminModulosPage} requireAdmin={true} />
       </Route>
+      <Route path="/admin/aulas/:lessonId/editar">
+        <ProtectedRoute path="/admin/aulas/:lessonId/editar" component={EditLessonPage} requireAdmin={true} />
+      </Route>
       <Route path="/admin/categorias">
         <ProtectedRoute path="/admin/categorias" component={CategoriasPage} requireAdmin={true} />
       </Route>
