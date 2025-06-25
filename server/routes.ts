@@ -4983,15 +4983,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `);
 
       // Processar os dados para incluir informações do plano real
-      const processedSubscriptions = subscriptions.rows.map(subscription => ({
-        ...subscription,
-        // Se temos dados do Hotmart, usar eles, senão fallback para plan_type
-        plan_display_name: subscription.hotmart_plan_name || `Plano ${subscription.plan_type}`,
-        plan_price_display: subscription.hotmart_plan_price ? 
-          `R$ ${parseFloat(subscription.hotmart_plan_price).toFixed(2).replace('.', ',')}` : 
-          'N/A',
-        plan_source: subscription.hotmart_plan_id ? 'Hotmart' : 'Sistema'
-      }));
+      const processedSubscriptions = subscriptions.rows.map(subscription => {
+        // Função para limpar o nome do plano removendo o prefixo do produto
+        const cleanPlanName = (planName: string) => {
+          if (!planName) return 'Premium';
+          
+          // Remover "Kit de Documentos Estética Premium" e limpar
+          const cleaned = planName
+            .replace(/Kit de Documentos Estética Premium\s*-?\s*/i, '')
+            .trim();
+          
+          // Se ficou vazio após limpeza, mapear pelo tipo
+          if (!cleaned) {
+            if (subscription.plan_type === 'mensal') return 'Plano Mensal Premium';
+            if (subscription.plan_type === 'trimestral') return 'Plano Trimestral Premium'; 
+            if (subscription.plan_type === 'semestral') return 'Plano Semestral Premium';
+            if (subscription.plan_type === 'anual') return 'Plano Anual Premium';
+            return 'Premium';
+          }
+          
+          return cleaned;
+        };
+
+        return {
+          ...subscription,
+          // Se temos dados do Hotmart, limpar o nome, senão usar plan_type
+          plan_display_name: subscription.hotmart_plan_name ? 
+            cleanPlanName(subscription.hotmart_plan_name) : 
+            `Plano ${subscription.plan_type}`,
+          plan_price_display: subscription.hotmart_plan_price ? 
+            `R$ ${parseFloat(subscription.hotmart_plan_price).toFixed(2).replace('.', ',')}` : 
+            'N/A',
+          plan_source: subscription.hotmart_plan_id ? 'Hotmart' : 'Sistema'
+        };
+      });
       
       res.json(processedSubscriptions);
     } catch (error: any) {
