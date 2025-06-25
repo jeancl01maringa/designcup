@@ -80,6 +80,8 @@ export default function EditLessonPage() {
     },
   });
 
+
+
   // Update editor content when lesson data loads
   useEffect(() => {
     if (editor && lesson && formData.type === 'text') {
@@ -126,12 +128,7 @@ export default function EditLessonPage() {
     };
   }, []);
 
-  // Buscar dados da aula
-  const { data: lesson, isLoading } = useQuery<Lesson>({
-    queryKey: [`/api/admin/lessons/${lessonId}`],
-    enabled: lessonId > 0,
-  });
-
+  // Update form when lesson data loads
   useEffect(() => {
     if (lesson) {
       // Parse video URL to extract platform and URL
