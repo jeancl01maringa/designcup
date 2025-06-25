@@ -39,6 +39,11 @@ interface Course {
   modules: Module[];
 }
 
+interface LessonRating {
+  average_rating: number;
+  rating_count: number;
+}
+
 export default function LessonViewPage() {
   const params = useParams();
   const [, setLocation] = useLocation();
@@ -66,7 +71,7 @@ export default function LessonViewPage() {
   });
 
   // Buscar avaliação média da aula
-  const { data: lessonRating } = useQuery<{average_rating: number, rating_count: number}>({
+  const { data: lessonRating } = useQuery<LessonRating>({
     queryKey: [`/api/lessons/${lessonId}/rating`],
     enabled: lessonId > 0,
   });
