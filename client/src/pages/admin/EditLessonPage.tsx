@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Eye, Upload, FileText, Image, Video, X, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Palette } from "lucide-react";
+import { ArrowLeft, Eye, Upload, FileText, Image, Video, X, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Palette, Type } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useEditor, EditorContent } from '@tiptap/react';
