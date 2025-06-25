@@ -75,7 +75,7 @@ export default function CursoDetailPage() {
   };
 
   const startLesson = (lessonId: number) => {
-    setLocation(`/cursos/${courseId}/aulas/${lessonId}`);
+    setLocation(`/cursos/${courseId}/aula/${lessonId}`);
   };
 
   if (isLoading) {
