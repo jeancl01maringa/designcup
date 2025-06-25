@@ -6016,6 +6016,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excluir módulo
+  app.delete('/api/admin/modules/:moduleId', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const moduleId = parseInt(req.params.moduleId);
+      
+      // Primeiro excluir todas as aulas do módulo
+      await pool.query('DELETE FROM lessons WHERE module_id = $1', [moduleId]);
+      
+      // Depois excluir o módulo
+      const result = await pool.query('DELETE FROM modules WHERE id = $1 RETURNING *', [moduleId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Módulo não encontrado' });
+      }
+
+      res.json({ success: true, message: 'Módulo excluído com sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao excluir módulo:', error);
+      res.status(500).json({ message: 'Erro ao excluir módulo' });
+    }
+  });
+
+  // Duplicar módulo
+  app.post('/api/admin/modules/:moduleId/duplicate', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const moduleId = parseInt(req.params.moduleId);
+      
+      // Buscar módulo original
+      const moduleResult = await pool.query(`
+        SELECT * FROM modules WHERE id = $1
+      `, [moduleId]);
+      
+      if (moduleResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Módulo não encontrado' });
+      }
+      
+      const originalModule = moduleResult.rows[0];
+      
+      // Criar novo módulo
+      const newModuleResult = await pool.query(`
+        INSERT INTO modules (course_id, title, description, order_index) 
+        VALUES ($1, $2, $3, $4) 
+        RETURNING id, course_id as "courseId", title, description, order_index as "orderIndex"
+      `, [
+        originalModule.course_id, 
+        originalModule.title + ' (Cópia)', 
+        originalModule.description, 
+        originalModule.order_index + 1
+      ]);
+      
+      const newModule = newModuleResult.rows[0];
+      
+      // Buscar aulas do módulo original
+      const lessonsResult = await pool.query(`
+        SELECT * FROM lessons WHERE module_id = $1 ORDER BY order_index
+      `, [moduleId]);
+      
+      // Duplicar aulas
+      for (const lesson of lessonsResult.rows) {
+        await pool.query(`
+          INSERT INTO lessons (module_id, title, description, content, type, duration, extra_materials, order_index) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [
+          newModule.id,
+          lesson.title + ' (Cópia)',
+          lesson.description,
+          lesson.content,
+          lesson.type,
+          lesson.duration,
+          lesson.extra_materials,
+          lesson.order_index
+        ]);
+      }
+
+      res.status(201).json(newModule);
+    } catch (error: any) {
+      console.error('Erro ao duplicar módulo:', error);
+      res.status(500).json({ message: 'Erro ao duplicar módulo' });
+    }
+  });
+
+  // Excluir aula
+  app.delete('/api/admin/lessons/:lessonId', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const lessonId = parseInt(req.params.lessonId);
+      
+      const result = await pool.query('DELETE FROM lessons WHERE id = $1 RETURNING *', [lessonId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+
+      res.json({ success: true, message: 'Aula excluída com sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao excluir aula:', error);
+      res.status(500).json({ message: 'Erro ao excluir aula' });
+    }
+  });
+
+  // Duplicar aula
+  app.post('/api/admin/lessons/:lessonId/duplicate', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const lessonId = parseInt(req.params.lessonId);
+      
+      // Buscar aula original
+      const lessonResult = await pool.query(`
+        SELECT * FROM lessons WHERE id = $1
+      `, [lessonId]);
+      
+      if (lessonResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+      
+      const originalLesson = lessonResult.rows[0];
+      
+      // Criar nova aula
+      const newLessonResult = await pool.query(`
+        INSERT INTO lessons (module_id, title, description, content, type, duration, extra_materials, order_index) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+        RETURNING id, module_id as "moduleId", title, description, content, type, duration, order_index as "orderIndex"
+      `, [
+        originalLesson.module_id,
+        originalLesson.title + ' (Cópia)',
+        originalLesson.description,
+        originalLesson.content,
+        originalLesson.type,
+        originalLesson.duration,
+        originalLesson.extra_materials,
+        originalLesson.order_index + 1
+      ]);
+
+      res.status(201).json(newLessonResult.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao duplicar aula:', error);
+      res.status(500).json({ message: 'Erro ao duplicar aula' });
+    }
+  });
+
   // User course access
   app.get('/api/courses', async (req, res) => {
     try {

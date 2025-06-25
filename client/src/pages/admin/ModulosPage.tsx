@@ -137,6 +137,54 @@ export default function ModulosPage() {
     },
   });
 
+  // Excluir módulo
+  const deleteModuleMutation = useMutation({
+    mutationFn: async (moduleId: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/modules/${moduleId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Módulo excluído com sucesso!" });
+    },
+  });
+
+  // Duplicar módulo
+  const duplicateModuleMutation = useMutation({
+    mutationFn: async (moduleId: number) => {
+      const res = await apiRequest("POST", `/api/admin/modules/${moduleId}/duplicate`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Módulo duplicado com sucesso!" });
+    },
+  });
+
+  // Excluir aula
+  const deleteLessonMutation = useMutation({
+    mutationFn: async (lessonId: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/lessons/${lessonId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Aula excluída com sucesso!" });
+    },
+  });
+
+  // Duplicar aula
+  const duplicateLessonMutation = useMutation({
+    mutationFn: async (lessonId: number) => {
+      const res = await apiRequest("POST", `/api/admin/lessons/${lessonId}/duplicate`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Aula duplicada com sucesso!" });
+    },
+  });
+
   const toggleModule = (moduleId: number) => {
     setExpandedModules(prev => {
       const newSet = new Set(prev);
@@ -475,12 +523,12 @@ export default function ModulosPage() {
                                   <Edit className="h-4 w-4 mr-2" />
                                   Editar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => duplicateModuleMutation.mutate(module.id)}>
                                   <Copy className="h-4 w-4 mr-2" />
                                   Duplicar
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
+                                <DropdownMenuItem className="text-red-600" onClick={() => deleteModuleMutation.mutate(module.id)}>
                                   <Trash2 className="h-4 w-4 mr-2" />
                                   Excluir
                                 </DropdownMenuItem>
@@ -563,12 +611,12 @@ export default function ModulosPage() {
                                                 <Edit className="h-4 w-4 mr-2" />
                                                 Editar
                                               </DropdownMenuItem>
-                                              <DropdownMenuItem>
+                                              <DropdownMenuItem onClick={() => duplicateLessonMutation.mutate(lesson.id)}>
                                                 <Copy className="h-4 w-4 mr-2" />
                                                 Duplicar
                                               </DropdownMenuItem>
                                               <DropdownMenuSeparator />
-                                              <DropdownMenuItem className="text-red-600">
+                                              <DropdownMenuItem className="text-red-600" onClick={() => deleteLessonMutation.mutate(lesson.id)}>
                                                 <Trash2 className="h-4 w-4 mr-2" />
                                                 Excluir
                                               </DropdownMenuItem>
