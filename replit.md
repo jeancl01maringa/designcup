@@ -77,6 +77,7 @@ Changelog:
 - June 23, 2025. Fixed critical Hotmart webhook bug: corrected user creation API to only use valid database fields, implemented proper password hashing with scrypt, and verified complete webhook functionality for both purchase approval and cancellation flows.
 - June 23, 2025. Implemented corrected Hotmart webhook following user's documented model: plan data, expiration dates, and transaction codes now come directly from Hotmart webhook dispatches rather than local configurations. Webhook captures real Hotmart plan details including name, price, currency, and transaction ID for complete subscription management.
 - June 24, 2025. Completed comprehensive Brevo email automation integration: automated welcome emails for new users, purchase confirmations via Hotmart webhook, cancellation notifications, admin alerts for new users and sales, automatic contact list management, and professional HTML email templates. System includes error handling and logging while maintaining platform functionality if email service is unavailable.
+- June 25, 2025. Implemented individual lesson progress and rating system: created useCourseProgress hook with localStorage persistence for individual lesson completion tracking and star ratings. Each lesson maintains independent completion status and rating (1-5 stars) with cross-page synchronization between course detail and lesson view pages.
 
 ## User Preferences
 

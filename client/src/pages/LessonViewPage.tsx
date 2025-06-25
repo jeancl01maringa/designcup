@@ -49,8 +49,7 @@ export default function LessonViewPage() {
   const lessonId = parseInt(params.lessonId || "0");
   
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
-  const { completedLessons, toggleLessonCompletion, isLessonCompleted } = useCourseProgress(courseId);
-  const [userRating, setUserRating] = useState<number>(0);
+  const { completedLessons, toggleLessonCompletion, isLessonCompleted, setLessonRating, getLessonRating } = useCourseProgress(courseId);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
 
   // Buscar dados do curso completo
@@ -363,23 +362,26 @@ export default function LessonViewPage() {
                   <div className="flex items-center gap-4">
                     {/* Sistema de Avaliação com 5 estrelas */}
                     <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          onClick={() => setUserRating(star)}
-                          onMouseEnter={() => setHoveredRating(star)}
-                          onMouseLeave={() => setHoveredRating(0)}
-                          className="p-1 hover:scale-110 transition-transform"
-                        >
-                          <Star
-                            className={`h-4 w-4 ${
-                              star <= (hoveredRating || userRating)
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
-                            }`}
-                          />
-                        </button>
-                      ))}
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const currentRating = getLessonRating(lessonId);
+                        return (
+                          <button
+                            key={star}
+                            onClick={() => setLessonRating(lessonId, star)}
+                            onMouseEnter={() => setHoveredRating(star)}
+                            onMouseLeave={() => setHoveredRating(0)}
+                            className="p-1 hover:scale-110 transition-transform"
+                          >
+                            <Star
+                              className={`h-4 w-4 ${
+                                star <= (hoveredRating || currentRating)
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          </button>
+                        );
+                      })}
                     </div>
                     
                     {/* Botão Concluir */}
