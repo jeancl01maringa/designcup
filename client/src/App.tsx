@@ -48,6 +48,7 @@ import PublicProfilePage from "@/pages/ProfilePage";
 import TodasArtes from "@/pages/TodasArtesOptimized";
 import AssinaturasPage from "@/pages/admin/AssinaturasPage";
 import CursosPage from "@/pages/admin/CursosPage";
+import AdminModulosPage from "@/pages/admin/ModulosPage";
 import CursosUserPage from "@/pages/CursosPage";
 import CursoDetailPage from "@/pages/CursoDetailPage";
 
@@ -106,6 +107,9 @@ function Router() {
       </Route>
       <Route path="/admin/cursos">
         <ProtectedRoute path="/admin/cursos" component={CursosPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/cursos/:courseId/modulos">
+        <ProtectedRoute path="/admin/cursos/:courseId/modulos" component={AdminModulosPage} requireAdmin={true} />
       </Route>
       <Route path="/admin/categorias">
         <ProtectedRoute path="/admin/categorias" component={CategoriasPage} requireAdmin={true} />

@@ -5477,7 +5477,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userId = req.user.id;
-      const isPremium = req.user.tipo === 'premium';
+      const isPremium = req.user.tipo === 'premium' && req.user.active === true;
+      
+      console.log(`[USER COURSES] User ${userId}: tipo=${req.user.tipo}, active=${req.user.active}, isPremium=${isPremium}`);
       
       const query = `
         SELECT 
@@ -5505,6 +5507,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
       
       const result = await pool.query(query, [userId, isPremium]);
+      
+      console.log(`[USER COURSES] Found ${result.rows.length} courses, user has access to ${result.rows.filter((c: any) => c.hasAccess).length}`);
+      
       res.json(result.rows || []);
     } catch (error: any) {
       console.error('Erro ao buscar cursos do usuário:', error);
