@@ -22,11 +22,26 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
+    // Para materiais extras das aulas, permitir mais tipos de arquivo
+    if (file.fieldname === 'extraMaterials') {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 
+                           'application/pdf', 'application/msword', 
+                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                           'text/plain', 'application/zip', 'application/x-rar-compressed'];
+      
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Tipo de arquivo não permitido para materiais extras. Use PDF, DOC, DOCX, TXT, ZIP, RAR ou imagens.'));
+      }
     } else {
-      cb(new Error('Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF ou WebP.'));
+      // Para imagens de capa, manter apenas formatos de imagem
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Tipo de arquivo não permitido para imagem de capa. Use apenas JPG, PNG, GIF ou WebP.'));
+      }
     }
   },
 });
