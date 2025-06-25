@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Eye, Upload, Link, Play, FileText, Image, HelpCircle } from "lucide-react";
+import { ArrowLeft, Eye, Upload, FileText, Image, Video, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -21,29 +20,29 @@ interface Lesson {
   title: string;
   description: string;
   content: string;
-  type: 'video' | 'text' | 'quiz';
-  duration?: number;
+  type: 'video' | 'text';
   orderIndex: number;
-  videoUrl?: string;
-  files?: string[];
 }
 
 export default function EditLessonPage() {
   const params = useParams();
-  const [, setLocation] = useLocation();
   const lessonId = parseInt(params.lessonId || "0");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const [isPublished, setIsPublished] = useState(true);
-  const [activeTab, setActiveTab] = useState("media");
-  const [lessonData, setLessonData] = useState({
+  const [, setLocation] = useLocation();
+
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
     content: "",
-    type: "video" as const,
+    type: "video" as "video" | "text",
+    videoPlatform: "youtube" as "youtube" | "vimeo" | "panda" | "vturb",
     videoUrl: "",
-    files: [] as string[]
+    orderIndex: 0,
+    isPublished: true,
+    isPremium: false,
+    coverImage: "",
+    extraMaterials: [] as File[],
   });
 
   // Buscar dados da aula
@@ -52,65 +51,96 @@ export default function EditLessonPage() {
     enabled: lessonId > 0,
   });
 
-  // Atualizar estado quando os dados carregarem
   useEffect(() => {
     if (lesson) {
-      setLessonData({
-        title: lesson.title,
+      // Parse video URL to extract platform and URL
+      const videoUrl = lesson.content || "";
+      let videoPlatform = "youtube";
+      
+      if (videoUrl.includes("vimeo.com")) {
+        videoPlatform = "vimeo";
+      } else if (videoUrl.includes("panda")) {
+        videoPlatform = "panda";
+      } else if (videoUrl.includes("vturb")) {
+        videoPlatform = "vturb";
+      }
+
+      setFormData({
+        title: lesson.title || "",
         description: lesson.description || "",
         content: lesson.content || "",
-        type: lesson.type,
-        videoUrl: lesson.videoUrl || "",
-        files: lesson.files || []
+        type: lesson.type || "video",
+        videoPlatform: videoPlatform as any,
+        videoUrl: videoUrl,
+        orderIndex: lesson.orderIndex || 0,
+        isPublished: true,
+        isPremium: false,
+        coverImage: "",
+        extraMaterials: [],
       });
     }
   }, [lesson]);
 
-  // Salvar aula
-  const saveLessonMutation = useMutation({
-    mutationFn: async (data: typeof lessonData) => {
-      const res = await apiRequest("PUT", `/api/admin/lessons/${lessonId}`, data);
-      return res.json();
+  const updateLessonMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const payload = {
+        title: data.title,
+        description: data.description,
+        content: data.videoUrl, // Store video URL in content field
+        type: data.type,
+        orderIndex: data.orderIndex,
+        id: lessonId,
+      };
+      
+      const response = await apiRequest("PUT", `/api/admin/lessons/${lessonId}`, payload);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/lessons/${lessonId}`] });
-      toast({ title: "Aula salva com sucesso!" });
+      toast({
+        title: "Aula atualizada!",
+        description: "As alterações foram salvas com sucesso.",
+      });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao salvar aula",
+        title: "Erro ao atualizar aula",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const handleSave = () => {
-    if (!lessonData.title.trim()) {
-      toast({
-        title: "Erro",
-        description: "O título da aula é obrigatório",
-        variant: "destructive",
-      });
-      return;
+  const handleMaterialUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      setFormData(prev => ({
+        ...prev,
+        extraMaterials: [...prev.extraMaterials, ...Array.from(files)]
+      }));
     }
-    saveLessonMutation.mutate(lessonData);
   };
 
-  const handleBack = () => {
-    window.history.back();
+  const removeMaterial = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      extraMaterials: prev.extraMaterials.filter((_, i) => i !== index)
+    }));
   };
 
-  const handlePreview = () => {
-    // Implementar preview da aula
-    toast({ title: "Preview em desenvolvimento" });
+  const handleCoverUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setFormData({ ...formData, coverImage: url });
+    }
   };
 
   if (isLoading) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">Carregando aula...</div>
+          <div className="text-center">Carregando...</div>
         </div>
       </AdminLayout>
     );
@@ -122,192 +152,247 @@ export default function EditLessonPage() {
         <title>Editar Aula - Admin</title>
       </Helmet>
 
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation(`/admin/cursos/${lesson?.moduleId ? Math.floor(lesson.moduleId / 10) : 1}/modulos`)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Editar conteúdo
             </Button>
-            <span className="text-muted-foreground">Editar conteúdo</span>
-            <div className="flex items-center gap-2">
-              <Switch checked={isPublished} onCheckedChange={setIsPublished} />
-              <span className="text-sm font-medium">Publicado</span>
+            <div>
+              <h1 className="text-xl font-semibold">Editar Aula</h1>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handlePreview} className="flex items-center gap-2">
-              <Eye className="h-4 w-4" />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={formData.isPublished}
+                onCheckedChange={(checked) => setFormData({ ...formData, isPublished: checked })}
+              />
+              <span className="text-sm font-medium">Publicado</span>
+            </div>
+            <Button variant="outline" size="sm">
+              <Eye className="h-4 w-4 mr-2" />
               Visualizar
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Link className="h-4 w-4" />
-            </Button>
-            <Button onClick={handleBack} variant="ghost" size="icon">
-              ×
             </Button>
           </div>
         </div>
 
+        {/* Layout em duas colunas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
+          {/* Coluna principal - Formulário */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title">Título *</Label>
-              <Input
-                id="title"
-                value={lessonData.title}
-                onChange={(e) => setLessonData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Ex: 01 - Boas vindas"
-                className="text-lg"
-              />
-            </div>
-
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="media">Mídia</TabsTrigger>
-                <TabsTrigger value="text">Texto</TabsTrigger>
-                <TabsTrigger value="files">Arquivos</TabsTrigger>
-                <TabsTrigger value="reading">Leitura complementar</TabsTrigger>
-              </TabsList>
-
-              {/* Mídia Tab */}
-              <TabsContent value="media" className="space-y-4">
-                <div className="text-center p-8 border-2 border-dashed rounded-lg">
-                  <div className="text-sm text-muted-foreground mb-4">
-                    Você pode inserir <strong>uma mídia (vídeo ou áudio)</strong>, no tipo: mov, mp4, avi, mkv, aiff, mid, wav, mp3.
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-6">
-                    O arquivo pode ter no <strong>máximo 20 GB</strong>.
-                  </div>
-                  <div className="space-y-3">
-                    <Button className="flex items-center gap-2">
-                      <Play className="h-4 w-4" />
-                      Adicionar do Hotmart Player
-                    </Button>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Enviar mídia
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Texto Tab */}
-              <TabsContent value="text" className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Button className="flex items-center gap-2">
-                      <Play className="h-4 w-4" />
-                      Adicionar do Hotmart Player
-                    </Button>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Enviar mídia
-                    </Button>
-                  </div>
-                  
-                  <Label htmlFor="content">Texto</Label>
-                  <div className="border rounded-lg">
-                    {/* Rich Text Editor Toolbar */}
-                    <div className="flex items-center gap-1 p-2 border-b bg-gray-50">
-                      <Button variant="ghost" size="sm">B</Button>
-                      <Button variant="ghost" size="sm">I</Button>
-                      <Button variant="ghost" size="sm">U</Button>
-                      <Button variant="ghost" size="sm">≡</Button>
-                      <Button variant="ghost" size="sm">•</Button>
-                      <Button variant="ghost" size="sm">1.</Button>
-                      <Button variant="ghost" size="sm">⟵</Button>
-                      <Button variant="ghost" size="sm">⟶</Button>
-                      <Button variant="ghost" size="sm">🔗</Button>
-                      <Button variant="ghost" size="sm">📎</Button>
-                      <Button variant="ghost" size="sm">≡</Button>
-                      <Button variant="ghost" size="sm">A</Button>
-                      <Button variant="ghost" size="sm">🎨</Button>
-                      <Button variant="ghost" size="sm">📷</Button>
-                    </div>
-                    <Textarea
-                      id="content"
-                      value={lessonData.content}
-                      onChange={(e) => setLessonData(prev => ({ ...prev, content: e.target.value }))}
-                      placeholder="Digite o conteúdo da aula..."
-                      className="min-h-64 border-0 resize-none focus:ring-0"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Arquivos Tab */}
-              <TabsContent value="files" className="space-y-4">
-                <div className="text-center p-8 border-2 border-dashed rounded-lg">
-                  <div className="text-sm text-muted-foreground mb-4">
-                    Adicione até <strong>10 arquivos</strong> de no máximo <strong>100MB</strong> cada.
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-6">
-                    Formatos permitidos: <strong>jpg, gif, png, bmp, pdf, zip, rar, epub, xls, xlsx, xltm, mp3, doc, docx, ppt, pptx</strong>.
-                  </div>
-                  <div className="space-y-3">
-                    <Button className="flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Selecionar do Club
-                    </Button>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Enviar arquivo
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Leitura Complementar Tab */}
-              <TabsContent value="reading" className="space-y-4">
-                <div className="space-y-4">
-                  <Label htmlFor="reading-links">Leitura complementar</Label>
-                  <div className="text-sm text-muted-foreground mb-3">
-                    Links externos com conteúdos complementares ao da sua aula.
-                  </div>
-                  <Textarea
-                    id="reading-links"
-                    placeholder="Cole aqui os links para leitura complementar..."
-                    className="min-h-32"
+            {/* Informações Básicas */}
+            <Card>
+              <CardContent className="p-6 space-y-6">
+                {/* Título */}
+                <div>
+                  <Label htmlFor="title" className="text-sm font-medium">Título da Aula *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Digite o título da aula"
+                    className="mt-1"
                   />
                 </div>
-              </TabsContent>
-            </Tabs>
+
+                {/* Plataforma de Vídeo */}
+                <div>
+                  <Label className="text-sm font-medium">Plataforma de Vídeo</Label>
+                  <Select 
+                    value={formData.videoPlatform} 
+                    onValueChange={(value: any) => setFormData({ ...formData, videoPlatform: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecione a plataforma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="youtube">
+                        <div className="flex items-center gap-2">
+                          <Video className="h-4 w-4 text-red-500" />
+                          YouTube
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="vimeo">
+                        <div className="flex items-center gap-2">
+                          <Video className="h-4 w-4 text-blue-500" />
+                          Vimeo
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="panda">
+                        <div className="flex items-center gap-2">
+                          <Video className="h-4 w-4 text-green-500" />
+                          Panda
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="vturb">
+                        <div className="flex items-center gap-2">
+                          <Video className="h-4 w-4 text-purple-500" />
+                          vTurb
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* URL do Vídeo */}
+                <div>
+                  <Label htmlFor="videoUrl" className="text-sm font-medium">URL do vídeo *</Label>
+                  <Input
+                    id="videoUrl"
+                    value={formData.videoUrl}
+                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                    placeholder="https://..."
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Texto/Descrição */}
+                <div>
+                  <Label htmlFor="description" className="text-sm font-medium">Texto</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Descrição ou conteúdo adicional da aula"
+                    rows={4}
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Material Extra */}
+                <div>
+                  <Label className="text-sm font-medium">Material Extra</Label>
+                  <div className="mt-2">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500 mb-2">
+                        Adicione imagens, PDFs ou outros materiais
+                      </p>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => document.getElementById('material-upload')?.click()}
+                      >
+                        Selecionar Arquivos
+                      </Button>
+                      <input
+                        id="material-upload"
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+                        onChange={handleMaterialUpload}
+                        className="hidden"
+                      />
+                    </div>
+                    
+                    {/* Lista de materiais adicionados */}
+                    {formData.extraMaterials.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {formData.extraMaterials.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div className="flex items-center gap-2">
+                              {file.type.includes('image') ? (
+                                <Image className="h-4 w-4 text-blue-500" />
+                              ) : (
+                                <FileText className="h-4 w-4 text-gray-500" />
+                              )}
+                              <span className="text-sm">{file.name}</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeMaterial(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Coluna lateral - Capa e configurações */}
           <div className="space-y-6">
-            {/* Capa do conteúdo */}
+            {/* Capa do Conteúdo */}
             <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-medium">Capa do conteúdo</CardTitle>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                </div>
+              <CardHeader>
+                <CardTitle className="text-base">Capa do conteúdo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-3">
-                  <Image className="h-8 w-8 text-gray-400" />
+                <div className="border-2 border-dashed border-gray-300 rounded-lg aspect-video flex items-center justify-center bg-gray-50">
+                  {formData.coverImage ? (
+                    <img 
+                      src={formData.coverImage} 
+                      alt="Capa" 
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <Image className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">Nenhuma imagem</p>
+                    </div>
+                  )}
                 </div>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-3"
+                  onClick={() => document.getElementById('cover-upload')?.click()}
+                >
                   Adicionar imagem
                 </Button>
+                <input
+                  id="cover-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  className="hidden"
+                />
               </CardContent>
             </Card>
 
-            {/* Actions */}
-            <div className="space-y-3">
-              <Button 
-                onClick={handleSave} 
-                className="w-full"
-                disabled={saveLessonMutation.isPending}
-              >
-                {saveLessonMutation.isPending ? "Salvando..." : "Salvar"}
-              </Button>
-            </div>
+            {/* Configurações */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Configurações</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Toggle Premium */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Conteúdo Premium</Label>
+                    <p className="text-xs text-muted-foreground">Apenas para assinantes</p>
+                  </div>
+                  <Switch
+                    checked={formData.isPremium}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isPremium: checked })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Botão Salvar */}
+            <Button 
+              onClick={() => updateLessonMutation.mutate(formData)}
+              disabled={updateLessonMutation.isPending || !formData.title || !formData.videoUrl}
+              className="w-full"
+              size="lg"
+            >
+              {updateLessonMutation.isPending ? "Salvando..." : "Salvar"}
+            </Button>
           </div>
         </div>
       </div>
