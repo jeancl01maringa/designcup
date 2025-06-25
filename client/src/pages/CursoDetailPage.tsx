@@ -268,7 +268,7 @@ export default function CursoDetailPage() {
                                     </div>
                                     
                                     <div className="flex items-center gap-3">
-                                      {lesson.duration && (
+                                      {lesson.duration && lesson.duration > 0 && (
                                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                           <Clock className="h-3 w-3" />
                                           {lesson.duration} min
