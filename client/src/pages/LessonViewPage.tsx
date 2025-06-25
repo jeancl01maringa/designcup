@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Play, FileText, Download, Clock, CheckCircle, Lock, Book } from "lucide-react";
+import { ArrowLeft, Play, FileText, Download, Clock, CheckCircle, Lock, Book, Star } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -48,6 +48,8 @@ export default function LessonViewPage() {
   
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
+  const [userRating, setUserRating] = useState<number>(0);
+  const [hoveredRating, setHoveredRating] = useState<number>(0);
 
   // Buscar dados do curso completo
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
@@ -264,28 +266,16 @@ export default function LessonViewPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="secondary">
-                        {currentLesson.type === 'video' ? 'Vídeo' : 'Texto'}
-                      </Badge>
-                      {currentLesson.duration && (
+                    {currentLesson.duration && (
+                      <div className="flex items-center gap-2 mb-2">
                         <Badge variant="outline" className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {currentLesson.duration} min
                         </Badge>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <CardTitle className="text-2xl">{currentLesson.title}</CardTitle>
                   </div>
-                  
-                  <Button 
-                    onClick={markAsCompleted}
-                    variant={completedLessons.has(lessonId) ? "default" : "outline"}
-                    className="flex items-center gap-2"
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    {completedLessons.has(lessonId) ? 'Concluída' : 'Marcar como concluída'}
-                  </Button>
                 </div>
               </CardHeader>
               
@@ -350,21 +340,12 @@ export default function LessonViewPage() {
 
                 {/* 2. Navegação entre aulas */}
                 <div className="flex justify-between items-center py-4 border-t border-b">
-                  <div className="text-sm text-muted-foreground">
-                    Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {prevLesson ? (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => navigateToLesson(prevLesson.id)}
-                        className="flex items-center gap-2"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        Anterior
-                      </Button>
-                    ) : (
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm text-muted-foreground">
+                      Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
                       <Button 
                         variant="outline" 
                         onClick={() => setLocation(`/cursos/${courseId}`)}
@@ -372,6 +353,28 @@ export default function LessonViewPage() {
                       >
                         <ArrowLeft className="h-4 w-4" />
                         Voltar
+                      </Button>
+                      
+                      <Button 
+                        onClick={markAsCompleted}
+                        variant={completedLessons.has(lessonId) ? "default" : "outline"}
+                        className="flex items-center gap-2"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        {completedLessons.has(lessonId) ? 'Concluída' : 'Marcar como concluída'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {prevLesson && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => navigateToLesson(prevLesson.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Anterior
                       </Button>
                     )}
 
@@ -392,6 +395,38 @@ export default function LessonViewPage() {
                         Concluir
                         <CheckCircle className="h-4 w-4" />
                       </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2.5. Sistema de Avaliação */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Avaliação da Aula</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Como você avalia esta aula?</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setUserRating(star)}
+                          onMouseEnter={() => setHoveredRating(star)}
+                          onMouseLeave={() => setHoveredRating(0)}
+                          className="p-1 hover:scale-110 transition-transform"
+                        >
+                          <Star
+                            className={`h-5 w-5 ${
+                              star <= (hoveredRating || userRating)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    {userRating > 0 && (
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {userRating} de 5 estrelas
+                      </span>
                     )}
                   </div>
                 </div>
