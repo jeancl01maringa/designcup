@@ -5886,6 +5886,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para primeira aula do curso
+  app.get('/api/courses/:courseId/first-lesson', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const courseId = parseInt(req.params.courseId);
+      
+      // Buscar primeira aula do primeiro módulo do curso
+      const query = `
+        SELECT 
+          l.id as lesson_id,
+          l.title,
+          l.module_id,
+          m.title as module_title,
+          c.title as course_title
+        FROM lessons l
+        JOIN modules m ON l.module_id = m.id
+        JOIN courses c ON m.course_id = c.id
+        WHERE c.id = $1
+        ORDER BY m.order_index ASC, l.order_index ASC
+        LIMIT 1
+      `;
+      
+      const result = await pool.query(query, [courseId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Nenhuma aula encontrada para este curso' });
+      }
+      
+      const firstLesson = result.rows[0];
+      console.log('🎯 Primeira aula encontrada:', firstLesson);
+      
+      res.json({
+        courseId,
+        lessonId: firstLesson.lesson_id,
+        redirectUrl: `/cursos/${courseId}/aula/${firstLesson.lesson_id}`
+      });
+    } catch (error: any) {
+      console.error('Erro ao buscar primeira aula:', error);
+      res.status(500).json({ message: 'Erro ao buscar primeira aula' });
+    }
+  });
+
   // Criar módulo
   app.post('/api/admin/courses/:courseId/modules', async (req, res) => {
     try {

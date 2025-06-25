@@ -53,6 +53,7 @@ import EditLessonPage from "@/pages/admin/EditLessonPage";
 import CursosUserPage from "@/pages/CursosPage";
 import CursoDetailPage from "@/pages/CursoDetailPage";
 import LessonViewPage from "@/pages/LessonViewPage";
+import FirstLessonRedirect from "@/pages/FirstLessonRedirect";
 
 function Router() {
   const [location] = useLocation();
@@ -78,6 +79,7 @@ function Router() {
       <Route path="/cursos/:courseId">
         <ProtectedRoute path="/cursos/:courseId" component={CursoDetailPage} />
       </Route>
+      <Route path="/cursos/:courseId/primeira-aula" component={FirstLessonRedirect} />
       <Route path="/cursos/:courseId/aula/:lessonId">
         <ProtectedRoute path="/cursos/:courseId/aula/:lessonId" component={LessonViewPage} />
       </Route>

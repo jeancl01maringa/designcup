@@ -175,7 +175,10 @@ export default function CursosPage() {
                   {/* Botão de ação */}
                   {course.hasAccess ? (
                     <Button 
-                      onClick={() => setLocation(`/cursos/${course.id}`)}
+                      onClick={() => {
+                        // Redirecionar direto para primeira aula do curso
+                        setLocation(`/cursos/${course.id}/primeira-aula`);
+                      }}
                       className="w-full bg-[#AA5E2F] hover:bg-[#AA5E2F]/90 text-white"
                     >
                       {course.progress !== undefined && course.progress > 0 ? "Continuar" : "Acessar Curso"}
