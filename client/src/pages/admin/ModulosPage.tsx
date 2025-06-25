@@ -185,6 +185,21 @@ export default function ModulosPage() {
     },
   });
 
+  // Mover aula para outro módulo
+  const moveLessonMutation = useMutation({
+    mutationFn: async (data: { lessonId: number; newModuleId: number; newPosition: number }) => {
+      const res = await apiRequest("PUT", `/api/admin/lessons/${data.lessonId}/move`, {
+        newModuleId: data.newModuleId,
+        newPosition: data.newPosition
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Aula movida com sucesso!" });
+    },
+  });
+
   const toggleModule = (moduleId: number) => {
     setExpandedModules(prev => {
       const newSet = new Set(prev);
@@ -269,15 +284,29 @@ export default function ModulosPage() {
       updateModuleOrderMutation.mutate(moduleIds);
     }
     
-    // Se está movendo aulas dentro do mesmo módulo
-    else if (source.droppableId.startsWith("lessons-") && source.droppableId === destination.droppableId) {
-      const moduleId = parseInt(source.droppableId.replace("lessons-", ""));
-      const module = modules.find(m => m.id === moduleId);
-      if (module?.lessons) {
-        const lessonIds = module.lessons.map(l => l.id);
-        const [reorderedId] = lessonIds.splice(source.index, 1);
-        lessonIds.splice(destination.index, 0, reorderedId);
-        updateLessonOrderMutation.mutate({ moduleId, lessonIds });
+    // Se está movendo aulas
+    else if (source.droppableId.startsWith("lessons-") && destination.droppableId.startsWith("lessons-")) {
+      const sourceModuleId = parseInt(source.droppableId.replace("lessons-", ""));
+      const destModuleId = parseInt(destination.droppableId.replace("lessons-", ""));
+      const lessonId = parseInt(draggableId.replace("lesson-", ""));
+      
+      // Se está movendo dentro do mesmo módulo
+      if (sourceModuleId === destModuleId) {
+        const module = modules.find(m => m.id === sourceModuleId);
+        if (module?.lessons) {
+          const lessonIds = module.lessons.map(l => l.id);
+          const [reorderedId] = lessonIds.splice(source.index, 1);
+          lessonIds.splice(destination.index, 0, reorderedId);
+          updateLessonOrderMutation.mutate({ moduleId: sourceModuleId, lessonIds });
+        }
+      }
+      // Se está movendo para outro módulo
+      else {
+        moveLessonMutation.mutate({
+          lessonId,
+          newModuleId: destModuleId,
+          newPosition: destination.index + 1
+        });
       }
     }
   };

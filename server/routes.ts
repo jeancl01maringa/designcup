@@ -6170,6 +6170,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mover aula para outro módulo
+  app.put('/api/admin/lessons/:lessonId/move', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const lessonId = parseInt(req.params.lessonId);
+      const { newModuleId, newPosition } = req.body;
+      
+      if (!newModuleId || !newPosition) {
+        return res.status(400).json({ message: 'newModuleId e newPosition são obrigatórios' });
+      }
+
+      // Verificar se a aula existe
+      const lessonCheck = await pool.query('SELECT * FROM lessons WHERE id = $1', [lessonId]);
+      if (lessonCheck.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+
+      // Verificar se o módulo de destino existe
+      const moduleCheck = await pool.query('SELECT * FROM modules WHERE id = $1', [newModuleId]);
+      if (moduleCheck.rows.length === 0) {
+        return res.status(404).json({ message: 'Módulo de destino não encontrado' });
+      }
+
+      // Ajustar order_index das aulas no módulo de destino para abrir espaço
+      await pool.query(`
+        UPDATE lessons 
+        SET order_index = order_index + 1 
+        WHERE module_id = $1 AND order_index >= $2
+      `, [newModuleId, newPosition]);
+
+      // Mover a aula para o novo módulo e posição
+      const result = await pool.query(`
+        UPDATE lessons 
+        SET module_id = $1, order_index = $2 
+        WHERE id = $3 
+        RETURNING id, module_id as "moduleId", title, description, content, type, duration, order_index as "orderIndex"
+      `, [newModuleId, newPosition, lessonId]);
+
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao mover aula:', error);
+      res.status(500).json({ message: 'Erro ao mover aula' });
+    }
+  });
+
   // User course access
   app.get('/api/courses', async (req, res) => {
     try {
