@@ -51,6 +51,7 @@ export default function LessonViewPage() {
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const [userRating, setUserRating] = useState<number>(0);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [concluida, setConcluida] = useState<boolean>(false);
 
   // Buscar dados do curso completo
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
@@ -131,8 +132,12 @@ export default function LessonViewPage() {
   };
 
   const markAsCompleted = () => {
-    setCompletedLessons(prev => new Set([...prev, lessonId]));
-    toast({ title: "Aula marcada como concluída!" });
+    setConcluida(prev => !prev);
+    if (!concluida) {
+      toast({ title: "Aula marcada como concluída!" });
+    } else {
+      toast({ title: "Conclusão removida" });
+    }
   };
 
   if (!hasAccess) {
@@ -380,12 +385,15 @@ export default function LessonViewPage() {
                     {/* Botão Concluir */}
                     <Button 
                       onClick={markAsCompleted}
-                      variant={completedLessons.has(lessonId) ? "default" : "outline"}
                       size="sm"
-                      className="flex items-center gap-2"
+                      className={`flex items-center gap-2 ${
+                        concluida 
+                          ? 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300' 
+                          : 'bg-green-300 hover:bg-green-400 text-green-900 border-green-400'
+                      }`}
                     >
                       <CheckCircle className="h-4 w-4" />
-                      {completedLessons.has(lessonId) ? 'Concluída' : 'Concluir'}
+                      {concluida ? 'Concluída' : 'Concluir'}
                     </Button>
                     
                     {/* Botão Anterior */}
