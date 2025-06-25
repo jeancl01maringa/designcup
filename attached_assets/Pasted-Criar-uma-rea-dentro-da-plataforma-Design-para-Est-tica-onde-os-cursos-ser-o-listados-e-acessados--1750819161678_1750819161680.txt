@@ -1,0 +1,91 @@
+Criar uma área dentro da plataforma Design para Estética, onde os cursos serão listados e acessados. Ao clicar em um curso, o usuário verá os módulos, aulas, vídeos, PDFs, materiais e links.
+
+1️⃣ PÁGINA “CURSOS” (listagem de cursos)
+Função:
+Exibir todos os cursos que o usuário comprou ou tem acesso. Será como uma “home” da área de cursos.
+
+Estrutura da Página:
+Título: "Cursos"
+
+Layout de grade com cartões (cards)
+
+Cada card deve conter:
+
+Capa do curso
+
+Título do curso
+
+Descrição curta
+
+Botão “Acessar Curso”
+
+O botão leva o usuário para a página do curso (ex: /curso/kit-midias-para-estetica)
+
+2️⃣ PÁGINA “CURSO” (detalhes do curso)
+Função:
+Exibir os conteúdos de um curso específico, com módulos organizados.
+
+Estrutura da Página:
+Título do curso
+
+Lista de módulos (ex: “COMECE AQUI”, “Grupo VIP”, etc.)
+
+Cada módulo pode ser recolhível (tipo dropdown)
+
+Dentro de cada módulo:
+
+Lista de aulas
+
+Tipo de aula: vídeo, link externo, PDF para download
+
+Nome da aula
+
+Link para vídeo incorporado (ex: YouTube)
+
+Botão “Download” se for PDF
+
+Visual clean, com fundo branco, caixas com bordas suaves, tipografia clara
+
+Espaço para comentários (opcional)
+
+Controle de progresso ou status “concluído” (opcional)
+
+3️⃣ ROTEAMENTO
+O que você precisa fazer:
+Criar uma rota /cursos para a listagem de cursos
+
+Criar uma rota dinâmica /curso/:id para exibir os detalhes de um curso específico
+
+4️⃣ BANCO DE DADOS (opcional)
+Se você quiser que os cursos e aulas venham de um banco de dados (em vez de serem fixos no código), use:
+
+Supabase ou Firebase
+
+Coleções: cursos, modulos, aulas
+
+Relacionamento:
+
+Um curso tem vários módulos
+
+Um módulo tem várias aulas
+
+5️⃣ INTERAÇÃO VISUAL (estilo)
+Estilo desejado:
+Visual clean e profissional
+
+Fundo branco, títulos pretos, botões em tons de rosa/claro
+
+Tipografia clara e moderna
+
+Ícones leves (player de vídeo, PDF, etc.)
+
+EXTRAS (opcional, para deixar como a Hotmart):
+Marcação de aula concluída
+
+Avaliação por estrelas
+
+Comentários abaixo de cada aula
+
+Recompensa ou gamificação (ex: “+10 pontos”)
+
+Campo de busca nas aulas

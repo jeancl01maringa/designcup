@@ -47,6 +47,9 @@ import AssinaturaPage from "@/pages/account/AssinaturaPage";
 import PublicProfilePage from "@/pages/ProfilePage";
 import TodasArtes from "@/pages/TodasArtesOptimized";
 import AssinaturasPage from "@/pages/admin/AssinaturasPage";
+import CursosPage from "@/pages/admin/CursosPage";
+import CursosUserPage from "@/pages/CursosPage";
+import CursoDetailPage from "@/pages/CursoDetailPage";
 
 function Router() {
   const [location] = useLocation();
@@ -96,6 +99,9 @@ function Router() {
       {/* Rotas Administrativas */}
       <Route path="/admin/postagens">
         <ProtectedRoute path="/admin/postagens" component={PostagensPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/cursos">
+        <ProtectedRoute path="/admin/cursos" component={CursosPage} requireAdmin={true} />
       </Route>
       <Route path="/admin/categorias">
         <ProtectedRoute path="/admin/categorias" component={CategoriasPage} requireAdmin={true} />

@@ -26,7 +26,9 @@ import {
   ChevronRight,
   Phone,
   Image,
-  CreditCard
+  CreditCard,
+  BookOpen,
+  Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -64,6 +66,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
       label: "Postagens",
       path: "/admin/postagens",
       icon: <FileText className="h-4 w-4" />,
+    },
+    {
+      id: "cursos",
+      label: "Cursos",
+      path: "/admin/cursos",
+      icon: <BookOpen className="h-4 w-4" />,
     },
     {
       id: "monetizacao",

@@ -346,3 +346,122 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
 
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type Setting = typeof settings.$inferSelect;
+
+// Courses schema
+export const courses = pgTable("courses", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  shortDescription: text("short_description"),
+  coverImage: text("cover_image"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const coursesRelations = relations(courses, ({ many }) => ({
+  modules: many(courseModules),
+  enrollments: many(courseEnrollments),
+}));
+
+// Course modules schema
+export const courseModules = pgTable("course_modules", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  order: integer("order").notNull().default(0),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const courseModulesRelations = relations(courseModules, ({ one, many }) => ({
+  course: one(courses, {
+    fields: [courseModules.courseId],
+    references: [courses.id],
+  }),
+  lessons: many(courseLessons),
+}));
+
+// Course lessons schema
+export const lessonTypeEnum = pgEnum('lesson_type', ['video', 'pdf', 'link', 'text']);
+
+export const courseLessons = pgTable("course_lessons", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").notNull().references(() => courseModules.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: lessonTypeEnum("type").notNull(),
+  content: text("content"), // URL para vídeo/PDF ou conteúdo de texto
+  order: integer("order").notNull().default(0),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const courseLessonsRelations = relations(courseLessons, ({ one, many }) => ({
+  module: one(courseModules, {
+    fields: [courseLessons.moduleId],
+    references: [courseModules.id],
+  }),
+  progress: many(courseProgress),
+}));
+
+// Course enrollments (who has access to which courses)
+export const courseEnrollments = pgTable("course_enrollments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  courseId: integer("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  enrolledAt: timestamp("enrolled_at").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+export const courseEnrollmentsRelations = relations(courseEnrollments, ({ one }) => ({
+  user: one(users, {
+    fields: [courseEnrollments.userId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [courseEnrollments.courseId],
+    references: [courses.id],
+  }),
+}));
+
+// Course progress tracking
+export const courseProgress = pgTable("course_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: integer("lesson_id").notNull().references(() => courseLessons.id, { onDelete: "cascade" }),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const courseProgressRelations = relations(courseProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [courseProgress.userId],
+    references: [users.id],
+  }),
+  lesson: one(courseLessons, {
+    fields: [courseProgress.lessonId],
+    references: [courseLessons.id],
+  }),
+}));
+
+// Insert schemas
+export const insertCourseSchema = createInsertSchema(courses);
+export const insertCourseModuleSchema = createInsertSchema(courseModules);
+export const insertCourseLessonSchema = createInsertSchema(courseLessons);
+export const insertCourseEnrollmentSchema = createInsertSchema(courseEnrollments);
+export const insertCourseProgressSchema = createInsertSchema(courseProgress);
+
+// Types
+export type Course = typeof courses.$inferSelect;
+export type InsertCourse = typeof courses.$inferInsert;
+export type CourseModule = typeof courseModules.$inferSelect;
+export type InsertCourseModule = typeof courseModules.$inferInsert;
+export type CourseLesson = typeof courseLessons.$inferSelect;
+export type InsertCourseLesson = typeof courseLessons.$inferInsert;
+export type CourseEnrollment = typeof courseEnrollments.$inferSelect;
+export type InsertCourseEnrollment = typeof courseEnrollments.$inferInsert;
+export type CourseProgress = typeof courseProgress.$inferSelect;
+export type InsertCourseProgress = typeof courseProgress.$inferInsert;

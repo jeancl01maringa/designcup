@@ -5025,6 +5025,273 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // COURSES API ENDPOINTS
+  
+  // Admin course management
+  app.get('/api/admin/courses', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const query = `
+        SELECT 
+          c.*,
+          COUNT(DISTINCT cm.id) as "moduleCount",
+          COUNT(DISTINCT cl.id) as "lessonCount",
+          COUNT(DISTINCT ce.id) as "enrollmentCount"
+        FROM courses c
+        LEFT JOIN course_modules cm ON c.id = cm.course_id AND cm.is_active = true
+        LEFT JOIN course_lessons cl ON cm.id = cl.module_id AND cl.is_active = true
+        LEFT JOIN course_enrollments ce ON c.id = ce.course_id AND ce.is_active = true
+        GROUP BY c.id
+        ORDER BY c.created_at DESC
+      `;
+      
+      const result = await pool.query(query);
+      res.json(result.rows || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar cursos:', error);
+      res.status(500).json({ message: 'Erro ao buscar cursos' });
+    }
+  });
+
+  app.post('/api/admin/courses', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { title, description, shortDescription, coverImage, isActive } = req.body;
+      
+      const query = `
+        INSERT INTO courses (title, description, short_description, cover_image, is_active)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [title, description, shortDescription, coverImage, isActive]);
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao criar curso:', error);
+      res.status(500).json({ message: 'Erro ao criar curso' });
+    }
+  });
+
+  app.put('/api/admin/courses/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { title, description, shortDescription, coverImage, isActive } = req.body;
+      
+      const query = `
+        UPDATE courses 
+        SET title = $1, description = $2, short_description = $3, cover_image = $4, is_active = $5, updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [title, description, shortDescription, coverImage, isActive, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Curso não encontrado' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao atualizar curso:', error);
+      res.status(500).json({ message: 'Erro ao atualizar curso' });
+    }
+  });
+
+  app.delete('/api/admin/courses/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      // Verificar se o curso existe
+      const checkQuery = 'SELECT id FROM courses WHERE id = $1';
+      const checkResult = await pool.query(checkQuery, [id]);
+      
+      if (checkResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Curso não encontrado' });
+      }
+      
+      // Deletar curso (cascade vai remover módulos, aulas e matrículas)
+      const deleteQuery = 'DELETE FROM courses WHERE id = $1';
+      await pool.query(deleteQuery, [id]);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Erro ao excluir curso:', error);
+      res.status(500).json({ message: 'Erro ao excluir curso' });
+    }
+  });
+
+  // User course access
+  app.get('/api/courses', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const userId = req.user.id;
+      const isPremium = req.user.tipo === 'premium';
+      
+      const query = `
+        SELECT 
+          c.*,
+          COUNT(DISTINCT cm.id) as "moduleCount",
+          COUNT(DISTINCT cl.id) as "lessonCount",
+          CASE 
+            WHEN $2 = true OR ce.id IS NOT NULL THEN true 
+            ELSE false 
+          END as "hasAccess",
+          COALESCE(
+            CASE 
+              WHEN COUNT(DISTINCT cl.id) = 0 THEN 0
+              ELSE (COUNT(DISTINCT cp.id) * 100.0 / COUNT(DISTINCT cl.id))
+            END, 0
+          ) as progress
+        FROM courses c
+        LEFT JOIN course_modules cm ON c.id = cm.course_id AND cm.is_active = true
+        LEFT JOIN course_lessons cl ON cm.id = cl.module_id AND cl.is_active = true
+        LEFT JOIN course_enrollments ce ON c.id = ce.course_id AND ce.user_id = $1 AND ce.is_active = true
+        LEFT JOIN course_progress cp ON cl.id = cp.lesson_id AND cp.user_id = $1 AND cp.is_completed = true
+        WHERE c.is_active = true
+        GROUP BY c.id, ce.id
+        ORDER BY c.created_at DESC
+      `;
+      
+      const result = await pool.query(query, [userId, isPremium]);
+      res.json(result.rows || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar cursos do usuário:', error);
+      res.status(500).json({ message: 'Erro ao buscar cursos' });
+    }
+  });
+
+  app.get('/api/courses/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const courseId = parseInt(req.params.id);
+      const userId = req.user.id;
+      const isPremium = req.user.tipo === 'premium';
+      
+      // Buscar curso com módulos e aulas
+      const courseQuery = `
+        SELECT 
+          c.*,
+          CASE 
+            WHEN $3 = true OR ce.id IS NOT NULL THEN true 
+            ELSE false 
+          END as "hasAccess"
+        FROM courses c
+        LEFT JOIN course_enrollments ce ON c.id = ce.course_id AND ce.user_id = $2 AND ce.is_active = true
+        WHERE c.id = $1 AND c.is_active = true
+      `;
+      
+      const courseResult = await pool.query(courseQuery, [courseId, userId, isPremium]);
+      
+      if (courseResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Curso não encontrado' });
+      }
+      
+      const course = courseResult.rows[0];
+      
+      if (!course.hasAccess) {
+        return res.json({ ...course, modules: [] });
+      }
+      
+      // Buscar módulos com aulas e progresso
+      const modulesQuery = `
+        SELECT 
+          cm.*,
+          json_agg(
+            json_build_object(
+              'id', cl.id,
+              'moduleId', cl.module_id,
+              'title', cl.title,
+              'description', cl.description,
+              'type', cl.type,
+              'content', cl.content,
+              'order', cl.order,
+              'isActive', cl.is_active,
+              'createdAt', cl.created_at,
+              'isCompleted', COALESCE(cp.is_completed, false)
+            ) ORDER BY cl.order, cl.created_at
+          ) FILTER (WHERE cl.id IS NOT NULL) as lessons
+        FROM course_modules cm
+        LEFT JOIN course_lessons cl ON cm.id = cl.module_id AND cl.is_active = true
+        LEFT JOIN course_progress cp ON cl.id = cp.lesson_id AND cp.user_id = $2
+        WHERE cm.course_id = $1 AND cm.is_active = true
+        GROUP BY cm.id
+        ORDER BY cm.order, cm.created_at
+      `;
+      
+      const modulesResult = await pool.query(modulesQuery, [courseId, userId]);
+      
+      // Calcular progresso total
+      const totalLessons = modulesResult.rows.reduce((acc, module) => 
+        acc + (module.lessons ? module.lessons.length : 0), 0
+      );
+      const completedLessons = modulesResult.rows.reduce((acc, module) => 
+        acc + (module.lessons ? module.lessons.filter((l: any) => l.isCompleted).length : 0), 0
+      );
+      const progress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+      
+      res.json({
+        ...course,
+        modules: modulesResult.rows.map(module => ({
+          ...module,
+          lessons: module.lessons || []
+        })),
+        progress
+      });
+    } catch (error: any) {
+      console.error('Erro ao buscar detalhes do curso:', error);
+      res.status(500).json({ message: 'Erro ao buscar curso' });
+    }
+  });
+
+  app.post('/api/course-progress', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const userId = req.user.id;
+      const { lessonId, isCompleted } = req.body;
+      
+      const query = `
+        INSERT INTO course_progress (user_id, lesson_id, is_completed, completed_at)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id, lesson_id) 
+        DO UPDATE SET 
+          is_completed = $3,
+          completed_at = CASE WHEN $3 = true THEN NOW() ELSE NULL END
+        RETURNING *
+      `;
+      
+      const completedAt = isCompleted ? new Date() : null;
+      const result = await pool.query(query, [userId, lessonId, isCompleted, completedAt]);
+      
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao salvar progresso:', error);
+      res.status(500).json({ message: 'Erro ao salvar progresso' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
