@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { PageHeader } from "@/components/admin/layout/PageHeader";
@@ -30,6 +31,7 @@ interface CourseWithStats extends Course {
 export default function CursosPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -153,7 +155,7 @@ export default function CursosPage() {
   };
 
   const handleManageModules = (courseId: number) => {
-    window.location.href = `/admin/cursos/${courseId}/modulos`;
+    setLocation(`/admin/cursos/${courseId}/modulos`);
   };
 
   const getStatusColor = (isActive: boolean) => {

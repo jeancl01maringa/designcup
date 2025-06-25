@@ -247,8 +247,20 @@ export default function ModulosPage() {
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
-          <span>Produtos</span>
-          <span className="text-primary font-medium">{course?.title || 'Kit de Mídias para Estética'}</span>
+          <button 
+            onClick={() => setLocation('/admin/cursos')}
+            className="hover:text-foreground transition-colors"
+          >
+            Produtos
+          </button>
+          <span>/</span>
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}`)}
+            className="text-primary font-medium hover:text-primary/80 transition-colors"
+          >
+            {course?.title || 'Kit de Mídias para Estética'}
+          </button>
+          <span>/</span>
           <span>Conteúdo</span>
         </div>
 
@@ -269,28 +281,49 @@ export default function ModulosPage() {
 
         {/* Tabs */}
         <div className="flex gap-6 border-b mb-6">
-          <button className="pb-3 px-1 text-sm font-medium border-b-2 border-primary text-primary">
+          <button className="pb-3 px-1 text-sm font-medium border-b-2 border-primary text-primary transition-colors">
             Conteúdo
           </button>
-          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}/configuracoes`)}
+            className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Configurações
           </button>
-          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}/personalizacao`)}
+            className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Personalização
           </button>
-          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}/certificado`)}
+            className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Certificado
           </button>
-          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}/usuarios`)}
+            className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Usuários
           </button>
-          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}/turmas`)}
+            className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Turmas
           </button>
-          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}/comentarios`)}
+            className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Comentários
           </button>
-          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setLocation(`/admin/cursos/${courseId}/cadastro-gratuito`)}
+            className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Cadastro gratuito
           </button>
         </div>
