@@ -5672,77 +5672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint adicional para compatibilidade com frontend
-  app.get('/api/courses/:id/full', async (req, res) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: 'Não autenticado' });
-      }
 
-      const courseId = parseInt(req.params.id);
-      
-      const courseQuery = `
-        SELECT 
-          id, 
-          title, 
-          description, 
-          cover_image as "coverImage"
-        FROM courses 
-        WHERE id = $1
-      `;
-      
-      const courseResult = await pool.query(courseQuery, [courseId]);
-      
-      if (courseResult.rows.length === 0) {
-        return res.status(404).json({ message: 'Curso não encontrado' });
-      }
-      
-      const course = courseResult.rows[0];
-      
-      const modulesQuery = `
-        SELECT 
-          id, 
-          title, 
-          order_index as "orderIndex"
-        FROM modules 
-        WHERE course_id = $1 
-        ORDER BY order_index
-      `;
-      
-      const modulesResult = await pool.query(modulesQuery, [courseId]);
-      const modules = [];
-      
-      for (const module of modulesResult.rows) {
-        const lessonsQuery = `
-          SELECT 
-            id, 
-            module_id as "moduleId",
-            title, 
-            description, 
-            content, 
-            type, 
-            order_index as "orderIndex"
-          FROM lessons 
-          WHERE module_id = $1 
-          ORDER BY order_index
-        `;
-        const lessonsResult = await pool.query(lessonsQuery, [module.id]);
-        
-        modules.push({
-          ...module,
-          lessons: lessonsResult.rows
-        });
-      }
-      
-      res.json({
-        ...course,
-        modules
-      });
-    } catch (error: any) {
-      console.error('Erro ao buscar curso completo:', error);
-      res.status(500).json({ message: 'Erro ao buscar curso' });
-    }
-  });
 
   // Get single lesson for student view
   app.get('/api/lessons/:id', async (req, res) => {
