@@ -52,6 +52,7 @@ import AdminModulosPage from "@/pages/admin/ModulosPage";
 import EditLessonPage from "@/pages/admin/EditLessonPage";
 import CursosUserPage from "@/pages/CursosPage";
 import CursoDetailPage from "@/pages/CursoDetailPage";
+import LessonViewPage from "@/pages/LessonViewPage";
 
 function Router() {
   const [location] = useLocation();

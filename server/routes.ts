@@ -5607,6 +5607,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get course with full structure for lesson viewing
+  app.get('/api/courses/:id/full', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const courseId = parseInt(req.params.id);
+      
+      // Buscar curso
+      const courseQuery = `
+        SELECT id, title, description, cover_image as "coverImage", is_premium as "isPremium"
+        FROM courses 
+        WHERE id = $1
+      `;
+      const courseResult = await pool.query(courseQuery, [courseId]);
+      
+      if (courseResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Curso não encontrado' });
+      }
+      
+      const course = courseResult.rows[0];
+      
+      // Buscar módulos
+      const modulesQuery = `
+        SELECT id, title, order_index as "orderIndex"
+        FROM modules 
+        WHERE course_id = $1 
+        ORDER BY order_index
+      `;
+      const modulesResult = await pool.query(modulesQuery, [courseId]);
+      
+      // Buscar aulas para cada módulo
+      const modules = [];
+      for (const module of modulesResult.rows) {
+        const lessonsQuery = `
+          SELECT 
+            id, 
+            title, 
+            description, 
+            content, 
+            type, 
+            order_index as "orderIndex"
+          FROM lessons 
+          WHERE module_id = $1 
+          ORDER BY order_index
+        `;
+        const lessonsResult = await pool.query(lessonsQuery, [module.id]);
+        
+        modules.push({
+          ...module,
+          lessons: lessonsResult.rows
+        });
+      }
+      
+      res.json({
+        ...course,
+        modules
+      });
+    } catch (error: any) {
+      console.error('Erro ao buscar curso completo:', error);
+      res.status(500).json({ message: 'Erro ao buscar curso' });
+    }
+  });
+
+  // Get single lesson for student view
+  app.get('/api/lessons/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+
+      const lessonId = parseInt(req.params.id);
+      
+      const query = `
+        SELECT 
+          id, 
+          module_id as "moduleId", 
+          title, 
+          description, 
+          content, 
+          type, 
+          order_index as "orderIndex"
+        FROM lessons 
+        WHERE id = $1
+      `;
+      
+      const result = await pool.query(query, [lessonId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao buscar aula:', error);
+      res.status(500).json({ message: 'Erro ao buscar aula' });
+    }
+  });
+
   // Reorder modules
   app.put('/api/admin/courses/:courseId/modules/reorder', async (req, res) => {
     try {
