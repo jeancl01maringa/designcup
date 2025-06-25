@@ -51,7 +51,6 @@ export default function LessonViewPage() {
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
   const [userRating, setUserRating] = useState<number>(0);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
-  const [concluida, setConcluida] = useState<boolean>(false);
 
   // Buscar dados do curso completo
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
@@ -132,11 +131,17 @@ export default function LessonViewPage() {
   };
 
   const markAsCompleted = () => {
-    setConcluida(prev => !prev);
-    if (!concluida) {
-      toast({ title: "Aula marcada como concluída!" });
-    } else {
+    const isCurrentlyCompleted = completedLessons.has(lessonId);
+    if (isCurrentlyCompleted) {
+      setCompletedLessons(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(lessonId);
+        return newSet;
+      });
       toast({ title: "Conclusão removida" });
+    } else {
+      setCompletedLessons(prev => new Set(Array.from(prev).concat(lessonId)));
+      toast({ title: "Aula marcada como concluída!" });
     }
   };
 
@@ -236,7 +241,7 @@ export default function LessonViewPage() {
                     <div className="space-y-1">
                       {module.lessons.map((lesson) => {
                         const isActive = lesson.id === lessonId;
-                        const isCompleted = lesson.id === lessonId ? concluida : completedLessons.has(lesson.id);
+                        const isCompleted = completedLessons.has(lesson.id);
                         
                         return (
                           <button
@@ -385,16 +390,16 @@ export default function LessonViewPage() {
                     {/* Botão Concluir */}
                     <Button 
                       onClick={markAsCompleted}
-                      variant={concluida ? "default" : "outline"}
+                      variant={completedLessons.has(lessonId) ? "default" : "outline"}
                       size="sm"
                       className={`flex items-center gap-2 ${
-                        concluida 
+                        completedLessons.has(lessonId) 
                           ? 'bg-green-300 hover:bg-green-400 text-green-900 border-green-400' 
                           : 'hover:bg-green-100 hover:text-green-800 hover:border-green-300'
                       }`}
                     >
                       <CheckCircle className="h-4 w-4" />
-                      {concluida ? 'Concluída' : 'Concluir'}
+                      {completedLessons.has(lessonId) ? 'Concluída' : 'Concluir'}
                     </Button>
                     
                     {/* Botão Anterior */}
