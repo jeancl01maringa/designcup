@@ -10,9 +10,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Eye, Upload, FileText, Image, Video, X } from "lucide-react";
+import { ArrowLeft, Eye, Upload, FileText, Image, Video, X, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import FontFamily from '@tiptap/extension-font-family';
+import Highlight from '@tiptap/extension-highlight';
+import UnderlineExtension from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Link from '@tiptap/extension-link';
 
 interface Lesson {
   id: number;
@@ -43,7 +52,40 @@ export default function EditLessonPage() {
     isPremium: false,
     coverImage: "",
     extraMaterials: [] as File[],
+    coverImageFile: null as File | null,
   });
+
+  // Rich text editor for text content
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextStyle,
+      Color,
+      FontFamily,
+      Highlight,
+      UnderlineExtension,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Link.configure({
+        openOnClick: false,
+      }),
+    ],
+    content: formData.description,
+    onUpdate: ({ editor }) => {
+      setFormData(prev => ({
+        ...prev,
+        description: editor.getHTML()
+      }));
+    },
+  });
+
+  // Update editor content when lesson data loads
+  useEffect(() => {
+    if (editor && lesson && formData.type === 'text') {
+      editor.commands.setContent(formData.description || '');
+    }
+  }, [editor, lesson, formData.type]);
 
   // Buscar dados da aula
   const { data: lesson, isLoading } = useQuery<Lesson>({
@@ -83,16 +125,36 @@ export default function EditLessonPage() {
 
   const updateLessonMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const payload = {
-        title: data.title,
-        description: data.description,
-        content: data.videoUrl, // Store video URL in content field
-        type: data.type,
-        orderIndex: data.orderIndex,
-        id: lessonId,
-      };
+      const formDataToSend = new FormData();
       
-      const response = await apiRequest("PUT", `/api/admin/lessons/${lessonId}`, payload);
+      // Basic lesson data
+      formDataToSend.append('title', data.title);
+      formDataToSend.append('description', data.description);
+      formDataToSend.append('content', data.type === 'video' ? data.videoUrl : data.description);
+      formDataToSend.append('type', data.type);
+      formDataToSend.append('orderIndex', data.orderIndex.toString());
+      formDataToSend.append('videoPlatform', data.videoPlatform);
+      formDataToSend.append('isPremium', data.isPremium.toString());
+      
+      // Cover image
+      if (data.coverImageFile) {
+        formDataToSend.append('coverImage', data.coverImageFile);
+      }
+      
+      // Extra materials
+      data.extraMaterials.forEach((file, index) => {
+        formDataToSend.append(`extraMaterial_${index}`, file);
+      });
+      
+      const response = await fetch(`/api/admin/lessons/${lessonId}`, {
+        method: 'PUT',
+        body: formDataToSend,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar aula');
+      }
+      
       return response.json();
     },
     onSuccess: () => {
@@ -132,8 +194,102 @@ export default function EditLessonPage() {
     const file = event.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      setFormData({ ...formData, coverImage: url });
+      setFormData({ ...formData, coverImage: url, coverImageFile: file });
     }
+  };
+
+  // Rich text editor toolbar
+  const RichTextToolbar = () => {
+    if (!editor) return null;
+
+    return (
+      <div className="border-b p-2 flex flex-wrap gap-1">
+        <Button
+          type="button"
+          variant={editor.isActive('bold') ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        >
+          <Bold className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          type="button"
+          variant={editor.isActive('italic') ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        >
+          <Italic className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          type="button"
+          variant={editor.isActive('underline') ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+        >
+          <Underline className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-6 bg-border mx-1" />
+
+        <Button
+          type="button"
+          variant={editor.isActive({ textAlign: 'left' }) ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        >
+          <AlignLeft className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          type="button"
+          variant={editor.isActive({ textAlign: 'center' }) ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        >
+          <AlignCenter className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          type="button"
+          variant={editor.isActive({ textAlign: 'right' }) ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        >
+          <AlignRight className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-6 bg-border mx-1" />
+
+        <Select onValueChange={(value) => editor.chain().focus().setFontFamily(value).run()}>
+          <SelectTrigger className="w-32 h-8">
+            <SelectValue placeholder="Fonte" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Arial">Arial</SelectItem>
+            <SelectItem value="Helvetica">Helvetica</SelectItem>
+            <SelectItem value="Times New Roman">Times</SelectItem>
+            <SelectItem value="Georgia">Georgia</SelectItem>
+            <SelectItem value="Verdana">Verdana</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <input
+          type="color"
+          onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+          className="w-8 h-8 border rounded cursor-pointer"
+          title="Cor do texto"
+        />
+
+        <input
+          type="color"
+          onChange={(e) => editor.chain().focus().toggleHighlight({ color: e.target.value }).run()}
+          className="w-8 h-8 border rounded cursor-pointer"
+          title="Cor de fundo"
+        />
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -239,31 +395,43 @@ export default function EditLessonPage() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                  </div>
+                )}
 
-                {/* URL do Vídeo */}
-                <div>
-                  <Label htmlFor="videoUrl" className="text-sm font-medium">URL do vídeo *</Label>
-                  <Input
-                    id="videoUrl"
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                    placeholder="https://..."
-                    className="mt-1"
-                  />
-                </div>
+                {/* URL do Vídeo - só mostra se for vídeo */}
+                {formData.type === 'video' && (
+                  <div>
+                    <Label htmlFor="videoUrl" className="text-sm font-medium">URL do vídeo *</Label>
+                    <Input
+                      id="videoUrl"
+                      value={formData.videoUrl}
+                      onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                      placeholder="https://..."
+                      className="mt-1"
+                    />
+                  </div>
+                )}
 
                 {/* Texto/Descrição */}
                 <div>
-                  <Label htmlFor="description" className="text-sm font-medium">Texto</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Descrição ou conteúdo adicional da aula"
-                    rows={4}
-                    className="mt-1"
-                  />
+                  <Label className="text-sm font-medium">Texto</Label>
+                  {formData.type === 'text' ? (
+                    <div className="mt-1 border rounded-lg overflow-hidden">
+                      <RichTextToolbar />
+                      <EditorContent 
+                        editor={editor} 
+                        className="prose max-w-none p-4 min-h-[200px] focus:outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Descrição ou conteúdo adicional da aula"
+                      rows={4}
+                      className="mt-1"
+                    />
+                  )}
                 </div>
 
                 {/* Material Extra */}
@@ -387,7 +555,7 @@ export default function EditLessonPage() {
             {/* Botão Salvar */}
             <Button 
               onClick={() => updateLessonMutation.mutate(formData)}
-              disabled={updateLessonMutation.isPending || !formData.title || !formData.videoUrl}
+              disabled={updateLessonMutation.isPending || !formData.title || (formData.type === 'video' && !formData.videoUrl)}
               className="w-full"
               size="lg"
             >
