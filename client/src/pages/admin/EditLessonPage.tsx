@@ -31,6 +31,7 @@ interface Lesson {
   content: string;
   type: 'video' | 'text';
   orderIndex: number;
+  courseId?: number;
 }
 
 export default function EditLessonPage() {
@@ -85,6 +86,8 @@ export default function EditLessonPage() {
     queryKey: [`/api/admin/lessons/${lessonId}`],
     enabled: !!lessonId,
   });
+
+
 
   // Update editor content when lesson data loads
   useEffect(() => {
@@ -372,7 +375,21 @@ export default function EditLessonPage() {
               />
               <span className="text-sm font-medium">Publicado</span>
             </div>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (lesson?.courseId && lessonId) {
+                  setLocation(`/cursos/${lesson.courseId}/aula/${lessonId}`);
+                } else {
+                  toast({
+                    title: "Erro",
+                    description: "Não foi possível encontrar o curso para visualização",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
               <Eye className="h-4 w-4 mr-2" />
               Visualizar
             </Button>

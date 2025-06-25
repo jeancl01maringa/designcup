@@ -5740,17 +5740,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const query = `
         SELECT 
-          id, 
-          module_id as "moduleId", 
-          title, 
-          description, 
-          content, 
-          type, 
-          order_index as "orderIndex",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-        FROM lessons 
-        WHERE id = $1
+          l.id, 
+          l.module_id as "moduleId", 
+          l.title, 
+          l.description, 
+          l.content, 
+          l.type, 
+          l.order_index as "orderIndex",
+          l.created_at as "createdAt",
+          l.updated_at as "updatedAt",
+          m.course_id as "courseId"
+        FROM lessons l
+        JOIN modules m ON l.module_id = m.id
+        WHERE l.id = $1
       `;
       
       const result = await pool.query(query, [id]);
