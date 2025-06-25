@@ -448,7 +448,7 @@ export default function LessonViewPage() {
                       Material Extra
                     </h3>
                     <div className="grid gap-2">
-                      {(currentLesson.files || currentLesson.extra_materials || []).map((file: string, index: number) => {
+                      {[...(currentLesson.files || []), ...(currentLesson.extra_materials || [])].map((file: string, index: number) => {
                         const fileName = file.split('/').pop() || `Arquivo ${index + 1}`;
                         const fileExtension = fileName.split('.').pop()?.toLowerCase();
                         
