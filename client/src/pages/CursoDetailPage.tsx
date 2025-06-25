@@ -251,10 +251,6 @@ export default function CursoDetailPage() {
                                     onClick={() => startLesson(lesson.id)}
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div className="flex items-center justify-center w-6 h-6 text-xs text-muted-foreground">
-                                        {lessonNumber.toString().padStart(2, '0')}
-                                      </div>
-                                      
                                       {isCompleted ? (
                                         <CheckCircle className="h-5 w-5 text-green-600" />
                                       ) : lesson.type === 'video' ? (
