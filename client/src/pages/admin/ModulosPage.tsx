@@ -450,9 +450,7 @@ export default function ModulosPage() {
                               >
                                 <h3 className="text-lg font-medium">{module.title}</h3>
                                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                  <Badge variant="secondary" className="text-xs">Módulo principal</Badge>
-                                  <span>{module.lessons?.length || 0} conteúdos</span>
-                                  <button className="text-blue-600 hover:underline">Mostrar turmas</button>
+                                        <span>{module.lessons?.length || 0} conteúdos</span>
                                 </div>
                               </div>
                             )}
