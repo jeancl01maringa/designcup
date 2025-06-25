@@ -75,6 +75,8 @@ export default function CursoDetailPage() {
   };
 
   const startLesson = (lessonId: number) => {
+    console.log('🚀 Iniciando aula:', lessonId, 'curso:', courseId);
+    console.log('🔗 URL final:', `/cursos/${courseId}/aula/${lessonId}`);
     setLocation(`/cursos/${courseId}/aula/${lessonId}`);
   };
 

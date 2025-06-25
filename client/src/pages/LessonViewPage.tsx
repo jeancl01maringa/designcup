@@ -85,7 +85,8 @@ export default function LessonViewPage() {
   };
 
   const navigateToLesson = (newLessonId: number) => {
-    setLocation(`/cursos/${courseId}/aulas/${newLessonId}`);
+    console.log('🔄 Navegando para aula:', newLessonId, 'curso:', courseId);
+    setLocation(`/cursos/${courseId}/aula/${newLessonId}`);
   };
 
   const getNextLesson = () => {
@@ -189,6 +190,15 @@ export default function LessonViewPage() {
 
   const nextLesson = getNextLesson();
   const prevLesson = getPrevLesson();
+  
+  console.log('🎯 NAVIGATION STATUS:', {
+    currentLesson: currentLesson?.title,
+    currentLessonId: lessonId,
+    nextLesson: nextLesson ? { id: nextLesson.id, title: nextLesson.title } : null,
+    prevLesson: prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null,
+    currentModule: currentModule?.title,
+    courseId
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -404,7 +414,10 @@ export default function LessonViewPage() {
                     {/* Botão Próximo */}
                     {nextLesson && (
                       <Button 
-                        onClick={() => navigateToLesson(nextLesson.id)}
+                        onClick={() => {
+                          console.log('🔥 CLIQUE NO PRÓXIMO - nextLesson:', nextLesson);
+                          navigateToLesson(nextLesson.id);
+                        }}
                         size="sm"
                         className="flex items-center gap-2"
                       >

@@ -5810,6 +5810,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             description, 
             content, 
             type, 
+            duration,
+            files,
             order_index as "orderIndex"
           FROM lessons 
           WHERE module_id = $1 
