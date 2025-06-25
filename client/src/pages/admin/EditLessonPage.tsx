@@ -509,33 +509,14 @@ export default function EditLessonPage() {
                       >
                         <AlignRight className="h-4 w-4" />
                       </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().setColor('#ef4444').run()}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Type className="h-4 w-4 text-red-500" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().setColor('#3b82f6').run()}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Type className="h-4 w-4 text-blue-500" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().setColor('#10b981').run()}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Type className="h-4 w-4 text-green-500" />
-                      </Button>
+                      <div className="relative">
+                        <input
+                          type="color"
+                          className="h-8 w-8 border border-gray-300 rounded cursor-pointer"
+                          onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()}
+                          title="Escolher cor do texto"
+                        />
+                      </div>
                     </div>
                     {/* Editor */}
                     <EditorContent editor={editor} className="prose max-w-none" />
