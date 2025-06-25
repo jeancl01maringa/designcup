@@ -1,151 +1,82 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useParams, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
-import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
-import { 
-  BookOpen, 
-  Play, 
-  FileText, 
-  ExternalLink, 
-  Download, 
-  ChevronDown, 
-  ChevronRight,
-  Check,
-  Lock,
-  ArrowLeft,
-  Clock
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Link } from "wouter";
-import type { Course, CourseModule, CourseLesson } from "@shared/schema";
+import { ArrowLeft, Play, Clock, BookOpen, Users, Star, Lock, ChevronDown, ChevronRight, CheckCircle, FileText } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
-interface CourseWithModules extends Course {
-  modules: (CourseModule & {
-    lessons: (CourseLesson & {
-      isCompleted?: boolean;
-    })[];
-  })[];
-  hasAccess: boolean;
-  progress: number;
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  coverImage?: string;
+  isPremium: boolean;
+  modules?: Module[];
+}
+
+interface Module {
+  id: number;
+  title: string;
+  orderIndex: number;
+  lessons: Lesson[];
+}
+
+interface Lesson {
+  id: number;
+  moduleId: number;
+  title: string;
+  description?: string;
+  content?: string;
+  type: 'video' | 'text' | 'quiz';
+  duration?: number;
+  orderIndex: number;
 }
 
 export default function CursoDetailPage() {
+  const params = useParams();
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [, params] = useRoute("/curso/:id");
-  const courseId = params?.id ? parseInt(params.id) : null;
-  const [openModules, setOpenModules] = useState<number[]>([]);
+  
+  const courseId = parseInt(params.courseId || "0");
+  const [openModules, setOpenModules] = useState<Set<number>>(new Set([1])); // Primeiro módulo aberto por padrão
+  const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
 
-  // Se não há courseId, retorna erro
-  if (!courseId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Helmet>
-          <title>Curso não encontrado - Design para Estética</title>
-        </Helmet>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Curso não encontrado</h1>
-          <p className="text-gray-600 mb-8">O curso que você está procurando não existe.</p>
-          <Button asChild>
-            <Link href="/cursos">Voltar aos Cursos</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Buscar detalhes do curso
-  const { data: course, isLoading } = useQuery<CourseWithModules>({
-    queryKey: ["/api/courses", courseId],
-    enabled: !!courseId && !!user,
+  // Buscar dados do curso completo
+  const { data: course, isLoading } = useQuery<Course>({
+    queryKey: [`/api/courses/${courseId}/full`],
+    enabled: courseId > 0,
   });
 
-  // Mutation para marcar aula como concluída
-  const markLessonCompleteMutation = useMutation({
-    mutationFn: async (lessonId: number) => {
-      const res = await apiRequest("POST", "/api/course-progress", {
-        lessonId,
-        isCompleted: true,
-      });
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/courses", courseId] });
-      toast({
-        title: "Aula concluída!",
-        description: "Seu progresso foi salvo.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao salvar progresso",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Verificar se usuário tem acesso
+  const hasAccess = !course?.isPremium || user?.tipo === 'premium' || user?.isAdmin;
+  
+  // Calcular progresso
+  const totalLessons = course?.modules?.reduce((acc, module) => acc + module.lessons.length, 0) || 0;
+  const completedCount = completedLessons.size;
+  const progressPercentage = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
+
+  const handleBack = () => {
+    setLocation('/cursos');
+  };
 
   const toggleModule = (moduleId: number) => {
-    setOpenModules(prev => 
-      prev.includes(moduleId) 
-        ? prev.filter(id => id !== moduleId)
-        : [...prev, moduleId]
-    );
+    const newOpenModules = new Set(openModules);
+    if (newOpenModules.has(moduleId)) {
+      newOpenModules.delete(moduleId);
+    } else {
+      newOpenModules.add(moduleId);
+    }
+    setOpenModules(newOpenModules);
   };
 
-  const getLessonIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return <Play className="h-4 w-4" />;
-      case 'pdf':
-        return <FileText className="h-4 w-4" />;
-      case 'link':
-        return <ExternalLink className="h-4 w-4" />;
-      default:
-        return <BookOpen className="h-4 w-4" />;
-    }
-  };
-
-  const getLessonTypeLabel = (type: string) => {
-    switch (type) {
-      case 'video':
-        return 'Vídeo';
-      case 'pdf':
-        return 'PDF';
-      case 'link':
-        return 'Link Externo';
-      case 'text':
-        return 'Texto';
-      default:
-        return type;
-    }
-  };
-
-  const handleLessonClick = (lesson: CourseLesson) => {
-    if (lesson.type === 'video' && lesson.content) {
-      // Abrir vídeo em nova aba
-      window.open(lesson.content, '_blank');
-    } else if (lesson.type === 'pdf' && lesson.content) {
-      // Baixar PDF
-      window.open(lesson.content, '_blank');
-    } else if (lesson.type === 'link' && lesson.content) {
-      // Abrir link externo
-      window.open(lesson.content, '_blank');
-    }
-    
-    // Marcar como concluída se não estiver
-    if (!lesson.isCompleted) {
-      markLessonCompleteMutation.mutate(lesson.id);
-    }
+  const startLesson = (lessonId: number) => {
+    setLocation(`/cursos/${courseId}/aulas/${lessonId}`);
   };
 
   if (isLoading) {
@@ -178,8 +109,8 @@ export default function CursoDetailPage() {
             <p className="text-gray-600 mb-4">
               O curso que você está procurando não existe ou foi removido.
             </p>
-            <Button asChild>
-              <Link href="/cursos">Voltar aos Cursos</Link>
+            <Button onClick={handleBack}>
+              Voltar aos Cursos
             </Button>
           </CardContent>
         </Card>
@@ -187,224 +118,243 @@ export default function CursoDetailPage() {
     );
   }
 
-  if (!course.hasAccess) {
+  if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Helmet>
-          <title>Kit de Mídias para Estética - Design para Estética</title>
-        </Helmet>
-        
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-6">
-            <Button variant="ghost" asChild>
-              <Link href="/cursos">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar aos Cursos
-              </Link>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <Lock className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <CardTitle>Curso Premium</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground mb-4">
+              Este curso está disponível apenas para assinantes premium.
+            </p>
+            <Button onClick={() => setLocation('/planos')}>
+              Fazer Upgrade para Premium
             </Button>
-          </div>
-
-          <Card className="text-center p-8">
-            <CardContent>
-              <Lock className="h-12 w-12 text-amber-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                Curso Premium
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Este curso está disponível apenas para assinantes premium.
-              </p>
-              <Button asChild>
-                <Link href="/planos">Fazer Upgrade para Premium</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  const totalLessons = course.modules.reduce((acc, module) => acc + module.lessons.length, 0);
-  const completedLessons = course.modules.reduce(
-    (acc, module) => acc + module.lessons.filter(lesson => lesson.isCompleted).length, 
-    0
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>Kit de Mídias para Estética - Design para Estética</title>
+        <title>{course.title}</title>
       </Helmet>
-      
+
       <div className="container mx-auto px-4 py-8">
-        {/* Navegação */}
-        <div className="mb-6">
-          <Button variant="ghost" asChild>
-            <Link href="/cursos">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar aos Cursos
-            </Link>
-          </Button>
-        </div>
+        <Button 
+          variant="ghost" 
+          onClick={handleBack}
+          className="mb-6 flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar aos Cursos
+        </Button>
 
-        {/* Cabeçalho do curso */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex flex-col lg:flex-row gap-6">
-              {/* Capa do curso */}
-              <div className="lg:w-64 h-48 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg overflow-hidden flex-shrink-0">
-                {course.coverImage ? (
-                  <img
-                    src={course.coverImage}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <BookOpen className="h-16 w-16 text-pink-300" />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Conteúdo Principal */}
+          <div className="lg:col-span-3">
+            {/* Header do Curso */}
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-2xl mb-2">{course.title}</CardTitle>
+                    <p className="text-muted-foreground mb-4">{course.description}</p>
+                    
+                    {/* Progresso */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex-1">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Meu progresso</span>
+                          <span className="font-medium">{Math.round(progressPercentage)}%</span>
+                        </div>
+                        <Progress value={progressPercentage} className="h-2" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {completedCount} de {totalLessons} aulas
+                      </span>
+                    </div>
                   </div>
-                )}
-              </div>
+                  {course.isPremium && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Star className="h-3 w-3" />
+                      Premium
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+            </Card>
 
-              {/* Informações do curso */}
-              <div className="flex-1">
-                <CardTitle className="text-2xl mb-3">{course.title}</CardTitle>
-                {course.description && (
-                  <CardDescription className="text-base mb-4">
-                    {course.description}
-                  </CardDescription>
-                )}
+            {/* Lista de Conteúdos */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Lista de Conteúdos</h3>
+              
+              {course.modules && course.modules.length > 0 ? (
+                <div className="space-y-3">
+                  {course.modules.map((module, moduleIndex) => (
+                    <Card key={module.id} className="overflow-hidden">
+                      <Collapsible 
+                        open={openModules.has(module.id)} 
+                        onOpenChange={() => toggleModule(module.id)}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                                  {moduleIndex + 1}
+                                </div>
+                                <div>
+                                  <CardTitle className="text-lg">{module.title}</CardTitle>
+                                  <p className="text-sm text-muted-foreground">
+                                    {module.lessons.length} aula{module.lessons.length !== 1 ? 's' : ''}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">
+                                  {module.lessons.filter(l => completedLessons.has(l.id)).length}/{module.lessons.length}
+                                </span>
+                                {openModules.has(module.id) ? (
+                                  <ChevronDown className="h-5 w-5" />
+                                ) : (
+                                  <ChevronRight className="h-5 w-5" />
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent>
+                          <CardContent className="pt-0">
+                            <div className="space-y-2">
+                              {module.lessons.map((lesson, lessonIndex) => {
+                                const isCompleted = completedLessons.has(lesson.id);
+                                const lessonNumber = lessonIndex + 1;
+                                
+                                return (
+                                  <div 
+                                    key={lesson.id} 
+                                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
+                                      isCompleted ? 'bg-green-50 border-green-200' : 'bg-white hover:bg-gray-50'
+                                    }`}
+                                    onClick={() => startLesson(lesson.id)}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex items-center justify-center w-6 h-6 text-xs text-muted-foreground">
+                                        {lessonNumber.toString().padStart(2, '0')}
+                                      </div>
+                                      
+                                      {isCompleted ? (
+                                        <CheckCircle className="h-5 w-5 text-green-600" />
+                                      ) : lesson.type === 'video' ? (
+                                        <Play className="h-5 w-5 text-blue-600" />
+                                      ) : (
+                                        <FileText className="h-5 w-5 text-gray-600" />
+                                      )}
+                                      
+                                      <div>
+                                        <h4 className="font-medium">{lesson.title}</h4>
+                                        {lesson.description && (
+                                          <p className="text-sm text-muted-foreground">{lesson.description}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-3">
+                                      {lesson.duration && (
+                                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                          <Clock className="h-3 w-3" />
+                                          {lesson.duration} min
+                                        </div>
+                                      )}
+                                      
+                                      <Button 
+                                        size="sm" 
+                                        variant={isCompleted ? "outline" : "default"}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          startLesson(lesson.id);
+                                        }}
+                                      >
+                                        {isCompleted ? 'Revisar' : 'Assistir'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-8">
+                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-muted-foreground">Nenhum módulo disponível ainda.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sobre o Curso</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{course.modules?.length || 0} módulos</span>
+                </div>
                 
-                {/* Progresso */}
-                <div className="mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Progresso do Curso</span>
-                    <span className="text-sm text-gray-600">
-                      {completedLessons} de {totalLessons} aulas
-                    </span>
+                <div className="flex items-center gap-2">
+                  <Play className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{totalLessons} aulas</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Acesso vitalício</span>
+                </div>
+
+                <Separator />
+                
+                <p className="text-xs text-muted-foreground">
+                  Continue seu aprendizado e complete todas as aulas para dominar o conteúdo.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Progresso Detalhado */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Seu Progresso</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Concluído</span>
+                    <span className="font-medium">{Math.round(progressPercentage)}%</span>
                   </div>
-                  <Progress value={course.progress} className="h-2" />
-                  <p className="text-sm text-gray-600 mt-1">
-                    {Math.round(course.progress)}% concluído
+                  <Progress value={progressPercentage} className="h-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {completedCount} de {totalLessons} aulas concluídas
                   </p>
                 </div>
-
-                {/* Estatísticas */}
-                <div className="flex gap-6 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <BookOpen className="h-4 w-4" />
-                    {course.modules.length} módulos
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Play className="h-4 w-4" />
-                    {totalLessons} aulas
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {/* Módulos e aulas */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Conteúdo do Curso</h2>
-          
-          {course.modules.map((module, moduleIndex) => {
-            const moduleCompleted = module.lessons.filter(lesson => lesson.isCompleted).length;
-            const moduleProgress = module.lessons.length > 0 
-              ? (moduleCompleted / module.lessons.length) * 100 
-              : 0;
-            const isOpen = openModules.includes(module.id);
-
-            return (
-              <Card key={module.id}>
-                <Collapsible open={isOpen} onOpenChange={() => toggleModule(module.id)}>
-                  <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {isOpen ? (
-                            <ChevronDown className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <ChevronRight className="h-5 w-5 text-gray-400" />
-                          )}
-                          <div>
-                            <CardTitle className="text-lg">
-                              Módulo {moduleIndex + 1}: {module.title}
-                            </CardTitle>
-                            {module.description && (
-                              <CardDescription className="mt-1">
-                                {module.description}
-                              </CardDescription>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-gray-600 mb-1">
-                            {moduleCompleted} de {module.lessons.length} aulas
-                          </div>
-                          <Progress value={moduleProgress} className="w-20 h-1" />
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent>
-                    <CardContent className="pt-0">
-                      <Separator className="mb-4" />
-                      <div className="space-y-3">
-                        {module.lessons.map((lesson, lessonIndex) => (
-                          <div
-                            key={lesson.id}
-                            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                              lesson.isCompleted 
-                                ? 'bg-green-50 border-green-200' 
-                                : 'bg-white border-gray-200 hover:bg-gray-50'
-                            }`}
-                            onClick={() => handleLessonClick(lesson)}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                                lesson.isCompleted 
-                                  ? 'bg-green-100 text-green-600' 
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {lesson.isCompleted ? (
-                                  <Check className="h-4 w-4" />
-                                ) : (
-                                  getLessonIcon(lesson.type)
-                                )}
-                              </div>
-                              <div>
-                                <div className="font-medium">
-                                  {lessonIndex + 1}. {lesson.title}
-                                </div>
-                                {lesson.description && (
-                                  <div className="text-sm text-gray-600">
-                                    {lesson.description}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline">
-                                {getLessonTypeLabel(lesson.type)}
-                              </Badge>
-                              {lesson.type === 'pdf' && (
-                                <Download className="h-4 w-4 text-gray-400" />
-                              )}
-                              {lesson.type === 'link' && (
-                                <ExternalLink className="h-4 w-4 text-gray-400" />
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </CollapsibleContent>
-                </Collapsible>
-              </Card>
-            );
-          })}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
