@@ -388,17 +388,6 @@ export default function LessonViewPage() {
                       {completedLessons.has(lessonId) ? 'Concluída' : 'Concluir'}
                     </Button>
                     
-                    {/* Botão Voltar */}
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setLocation(`/cursos/${courseId}`)}
-                      className="flex items-center gap-2"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                      Voltar
-                    </Button>
-                    
                     {/* Botão Anterior */}
                     {prevLesson && (
                       <Button 
