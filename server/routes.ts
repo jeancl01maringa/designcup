@@ -5570,6 +5570,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reorder modules
+  app.put('/api/admin/courses/:courseId/modules/reorder', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const courseId = parseInt(req.params.courseId);
+      const { moduleIds } = req.body;
+      
+      if (!Array.isArray(moduleIds)) {
+        return res.status(400).json({ message: 'moduleIds deve ser um array' });
+      }
+
+      // Update order index for each module
+      for (let i = 0; i < moduleIds.length; i++) {
+        await pool.query(
+          'UPDATE modules SET order_index = $1 WHERE id = $2 AND course_id = $3',
+          [i + 1, moduleIds[i], courseId]
+        );
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Erro ao reordenar módulos:', error);
+      res.status(500).json({ message: 'Erro ao reordenar módulos' });
+    }
+  });
+
+  // Reorder lessons
+  app.put('/api/admin/modules/:moduleId/lessons/reorder', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const moduleId = parseInt(req.params.moduleId);
+      const { lessonIds } = req.body;
+      
+      if (!Array.isArray(lessonIds)) {
+        return res.status(400).json({ message: 'lessonIds deve ser um array' });
+      }
+
+      // Update order index for each lesson
+      for (let i = 0; i < lessonIds.length; i++) {
+        await pool.query(
+          'UPDATE lessons SET order_index = $1 WHERE id = $2 AND module_id = $3',
+          [i + 1, lessonIds[i], moduleId]
+        );
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Erro ao reordenar aulas:', error);
+      res.status(500).json({ message: 'Erro ao reordenar aulas' });
+    }
+  });
+
   // User course access
   app.get('/api/courses', async (req, res) => {
     try {

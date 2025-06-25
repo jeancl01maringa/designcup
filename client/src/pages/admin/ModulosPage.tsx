@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { PageHeader } from "@/components/admin/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, ArrowLeft, Edit, Trash2, MoreHorizontal, GripVertical, ChevronDown, ChevronRight, Upload, Search, Maximize2, Copy, FileText, Heart, MessageSquare } from "lucide-react";
+import { Plus, ArrowLeft, Edit, Trash2, MoreHorizontal, GripVertical, ChevronDown, ChevronRight, Upload, Search, Maximize2, Copy, FileText, Heart, MessageSquare, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -37,6 +38,7 @@ interface Lesson {
 
 export default function ModulosPage() {
   const params = useParams();
+  const [, setLocation] = useLocation();
   const courseId = parseInt(params.courseId || "0");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,6 +94,30 @@ export default function ModulosPage() {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
       setEditingTitle(null);
       toast({ title: "Título atualizado com sucesso!" });
+    },
+  });
+
+  // Atualizar ordem dos módulos
+  const updateModuleOrderMutation = useMutation({
+    mutationFn: async (moduleIds: number[]) => {
+      const res = await apiRequest("PUT", `/api/admin/courses/${courseId}/modules/reorder`, { moduleIds });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Ordem dos módulos atualizada!" });
+    },
+  });
+
+  // Atualizar ordem das aulas
+  const updateLessonOrderMutation = useMutation({
+    mutationFn: async (data: { moduleId: number; lessonIds: number[] }) => {
+      const res = await apiRequest("PUT", `/api/admin/modules/${data.moduleId}/lessons/reorder`, { lessonIds: data.lessonIds });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
+      toast({ title: "Ordem das aulas atualizada!" });
     },
   });
 
@@ -158,6 +184,36 @@ export default function ModulosPage() {
       setSelectedItems(allItems);
     }
     setSelectedAll(!selectedAll);
+  };
+
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const { source, destination, draggableId } = result;
+
+    // Se está movendo módulos
+    if (source.droppableId === "modules" && destination.droppableId === "modules") {
+      const moduleIds = modules.map(m => m.id);
+      const [reorderedId] = moduleIds.splice(source.index, 1);
+      moduleIds.splice(destination.index, 0, reorderedId);
+      updateModuleOrderMutation.mutate(moduleIds);
+    }
+    
+    // Se está movendo aulas dentro do mesmo módulo
+    else if (source.droppableId.startsWith("lessons-") && source.droppableId === destination.droppableId) {
+      const moduleId = parseInt(source.droppableId.replace("lessons-", ""));
+      const module = modules.find(m => m.id === moduleId);
+      if (module?.lessons) {
+        const lessonIds = module.lessons.map(l => l.id);
+        const [reorderedId] = lessonIds.splice(source.index, 1);
+        lessonIds.splice(destination.index, 0, reorderedId);
+        updateLessonOrderMutation.mutate({ moduleId, lessonIds });
+      }
+    }
+  };
+
+  const handlePreviewCourse = () => {
+    setLocation(`/cursos/${courseId}`);
   };
 
   return (
@@ -230,6 +286,15 @@ export default function ModulosPage() {
             <Button variant="outline" size="sm">Trilhas</Button>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handlePreviewCourse}
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Visualizar
+            </Button>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -277,180 +342,212 @@ export default function ModulosPage() {
         </div>
 
         {/* Content List */}
-        <div className="space-y-2">
-          {modules.map((module) => (
-            <div key={module.id} className="border rounded-lg">
-              {/* Module Header */}
-              <div className="flex items-center gap-3 p-4 hover:bg-gray-50">
-                <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
-                <Checkbox 
-                  checked={selectedItems.has(`module-${module.id}`)}
-                  onCheckedChange={() => toggleItemSelection(`module-${module.id}`)}
-                />
-                <button
-                  onClick={() => toggleModule(module.id)}
-                  className="flex items-center gap-2"
-                >
-                  {expandedModules.has(module.id) ? 
-                    <ChevronDown className="h-4 w-4" /> : 
-                    <ChevronRight className="h-4 w-4" />
-                  }
-                </button>
-                
-                <div className="flex-1">
-                  {editingTitle === `module-${module.id}` ? (
-                    <Input
-                      value={tempTitle}
-                      onChange={(e) => setTempTitle(e.target.value)}
-                      onBlur={() => handleTitleSave('module', module.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleTitleSave('module', module.id);
-                        if (e.key === 'Escape') handleTitleCancel();
-                      }}
-                      autoFocus
-                      className="text-lg font-medium"
-                    />
-                  ) : (
-                    <div 
-                      onClick={() => handleTitleEdit('module', module.id, module.title)}
-                      className="cursor-pointer"
-                    >
-                      <h3 className="text-lg font-medium">{module.title}</h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <Badge variant="secondary" className="text-xs">Módulo principal</Badge>
-                        <span>{module.lessons?.length || 0} conteúdos</span>
-                        <button className="text-blue-600 hover:underline">Mostrar turmas</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleAddLesson(module.id)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleTitleEdit('module', module.id, module.title)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Duplicar
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <button onClick={() => toggleModule(module.id)}>
-                    {expandedModules.has(module.id) ? 
-                      <ChevronDown className="h-4 w-4" /> : 
-                      <ChevronRight className="h-4 w-4" />
-                    }
-                  </button>
-                </div>
-              </div>
-
-              {/* Lessons */}
-              {expandedModules.has(module.id) && (
-                <div className="pl-16 pb-4 space-y-2">
-                  {module.lessons?.map((lesson, index) => (
-                    <div key={lesson.id} className="flex items-center gap-3 py-2 px-4 hover:bg-gray-50 rounded">
-                      <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
-                      <Checkbox 
-                        checked={selectedItems.has(`lesson-${lesson.id}`)}
-                        onCheckedChange={() => toggleItemSelection(`lesson-${lesson.id}`)}
-                      />
-                      <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                        <FileText className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        {editingTitle === `lesson-${lesson.id}` ? (
-                          <Input
-                            value={tempTitle}
-                            onChange={(e) => setTempTitle(e.target.value)}
-                            onBlur={() => handleTitleSave('lesson', lesson.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleTitleSave('lesson', lesson.id);
-                              if (e.key === 'Escape') handleTitleCancel();
-                            }}
-                            autoFocus
-                            className="font-medium"
-                          />
-                        ) : (
-                          <div 
-                            onClick={() => handleTitleEdit('lesson', lesson.id, lesson.title)}
-                            className="cursor-pointer"
-                          >
-                            <span className="font-medium">{lesson.title}</span>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MessageSquare className="h-3 w-3" />
-                              <span>0</span>
-                              <Heart className="h-3 w-3" />
-                              <span>{index < 2 ? '5' : '0'}</span>
-                            </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="modules" type="MODULE">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                {modules.map((module, moduleIndex) => (
+                  <Draggable key={module.id} draggableId={`module-${module.id}`} index={moduleIndex}>
+                    {(provided, snapshot) => (
+                      <div 
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`border rounded-lg ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+                      >
+                        {/* Module Header */}
+                        <div className="flex items-center gap-3 p-4 hover:bg-gray-50">
+                          <div {...provided.dragHandleProps}>
+                            <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
                           </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {lesson.isPublished !== false && (
-                          <Badge variant="outline" className="text-green-600 border-green-200 text-xs">
-                            Publicado
-                          </Badge>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
+                          <Checkbox 
+                            checked={selectedItems.has(`module-${module.id}`)}
+                            onCheckedChange={() => toggleItemSelection(`module-${module.id}`)}
+                          />
+                          <button
+                            onClick={() => toggleModule(module.id)}
+                            className="flex items-center gap-2"
+                          >
+                            {expandedModules.has(module.id) ? 
+                              <ChevronDown className="h-4 w-4" /> : 
+                              <ChevronRight className="h-4 w-4" />
+                            }
+                          </button>
+                          
+                          <div className="flex-1">
+                            {editingTitle === `module-${module.id}` ? (
+                              <Input
+                                value={tempTitle}
+                                onChange={(e) => setTempTitle(e.target.value)}
+                                onBlur={() => handleTitleSave('module', module.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleTitleSave('module', module.id);
+                                  if (e.key === 'Escape') handleTitleCancel();
+                                }}
+                                autoFocus
+                                className="text-lg font-medium"
+                              />
+                            ) : (
+                              <div 
+                                onClick={() => handleTitleEdit('module', module.id, module.title)}
+                                className="cursor-pointer"
+                              >
+                                <h3 className="text-lg font-medium">{module.title}</h3>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                  <Badge variant="secondary" className="text-xs">Módulo principal</Badge>
+                                  <span>{module.lessons?.length || 0} conteúdos</span>
+                                  <button className="text-blue-600 hover:underline">Mostrar turmas</button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleAddLesson(module.id)}
+                            >
+                              <Plus className="h-4 w-4" />
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleTitleEdit('lesson', lesson.id, lesson.title)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Copy className="h-4 w-4 mr-2" />
-                              Duplicar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleTitleEdit('module', module.id, module.title)}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Copy className="h-4 w-4 mr-2" />
+                                  Duplicar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <button onClick={() => toggleModule(module.id)}>
+                              {expandedModules.has(module.id) ? 
+                                <ChevronDown className="h-4 w-4" /> : 
+                                <ChevronRight className="h-4 w-4" />
+                              }
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Lessons */}
+                        {expandedModules.has(module.id) && (
+                          <Droppable droppableId={`lessons-${module.id}`} type="LESSON">
+                            {(provided) => (
+                              <div {...provided.droppableProps} ref={provided.innerRef} className="pl-16 pb-4 space-y-2">
+                                {module.lessons?.map((lesson, lessonIndex) => (
+                                  <Draggable key={lesson.id} draggableId={`lesson-${lesson.id}`} index={lessonIndex}>
+                                    {(provided, snapshot) => (
+                                      <div 
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        className={`flex items-center gap-3 py-2 px-4 hover:bg-gray-50 rounded ${snapshot.isDragging ? 'shadow-md bg-white' : ''}`}
+                                      >
+                                        <div {...provided.dragHandleProps}>
+                                          <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+                                        </div>
+                                        <Checkbox 
+                                          checked={selectedItems.has(`lesson-${lesson.id}`)}
+                                          onCheckedChange={() => toggleItemSelection(`lesson-${lesson.id}`)}
+                                        />
+                                        <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                                          <FileText className="h-4 w-4 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                          {editingTitle === `lesson-${lesson.id}` ? (
+                                            <Input
+                                              value={tempTitle}
+                                              onChange={(e) => setTempTitle(e.target.value)}
+                                              onBlur={() => handleTitleSave('lesson', lesson.id)}
+                                              onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleTitleSave('lesson', lesson.id);
+                                                if (e.key === 'Escape') handleTitleCancel();
+                                              }}
+                                              autoFocus
+                                              className="font-medium"
+                                            />
+                                          ) : (
+                                            <div 
+                                              onClick={() => handleTitleEdit('lesson', lesson.id, lesson.title)}
+                                              className="cursor-pointer"
+                                            >
+                                              <span className="font-medium">{lesson.title}</span>
+                                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <MessageSquare className="h-3 w-3" />
+                                                <span>0</span>
+                                                <Heart className="h-3 w-3" />
+                                                <span>{lessonIndex < 2 ? '5' : '0'}</span>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          {lesson.isPublished !== false && (
+                                            <Badge variant="outline" className="text-green-600 border-green-200 text-xs">
+                                              Publicado
+                                            </Badge>
+                                          )}
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button variant="ghost" size="sm">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                              <DropdownMenuItem onClick={() => handleTitleEdit('lesson', lesson.id, lesson.title)}>
+                                                <Edit className="h-4 w-4 mr-2" />
+                                                Editar
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem>
+                                                <Copy className="h-4 w-4 mr-2" />
+                                                Duplicar
+                                              </DropdownMenuItem>
+                                              <DropdownMenuSeparator />
+                                              <DropdownMenuItem className="text-red-600">
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Excluir
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                                
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleAddLesson(module.id)}
+                                  className="ml-11 text-blue-600 hover:text-blue-700"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Adicionar
+                                </Button>
+                              </div>
+                            )}
+                          </Droppable>
+                        )}
                       </div>
-                    </div>
-                  ))}
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleAddLesson(module.id)}
-                    className="ml-11 text-blue-600 hover:text-blue-700"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
 
 
