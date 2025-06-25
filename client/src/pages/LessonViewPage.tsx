@@ -68,6 +68,9 @@ export default function LessonViewPage() {
 
   // Verificar se usuário tem acesso
   const hasAccess = user?.tipo === 'premium' || user?.isAdmin;
+  
+  console.log('[LESSON ACCESS] User:', user);
+  console.log('[LESSON ACCESS] Has access:', hasAccess);
 
   useEffect(() => {
     if (currentModule) {
