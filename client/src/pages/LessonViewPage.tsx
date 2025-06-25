@@ -154,16 +154,33 @@ export default function LessonViewPage() {
 
   if (courseLoading || lessonLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">Carregando aula...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando aula...</p>
+        </div>
       </div>
     );
   }
 
-  if (!course || !currentLesson) {
+  if (!course) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">Aula não encontrada</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Book className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+          <p className="text-gray-600">Curso não encontrado</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentLesson) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Play className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+          <p className="text-gray-600">Selecione uma aula para assistir</p>
+        </div>
       </div>
     );
   }
@@ -172,29 +189,29 @@ export default function LessonViewPage() {
   const prevLesson = getPrevLesson();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Helmet>
         <title>{currentLesson.title} - {course.title}</title>
       </Helmet>
 
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-0">
           
           {/* Sidebar - Lista de Aulas */}
-          <div className="lg:col-span-1 bg-white border-r">
-            <div className="p-4 border-b">
-              <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 mb-4">
+          <div className="lg:col-span-1 bg-gray-50 border-r border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 mb-4 text-gray-700 hover:text-gray-900">
                 <ArrowLeft className="h-4 w-4" />
                 Voltar ao curso
               </Button>
-              <h3 className="font-semibold text-lg">{course.title}</h3>
+              <h3 className="font-semibold text-lg text-gray-900">{course.title}</h3>
             </div>
             
             <ScrollArea className="h-[calc(100vh-120px)]">
               <div className="p-4 space-y-4">
                 {course.modules.map((module) => (
                   <div key={module.id} className="space-y-2">
-                    <h4 className="font-medium text-sm text-gray-900 sticky top-0 bg-white py-2">
+                    <h4 className="font-medium text-sm text-gray-900 sticky top-0 bg-gray-50 py-2">
                       {module.title}
                     </h4>
                     
@@ -242,8 +259,8 @@ export default function LessonViewPage() {
           </div>
 
           {/* Conteúdo Principal */}
-          <div className="lg:col-span-3 p-6">
-            <Card>
+          <div className="lg:col-span-3 p-6 bg-white">
+            <Card className="border-0 shadow-none">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -277,20 +294,62 @@ export default function LessonViewPage() {
               
               <CardContent className="space-y-6">
                 {/* Conteúdo da Aula */}
-                {currentLesson.type === 'video' && currentLesson.videoUrl ? (
-                  <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <Play className="h-16 w-16 mx-auto mb-4" />
-                      <p>Player de vídeo em desenvolvimento</p>
-                      <p className="text-sm opacity-75">URL: {currentLesson.videoUrl}</p>
-                    </div>
+                {currentLesson.type === 'video' ? (
+                  <div className="space-y-4">
+                    {/* Renderizar vídeo do YouTube ou outros links */}
+                    {currentLesson.content && currentLesson.content.includes('youtube.com') ? (
+                      <div className="aspect-video">
+                        <iframe
+                          src={currentLesson.content.replace('watch?v=', 'embed/')}
+                          className="w-full h-full rounded-lg"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : currentLesson.content && currentLesson.content.includes('youtu.be') ? (
+                      <div className="aspect-video">
+                        <iframe
+                          src={currentLesson.content.replace('youtu.be/', 'youtube.com/embed/')}
+                          className="w-full h-full rounded-lg"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : currentLesson.content ? (
+                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="text-center">
+                          <Play className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                          <p className="text-gray-600">Link do vídeo:</p>
+                          <a 
+                            href={currentLesson.content} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline break-all"
+                          >
+                            {currentLesson.content}
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="text-center text-gray-500">
+                          <Play className="h-16 w-16 mx-auto mb-4" />
+                          <p>Nenhum vídeo configurado para esta aula</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="prose max-w-none">
                     {currentLesson.content ? (
                       <div dangerouslySetInnerHTML={{ __html: currentLesson.content }} />
                     ) : (
-                      <p className="text-muted-foreground">Conteúdo da aula será exibido aqui.</p>
+                      <div className="text-center py-8 text-gray-500">
+                        <Book className="h-16 w-16 mx-auto mb-4" />
+                        <p>Selecione uma aula para assistir</p>
+                      </div>
                     )}
                   </div>
                 )}

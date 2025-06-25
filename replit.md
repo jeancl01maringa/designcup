@@ -81,3 +81,4 @@ Changelog:
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+User expresses frustration with credit consumption due to technical issues - prioritize working solutions over extensive debugging.
