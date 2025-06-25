@@ -350,7 +350,11 @@ export default function LessonViewPage() {
 
                 {/* 2. Navegação entre aulas */}
                 <div className="flex justify-between items-center py-4 border-t border-b">
-                  <div>
+                  <div className="text-sm text-muted-foreground">
+                    Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
+                  </div>
+
+                  <div className="flex items-center gap-2">
                     {prevLesson ? (
                       <Button 
                         variant="outline" 
@@ -358,33 +362,25 @@ export default function LessonViewPage() {
                         className="flex items-center gap-2"
                       >
                         <ArrowLeft className="h-4 w-4" />
-                        Aula Anterior
+                        Anterior
                       </Button>
                     ) : (
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         onClick={() => setLocation(`/cursos/${courseId}`)}
                         className="flex items-center gap-2"
                       >
                         <ArrowLeft className="h-4 w-4" />
-                        Voltar ao Curso
+                        Voltar
                       </Button>
                     )}
-                  </div>
 
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
-                    </p>
-                  </div>
-
-                  <div>
                     {nextLesson ? (
                       <Button 
                         onClick={() => navigateToLesson(nextLesson.id)}
                         className="flex items-center gap-2"
                       >
-                        Próxima Aula
+                        Próximo
                         <ArrowLeft className="h-4 w-4 rotate-180" />
                       </Button>
                     ) : (
@@ -393,7 +389,7 @@ export default function LessonViewPage() {
                         onClick={() => setLocation(`/cursos/${courseId}`)}
                         className="flex items-center gap-2"
                       >
-                        Concluir Módulo
+                        Concluir
                         <CheckCircle className="h-4 w-4" />
                       </Button>
                     )}
