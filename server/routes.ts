@@ -806,51 +806,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userId = req.user.id;
-      const userPlanId = req.user.plano_id;
       const userType = req.user.tipo;
 
-      console.log(`Buscando plano do usuário ${userId} - plano_id: ${userPlanId}, tipo: ${userType}`);
+      console.log(`Buscando plano do usuário ${userId} - tipo: ${userType}`);
 
-      // Se o usuário é tipo "free", sempre retornar plano gratuito independente do plano_id
-      if (userType === 'free' || !userPlanId) {
+      // Se o usuário é tipo "free", sempre retornar plano gratuito
+      if (userType === 'free') {
         console.log('Usuário tipo free, retornando plano gratuito');
         return res.json({
           planName: 'Plano Gratuito',
           periodo: 'Gratuito',
           valor: 'R$ 0,00',
-          isActive: true
+          isActive: true,
+          startDate: null,
+          expirationDate: null,
+          source: 'local'
         });
       }
 
       try {
-        // Buscar o plano via PostgreSQL direto apenas se o usuário é premium
+        // Buscar assinatura real da Hotmart na tabela subscriptions
         const result = await pool.query(`
-          SELECT id, name, periodo, valor, is_active
-          FROM plans 
-          WHERE id = $1
-        `, [userPlanId]);
+          SELECT 
+            hotmart_plan_name,
+            plan_type,
+            hotmart_plan_price,
+            hotmart_currency,
+            status,
+            start_date,
+            end_date,
+            origin,
+            transaction_id
+          FROM subscriptions 
+          WHERE user_id = $1 
+          AND status = 'active'
+          ORDER BY start_date DESC
+          LIMIT 1
+        `, [userId]);
 
         if (result.rows && result.rows.length > 0) {
-          const plan = result.rows[0];
-          console.log(`Plano encontrado: ${plan.name}`);
+          const subscription = result.rows[0];
+          console.log(`Assinatura ativa encontrada: ${subscription.hotmart_plan_name}`);
           
           return res.json({
-            planName: plan.name,
-            periodo: plan.periodo,
-            valor: plan.valor,
-            isActive: plan.is_active
+            planName: subscription.hotmart_plan_name || subscription.plan_type,
+            periodo: subscription.hotmart_plan_name?.includes('Anual') ? 'Anual' : 'Mensal',
+            valor: subscription.hotmart_plan_price ? `${subscription.hotmart_currency} ${subscription.hotmart_plan_price}` : 'N/A',
+            isActive: subscription.status === 'active',
+            startDate: subscription.start_date,
+            expirationDate: subscription.end_date,
+            source: subscription.origin || 'hotmart',
+            transactionId: subscription.transaction_id
           });
         } else {
-          console.log(`Plano ${userPlanId} não encontrado, retornando plano gratuito`);
+          console.log(`Nenhuma assinatura ativa encontrada para usuário ${userId}, verificando plano_id`);
+          
+          // Fallback: se não encontrou assinatura ativa mas é premium, buscar por plano_id como string
+          const userPlanId = req.user.plano_id;
+          if (userPlanId) {
+            return res.json({
+              planName: userPlanId === 'anual' ? 'Plano Anual' : userPlanId === 'mensal' ? 'Plano Mensal' : `Plano ${userPlanId}`,
+              periodo: userPlanId === 'anual' ? 'Anual' : 'Mensal',
+              valor: 'N/A',
+              isActive: true,
+              startDate: req.user.created_at,
+              expirationDate: req.user.data_vencimento,
+              source: 'local'
+            });
+          }
+
           return res.json({
             planName: 'Plano Gratuito',
             periodo: 'Gratuito',
             valor: 'R$ 0,00',
-            isActive: true
+            isActive: true,
+            startDate: null,
+            expirationDate: null,
+            source: 'local'
           });
         }
       } catch (dbError: any) {
-        console.error(`Erro ao buscar plano ${userPlanId}:`, dbError);
+        console.error(`Erro ao buscar assinatura do usuário ${userId}:`, dbError);
         return res.status(500).json({ message: 'Erro ao buscar informações do plano' });
       }
     } catch (error: any) {

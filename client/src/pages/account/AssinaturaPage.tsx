@@ -15,6 +15,10 @@ interface UserPlan {
   periodo: string;
   valor: string;
   isActive: boolean;
+  startDate?: string;
+  expirationDate?: string;
+  source?: string;
+  transactionId?: string;
 }
 
 export default function AssinaturaPage() {
@@ -100,14 +104,29 @@ export default function AssinaturaPage() {
                       <h4 className="font-medium">Data de Início</h4>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {userData?.createdAt ? 
-                        new Date(userData.createdAt).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: '2-digit', 
-                          year: 'numeric'
-                        }) : 
-                        'Não disponível'
-                      }
+                      {planLoading ? (
+                        <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
+                      ) : (() => {
+                        // Priorizar data de início da assinatura Hotmart
+                        if (userPlan?.startDate) {
+                          return new Date(userPlan.startDate).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit', 
+                            year: 'numeric'
+                          });
+                        }
+                        
+                        // Fallback para data de criação do usuário
+                        if (userData?.createdAt) {
+                          return new Date(userData.createdAt).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit', 
+                            year: 'numeric'
+                          });
+                        }
+                        
+                        return 'Não disponível';
+                      })()}
                     </p>
                   </div>
                   
@@ -120,10 +139,21 @@ export default function AssinaturaPage() {
                       {planLoading ? (
                         <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
                       ) : (() => {
+                        // Verificar se é plano vitalício
                         if (userPlan?.periodo?.toLowerCase().includes('vitalício') || userPlan?.periodo?.toLowerCase().includes('vitalicio')) {
                           return 'Vitalício (sem expiração)';
                         }
                         
+                        // Priorizar data de expiração da Hotmart
+                        if (userPlan?.expirationDate) {
+                          return new Date(userPlan.expirationDate).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          });
+                        }
+                        
+                        // Fallback para data de vencimento do usuário
                         if (userData?.data_vencimento) {
                           return new Date(userData.data_vencimento).toLocaleDateString('pt-BR', {
                             day: '2-digit',
@@ -132,6 +162,7 @@ export default function AssinaturaPage() {
                           });
                         }
                         
+                        // Se é premium mas não tem data de expiração definida
                         if (userData?.tipo === 'premium') {
                           return 'Não definida';
                         }
