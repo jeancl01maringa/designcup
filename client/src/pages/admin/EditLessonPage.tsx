@@ -379,12 +379,15 @@ export default function EditLessonPage() {
               variant="outline" 
               size="sm"
               onClick={() => {
+                console.log('Lesson data:', lesson);
+                console.log('LessonId:', lessonId);
                 if (lesson?.courseId && lessonId) {
                   setLocation(`/cursos/${lesson.courseId}/aula/${lessonId}`);
                 } else {
+                  console.log('Missing data - courseId:', lesson?.courseId, 'lessonId:', lessonId);
                   toast({
                     title: "Erro",
-                    description: "Não foi possível encontrar o curso para visualização",
+                    description: `Dados faltantes - Curso: ${lesson?.courseId || 'não encontrado'}, Aula: ${lessonId || 'não encontrado'}`,
                     variant: "destructive",
                   });
                 }
