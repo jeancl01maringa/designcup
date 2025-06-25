@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { ProfileLayout } from "@/components/layout/ProfileLayout";
-import { Calendar, Clock, MessageSquare, CheckCircle, CreditCard, Info } from "lucide-react";
+import { Calendar, Clock, MessageSquare, CheckCircle, CreditCard, Info, Crown } from "lucide-react";
 
 interface UserPlan {
   planName: string;
@@ -195,8 +195,8 @@ export default function AssinaturaPage() {
                       <h3 className="font-bold text-lg">
                         {planLoading ? (
                           <div className="animate-pulse bg-gray-200 h-6 w-48 rounded"></div>
-                        ) : userPlan ? (
-                          userPlan.planName
+                        ) : userData?.tipo === 'premium' ? (
+                          'Premium'
                         ) : (
                           'Plano Gratuito'
                         )}
@@ -205,10 +205,17 @@ export default function AssinaturaPage() {
                         {userData?.tipo === 'premium' ? 'Acesso completo a todos os recursos premium' : 'Acesso básico à plataforma'}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <Badge variant={userData?.tipo === 'premium' ? "default" : "secondary"} className="text-xs">
-                        {userData?.tipo === 'premium' ? 'PREMIUM' : 'GRATUITO'}
-                      </Badge>
+                    <div className="flex items-center">
+                      {userData?.tipo === 'premium' ? (
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200">
+                          <Crown className="h-3 w-3 mr-1 fill-amber-600" />
+                          PREMIUM
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-gray-600">
+                          GRATUITO
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
