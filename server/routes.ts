@@ -6181,6 +6181,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rotas para avaliações das aulas
+  app.post("/api/lessons/:id/rating", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autorizado' });
+      }
+
+      const lessonId = parseInt(req.params.id);
+      const { rating } = req.body;
+      const userId = req.user.id;
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: 'Avaliação deve ser entre 1 e 5' });
+      }
+
+      // Verificar se já existe avaliação do usuário para esta aula
+      const existing = await pool.query(`
+        SELECT id FROM lesson_ratings 
+        WHERE lesson_id = $1 AND user_id = $2
+      `, [lessonId, userId]);
+
+      if (existing.rows.length > 0) {
+        // Atualizar avaliação existente
+        await pool.query(`
+          UPDATE lesson_ratings 
+          SET rating = $1, updated_at = CURRENT_TIMESTAMP 
+          WHERE lesson_id = $2 AND user_id = $3
+        `, [rating, lessonId, userId]);
+      } else {
+        // Criar nova avaliação
+        await pool.query(`
+          INSERT INTO lesson_ratings (lesson_id, user_id, rating)
+          VALUES ($1, $2, $3)
+        `, [lessonId, userId, rating]);
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Erro ao salvar avaliação:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Buscar avaliação média da aula
+  app.get("/api/lessons/:id/rating", async (req, res) => {
+    try {
+      const lessonId = parseInt(req.params.id);
+
+      const result = await pool.query(`
+        SELECT 
+          COALESCE(AVG(rating), 0) as average_rating,
+          COUNT(rating) as rating_count
+        FROM lesson_ratings 
+        WHERE lesson_id = $1
+      `, [lessonId]);
+
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao buscar avaliação:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Rotas para comentários das aulas
+  app.post("/api/lessons/:id/comments", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Não autorizado' });
+      }
+
+      const lessonId = parseInt(req.params.id);
+      const { comment } = req.body;
+      const userId = req.user.id;
+
+      if (!comment || comment.trim().length === 0) {
+        return res.status(400).json({ message: 'Comentário não pode estar vazio' });
+      }
+
+      const result = await pool.query(`
+        INSERT INTO lesson_comments (lesson_id, user_id, comment)
+        VALUES ($1, $2, $3)
+        RETURNING id, created_at
+      `, [lessonId, userId, comment.trim()]);
+
+      res.json({ 
+        id: result.rows[0].id,
+        createdAt: result.rows[0].created_at,
+        success: true 
+      });
+    } catch (error: any) {
+      console.error('Erro ao salvar comentário:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Buscar comentários da aula
+  app.get("/api/lessons/:id/comments", async (req, res) => {
+    try {
+      const lessonId = parseInt(req.params.id);
+
+      const result = await pool.query(`
+        SELECT 
+          lc.id,
+          lc.comment,
+          lc.created_at,
+          u.username,
+          u.profile_image
+        FROM lesson_comments lc
+        JOIN users u ON lc.user_id = u.id
+        WHERE lc.lesson_id = $1
+        ORDER BY lc.created_at DESC
+      `, [lessonId]);
+
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar comentários:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

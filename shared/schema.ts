@@ -436,6 +436,24 @@ export const courseProgress = pgTable("course_progress", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const lessonRatings = pgTable("lesson_ratings", {
+  id: serial("id").primaryKey(),
+  lessonId: integer("lesson_id").notNull(),
+  userId: integer("user_id").notNull(),
+  rating: integer("rating").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const lessonComments = pgTable("lesson_comments", {
+  id: serial("id").primaryKey(),
+  lessonId: integer("lesson_id").notNull(),
+  userId: integer("user_id").notNull(),
+  comment: text("comment").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const courseProgressRelations = relations(courseProgress, ({ one }) => ({
   user: one(users, {
     fields: [courseProgress.userId],
@@ -447,12 +465,37 @@ export const courseProgressRelations = relations(courseProgress, ({ one }) => ({
   }),
 }));
 
+// Relations for lesson ratings and comments
+export const lessonRatingsRelations = relations(lessonRatings, ({ one }) => ({
+  user: one(users, {
+    fields: [lessonRatings.userId],
+    references: [users.id],
+  }),
+  lesson: one(courseLessons, {
+    fields: [lessonRatings.lessonId],
+    references: [courseLessons.id],
+  }),
+}));
+
+export const lessonCommentsRelations = relations(lessonComments, ({ one }) => ({
+  user: one(users, {
+    fields: [lessonComments.userId],
+    references: [users.id],
+  }),
+  lesson: one(courseLessons, {
+    fields: [lessonComments.lessonId],
+    references: [courseLessons.id],
+  }),
+}));
+
 // Insert schemas
 export const insertCourseSchema = createInsertSchema(courses);
 export const insertCourseModuleSchema = createInsertSchema(courseModules);
 export const insertCourseLessonSchema = createInsertSchema(courseLessons);
 export const insertCourseEnrollmentSchema = createInsertSchema(courseEnrollments);
 export const insertCourseProgressSchema = createInsertSchema(courseProgress);
+export const insertLessonRatingSchema = createInsertSchema(lessonRatings);
+export const insertLessonCommentSchema = createInsertSchema(lessonComments);
 
 // Types
 export type Course = typeof courses.$inferSelect;
@@ -465,3 +508,7 @@ export type CourseEnrollment = typeof courseEnrollments.$inferSelect;
 export type InsertCourseEnrollment = typeof courseEnrollments.$inferInsert;
 export type CourseProgress = typeof courseProgress.$inferSelect;
 export type InsertCourseProgress = typeof courseProgress.$inferInsert;
+export type LessonRating = typeof lessonRatings.$inferSelect;
+export type InsertLessonRating = typeof lessonRatings.$inferInsert;
+export type LessonComment = typeof lessonComments.$inferSelect;
+export type InsertLessonComment = typeof lessonComments.$inferInsert;
