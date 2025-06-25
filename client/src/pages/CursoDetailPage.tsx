@@ -16,7 +16,6 @@ interface Course {
   title: string;
   description: string;
   coverImage?: string;
-  isPremium: boolean;
   modules?: Module[];
 }
 
@@ -53,8 +52,8 @@ export default function CursoDetailPage() {
     enabled: courseId > 0,
   });
 
-  // Verificar se usuário tem acesso
-  const hasAccess = !course?.isPremium || user?.tipo === 'premium' || user?.isAdmin;
+  // Verificar se usuário tem acesso (todos os cursos são acessíveis para usuários logados)
+  const hasAccess = true;
   
   // Calcular progresso
   const totalLessons = course?.modules?.reduce((acc, module) => acc + module.lessons.length, 0) || 0;
@@ -180,7 +179,7 @@ export default function CursoDetailPage() {
                       </span>
                     </div>
                   </div>
-                  {course.isPremium && (
+                  {user?.tipo === 'premium' && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Star className="h-3 w-3" />
                       Premium

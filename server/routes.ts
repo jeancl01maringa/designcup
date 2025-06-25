@@ -5618,7 +5618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar curso
       const courseQuery = `
-        SELECT id, title, description, cover_image as "coverImage", is_premium as "isPremium"
+        SELECT id, title, description, cover_image as "coverImage"
         FROM courses 
         WHERE id = $1
       `;
