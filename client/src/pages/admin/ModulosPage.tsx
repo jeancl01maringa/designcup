@@ -167,6 +167,12 @@ export default function ModulosPage() {
     setTempTitle("");
   };
 
+  const handleAddModule = () => {
+    createModuleMutation.mutate({ 
+      title: `Novo módulo ${modules.length + 1}` 
+    });
+  };
+
   const handleAddLesson = (moduleId: number) => {
     createLessonMutation.mutate({ 
       moduleId, 
