@@ -385,11 +385,12 @@ export default function LessonViewPage() {
                     {/* Botão Concluir */}
                     <Button 
                       onClick={markAsCompleted}
+                      variant={concluida ? "default" : "outline"}
                       size="sm"
                       className={`flex items-center gap-2 ${
                         concluida 
-                          ? 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300' 
-                          : 'bg-green-300 hover:bg-green-400 text-green-900 border-green-400'
+                          ? 'bg-green-300 hover:bg-green-400 text-green-900 border-green-400' 
+                          : 'hover:bg-green-100 hover:text-green-800 hover:border-green-300'
                       }`}
                     >
                       <CheckCircle className="h-4 w-4" />
