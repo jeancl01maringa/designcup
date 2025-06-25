@@ -5401,7 +5401,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const courseId = parseInt(req.params.id);
       const userId = req.user.id;
-      const isPremium = req.user.tipo === 'premium';
+      const isPremium = req.user.tipo === 'premium' && req.user.active === true;
+      
+      console.log(`[COURSE ACCESS] User ${userId}: tipo=${req.user.tipo}, active=${req.user.active}, isPremium=${isPremium}`);
       
       // Buscar curso com módulos e aulas
       const courseQuery = `
