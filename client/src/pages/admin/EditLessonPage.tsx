@@ -452,6 +452,94 @@ export default function EditLessonPage() {
                 {/* Texto/Descrição */}
                 <div>
                   <Label className="text-sm font-medium">Texto</Label>
+                  <div className="mt-1">
+                    {/* Toolbar do Editor */}
+                    <div className="border border-gray-200 bg-gray-50 p-2 flex flex-wrap gap-1 rounded-t-md">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleBold().run()}
+                        className={`h-8 w-8 p-0 ${editor?.isActive('bold') ? 'bg-gray-200' : ''}`}
+                      >
+                        <Bold className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleItalic().run()}
+                        className={`h-8 w-8 p-0 ${editor?.isActive('italic') ? 'bg-gray-200' : ''}`}
+                      >
+                        <Italic className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                        className={`h-8 w-8 p-0 ${editor?.isActive('underline') ? 'bg-gray-200' : ''}`}
+                      >
+                        <Underline className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                        className={`h-8 w-8 p-0 ${editor?.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+                      >
+                        <AlignLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                        className={`h-8 w-8 p-0 ${editor?.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+                      >
+                        <AlignCenter className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                        className={`h-8 w-8 p-0 ${editor?.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+                      >
+                        <AlignRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setColor('#ef4444').run()}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Type className="h-4 w-4 text-red-500" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setColor('#3b82f6').run()}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Type className="h-4 w-4 text-blue-500" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setColor('#10b981').run()}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Type className="h-4 w-4 text-green-500" />
+                      </Button>
+                    </div>
+                    {/* Editor */}
+                    <EditorContent editor={editor} className="prose max-w-none" />
+                  </div>
                   {formData.type === 'text' ? (
                     <div className="mt-1 border rounded-lg overflow-hidden">
                       <RichTextToolbar />

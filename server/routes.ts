@@ -5496,9 +5496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       
       const query = `
-        SELECT id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex",
-               cover_image as "coverImage", extra_materials as "extraMaterials", 
-               video_platform as "videoPlatform", is_premium as "isPremium"
+        SELECT id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex"
         FROM lessons 
         WHERE id = $1
       `;
