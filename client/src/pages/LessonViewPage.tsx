@@ -351,7 +351,7 @@ export default function LessonViewPage() {
                 {/* 2. Navegação e Avaliação */}
                 <div className="flex items-center justify-between py-4 border-t border-b">
                   <div className="text-sm text-muted-foreground">
-                    Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
+                    Aula {Math.max(currentLessonIndex + 1, 1)} de {currentModule?.lessons.length}
                   </div>
                   
                   <div className="flex items-center gap-4">
