@@ -5514,23 +5514,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/admin/lessons/:id', async (req, res) => {
+  app.put('/api/admin/lessons/:id', upload.fields([
+    { name: 'coverImage', maxCount: 1 },
+    { name: 'extraMaterial_0', maxCount: 1 },
+    { name: 'extraMaterial_1', maxCount: 1 },
+    { name: 'extraMaterial_2', maxCount: 1 },
+    { name: 'extraMaterial_3', maxCount: 1 },
+    { name: 'extraMaterial_4', maxCount: 1 },
+  ]), async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
       const id = parseInt(req.params.id);
-      const { title, description, content, type } = req.body;
+      const { title, description, content, type, videoPlatform, isPremium } = req.body;
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       
+      // First, add missing columns if they don't exist
+      try {
+        await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS cover_image TEXT');
+        await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS extra_materials JSONB DEFAULT \'[]\'');
+        await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS video_platform VARCHAR(50) DEFAULT \'youtube\'');
+        await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT false');
+      } catch (alterError) {
+        console.log('Columns might already exist:', alterError.message);
+      }
+
+      let coverImageUrl = null;
+      let extraMaterials: string[] = [];
+
+      // Upload cover image to Supabase if provided
+      if (files?.coverImage?.[0]) {
+        const coverFile = files.coverImage[0];
+        const coverFileName = `lesson_cover_${id}_${Date.now()}.${coverFile.originalname.split('.').pop()}`;
+        
+        const { data: coverData, error: coverError } = await supabase.storage
+          .from('images')
+          .upload(coverFileName, coverFile.buffer, {
+            contentType: coverFile.mimetype,
+          });
+
+        if (coverError) {
+          console.error('Erro ao fazer upload da capa:', coverError);
+        } else {
+          coverImageUrl = `${process.env.VITE_SUPABASE_URL}/storage/v1/object/public/images/${coverFileName}`;
+        }
+      }
+
+      // Upload extra materials
+      for (let i = 0; i < 5; i++) {
+        const fieldName = `extraMaterial_${i}`;
+        if (files?.[fieldName]?.[0]) {
+          const materialFile = files[fieldName][0];
+          const materialFileName = `lesson_material_${id}_${i}_${Date.now()}.${materialFile.originalname.split('.').pop()}`;
+          
+          const { data: materialData, error: materialError } = await supabase.storage
+            .from('images')
+            .upload(materialFileName, materialFile.buffer, {
+              contentType: materialFile.mimetype,
+            });
+
+          if (materialError) {
+            console.error('Erro ao fazer upload do material:', materialError);
+          } else {
+            extraMaterials.push(`${process.env.VITE_SUPABASE_URL}/storage/v1/object/public/images/${materialFileName}`);
+          }
+        }
+      }
+
+      // Build dynamic update query
+      const updateFields = ['updated_at = NOW()'];
+      const updateValues = [];
+      let paramCount = 1;
+
+      if (title) {
+        updateFields.push(`title = $${paramCount}`);
+        updateValues.push(title);
+        paramCount++;
+      }
+
+      if (description !== undefined) {
+        updateFields.push(`description = $${paramCount}`);
+        updateValues.push(description);
+        paramCount++;
+      }
+
+      if (content !== undefined) {
+        updateFields.push(`content = $${paramCount}`);
+        updateValues.push(content);
+        paramCount++;
+      }
+
+      if (type) {
+        updateFields.push(`type = $${paramCount}`);
+        updateValues.push(type);
+        paramCount++;
+      }
+
+      if (videoPlatform) {
+        updateFields.push(`video_platform = $${paramCount}`);
+        updateValues.push(videoPlatform);
+        paramCount++;
+      }
+
+      if (isPremium !== undefined) {
+        updateFields.push(`is_premium = $${paramCount}`);
+        updateValues.push(isPremium === 'true');
+        paramCount++;
+      }
+
+      if (coverImageUrl) {
+        updateFields.push(`cover_image = $${paramCount}`);
+        updateValues.push(coverImageUrl);
+        paramCount++;
+      }
+
+      if (extraMaterials.length > 0) {
+        updateFields.push(`extra_materials = $${paramCount}`);
+        updateValues.push(JSON.stringify(extraMaterials));
+        paramCount++;
+      }
+
+      updateValues.push(id);
+
       const query = `
         UPDATE lessons 
-        SET title = $1, description = COALESCE($2, description), content = COALESCE($3, content), type = COALESCE($4, type), updated_at = NOW()
-        WHERE id = $5
-        RETURNING id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex"
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramCount}
+        RETURNING id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex", 
+                  cover_image as "coverImage", extra_materials as "extraMaterials", video_platform as "videoPlatform", is_premium as "isPremium"
       `;
       
-      const result = await pool.query(query, [title, description || null, content || null, type || null, id]);
+      const result = await pool.query(query, updateValues);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });

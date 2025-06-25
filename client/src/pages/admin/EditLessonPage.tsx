@@ -87,6 +87,45 @@ export default function EditLessonPage() {
     }
   }, [editor, lesson, formData.type]);
 
+  // Add CSS styles for rich text editor
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .ProseMirror {
+        outline: none;
+        padding: 16px;
+        min-height: 200px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: white;
+      }
+      .ProseMirror p {
+        margin: 0.5em 0;
+      }
+      .ProseMirror strong {
+        font-weight: bold;
+      }
+      .ProseMirror em {
+        font-style: italic;
+      }
+      .ProseMirror u {
+        text-decoration: underline;
+      }
+      .ProseMirror h1, .ProseMirror h2, .ProseMirror h3 {
+        margin: 1em 0 0.5em 0;
+        font-weight: bold;
+      }
+      .ProseMirror h1 { font-size: 1.5em; }
+      .ProseMirror h2 { font-size: 1.3em; }
+      .ProseMirror h3 { font-size: 1.1em; }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   // Buscar dados da aula
   const { data: lesson, isLoading } = useQuery<Lesson>({
     queryKey: [`/api/admin/lessons/${lessonId}`],
@@ -358,43 +397,71 @@ export default function EditLessonPage() {
                   />
                 </div>
 
-                {/* Plataforma de Vídeo */}
+                {/* Tipo de Conteúdo */}
                 <div>
-                  <Label className="text-sm font-medium">Plataforma de Vídeo</Label>
+                  <Label className="text-sm font-medium">Tipo de Conteúdo</Label>
                   <Select 
-                    value={formData.videoPlatform} 
-                    onValueChange={(value: any) => setFormData({ ...formData, videoPlatform: value })}
+                    value={formData.type} 
+                    onValueChange={(value: any) => setFormData({ ...formData, type: value })}
                   >
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Selecione a plataforma" />
+                      <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="youtube">
+                      <SelectItem value="video">
                         <div className="flex items-center gap-2">
                           <Video className="h-4 w-4 text-red-500" />
-                          YouTube
+                          Vídeo
                         </div>
                       </SelectItem>
-                      <SelectItem value="vimeo">
+                      <SelectItem value="text">
                         <div className="flex items-center gap-2">
-                          <Video className="h-4 w-4 text-blue-500" />
-                          Vimeo
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="panda">
-                        <div className="flex items-center gap-2">
-                          <Video className="h-4 w-4 text-green-500" />
-                          Panda
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="vturb">
-                        <div className="flex items-center gap-2">
-                          <Video className="h-4 w-4 text-purple-500" />
-                          vTurb
+                          <FileText className="h-4 w-4 text-blue-500" />
+                          Texto
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Plataforma de Vídeo - só mostra se for vídeo */}
+                {formData.type === 'video' && (
+                  <div>
+                    <Label className="text-sm font-medium">Plataforma de Vídeo</Label>
+                    <Select 
+                      value={formData.videoPlatform} 
+                      onValueChange={(value: any) => setFormData({ ...formData, videoPlatform: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione a plataforma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="youtube">
+                          <div className="flex items-center gap-2">
+                            <Video className="h-4 w-4 text-red-500" />
+                            YouTube
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="vimeo">
+                          <div className="flex items-center gap-2">
+                            <Video className="h-4 w-4 text-blue-500" />
+                            Vimeo
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="panda">
+                          <div className="flex items-center gap-2">
+                            <Video className="h-4 w-4 text-green-500" />
+                            Panda
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="vturb">
+                          <div className="flex items-center gap-2">
+                            <Video className="h-4 w-4 text-purple-500" />
+                            vTurb
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
