@@ -45,9 +45,28 @@ export default function CursoDetailPage() {
   const courseId = params?.id ? parseInt(params.id) : null;
   const [openModules, setOpenModules] = useState<number[]>([]);
 
+  // Se não há courseId, retorna erro
+  if (!courseId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Helmet>
+          <title>Curso não encontrado - Design para Estética</title>
+        </Helmet>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Curso não encontrado</h1>
+          <p className="text-gray-600 mb-8">O curso que você está procurando não existe.</p>
+          <Button asChild>
+            <Link href="/cursos">Voltar aos Cursos</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Buscar detalhes do curso
   const { data: course, isLoading } = useQuery<CourseWithModules>({
     queryKey: ["/api/courses", courseId],
+    enabled: !!courseId,
     enabled: !!courseId && !!user,
   });
 
