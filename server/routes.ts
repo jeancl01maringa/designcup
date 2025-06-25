@@ -5366,7 +5366,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           m.title, 
           m.description, 
           m.order_index as "orderIndex",
-          COUNT(l.id) as "lessonCount"
+          COUNT(l.id) as "lessonCount",
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', l.id,
+                'moduleId', l.module_id,
+                'title', l.title,
+                'description', l.description,
+                'content', l.content,
+                'type', l.type,
+                'orderIndex', l.order_index,
+                'isPublished', true
+              ) ORDER BY l.order_index, l.id
+            ) FILTER (WHERE l.id IS NOT NULL),
+            '[]'::json
+          ) as lessons
         FROM modules m
         LEFT JOIN lessons l ON m.id = l.module_id
         WHERE m.course_id = $1
@@ -5377,7 +5392,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await pool.query(query, [courseId]);
       res.json(result.rows.map(row => ({
         ...row,
-        lessonCount: parseInt(row.lessonCount)
+        lessonCount: parseInt(row.lessonCount),
+        lessons: row.lessons || []
       })));
     } catch (error: any) {
       console.error('Erro ao buscar módulos:', error);
@@ -5466,6 +5482,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Erro ao excluir módulo:', error);
       res.status(500).json({ message: 'Erro ao excluir módulo' });
+    }
+  });
+
+  // Lesson management routes
+  app.post('/api/admin/modules/:moduleId/lessons', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const moduleId = parseInt(req.params.moduleId);
+      const { title, description, content, type } = req.body;
+      
+      // Get next order index
+      const orderQuery = 'SELECT COALESCE(MAX(order_index), 0) + 1 as next_order FROM lessons WHERE module_id = $1';
+      const orderResult = await pool.query(orderQuery, [moduleId]);
+      const orderIndex = orderResult.rows[0].next_order;
+      
+      const query = `
+        INSERT INTO lessons (module_id, title, description, content, type, order_index)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex"
+      `;
+      
+      const result = await pool.query(query, [moduleId, title, description || '', content || '', type || 'video', orderIndex]);
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao criar aula:', error);
+      res.status(500).json({ message: 'Erro ao criar aula' });
+    }
+  });
+
+  app.put('/api/admin/lessons/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { title, description, content, type } = req.body;
+      
+      const query = `
+        UPDATE lessons 
+        SET title = $1, description = $2, content = $3, type = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex"
+      `;
+      
+      const result = await pool.query(query, [title, description, content, type, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao atualizar aula:', error);
+      res.status(500).json({ message: 'Erro ao atualizar aula' });
+    }
+  });
+
+  app.delete('/api/admin/lessons/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      // Verificar se a aula existe
+      const checkQuery = 'SELECT id FROM lessons WHERE id = $1';
+      const checkResult = await pool.query(checkQuery, [id]);
+      
+      if (checkResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+      
+      // Deletar aula
+      const deleteQuery = 'DELETE FROM lessons WHERE id = $1';
+      await pool.query(deleteQuery, [id]);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Erro ao excluir aula:', error);
+      res.status(500).json({ message: 'Erro ao excluir aula' });
     }
   });
 

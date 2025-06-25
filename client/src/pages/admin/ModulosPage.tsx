@@ -4,17 +4,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { PageHeader } from "@/components/admin/layout/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ArrowLeft, Edit, Trash2, Play, BookOpen, MoreHorizontal, GripVertical } from "lucide-react";
+import { Plus, ArrowLeft, Edit, Trash2, MoreHorizontal, GripVertical, ChevronDown, ChevronRight, Upload, Search, Maximize2, Copy, FileText, Heart, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -25,6 +20,7 @@ interface Module {
   description: string;
   orderIndex: number;
   lessonCount?: number;
+  lessons?: Lesson[];
 }
 
 interface Lesson {
@@ -36,6 +32,7 @@ interface Lesson {
   type: 'video' | 'text' | 'quiz';
   duration?: number;
   orderIndex: number;
+  isPublished?: boolean;
 }
 
 export default function ModulosPage() {
@@ -44,144 +41,123 @@ export default function ModulosPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [isCreateModuleDialogOpen, setIsCreateModuleDialogOpen] = useState(false);
-  const [isEditModuleDialogOpen, setIsEditModuleDialogOpen] = useState(false);
-  const [isDeleteModuleDialogOpen, setIsDeleteModuleDialogOpen] = useState(false);
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
-  const [moduleFormData, setModuleFormData] = useState({
-    title: "",
-    description: "",
-  });
+  const [selectedAll, setSelectedAll] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Buscar curso
   const { data: course } = useQuery({
     queryKey: [`/api/admin/courses/${courseId}`],
   });
 
-  // Buscar módulos
+  // Buscar módulos com aulas
   const { data: modules = [], isLoading } = useQuery<Module[]>({
     queryKey: [`/api/admin/courses/${courseId}/modules`],
+    select: (data) => data.map(module => ({
+      ...module,
+      lessons: module.lessons || []
+    }))
   });
 
-  // Criar módulo
-  const createModuleMutation = useMutation({
-    mutationFn: async (data: { title: string; description: string }) => {
-      const res = await apiRequest("POST", `/api/admin/courses/${courseId}/modules`, data);
+  // Criar aula
+  const createLessonMutation = useMutation({
+    mutationFn: async (data: { moduleId: number; title: string }) => {
+      const res = await apiRequest("POST", `/api/admin/modules/${data.moduleId}/lessons`, {
+        title: data.title,
+        description: "",
+        content: "",
+        type: "video"
+      });
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
-      setIsCreateModuleDialogOpen(false);
-      resetModuleForm();
-      toast({ title: "Módulo criado com sucesso!" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao criar módulo",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Aula criada com sucesso!" });
     },
   });
 
-  // Atualizar módulo
-  const updateModuleMutation = useMutation({
-    mutationFn: async (data: { id: number; title: string; description: string }) => {
-      const res = await apiRequest("PUT", `/api/admin/modules/${data.id}`, data);
+  // Atualizar título (módulo ou aula)
+  const updateTitleMutation = useMutation({
+    mutationFn: async (data: { type: 'module' | 'lesson'; id: number; title: string }) => {
+      const endpoint = data.type === 'module' 
+        ? `/api/admin/modules/${data.id}` 
+        : `/api/admin/lessons/${data.id}`;
+      const res = await apiRequest("PUT", endpoint, { title: data.title });
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
-      setIsEditModuleDialogOpen(false);
-      resetModuleForm();
-      toast({ title: "Módulo atualizado com sucesso!" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar módulo",
-        description: error.message,
-        variant: "destructive",
-      });
+      setEditingTitle(null);
+      toast({ title: "Título atualizado com sucesso!" });
     },
   });
 
-  // Excluir módulo
-  const deleteModuleMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/admin/modules/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/courses/${courseId}/modules`] });
-      setIsDeleteModuleDialogOpen(false);
-      setSelectedModule(null);
-      toast({ title: "Módulo excluído com sucesso!" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao excluir módulo",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const resetModuleForm = () => {
-    setModuleFormData({
-      title: "",
-      description: "",
+  const toggleModule = (moduleId: number) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId);
+      } else {
+        newSet.add(moduleId);
+      }
+      return newSet;
     });
   };
 
-  const openCreateModuleDialog = () => {
-    resetModuleForm();
-    setIsCreateModuleDialogOpen(true);
+  const handleTitleEdit = (type: 'module' | 'lesson', id: number, currentTitle: string) => {
+    setEditingTitle(`${type}-${id}`);
+    setTempTitle(currentTitle);
   };
 
-  const openEditModuleDialog = (module: Module) => {
-    setSelectedModule(module);
-    setModuleFormData({
-      title: module.title,
-      description: module.description,
-    });
-    setIsEditModuleDialogOpen(true);
-  };
-
-  const openDeleteModuleDialog = (module: Module) => {
-    setSelectedModule(module);
-    setIsDeleteModuleDialogOpen(true);
-  };
-
-  const handleCreateModule = () => {
-    if (!moduleFormData.title.trim()) {
-      toast({
-        title: "Erro",
-        description: "O título do módulo é obrigatório",
-        variant: "destructive",
-      });
-      return;
+  const handleTitleSave = (type: 'module' | 'lesson', id: number) => {
+    if (tempTitle.trim()) {
+      updateTitleMutation.mutate({ type, id, title: tempTitle.trim() });
+    } else {
+      setEditingTitle(null);
     }
-    createModuleMutation.mutate(moduleFormData);
   };
 
-  const handleUpdateModule = () => {
-    if (!selectedModule || !moduleFormData.title.trim()) {
-      toast({
-        title: "Erro",
-        description: "O título do módulo é obrigatório",
-        variant: "destructive",
-      });
-      return;
-    }
-    updateModuleMutation.mutate({
-      id: selectedModule.id,
-      ...moduleFormData,
+  const handleTitleCancel = () => {
+    setEditingTitle(null);
+    setTempTitle("");
+  };
+
+  const handleAddLesson = (moduleId: number) => {
+    createLessonMutation.mutate({ 
+      moduleId, 
+      title: `Nova aula ${modules.find(m => m.id === moduleId)?.lessons?.length ? modules.find(m => m.id === moduleId)!.lessons!.length + 1 : 1}`
     });
   };
 
-  const handleDeleteModule = () => {
-    if (selectedModule) {
-      deleteModuleMutation.mutate(selectedModule.id);
+  const toggleItemSelection = (itemId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedAll) {
+      setSelectedItems(new Set());
+    } else {
+      const allItems = new Set<string>();
+      modules.forEach(module => {
+        allItems.add(`module-${module.id}`);
+        module.lessons?.forEach(lesson => {
+          allItems.add(`lesson-${lesson.id}`);
+        });
+      });
+      setSelectedItems(allItems);
     }
+    setSelectedAll(!selectedAll);
   };
 
   return (
@@ -190,221 +166,294 @@ export default function ModulosPage() {
         <title>Gerenciar Módulos - Admin</title>
       </Helmet>
 
-      <div className="space-y-6">
-        <PageHeader
-          title={`Módulos do Curso: ${course?.title || 'Carregando...'}`}
-          description="Gerencie os módulos e aulas do curso"
-          action={
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => window.history.back()}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Voltar
-              </Button>
-              <Button onClick={openCreateModuleDialog} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Novo Módulo
-              </Button>
-            </div>
-          }
-        />
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
+          <span>Produtos</span>
+          <span className="text-primary font-medium">{course?.title || 'Kit de Mídias para Estética'}</span>
+          <span>Conteúdo</span>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Lista de Módulos</CardTitle>
-            <CardDescription>
-              Gerencie todos os módulos e aulas do curso
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">Carregando módulos...</div>
-            ) : modules.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhum módulo encontrado</p>
-                <p className="text-sm">Clique em "Novo Módulo" para começar</p>
+        {/* Course Info */}
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+            <FileText className="h-6 w-6 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold">{course?.title || 'Kit de Mídias para Estética'}</h1>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>Curso Online</span>
+              <span>ID: 2569032</span>
+              <Badge variant="outline" className="text-green-600 border-green-200">Vendas ativas</Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-6 border-b mb-6">
+          <button className="pb-3 px-1 text-sm font-medium border-b-2 border-primary text-primary">
+            Conteúdo
+          </button>
+          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+            Configurações
+          </button>
+          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+            Personalização
+          </button>
+          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+            Certificado
+          </button>
+          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+            Usuários
+          </button>
+          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+            Turmas
+          </button>
+          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+            Comentários
+          </button>
+          <button className="pb-3 px-1 text-sm text-muted-foreground hover:text-foreground">
+            Cadastro gratuito
+          </button>
+        </div>
+
+        {/* Vitrine */}
+        <div className="mb-6">
+          <span className="text-sm text-muted-foreground">Vitrine</span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-4">
+            <Button variant="default" size="sm">Principal</Button>
+            <Button variant="outline" size="sm">Adicional</Button>
+            <Button variant="outline" size="sm">Trilhas</Button>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Buscar..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-64"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Enviar arquivos
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="default" size="sm" className="flex items-center gap-2">
+                  Criar
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => createLessonMutation.mutate({ moduleId: modules[0]?.id || 1, title: "Nova aula" })}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Aula
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Módulo
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Select All */}
+        <div className="flex items-center gap-3 mb-4">
+          <Checkbox 
+            checked={selectedAll}
+            onCheckedChange={toggleSelectAll}
+          />
+          <span className="text-sm">Selecionar todos</span>
+          <Button variant="ghost" size="sm" className="ml-auto">
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Content List */}
+        <div className="space-y-2">
+          {modules.map((module) => (
+            <div key={module.id} className="border rounded-lg">
+              {/* Module Header */}
+              <div className="flex items-center gap-3 p-4 hover:bg-gray-50">
+                <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+                <Checkbox 
+                  checked={selectedItems.has(`module-${module.id}`)}
+                  onCheckedChange={() => toggleItemSelection(`module-${module.id}`)}
+                />
+                <button
+                  onClick={() => toggleModule(module.id)}
+                  className="flex items-center gap-2"
+                >
+                  {expandedModules.has(module.id) ? 
+                    <ChevronDown className="h-4 w-4" /> : 
+                    <ChevronRight className="h-4 w-4" />
+                  }
+                </button>
+                
+                <div className="flex-1">
+                  {editingTitle === `module-${module.id}` ? (
+                    <Input
+                      value={tempTitle}
+                      onChange={(e) => setTempTitle(e.target.value)}
+                      onBlur={() => handleTitleSave('module', module.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleTitleSave('module', module.id);
+                        if (e.key === 'Escape') handleTitleCancel();
+                      }}
+                      autoFocus
+                      className="text-lg font-medium"
+                    />
+                  ) : (
+                    <div 
+                      onClick={() => handleTitleEdit('module', module.id, module.title)}
+                      className="cursor-pointer"
+                    >
+                      <h3 className="text-lg font-medium">{module.title}</h3>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <Badge variant="secondary" className="text-xs">Módulo principal</Badge>
+                        <span>{module.lessons?.length || 0} conteúdos</span>
+                        <button className="text-blue-600 hover:underline">Mostrar turmas</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAddLesson(module.id)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleTitleEdit('module', module.id, module.title)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Duplicar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-red-600">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <button onClick={() => toggleModule(module.id)}>
+                    {expandedModules.has(module.id) ? 
+                      <ChevronDown className="h-4 w-4" /> : 
+                      <ChevronRight className="h-4 w-4" />
+                    }
+                  </button>
+                </div>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Módulo</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Aulas</TableHead>
-                    <TableHead>Ordem</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {modules.map((module) => (
-                    <TableRow key={module.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <GripVertical className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">{module.title}</div>
+
+              {/* Lessons */}
+              {expandedModules.has(module.id) && (
+                <div className="pl-16 pb-4 space-y-2">
+                  {module.lessons?.map((lesson, index) => (
+                    <div key={lesson.id} className="flex items-center gap-3 py-2 px-4 hover:bg-gray-50 rounded">
+                      <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+                      <Checkbox 
+                        checked={selectedItems.has(`lesson-${lesson.id}`)}
+                        onCheckedChange={() => toggleItemSelection(`lesson-${lesson.id}`)}
+                      />
+                      <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        {editingTitle === `lesson-${lesson.id}` ? (
+                          <Input
+                            value={tempTitle}
+                            onChange={(e) => setTempTitle(e.target.value)}
+                            onBlur={() => handleTitleSave('lesson', lesson.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleTitleSave('lesson', lesson.id);
+                              if (e.key === 'Escape') handleTitleCancel();
+                            }}
+                            autoFocus
+                            className="font-medium"
+                          />
+                        ) : (
+                          <div 
+                            onClick={() => handleTitleEdit('lesson', lesson.id, lesson.title)}
+                            className="cursor-pointer"
+                          >
+                            <span className="font-medium">{lesson.title}</span>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MessageSquare className="h-3 w-3" />
+                              <span>0</span>
+                              <Heart className="h-3 w-3" />
+                              <span>{index < 2 ? '5' : '0'}</span>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-xs truncate text-muted-foreground">
-                          {module.description || 'Sem descrição'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Play className="h-4 w-4 text-muted-foreground" />
-                          {module.lessonCount || 0}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">#{module.orderIndex}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {lesson.isPublished !== false && (
+                          <Badge variant="outline" className="text-green-600 border-green-200 text-xs">
+                            Publicado
+                          </Badge>
+                        )}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Abrir menu</span>
+                            <Button variant="ghost" size="sm">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditModuleDialog(module)}>
+                            <DropdownMenuItem onClick={() => handleTitleEdit('lesson', lesson.id, lesson.title)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                              <Play className="h-4 w-4 mr-2" />
-                              Gerenciar Aulas
+                              <Copy className="h-4 w-4 mr-2" />
+                              Duplicar
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => openDeleteModuleDialog(module)}
-                              className="text-red-600"
-                            >
+                            <DropdownMenuItem className="text-red-600">
                               <Trash2 className="h-4 w-4 mr-2" />
                               Excluir
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleAddLesson(module.id)}
+                    className="ml-11 text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Dialog Criar Módulo */}
-      <Dialog open={isCreateModuleDialogOpen} onOpenChange={setIsCreateModuleDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Criar Novo Módulo</DialogTitle>
-            <DialogDescription>
-              Adicione um novo módulo ao curso
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título *</Label>
-              <Input
-                id="title"
-                value={moduleFormData.title}
-                onChange={(e) => setModuleFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Ex: Introdução ao Design"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={moduleFormData.description}
-                onChange={(e) => setModuleFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Descreva o conteúdo do módulo..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateModuleDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleCreateModule} disabled={createModuleMutation.isPending}>
-              {createModuleMutation.isPending ? "Criando..." : "Criar Módulo"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Dialog Editar Módulo */}
-      <Dialog open={isEditModuleDialogOpen} onOpenChange={setIsEditModuleDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Módulo</DialogTitle>
-            <DialogDescription>
-              Atualize as informações do módulo
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-title">Título *</Label>
-              <Input
-                id="edit-title"
-                value={moduleFormData.title}
-                onChange={(e) => setModuleFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Ex: Introdução ao Design"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Descrição</Label>
-              <Textarea
-                id="edit-description"
-                value={moduleFormData.description}
-                onChange={(e) => setModuleFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Descreva o conteúdo do módulo..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditModuleDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleUpdateModule} disabled={updateModuleMutation.isPending}>
-              {updateModuleMutation.isPending ? "Salvando..." : "Salvar Alterações"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog Confirmar Exclusão */}
-      <AlertDialog open={isDeleteModuleDialogOpen} onOpenChange={setIsDeleteModuleDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o módulo "{selectedModule?.title}"?
-              Esta ação não pode ser desfeita e todas as aulas do módulo também serão excluídas.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteModule}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={deleteModuleMutation.isPending}
-            >
-              {deleteModuleMutation.isPending ? "Excluindo..." : "Excluir"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AdminLayout>
   );
 }
