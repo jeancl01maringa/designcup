@@ -80,7 +80,11 @@ export default function EditLessonPage() {
     },
   });
 
-
+  // Fetch lesson data
+  const { data: lesson, isLoading } = useQuery<Lesson>({
+    queryKey: [`/api/admin/lessons/${lessonId}`],
+    enabled: !!lessonId,
+  });
 
   // Update editor content when lesson data loads
   useEffect(() => {

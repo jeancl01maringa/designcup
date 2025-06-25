@@ -5486,6 +5486,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Lesson management routes
+  // Get individual lesson by ID
+  app.get('/api/admin/lessons/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      const query = `
+        SELECT id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex",
+               cover_image as "coverImage", extra_materials as "extraMaterials", 
+               video_platform as "videoPlatform", is_premium as "isPremium"
+        FROM lessons 
+        WHERE id = $1
+      `;
+      
+      const result = await pool.query(query, [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Aula não encontrada' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao buscar aula:', error);
+      res.status(500).json({ message: 'Erro ao buscar aula' });
+    }
+  });
+
   app.post('/api/admin/modules/:moduleId/lessons', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
