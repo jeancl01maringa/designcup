@@ -440,14 +440,14 @@ export default function LessonViewPage() {
                 )}
 
                 {/* 4. Material Extra */}
-                {currentLesson.files && currentLesson.files.length > 0 && (
+                {(currentLesson.files && currentLesson.files.length > 0) || (currentLesson.extra_materials && currentLesson.extra_materials.length > 0) ? (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                       <FileText className="h-5 w-5" />
                       Material Extra
                     </h3>
                     <div className="grid gap-2">
-                      {currentLesson.files.map((file, index) => {
+                      {(currentLesson.files || currentLesson.extra_materials || []).map((file: string, index: number) => {
                         const fileName = file.split('/').pop() || `Arquivo ${index + 1}`;
                         const fileExtension = fileName.split('.').pop()?.toLowerCase();
                         
@@ -482,7 +482,7 @@ export default function LessonViewPage() {
                       })}
                     </div>
                   </div>
-                )}
+                ) : null}
               </CardContent>
             </Card>
           </div>

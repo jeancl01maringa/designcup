@@ -5811,7 +5811,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             content, 
             type, 
             duration,
-            files,
+            extra_materials,
             order_index as "orderIndex"
           FROM lessons 
           WHERE module_id = $1 
@@ -5819,11 +5819,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `;
         const lessonsResult = await pool.query(lessonsQuery, [module.id]);
         
+        const lessonsWithFiles = lessonsResult.rows.map(lesson => ({
+          ...lesson,
+          files: lesson.extra_materials || []
+        }));
+        
         modules.push({
           ...module,
-          lessons: lessonsResult.rows
+          lessons: lessonsWithFiles
         });
       }
+      
+      console.log('✅ Curso completo encontrado:', {
+        courseId: course.id,
+        title: course.title,
+        modulesCount: modules.length,
+        lessonsCount: modules.reduce((acc, m) => acc + m.lessons.length, 0)
+      });
       
       res.json({
         ...course,
@@ -5854,6 +5866,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description, 
           content, 
           type, 
+          duration,
+          extra_materials,
           order_index as "orderIndex"
         FROM lessons 
         WHERE id = $1
