@@ -236,7 +236,7 @@ export default function LessonViewPage() {
                     <div className="space-y-1">
                       {module.lessons.map((lesson) => {
                         const isActive = lesson.id === lessonId;
-                        const isCompleted = completedLessons.has(lesson.id);
+                        const isCompleted = lesson.id === lessonId ? concluida : completedLessons.has(lesson.id);
                         
                         return (
                           <button
