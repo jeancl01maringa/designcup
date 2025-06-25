@@ -66,7 +66,6 @@ export default function CursoDetailPage() {
   // Buscar detalhes do curso
   const { data: course, isLoading } = useQuery<CourseWithModules>({
     queryKey: ["/api/courses", courseId],
-    enabled: !!courseId,
     enabled: !!courseId && !!user,
   });
 
@@ -192,7 +191,7 @@ export default function CursoDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Helmet>
-          <title>{course.title} - Design para Estética</title>
+          <title>Kit de Mídias para Estética - Design para Estética</title>
         </Helmet>
         
         <div className="container mx-auto px-4 py-8">
@@ -233,7 +232,7 @@ export default function CursoDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>{course.title} - Design para Estética</title>
+        <title>Kit de Mídias para Estética - Design para Estética</title>
       </Helmet>
       
       <div className="container mx-auto px-4 py-8">
