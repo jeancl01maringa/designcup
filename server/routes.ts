@@ -5350,6 +5350,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Module management routes
+  app.get('/api/admin/courses/:courseId/modules', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const courseId = parseInt(req.params.courseId);
+      
+      const query = `
+        SELECT 
+          m.id, 
+          m.course_id as "courseId", 
+          m.title, 
+          m.description, 
+          m.order_index as "orderIndex",
+          COUNT(l.id) as "lessonCount"
+        FROM modules m
+        LEFT JOIN lessons l ON m.id = l.module_id
+        WHERE m.course_id = $1
+        GROUP BY m.id, m.course_id, m.title, m.description, m.order_index
+        ORDER BY m.order_index, m.id
+      `;
+      
+      const result = await pool.query(query, [courseId]);
+      res.json(result.rows.map(row => ({
+        ...row,
+        lessonCount: parseInt(row.lessonCount)
+      })));
+    } catch (error: any) {
+      console.error('Erro ao buscar módulos:', error);
+      res.status(500).json({ message: 'Erro ao buscar módulos' });
+    }
+  });
+
+  app.post('/api/admin/courses/:courseId/modules', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const courseId = parseInt(req.params.courseId);
+      const { title, description } = req.body;
+      
+      // Get next order index
+      const orderQuery = 'SELECT COALESCE(MAX(order_index), 0) + 1 as next_order FROM modules WHERE course_id = $1';
+      const orderResult = await pool.query(orderQuery, [courseId]);
+      const orderIndex = orderResult.rows[0].next_order;
+      
+      const query = `
+        INSERT INTO modules (course_id, title, description, order_index)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, course_id as "courseId", title, description, order_index as "orderIndex"
+      `;
+      
+      const result = await pool.query(query, [courseId, title, description, orderIndex]);
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao criar módulo:', error);
+      res.status(500).json({ message: 'Erro ao criar módulo' });
+    }
+  });
+
+  app.put('/api/admin/modules/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { title, description } = req.body;
+      
+      const query = `
+        UPDATE modules 
+        SET title = $1, description = $2, updated_at = NOW()
+        WHERE id = $3
+        RETURNING id, course_id as "courseId", title, description, order_index as "orderIndex"
+      `;
+      
+      const result = await pool.query(query, [title, description, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Módulo não encontrado' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao atualizar módulo:', error);
+      res.status(500).json({ message: 'Erro ao atualizar módulo' });
+    }
+  });
+
+  app.delete('/api/admin/modules/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      // Verificar se o módulo existe
+      const checkQuery = 'SELECT id FROM modules WHERE id = $1';
+      const checkResult = await pool.query(checkQuery, [id]);
+      
+      if (checkResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Módulo não encontrado' });
+      }
+      
+      // Deletar módulo (cascade vai remover aulas e progresso)
+      const deleteQuery = 'DELETE FROM modules WHERE id = $1';
+      await pool.query(deleteQuery, [id]);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Erro ao excluir módulo:', error);
+      res.status(500).json({ message: 'Erro ao excluir módulo' });
+    }
+  });
+
   // User course access
   app.get('/api/courses', async (req, res) => {
     try {

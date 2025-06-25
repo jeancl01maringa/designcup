@@ -152,6 +152,10 @@ export default function CursosPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleManageModules = (courseId: number) => {
+    window.location.href = `/admin/cursos/${courseId}/modulos`;
+  };
+
   const getStatusColor = (isActive: boolean) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
   };
@@ -347,7 +351,7 @@ export default function CursosPage() {
                               <Edit className="h-4 w-4 mr-2" />
                               Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleManageModules(course.id)}>
                               <BookOpen className="h-4 w-4 mr-2" />
                               Gerenciar Módulos
                             </DropdownMenuItem>
