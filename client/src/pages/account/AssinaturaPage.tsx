@@ -195,6 +195,8 @@ export default function AssinaturaPage() {
                       <h3 className="font-bold text-lg">
                         {planLoading ? (
                           <div className="animate-pulse bg-gray-200 h-6 w-48 rounded"></div>
+                        ) : userPlan?.planName ? (
+                          userPlan.planName
                         ) : userData?.tipo === 'premium' ? (
                           'Premium'
                         ) : (
