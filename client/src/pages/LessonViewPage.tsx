@@ -277,7 +277,10 @@ export default function LessonViewPage() {
                     </div>
                     <CardTitle className="text-2xl">{currentLesson.title}</CardTitle>
                     {currentLesson.description && (
-                      <p className="text-muted-foreground mt-2">{currentLesson.description}</p>
+                      <div 
+                        className="text-muted-foreground mt-2"
+                        dangerouslySetInnerHTML={{ __html: currentLesson.description }}
+                      />
                     )}
                   </div>
                   
