@@ -332,7 +332,7 @@ export default function CursosPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {format(new Date(course.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
+                        {course.createdAt ? format(new Date(course.createdAt), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
