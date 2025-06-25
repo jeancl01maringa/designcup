@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ArrowLeft, Play, Clock, BookOpen, Users, Star, Lock, ChevronDown, ChevronRight, CheckCircle, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useCourseProgress } from "@/hooks/use-course-progress";
 
 interface Course {
   id: number;
@@ -46,7 +47,7 @@ export default function CursoDetailPage() {
   
   const courseId = parseInt(params.courseId || "0");
   const [openModules, setOpenModules] = useState<Set<number>>(new Set([1])); // Primeiro módulo aberto por padrão
-  const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
+  const { completedLessons, isLessonCompleted } = useCourseProgress(courseId);
 
   // Buscar dados do curso completo
   const { data: course, isLoading, error } = useQuery<Course>({
@@ -239,7 +240,7 @@ export default function CursoDetailPage() {
                           <CardContent className="pt-0">
                             <div className="space-y-2">
                               {module.lessons.map((lesson, lessonIndex) => {
-                                const isCompleted = completedLessons.has(lesson.id);
+                                const isCompleted = isLessonCompleted(lesson.id);
                                 const lessonNumber = lessonIndex + 1;
                                 
                                 return (

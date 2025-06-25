@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Play, FileText, Download, Clock, CheckCircle, Lock, Book, Star } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useCourseProgress } from "@/hooks/use-course-progress";
 
 interface Lesson {
   id: number;
@@ -48,7 +49,7 @@ export default function LessonViewPage() {
   const lessonId = parseInt(params.lessonId || "0");
   
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
-  const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
+  const { completedLessons, toggleLessonCompletion, isLessonCompleted } = useCourseProgress(courseId);
   const [userRating, setUserRating] = useState<number>(0);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
 
@@ -131,16 +132,10 @@ export default function LessonViewPage() {
   };
 
   const markAsCompleted = () => {
-    const isCurrentlyCompleted = completedLessons.has(lessonId);
-    if (isCurrentlyCompleted) {
-      setCompletedLessons(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(lessonId);
-        return newSet;
-      });
+    toggleLessonCompletion(lessonId);
+    if (isLessonCompleted(lessonId)) {
       toast({ title: "Conclusão removida" });
     } else {
-      setCompletedLessons(prev => new Set(Array.from(prev).concat(lessonId)));
       toast({ title: "Aula marcada como concluída!" });
     }
   };
