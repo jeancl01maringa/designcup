@@ -402,9 +402,7 @@ export default function ProfilePage() {
                     <p className="text-sm text-gray-500">
                       • Recomendado: imagens quadradas
                     </p>
-                    <p className="text-sm text-green-600 font-medium">
-                      • Conversão automática para WebP para melhor performance
-                    </p>
+
                   </div>
                 )}
               </div>
