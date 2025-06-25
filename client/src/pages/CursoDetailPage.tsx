@@ -35,6 +35,8 @@ interface Lesson {
   type: 'video' | 'text' | 'quiz';
   duration?: number;
   orderIndex: number;
+  files?: string[];
+  extra_materials?: string[];
 }
 
 export default function CursoDetailPage() {
@@ -47,13 +49,15 @@ export default function CursoDetailPage() {
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
 
   // Buscar dados do curso completo
-  const { data: course, isLoading } = useQuery<Course>({
+  const { data: course, isLoading, error } = useQuery<Course>({
     queryKey: [`/api/courses/${courseId}/full`],
     enabled: courseId > 0,
   });
+  
+  console.log('🔍 CURSO DEBUG:', { courseId, course, isLoading, error });
 
-  // Verificar se usuário tem acesso (todos os cursos são acessíveis para usuários logados)
-  const hasAccess = true;
+  // Verificar se usuário tem acesso
+  const hasAccess = user?.tipo === 'premium' || user?.isAdmin;
   
   // Calcular progresso
   const totalLessons = course?.modules?.reduce((acc, module) => acc + module.lessons.length, 0) || 0;
