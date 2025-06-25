@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,8 +49,9 @@ export default function LessonViewPage() {
   const lessonId = parseInt(params.lessonId || "0");
   
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
-  const { completedLessons, toggleLessonCompletion, isLessonCompleted, setLessonRating, getLessonRating } = useCourseProgress(courseId);
+  const { completedLessons, toggleLessonCompletion, isLessonCompleted } = useCourseProgress(courseId);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const queryClient = useQueryClient();
 
   // Buscar dados do curso completo
   const { data: course, isLoading: courseLoading } = useQuery<Course>({
@@ -62,6 +63,39 @@ export default function LessonViewPage() {
   const { data: lesson, isLoading: lessonLoading } = useQuery<Lesson>({
     queryKey: [`/api/lessons/${lessonId}`],
     enabled: lessonId > 0,
+  });
+
+  // Buscar avaliação média da aula
+  const { data: lessonRating } = useQuery<{average_rating: number, rating_count: number}>({
+    queryKey: [`/api/lessons/${lessonId}/rating`],
+    enabled: lessonId > 0,
+  });
+
+  // Mutation para enviar avaliação
+  const ratingMutation = useMutation({
+    mutationFn: async (rating: number) => {
+      const response = await fetch(`/api/lessons/${lessonId}/rating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating }),
+      });
+      if (!response.ok) throw new Error('Erro ao enviar avaliação');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/lessons/${lessonId}/rating`] });
+      toast({
+        title: "Avaliação enviada!",
+        description: "Obrigado por avaliar esta aula.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar sua avaliação.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Encontrar o módulo atual e aula atual
@@ -360,33 +394,44 @@ export default function LessonViewPage() {
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    {/* Sistema de Avaliação com 5 estrelas */}
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => {
-                        const currentRating = getLessonRating(lessonId);
-                        return (
-                          <button
-                            key={star}
-                            onClick={() => setLessonRating(lessonId, star)}
-                            onMouseEnter={() => setHoveredRating(star)}
-                            onMouseLeave={() => setHoveredRating(0)}
-                            className="p-1 hover:scale-110 transition-transform"
-                          >
-                            <Star
-                              className={`h-4 w-4 ${
-                                star <= (hoveredRating || currentRating)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
+                    {/* Sistema de Avaliação com 5 estrelas - Média da Comunidade */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Avalie:</span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const averageRating = lessonRating?.average_rating || 0;
+                          return (
+                            <button
+                              key={star}
+                              onClick={() => ratingMutation.mutate(star)}
+                              onMouseEnter={() => setHoveredRating(star)}
+                              onMouseLeave={() => setHoveredRating(0)}
+                              className="p-1 hover:scale-110 transition-transform"
+                              disabled={ratingMutation.isPending}
+                            >
+                              <Star
+                                className={`h-4 w-4 ${
+                                  star <= (hoveredRating || Math.round(averageRating))
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300'
                               }`}
                             />
                           </button>
                         );
                       })}
+                      </div>
+                      
+                      {/* Exibir média e quantidade de avaliações */}
+                      {lessonRating && lessonRating.rating_count > 0 && (
+                        <span className="text-sm text-muted-foreground">
+                          {Number(lessonRating.average_rating).toFixed(1)} ({lessonRating.rating_count} avaliações)
+                        </span>
+                      )}
                     </div>
                     
                     {/* Botão Concluir */}
                     <Button 
-                      onClick={markAsCompleted}
+                      onClick={() => toggleLessonCompletion(lessonId)}
                       variant={isLessonCompleted(lessonId) ? "default" : "outline"}
                       size="sm"
                       className={`flex items-center gap-2 ${
