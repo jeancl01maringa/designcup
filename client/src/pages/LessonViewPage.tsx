@@ -276,12 +276,6 @@ export default function LessonViewPage() {
                       )}
                     </div>
                     <CardTitle className="text-2xl">{currentLesson.title}</CardTitle>
-                    {currentLesson.description && (
-                      <div 
-                        className="text-muted-foreground mt-2"
-                        dangerouslySetInnerHTML={{ __html: currentLesson.description }}
-                      />
-                    )}
                   </div>
                   
                   <Button 
@@ -296,7 +290,7 @@ export default function LessonViewPage() {
               </CardHeader>
               
               <CardContent className="space-y-6">
-                {/* Conteúdo da Aula */}
+                {/* 1. Conteúdo da Aula (Vídeo/Texto) */}
                 {currentLesson.type === 'video' ? (
                   <div className="space-y-4">
                     {/* Renderizar vídeo do YouTube ou outros links */}
@@ -349,67 +343,118 @@ export default function LessonViewPage() {
                     {currentLesson.content ? (
                       <div dangerouslySetInnerHTML={{ __html: currentLesson.content }} />
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Book className="h-16 w-16 mx-auto mb-4" />
-                        <p>Selecione uma aula para assistir</p>
-                      </div>
+                      <p className="text-gray-500">Nenhum conteúdo disponível para esta aula.</p>
                     )}
                   </div>
                 )}
 
-                {/* Arquivos da Aula */}
-                {currentLesson.files && currentLesson.files.length > 0 && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
-                        <Download className="h-4 w-4" />
-                        Materiais da Aula
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {currentLesson.files.map((file, index) => (
-                          <Button
-                            key={index}
-                            variant="outline"
-                            className="justify-start h-auto p-3"
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                            <span className="truncate">Material {index + 1}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Navegação */}
-                <Separator />
-                <div className="flex justify-between items-center">
+                {/* 2. Navegação entre aulas */}
+                <div className="flex justify-between items-center py-4 border-t border-b">
                   <div>
-                    {prevLesson && (
-                      <Button
-                        variant="outline"
+                    {prevLesson ? (
+                      <Button 
+                        variant="outline" 
                         onClick={() => navigateToLesson(prevLesson.id)}
                         className="flex items-center gap-2"
                       >
                         <ArrowLeft className="h-4 w-4" />
-                        {prevLesson.title}
+                        Aula Anterior
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => setLocation(`/cursos/${courseId}`)}
+                        className="flex items-center gap-2"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Voltar ao Curso
                       </Button>
                     )}
                   </div>
-                  
+
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Aula {currentLessonIndex + 1} de {currentModule?.lessons.length}
+                    </p>
+                  </div>
+
                   <div>
-                    {nextLesson && (
-                      <Button
+                    {nextLesson ? (
+                      <Button 
                         onClick={() => navigateToLesson(nextLesson.id)}
                         className="flex items-center gap-2"
                       >
-                        {nextLesson.title}
+                        Próxima Aula
                         <ArrowLeft className="h-4 w-4 rotate-180" />
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline"
+                        onClick={() => setLocation(`/cursos/${courseId}`)}
+                        className="flex items-center gap-2"
+                      >
+                        Concluir Módulo
+                        <CheckCircle className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
                 </div>
+
+                {/* 3. Descrição da Aula */}
+                {currentLesson.description && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Descrição</h3>
+                    <div 
+                      className="prose max-w-none text-gray-600 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: currentLesson.description }}
+                    />
+                  </div>
+                )}
+
+                {/* 4. Material Extra */}
+                {currentLesson.files && currentLesson.files.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Material Extra
+                    </h3>
+                    <div className="grid gap-2">
+                      {currentLesson.files.map((file, index) => {
+                        const fileName = file.split('/').pop() || `Arquivo ${index + 1}`;
+                        const fileExtension = fileName.split('.').pop()?.toLowerCase();
+                        
+                        return (
+                          <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{fileName}</p>
+                                <p className="text-xs text-gray-500 capitalize">
+                                  {fileExtension === 'pdf' ? 'Documento PDF' : 
+                                   fileExtension === 'doc' || fileExtension === 'docx' ? 'Documento Word' :
+                                   fileExtension === 'txt' ? 'Arquivo de Texto' :
+                                   fileExtension === 'zip' || fileExtension === 'rar' ? 'Arquivo Compactado' :
+                                   'Arquivo'}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(file, '_blank')}
+                              className="flex items-center gap-1"
+                            >
+                              <Download className="h-3 w-3" />
+                              Baixar
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
