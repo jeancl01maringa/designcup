@@ -22,6 +22,7 @@ interface Lesson {
   orderIndex: number;
   videoUrl?: string;
   files?: string[];
+  extra_materials?: string[];
 }
 
 interface Module {
