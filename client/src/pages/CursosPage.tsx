@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ interface CourseWithAccess extends Course {
 
 export default function CursosPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Buscar cursos disponíveis para o usuário
@@ -173,10 +174,11 @@ export default function CursosPage() {
 
                   {/* Botão de ação */}
                   {course.hasAccess ? (
-                    <Button asChild className="w-full">
-                      <Link href={`/curso/${course.id}`}>
-                        {course.progress !== undefined && course.progress > 0 ? "Continuar" : "Acessar Curso"}
-                      </Link>
+                    <Button 
+                      onClick={() => setLocation(`/curso/${course.id}`)}
+                      className="w-full bg-[#AA5E2F] hover:bg-[#AA5E2F]/90 text-white"
+                    >
+                      {course.progress !== undefined && course.progress > 0 ? "Continuar" : "Acessar Curso"}
                     </Button>
                   ) : (
                     <Button variant="outline" className="w-full" asChild>

@@ -195,8 +195,7 @@ const NavLinks = ({ showSearchBar }: { showSearchBar: boolean }) => {
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
     { name: "Cursos", path: "/cursos" },
-    { name: "Planos", path: "/planos" },
-    { name: "Tutoriais", path: "/cursos" }
+    { name: "Planos", path: "/planos" }
   ];
   
   if (showSearchBar) {
