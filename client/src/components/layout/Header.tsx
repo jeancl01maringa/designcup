@@ -82,7 +82,7 @@ const Logo = () => {
   );
 };
 
-const HeaderSearchBar = () => {
+const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
@@ -128,6 +128,72 @@ const HeaderSearchBar = () => {
     };
   }, []);
 
+  if (isMobile) {
+    // Layout mobile: hambúrguer à esquerda, campo no meio, lupa à direita
+    return (
+      <div className="relative">
+        <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
+          <div className="relative flex items-center w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden">
+            {/* Hambúrguer à esquerda */}
+            <button
+              type="button"
+              onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+              className="flex items-center justify-center py-3.5 px-3 text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-r border-gray-200"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            
+            <input
+              type="text"
+              placeholder="Busque por artes, categorias, temas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 py-3.5 px-3 border-0 focus:outline-none text-sm bg-transparent"
+            />
+            
+            {/* Lupa à direita */}
+            <button
+              type="submit"
+              className="flex items-center justify-center py-3.5 px-3 text-white bg-[#AA5E2F] hover:bg-[#8b4a24] transition-colors duration-150 focus:outline-none border-l border-gray-200"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          </div>
+        </form>
+        
+        {/* Dropdown para mobile */}
+        {showFormatDropdown && (
+          <div className="absolute top-full left-0 mt-1 w-full z-[9999]" ref={dropdownRef}>
+            <div className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+              <div className="py-1">
+                {formats.map(format => (
+                  <button
+                    key={format.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      selectFormat(format.id);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus:bg-gray-100
+                      ${format.id === selectedFormat 
+                        ? 'bg-blue-50 text-blue-700 font-medium' 
+                        : 'text-gray-700'}`}
+                  >
+                    {format.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Layout desktop: mantém original
   return (
     <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
       <div className="relative flex items-center w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden">
@@ -701,7 +767,7 @@ export default function Header() {
       {/* Barra de pesquisa mobile - aparece quando a original sai de vista */}
       {showSearchInHeader && (
         <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3">
-          <HeaderSearchBar />
+          <HeaderSearchBar isMobile={true} />
         </div>
       )}
       
