@@ -106,8 +106,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-medium text-base truncate">{user.username}</h3>
-              <p className="text-gray-300 text-sm truncate mb-3">{user.email}</p>
+              <h3 className="text-white font-medium text-sm md:text-base truncate">{user.username}</h3>
+              <p className="text-gray-300 text-xs md:text-sm truncate mb-3">{user.email}</p>
             </div>
           </div>
           
@@ -116,7 +116,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
             <div className="mt-4">
               <button
                 onClick={() => handleClick('/planos')}
-                className="bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2 text-sm w-full border border-gray-200"
+                className="bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2 text-xs md:text-sm w-full border border-gray-200"
               >
                 <Crown className="w-4 h-4 text-amber-500" />
                 Assinar Premium
@@ -129,7 +129,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
             <div className="bg-amber-50 text-amber-700 py-2 px-4 rounded-md border border-amber-200/50 mt-3">
               <div className="flex items-center justify-center gap-2">
                 <Crown className="w-4 h-4 text-amber-600 fill-amber-600" />
-                <span className="font-medium text-sm">Premium</span>
+                <span className="font-medium text-xs md:text-sm">Premium</span>
               </div>
             </div>
           )}
@@ -146,8 +146,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <User className="w-5 h-5 text-blue-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-800">Minha conta</p>
-                <p className="text-sm text-gray-500">Perfil, privacidade e dados</p>
+                <p className="font-semibold text-sm md:text-base text-gray-800">Minha conta</p>
+                <p className="text-xs md:text-sm text-gray-500">Perfil, privacidade e dados</p>
               </div>
             </button>
           </li>
@@ -161,8 +161,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <CreditCard className="w-5 h-5 text-purple-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-800">Assinatura</p>
-                <p className="text-sm text-gray-500">Gerenciar sua assinatura</p>
+                <p className="font-semibold text-sm md:text-base text-gray-800">Assinatura</p>
+                <p className="text-xs md:text-sm text-gray-500">Gerenciar sua assinatura</p>
               </div>
             </button>
           </li>
@@ -176,8 +176,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <Clock className="w-5 h-5 text-indigo-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-800">Edições recentes</p>
-                <p className="text-sm text-gray-500">Histórico de edições</p>
+                <p className="font-semibold text-sm md:text-base text-gray-800">Edições recentes</p>
+                <p className="text-xs md:text-sm text-gray-500">Histórico de edições</p>
               </div>
               <span className="ml-auto">
                 <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
@@ -196,8 +196,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <Heart className="w-5 h-5 text-red-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-800">Curtidas</p>
-                <p className="text-sm text-gray-500">Seus itens favoritos</p>
+                <p className="font-semibold text-sm md:text-base text-gray-800">Curtidas</p>
+                <p className="text-xs md:text-sm text-gray-500">Seus itens favoritos</p>
               </div>
             </button>
           </li>
@@ -211,8 +211,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <Bookmark className="w-5 h-5 text-amber-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-800">Salvos</p>
-                <p className="text-sm text-gray-500">Artes para usar depois</p>
+                <p className="font-semibold text-sm md:text-base text-gray-800">Salvos</p>
+                <p className="text-xs md:text-sm text-gray-500">Artes para usar depois</p>
               </div>
             </button>
           </li>
@@ -226,8 +226,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <Users className="w-5 h-5 text-sky-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-800">Seguindo</p>
-                <p className="text-sm text-gray-500">Designers que você segue</p>
+                <p className="font-semibold text-sm md:text-base text-gray-800">Seguindo</p>
+                <p className="text-xs md:text-sm text-gray-500">Designers que você segue</p>
               </div>
             </button>
           </li>
@@ -251,8 +251,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                   <MessageSquare className="w-5 h-5 text-green-500" />
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-green-600">Suporte por WhatsApp</p>
-                  <p className="text-sm text-gray-500">Dúvidas e perguntas</p>
+                  <p className="font-semibold text-sm md:text-base text-green-600">Suporte por WhatsApp</p>
+                  <p className="text-xs md:text-sm text-gray-500">Dúvidas e perguntas</p>
                 </div>
               </a>
             </li>
@@ -267,8 +267,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <LogOut className="w-5 h-5 text-red-500" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-red-600">Sair da conta</p>
-                <p className="text-sm text-gray-500">Encerrar sessão atual</p>
+                <p className="font-semibold text-sm md:text-base text-red-600">Sair da conta</p>
+                <p className="text-xs md:text-sm text-gray-500">Encerrar sessão atual</p>
               </div>
             </button>
           </li>
