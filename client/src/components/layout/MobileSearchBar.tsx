@@ -3,10 +3,12 @@ import { useLocation } from "wouter";
 import { Search, ChevronDown } from "lucide-react";
 
 export function MobileSearchBar() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const formats = [
@@ -34,6 +36,32 @@ export function MobileSearchBar() {
     }
   };
 
+  // Handle scroll to show/hide mobile search bar
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Só mostra a barra quando está rolando para cima
+      if (currentScrollY > 100) {
+        if (currentScrollY < lastScrollY) {
+          // Rolando para cima - mostrar barra
+          setIsVisible(true);
+        } else {
+          // Rolando para baixo - ocultar barra
+          setIsVisible(false);
+        }
+      } else {
+        // No topo da página - sempre mostrar
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -49,7 +77,9 @@ export function MobileSearchBar() {
   }, []);
 
   return (
-    <div className="md:hidden bg-gray-100 border-b border-gray-200 relative z-10">
+    <div className={`md:hidden bg-gray-100 border-b border-gray-200 relative z-10 transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="container-global py-3">
         <form onSubmit={handleSearch} className="flex items-center">
           <div className="relative flex items-center w-full border border-gray-300 rounded-full focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden bg-white">
@@ -94,16 +124,16 @@ export function MobileSearchBar() {
             {/* Campo de pesquisa no meio */}
             <input
               type="text"
-              placeholder="Busque por artes, categorias, temas..."
+              placeholder="Busque por artes, categorias..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 py-3 px-3 border-0 focus:outline-none text-sm bg-transparent"
+              className="flex-1 py-3 px-3 border-0 focus:outline-none text-sm bg-transparent placeholder:truncate"
             />
             
             {/* Botão de pesquisa à direita */}
             <button
               type="submit"
-              className="flex items-center justify-center py-3 px-4 bg-[#191c2c] text-white hover:bg-[#14182a] transition-colors duration-150 focus:outline-none rounded-full mx-1"
+              className="flex items-center justify-center py-3 px-6 bg-[#191c2c] text-white hover:bg-[#14182a] transition-colors duration-150 focus:outline-none rounded-full mx-1"
             >
               <Search className="h-4 w-4" />
             </button>
