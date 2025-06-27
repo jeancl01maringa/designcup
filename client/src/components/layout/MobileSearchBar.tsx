@@ -49,7 +49,7 @@ export function MobileSearchBar() {
   }, []);
 
   return (
-    <div className="md:hidden bg-gray-100 border-b border-gray-200 sticky top-[64px] z-40">
+    <div className="md:hidden bg-gray-100 border-b border-gray-200 sticky top-[94px] z-50">
       <div className="container-global py-3">
         <form onSubmit={handleSearch} className="flex items-center">
           <div className="relative flex items-center w-full border border-gray-300 rounded-full focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden bg-white">
