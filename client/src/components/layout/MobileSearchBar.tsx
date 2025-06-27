@@ -38,34 +38,24 @@ export function MobileSearchBar() {
 
   // Handle scroll to show/hide mobile search bar
   useEffect(() => {
-    let ticking = false;
-    
     const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          
-          // No topo da página - sempre mostrar
-          if (currentScrollY <= 100) {
-            setIsVisible(true);
-          } else {
-            // Detectar direção do scroll com maior sensibilidade
-            const scrollDiff = currentScrollY - lastScrollY;
-            
-            if (scrollDiff < -5) {
-              // Rolando para cima - mostrar barra
-              setIsVisible(true);
-            } else if (scrollDiff > 5) {
-              // Rolando para baixo - ocultar barra
-              setIsVisible(false);
-            }
-          }
-          
-          setLastScrollY(currentScrollY);
-          ticking = false;
-        });
-        ticking = true;
+      const currentScrollY = window.scrollY;
+      
+      // No topo da página - sempre mostrar
+      if (currentScrollY <= 50) {
+        setIsVisible(true);
+      } else {
+        // Detectar direção do scroll - simples e direto
+        if (currentScrollY < lastScrollY) {
+          // Rolando para cima - sempre mostrar
+          setIsVisible(true);
+        } else if (currentScrollY > lastScrollY) {
+          // Rolando para baixo - ocultar
+          setIsVisible(false);
+        }
       }
+      
+      setLastScrollY(currentScrollY);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
