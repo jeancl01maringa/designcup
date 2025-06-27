@@ -252,50 +252,52 @@ export default function CategorySection() {
             <div className="flex space-x-6 w-max">
               {categoriesWithPosts.map((category) => (
                 <div key={category.id} className="flex-none w-80">
-                  <Link 
-                    href={`/categorias/${category.slug || category.id}`} 
-                    className="block group cursor-pointer"
-                  >
-                    {/* Grid 2x2 de imagens com overlay */}
-                    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square relative">
-                      <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-full">
-                        {/* Mostrar até 4 imagens ou placeholders */}
-                        {Array.from({ length: 4 }).map((_, index) => {
-                          const post = category.posts[index];
-                          return (
-                            <div key={index} className="relative overflow-hidden">
-                              {post ? (
-                                <img 
-                                  src={post.imageUrl} 
-                                  alt={post.title}
-                                  className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300"
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                  <ImageOff className="h-6 w-6 text-gray-300" />
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Overlay com nome da categoria */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                        <span className="text-white text-sm font-medium">{category.posts.length} items</span>
-                      </div>
-                      
-                      {/* Retângulo branco centralizado com título da categoria - sempre visível */}
-                      <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-20">
-                        <div className="bg-white rounded-full px-4 py-2 shadow-sm min-w-[120px]">
-                          <span className="text-black text-sm font-bold text-center block">
-                            {category.name}
-                          </span>
+                  <div className="relative">
+                    <Link 
+                      href={`/categorias/${category.slug || category.id}`} 
+                      className="block group cursor-pointer"
+                    >
+                      {/* Grid 2x2 de imagens com overlay */}
+                      <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square relative">
+                        <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-full">
+                          {/* Mostrar até 4 imagens ou placeholders */}
+                          {Array.from({ length: 4 }).map((_, index) => {
+                            const post = category.posts[index];
+                            return (
+                              <div key={index} className="relative overflow-hidden">
+                                {post ? (
+                                  <img 
+                                    src={post.imageUrl} 
+                                    alt={post.title}
+                                    className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                    <ImageOff className="h-6 w-6 text-gray-300" />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Overlay com nome da categoria */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                          <span className="text-white text-sm font-medium">{category.posts.length} items</span>
                         </div>
                       </div>
+                    </Link>
+                    
+                    {/* Retângulo branco centralizado com título da categoria - sempre visível - FORA do container com overflow */}
+                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-30">
+                      <div className="bg-white rounded-full px-4 py-2 shadow-sm min-w-[120px]">
+                        <span className="text-black text-sm font-bold text-center block">
+                          {category.name}
+                        </span>
+                      </div>
                     </div>
-                  </Link>
+                  </div>
                 </div>
               ))}
             </div>
