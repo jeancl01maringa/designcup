@@ -123,35 +123,21 @@ export default function CategorySection() {
     return () => window.removeEventListener('resize', updateScrollDimensions);
   }, [categoriesWithPosts]);
   
-  // Manipular o scroll para a esquerda com efeito infinito
+  // Manipular o scroll para a esquerda com efeito infinito contínuo
   const handleScrollLeft = () => {
     if (scrollRef.current) {
-      if (scrollPosition <= 0) {
-        // Se está no início, vai para o final (efeito infinito)
-        const newPosition = maxScroll;
-        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
-        setScrollPosition(newPosition);
-      } else {
-        const newPosition = Math.max(0, scrollPosition - 300);
-        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
-        setScrollPosition(newPosition);
-      }
+      const newPosition = scrollPosition - 300;
+      scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+      setScrollPosition(newPosition);
     }
   };
   
-  // Manipular o scroll para a direita com efeito infinito
+  // Manipular o scroll para a direita com efeito infinito contínuo  
   const handleScrollRight = () => {
     if (scrollRef.current) {
-      if (scrollPosition >= maxScroll) {
-        // Se está no final, volta para o início (efeito infinito)
-        const newPosition = 0;
-        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
-        setScrollPosition(newPosition);
-      } else {
-        const newPosition = Math.min(maxScroll, scrollPosition + 300);
-        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
-        setScrollPosition(newPosition);
-      }
+      const newPosition = scrollPosition + 300;
+      scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+      setScrollPosition(newPosition);
     }
   };
   
@@ -245,7 +231,7 @@ export default function CategorySection() {
           {/* Botões de navegação - Esquerda */}
           {canScrollLeft && (
             <button 
-              className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 bg-slate-900/60 backdrop-blur-sm rounded-full h-10 w-10 shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900/80 hover:backdrop-blur-md hover:shadow-xl hover:scale-105 border border-slate-700/20"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-slate-900/60 backdrop-blur-sm rounded-full h-10 w-10 shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900/80 hover:backdrop-blur-md hover:shadow-xl hover:scale-105 border border-slate-700/20"
               onClick={handleScrollLeft}
               aria-label="Categorias anteriores"
             >
@@ -263,8 +249,9 @@ export default function CategorySection() {
             }}
           >
             <div className="flex space-x-6 w-max">
-              {categoriesWithPosts.map((category) => (
-                <div key={category.id} className="flex-none w-80">
+              {/* Renderizar categorias múltiplas vezes para scroll infinito */}
+              {[...categoriesWithPosts, ...categoriesWithPosts, ...categoriesWithPosts].map((category, index) => (
+                <div key={`${category.id}-${index}`} className="flex-none w-80">
                   <div className="relative">
                     <Link 
                       href={`/categorias/${category.slug || category.id}`} 
@@ -321,7 +308,7 @@ export default function CategorySection() {
           
           {canScrollRight && (
             <button 
-              className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-slate-900/60 backdrop-blur-sm rounded-full h-10 w-10 shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900/80 hover:backdrop-blur-md hover:shadow-xl hover:scale-105 border border-slate-700/20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-slate-900/60 backdrop-blur-sm rounded-full h-10 w-10 shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900/80 hover:backdrop-blur-md hover:shadow-xl hover:scale-105 border border-slate-700/20"
               onClick={handleScrollRight}
               aria-label="Próximas categorias"
             >
