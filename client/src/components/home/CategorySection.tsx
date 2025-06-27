@@ -285,18 +285,15 @@ export default function CategorySection() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                         <span className="text-white text-sm font-medium">{category.posts.length} items</span>
                       </div>
-                    </div>
-                    
-                    {/* Nome da categoria */}
-                    <div className="mt-3">
-                      <h4 className="font-medium text-[#1d1d1f] text-base group-hover:text-black transition-colors duration-200">
-                        {category.name}
-                      </h4>
-                      {category.description && (
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                          {category.description}
-                        </p>
-                      )}
+                      
+                      {/* Círculo branco com título da categoria - sempre visível */}
+                      <div className="absolute bottom-3 left-3">
+                        <div className="bg-white rounded-full px-3 py-1.5 shadow-md">
+                          <span className="text-black text-sm font-medium">
+                            {category.name}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </Link>
                 </div>
