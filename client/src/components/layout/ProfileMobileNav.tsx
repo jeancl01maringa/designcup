@@ -67,22 +67,22 @@ export function ProfileMobileNav() {
 
   return (
     <div className="lg:hidden">
-      {/* Barra superior tipo Instagram - desce de cima */}
-      <div className="fixed top-0 left-0 right-0 z-40">
+      {/* Barra inferior tipo Instagram - sobe de baixo */}
+      <div className="fixed bottom-0 left-0 right-0 z-40">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <button className="w-full bg-white shadow-lg border-b border-gray-200 flex flex-col items-center hover:bg-gray-50 transition-all duration-200 hover:shadow-xl">
+            <button className="w-full bg-white shadow-lg border-t border-gray-200 flex flex-col items-center hover:bg-gray-50 transition-all duration-200 hover:shadow-xl">
+              {/* Área do botão com seta para cima */}
+              <div className="w-full py-2 flex items-center justify-center">
+                <ChevronDown className="h-4 w-4 text-gray-600 rotate-180" />
+              </div>
               {/* Parte principal da barra - só um pouquinho visível */}
               <div className="w-full h-2 bg-gradient-to-r from-blue-500 to-blue-600"></div>
-              {/* Área do botão com seta para baixo */}
-              <div className="w-full py-2 flex items-center justify-center">
-                <ChevronDown className="h-4 w-4 text-gray-600" />
-              </div>
             </button>
           </SheetTrigger>
         
-          <SheetContent side="top" className="w-full h-auto p-0 rounded-b-xl">
-            <div className="bg-white rounded-b-xl">
+          <SheetContent side="bottom" className="w-full h-auto p-0 rounded-t-xl">
+            <div className="bg-white rounded-t-xl">
               {/* Header compacto */}
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-800">Meu Perfil</h2>
