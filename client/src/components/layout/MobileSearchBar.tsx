@@ -68,7 +68,7 @@ export function MobileSearchBar() {
               
               {/* Dropdown dos formatos */}
               {showFormatDropdown && (
-                <div className="absolute left-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden" ref={dropdownRef}>
+                <div className="absolute left-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] overflow-hidden" ref={dropdownRef}>
                   <div className="py-1">
                     {formats.map((format) => (
                       <button
