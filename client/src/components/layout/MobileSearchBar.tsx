@@ -133,7 +133,7 @@ export function MobileSearchBar() {
             {/* Botão de pesquisa à direita */}
             <button
               type="submit"
-              className="flex items-center justify-center py-3 px-6 bg-[#191c2c] text-white hover:bg-[#14182a] transition-colors duration-150 focus:outline-none rounded-full mx-1"
+              className="flex items-center justify-center w-10 h-10 bg-[#191c2c] text-white hover:bg-[#14182a] transition-colors duration-150 focus:outline-none rounded-full mx-1"
             >
               <Search className="h-4 w-4" />
             </button>
