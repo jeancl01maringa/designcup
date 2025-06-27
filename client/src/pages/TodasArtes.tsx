@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight, Search, Filter, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const ITEMS_PER_PAGE = 30; // Aumentado para reduzir paginação
 

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight, ArrowLeft, Search } from "lucide-react";
+import { Star, ImageIcon, Crown, ChevronLeft, ChevronRight, ArrowLeft, Search, Filter, X } from "lucide-react";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -74,6 +74,7 @@ export default function TodasArtesOptimized() {
   const [selectedType, setSelectedType] = useState("all");
   const [sortOrder, setSortOrder] = useState("recent");
   const [searchTerm, setSearchTerm] = useState("");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Extrair parâmetros da URL (página e filtros de pesquisa)
   useEffect(() => {
@@ -256,8 +257,8 @@ export default function TodasArtesOptimized() {
           </p>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+        {/* Filtros Desktop */}
+        <div className="hidden md:block bg-white rounded-lg shadow-sm border p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Campo de Pesquisa */}
             <div>
@@ -359,6 +360,143 @@ export default function TodasArtesOptimized() {
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Filtros Mobile */}
+        <div className="md:hidden bg-white rounded-lg shadow-sm border p-4 mb-8">
+          {/* Pesquisa e Botão Filtros */}
+          <div className="flex gap-3 mb-4">
+            {/* Campo de Pesquisa */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pesquisar por título
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Ex: Teste 17, Botox..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            {/* Botão Filtros */}
+            <div className="flex flex-col justify-end">
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+                className="h-10 px-4 flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white border-[#191c2c]"
+              >
+                <Filter className="h-4 w-4" />
+                <span className="text-sm font-medium">Filtros</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Filtros Expandidos */}
+          {showMobileFilters && (
+            <div className="border-t pt-4 space-y-4">
+              {/* Filtro de Categoria */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Categoria
+                </label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.name} ({category.post_count || 0})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro de Formato */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Formato
+                </label>
+                <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os formatos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os formatos</SelectItem>
+                    {availableFormats.map((format) => (
+                      <SelectItem key={format} value={format}>
+                        {format}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro de Tipo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo
+                </label>
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os tipos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="free">
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 mr-2 text-gray-400" />
+                        Gratuito
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="premium">
+                      <div className="flex items-center">
+                        <Crown className="h-4 w-4 mr-2 text-yellow-500" />
+                        Premium
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Ordenação */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ordenar por
+                </label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Ordenação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Mais recentes</SelectItem>
+                    <SelectItem value="oldest">Mais antigos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Botão Fechar Filtros */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMobileFilters(false)}
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Fechar Filtros
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Informações dos resultados */}
