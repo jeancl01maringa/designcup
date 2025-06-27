@@ -73,6 +73,8 @@ export default function TodasArtes() {
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [sortOrder, setSortOrder] = useState("recent");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Extrair página da URL
   useEffect(() => {
@@ -139,6 +141,13 @@ export default function TodasArtes() {
       }
     }
 
+    // Filtro de pesquisa por título
+    if (searchTerm.trim()) {
+      allPosts = allPosts.filter(post => 
+        post.title.toLowerCase().includes(searchTerm.toLowerCase().trim())
+      );
+    }
+
     // Aplicar ordenação
     if (sortOrder === "recent") {
       allPosts = [...allPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -162,7 +171,7 @@ export default function TodasArtes() {
       paginatedPosts: paginatedItems,
       columnArrays: columnArraysResult
     };
-  }, [posts, selectedCategory, selectedFormat, selectedType, sortOrder, currentPage, columns]);
+  }, [posts, selectedCategory, selectedFormat, selectedType, sortOrder, currentPage, columns, searchTerm]);
 
   // Atualizar URL quando a página muda
   const handlePageChange = (page: number) => {
@@ -220,9 +229,26 @@ export default function TodasArtes() {
           </p>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Filtros Desktop */}
+        <div className="hidden md:block bg-white rounded-lg shadow-sm border p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Campo de Pesquisa */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pesquisar por título
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Ex: Teste 17, Botox..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
             {/* Filtro de Categoria */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -296,6 +322,133 @@ export default function TodasArtes() {
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Filtros Mobile */}
+        <div className="md:hidden bg-white rounded-lg shadow-sm border p-4 mb-8">
+          {/* Pesquisa e Botão Filtros */}
+          <div className="flex gap-3 mb-4">
+            {/* Campo de Pesquisa */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pesquisar por título
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Ex: Teste 17, Botox..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            {/* Botão Filtros */}
+            <div className="flex flex-col justify-end">
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+                className="h-10 px-4 flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white border-[#191c2c]"
+              >
+                <Filter className="h-4 w-4" />
+                <span className="text-sm font-medium">Filtros</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Filtros Expandidos */}
+          {showMobileFilters && (
+            <div className="border-t pt-4 space-y-4">
+              {/* Filtro de Categoria */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Categoria
+                </label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas categorias</SelectItem>
+                    {categories && Array.isArray(categories) && categories.map((category: any) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro de Formato */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Formato
+                </label>
+                <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos formatos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos formatos</SelectItem>
+                    {availableFormats.map((format: string) => (
+                      <SelectItem key={format} value={format}>
+                        {format}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro de Tipo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo
+                </label>
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos tipos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos tipos</SelectItem>
+                    <SelectItem value="free">Gratuitos</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Ordenação */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ordenar por
+                </label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Recentes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Mais recentes</SelectItem>
+                    <SelectItem value="oldest">Mais antigos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Botão Fechar Filtros */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMobileFilters(false)}
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Fechar Filtros
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Estatísticas */}
