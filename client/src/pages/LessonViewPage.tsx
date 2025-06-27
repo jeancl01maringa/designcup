@@ -485,8 +485,12 @@ export default function LessonViewPage() {
                       Material Extra
                     </h3>
                     <div className="grid gap-2">
-                      {[...(currentLesson.files || []), ...(currentLesson.extra_materials || [])].map((file: string, index: number) => {
-                        const fileName = file.split('/').pop() || `Arquivo ${index + 1}`;
+                      {[...(currentLesson.files || []), ...(currentLesson.extra_materials || [])].map((file: any, index: number) => {
+                        // Handle both string URLs and object format
+                        const fileUrl = typeof file === 'string' ? file : file.url;
+                        const fileName = typeof file === 'string' ? 
+                          file.split('/').pop() || `Arquivo ${index + 1}` : 
+                          file.name || `Arquivo ${index + 1}`;
                         const fileExtension = fileName.split('.').pop()?.toLowerCase();
                         
                         return (
@@ -509,7 +513,7 @@ export default function LessonViewPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => window.open(file, '_blank')}
+                              onClick={() => window.open(fileUrl, '_blank')}
                               className="flex items-center gap-1"
                             >
                               <Download className="h-3 w-3" />
