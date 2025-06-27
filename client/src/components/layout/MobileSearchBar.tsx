@@ -57,7 +57,10 @@ export function MobileSearchBar() {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+                onClick={() => {
+                  console.log('Clique no hambúrguer! Estado atual:', showFormatDropdown);
+                  setShowFormatDropdown(!showFormatDropdown);
+                }}
                 className="flex items-center justify-center py-3 px-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none border-r border-gray-200 bg-gray-50"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
