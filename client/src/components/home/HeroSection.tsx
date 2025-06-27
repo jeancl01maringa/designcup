@@ -63,10 +63,10 @@ export default function HeroSection() {
           </div>
         </div>
         
-        {/* Main Heading - Better line breaks */}
+        {/* Main Heading - Fixed line breaks */}
         <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#1D1D1D] leading-tight mb-4 sm:mb-6 font-montserrat px-4 sm:px-0">
-          <span className="block">A Melhor plataforma de</span>
-          <span className="block text-[#AA5E2F] bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] bg-clip-text text-transparent">Artes para Estética</span>
+          <span className="block">A Melhor plataforma</span>
+          <span className="block text-[#AA5E2F] bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] bg-clip-text text-transparent">de Artes para Estética</span>
           <span className="block text-[#AA5E2F] bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] bg-clip-text text-transparent">do Brasil</span>
         </h1>
         
