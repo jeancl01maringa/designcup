@@ -82,179 +82,9 @@ const Logo = () => {
   );
 };
 
-const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFormat, setSelectedFormat] = useState("all");
-  const [showFormatDropdown, setShowFormatDropdown] = useState(false);
-  const [, navigate] = useLocation();
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const formats = [
-    { id: "all", name: "Formatos" },
-    { id: "feed", name: "Feed" },
-    { id: "poster", name: "Cartaz" },
-    { id: "stories", name: "Stories" },
-    { id: "images", name: "Imagens" }
-  ];
 
-  const selectFormat = (formatId: string) => {
-    setSelectedFormat(formatId);
-    setShowFormatDropdown(false);
-  };
-
-  const getFormatName = (formatId: string) => {
-    return formats.find(f => f.id === formatId)?.name || "Formatos";
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      const formatParam = selectedFormat !== "all" ? `&format=${selectedFormat}` : "";
-      navigate(`/todas-artes?search=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
-    }
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowFormatDropdown(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  if (isMobile) {
-    // Layout mobile: hambúrguer à esquerda, campo no meio, lupa à direita
-    return (
-      <div className="relative">
-        <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
-          <div className="relative flex items-center w-full border border-gray-300 rounded-xl focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden">
-            {/* Hambúrguer à esquerda */}
-            <button
-              type="button"
-              onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className="flex items-center justify-center py-3.5 px-3 text-gray-400 bg-white hover:text-gray-600 transition-colors duration-150 focus:outline-none border-r border-gray-200"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            
-            <input
-              type="text"
-              placeholder="Busque por artes, categorias, temas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 py-3.5 px-3 border-0 focus:outline-none text-sm bg-transparent"
-            />
-            
-            {/* Lupa à direita */}
-            <button
-              type="submit"
-              className="flex items-center justify-center py-3.5 px-3 text-white bg-[#191c2c] hover:bg-[#14182a] transition-colors duration-150 focus:outline-none border-l border-gray-200 rounded-r-xl"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-          </div>
-        </form>
-        
-        {/* Dropdown para mobile */}
-        {showFormatDropdown && (
-          <div className="absolute top-full left-0 mt-1 w-full z-[9999]" ref={dropdownRef}>
-            <div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
-              <div className="py-1">
-                {formats.map(format => (
-                  <button
-                    key={format.id}
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      selectFormat(format.id);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus:bg-gray-100
-                      ${format.id === selectedFormat 
-                        ? 'bg-blue-50 text-blue-700 font-medium' 
-                        : 'text-gray-700'}`}
-                  >
-                    {format.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Layout desktop: mantém original
-  return (
-    <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
-      <div className="relative flex items-center w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden">
-        <input
-          type="text"
-          placeholder="Busque por artes, categorias, temas..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 py-2.5 px-3 border-0 focus:outline-none text-sm bg-transparent"
-        />
-        
-        {/* Format Dropdown */}
-        <div className="relative">
-          <div className="relative" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className="flex items-center justify-between text-xs px-2 py-2.5 min-w-[75px] text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-l border-gray-200"
-            >
-              <span className="text-xs">{getFormatName(selectedFormat)}</span>
-              <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
-            </button>
-            
-            {showFormatDropdown && (
-              <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] overflow-hidden">
-                <div className="py-1">
-                  {formats.map(format => (
-                    <button
-                      key={format.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        selectFormat(format.id);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus:bg-gray-100
-                        ${format.id === selectedFormat 
-                          ? 'bg-blue-50 text-blue-700 font-medium' 
-                          : 'text-gray-700'}`}
-                    >
-                      {format.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <Button 
-          type="submit"
-          className="h-[35px] px-3 bg-black hover:bg-black/80 text-white border-0 rounded-r-lg"
-        >
-          <Search className="h-4 w-4" />
-        </Button>
-      </div>
-    </form>
-  );
-};
-
-const NavLinks = ({ showSearchBar }: { showSearchBar: boolean }) => {
+const NavLinks = () => {
   const [location] = useLocation();
   
   const navItems = [
@@ -263,10 +93,6 @@ const NavLinks = ({ showSearchBar }: { showSearchBar: boolean }) => {
     { name: "Cursos", path: "/cursos" },
     { name: "Planos", path: "/planos" }
   ];
-  
-  if (showSearchBar) {
-    return <HeaderSearchBar />;
-  }
   
   return (
     <nav className="hidden md:flex items-center space-x-5">
@@ -693,38 +519,11 @@ const MobileMenuButton = () => {
 
 export default function Header() {
   const { isOpen } = useMobileMenu();
-  const [location] = useLocation();
-  const [showSearchInHeader, setShowSearchInHeader] = useState(false);
-
-  // Only show search bar in header on home page when scrolled below original search section
-  useEffect(() => {
-    if (location !== '/') {
-      setShowSearchInHeader(false);
-      return;
-    }
-
-    const handleScroll = () => {
-      // Check if user scrolled past the hero section (approximately 400px)
-      const scrollY = window.scrollY;
-      const heroSectionHeight = 400; // Approximate height where search bar is no longer visible
-      
-      setShowSearchInHeader(scrollY > heroSectionHeight);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    
-    // Check initial scroll position
-    handleScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [location]);
   
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container-global py-5 flex items-center transition-all duration-300 h-[94px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
+      <div className={`container-global py-5 flex items-center transition-all duration-300 h-[94px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         
         {/* Layout Desktop - mantém estrutura original */}
         <div className="hidden md:flex items-center justify-between w-full">
@@ -733,9 +532,9 @@ export default function Header() {
             <Logo />
           </div>
           
-          {/* Barra de pesquisa centralizada ou links de navegação */}
-          <div className={`${showSearchInHeader ? 'flex-1 flex justify-center max-w-3xl' : ''}`}>
-            <NavLinks showSearchBar={showSearchInHeader} />
+          {/* Links de navegação */}
+          <div>
+            <NavLinks />
           </div>
           
           {/* Botões do usuário - posicionados à direita */}
@@ -763,13 +562,6 @@ export default function Header() {
         </div>
         
       </div>
-      
-      {/* Barra de pesquisa mobile - aparece quando a original sai de vista */}
-      {showSearchInHeader && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3">
-          <HeaderSearchBar isMobile={true} />
-        </div>
-      )}
       
       <MobileMenu />
     </header>
