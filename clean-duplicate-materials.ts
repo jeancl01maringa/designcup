@@ -4,7 +4,10 @@
  * Para executar: npx tsx clean-duplicate-materials.ts
  */
 
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from "ws";
+
+neonConfig.webSocketConstructor = ws;
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -37,8 +40,14 @@ async function cleanDuplicateMaterials() {
       if (Array.isArray(materials) && materials.length > 0) {
         console.log(`  📄 Materiais encontrados: ${materials.length}`);
         
-        // Remover duplicados baseado no nome do arquivo
-        const uniqueMaterials = materials.filter((material, index, self) => 
+        // Corrigir nomes com encoding e remover duplicados
+        const cleanedMaterials = materials.map(material => ({
+          ...material,
+          name: material.name.replace(/Ã§Ã£o/g, 'ção').replace(/Ã£/g, 'ã').replace(/Ã§/g, 'ç')
+        }));
+        
+        // Remover duplicados baseado no nome do arquivo (após correção)
+        const uniqueMaterials = cleanedMaterials.filter((material, index, self) => 
           index === self.findIndex(m => m.name === material.name)
         );
         
