@@ -5626,10 +5626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/admin/lessons/:id', upload.fields([
-    { name: 'coverImage', maxCount: 1 },
-    { name: 'extraMaterials', maxCount: 10 },
-  ]), async (req, res) => {
+  app.put('/api/admin/lessons/:id', upload.any(), async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
@@ -5637,7 +5634,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { title, description, content, type, videoPlatform, isPremium } = req.body;
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const files = req.files as Express.Multer.File[];
+      
+      console.log('📁 Files received:', files?.map(f => ({ name: f.fieldname, original: f.originalname, type: f.mimetype })));
       
       // First, add missing columns if they don't exist
       try {
@@ -5645,7 +5644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS extra_materials JSONB DEFAULT \'[]\'');
         await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS video_platform VARCHAR(50) DEFAULT \'youtube\'');
         await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT false');
-      } catch (alterError) {
+      } catch (alterError: any) {
         console.log('Columns might already exist:', alterError.message);
       }
 
@@ -5653,8 +5652,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let extraMaterials: any[] = [];
 
       // Upload cover image to Supabase if provided
-      if (files?.coverImage?.[0]) {
-        const coverFile = files.coverImage[0];
+      const coverFile = files?.find(f => f.fieldname === 'coverImage');
+      if (coverFile) {
         let processedBuffer = coverFile.buffer;
         
         // Converter imagem para WebP se for uma imagem
@@ -5668,7 +5667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 withoutEnlargement: true 
               })
               .toBuffer();
-          } catch (sharpError) {
+          } catch (sharpError: any) {
             console.warn('Sharp não disponível, usando imagem original:', sharpError.message);
           }
         }
@@ -5690,30 +5689,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Upload extra materials
-      if (files?.extraMaterials && Array.isArray(files.extraMaterials)) {
-        for (let i = 0; i < files.extraMaterials.length; i++) {
-          const materialFile = files.extraMaterials[i];
-          const extension = materialFile.originalname.split('.').pop() || 'bin';
-          const materialFileName = `lesson_${id}_material_${i}_${Date.now()}.${extension}`;
-          
-          const { data: materialData, error: materialError } = await supabase.storage
-            .from('lesson-materials')
-            .upload(materialFileName, materialFile.buffer, {
-              contentType: materialFile.mimetype,
-            });
+      const materialFiles = files?.filter(f => f.fieldname === 'extraMaterials') || [];
+      for (let i = 0; i < materialFiles.length; i++) {
+        const materialFile = materialFiles[i];
+        const extension = materialFile.originalname.split('.').pop() || 'bin';
+        const materialFileName = `lesson_${id}_material_${i}_${Date.now()}.${extension}`;
+        
+        const { data: materialData, error: materialError } = await supabase.storage
+          .from('lesson-materials')
+          .upload(materialFileName, materialFile.buffer, {
+            contentType: materialFile.mimetype,
+          });
 
-          if (materialError) {
-            console.error('Erro ao fazer upload do material:', materialError);
-          } else {
-            const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '') || '';
-            const fileUrl = `${supabaseUrl}/storage/v1/object/public/lesson-materials/${materialFileName}`;
-            extraMaterials.push({
-              name: materialFile.originalname,
-              url: fileUrl,
-              type: materialFile.mimetype,
-              size: materialFile.size
-            });
-          }
+        if (materialError) {
+          console.error('Erro ao fazer upload do material:', materialError);
+        } else {
+          const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '') || '';
+          const fileUrl = `${supabaseUrl}/storage/v1/object/public/lesson-materials/${materialFileName}`;
+          extraMaterials.push({
+            name: materialFile.originalname,
+            url: fileUrl,
+            type: materialFile.mimetype,
+            size: materialFile.size
+          });
         }
       }
 
