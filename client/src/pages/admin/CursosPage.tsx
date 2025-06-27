@@ -347,7 +347,6 @@ export default function CursosPage() {
                               toggleStatusMutation.mutate({ id: course.id, isActive: checked });
                             }}
                             disabled={toggleStatusMutation.isPending}
-                            size="sm"
                           />
                         </div>
                       </TableCell>

@@ -5322,16 +5322,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const { title, description, shortDescription, coverImage, isActive } = req.body;
+      const updates = req.body;
+      
+      // Build dynamic query based on provided fields
+      const updateFields = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      
+      if (updates.title !== undefined) {
+        updateFields.push(`title = $${paramIndex}`);
+        queryParams.push(updates.title);
+        paramIndex++;
+      }
+      
+      if (updates.description !== undefined) {
+        updateFields.push(`description = $${paramIndex}`);
+        queryParams.push(updates.description);
+        paramIndex++;
+      }
+      
+      if (updates.shortDescription !== undefined) {
+        updateFields.push(`short_description = $${paramIndex}`);
+        queryParams.push(updates.shortDescription);
+        paramIndex++;
+      }
+      
+      if (updates.coverImage !== undefined) {
+        updateFields.push(`cover_image = $${paramIndex}`);
+        queryParams.push(updates.coverImage);
+        paramIndex++;
+      }
+      
+      if (updates.isActive !== undefined) {
+        updateFields.push(`is_active = $${paramIndex}`);
+        queryParams.push(updates.isActive);
+        paramIndex++;
+      }
+      
+      if (updateFields.length === 0) {
+        return res.status(400).json({ message: 'Nenhum campo para atualizar' });
+      }
+      
+      updateFields.push(`updated_at = NOW()`);
+      queryParams.push(id);
       
       const query = `
         UPDATE courses 
-        SET title = $1, description = $2, short_description = $3, cover_image = $4, is_active = $5, updated_at = NOW()
-        WHERE id = $6
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramIndex}
         RETURNING *
       `;
       
-      const result = await pool.query(query, [title, description, shortDescription, coverImage, isActive, id]);
+      const result = await pool.query(query, queryParams);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Curso não encontrado' });
@@ -6239,26 +6281,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const query = `
         SELECT 
-          c.*,
-          COUNT(DISTINCT cm.id) as "moduleCount",
-          COUNT(DISTINCT cl.id) as "lessonCount",
+          c.id,
+          c.title,
+          c.description,
+          c.short_description as "shortDescription",
+          c.cover_image as "coverImage",
+          c.is_active as "isActive",
+          c.created_at as "createdAt",
+          COUNT(DISTINCT m.id) as "moduleCount",
+          COUNT(DISTINCT l.id) as "lessonCount",
           CASE 
             WHEN $2 = true OR ce.id IS NOT NULL THEN true 
             ELSE false 
           END as "hasAccess",
           COALESCE(
             CASE 
-              WHEN COUNT(DISTINCT cl.id) = 0 THEN 0
-              ELSE (COUNT(DISTINCT cp.id) * 100.0 / COUNT(DISTINCT cl.id))
+              WHEN COUNT(DISTINCT l.id) = 0 THEN 0
+              ELSE (COUNT(DISTINCT cp.id) * 100.0 / COUNT(DISTINCT l.id))
             END, 0
           ) as progress
         FROM courses c
-        LEFT JOIN course_modules cm ON c.id = cm.course_id AND cm.is_active = true
-        LEFT JOIN course_lessons cl ON cm.id = cl.module_id AND cl.is_active = true
+        LEFT JOIN modules m ON c.id = m.course_id
+        LEFT JOIN lessons l ON m.id = l.module_id
         LEFT JOIN course_enrollments ce ON c.id = ce.course_id AND ce.user_id = $1 AND ce.is_active = true
-        LEFT JOIN course_progress cp ON cl.id = cp.lesson_id AND cp.user_id = $1 AND cp.is_completed = true
+        LEFT JOIN course_progress cp ON l.id = cp.lesson_id AND cp.user_id = $1 AND cp.is_completed = true
         WHERE c.is_active = true
-        GROUP BY c.id, ce.id
+        GROUP BY c.id, c.title, c.description, c.short_description, c.cover_image, c.is_active, c.created_at, ce.id
         ORDER BY c.created_at DESC
       `;
       
