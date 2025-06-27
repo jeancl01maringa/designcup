@@ -5633,7 +5633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const { title, description, content, type, videoPlatform, isPremium } = req.body;
+      const { title, description, content, type, videoPlatform, isPremium, extraMaterials: existingMaterialsUpdate } = req.body;
       const files = req.files as Express.Multer.File[];
       
       console.log('📁 Files received:', files?.map(f => ({ name: f.fieldname, original: f.originalname, type: f.mimetype })));
@@ -5649,7 +5649,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let coverImageUrl = null;
-      let extraMaterials: any[] = [];
+      let newExtraMaterials: any[] = [];
+      
+      // Handle existing materials update (for removal)
+      let updatedExistingMaterials = null;
+      if (existingMaterialsUpdate && typeof existingMaterialsUpdate === 'string') {
+        try {
+          updatedExistingMaterials = JSON.parse(existingMaterialsUpdate);
+        } catch (e) {
+          console.warn('Could not parse existingMaterialsUpdate:', e);
+        }
+      } else if (Array.isArray(existingMaterialsUpdate)) {
+        updatedExistingMaterials = existingMaterialsUpdate;
+      }
 
       // Upload cover image to Supabase if provided
       const coverFile = files?.find(f => f.fieldname === 'coverImage');
