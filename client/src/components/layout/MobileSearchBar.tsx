@@ -8,7 +8,6 @@ export function MobileSearchBar() {
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const formats = [
@@ -36,31 +35,8 @@ export function MobileSearchBar() {
     }
   };
 
-  // Handle scroll to show/hide mobile search bar
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      // No topo da página - sempre mostrar
-      if (currentScrollY <= 50) {
-        setIsVisible(true);
-      } else {
-        // Detectar direção do scroll - simples e direto
-        if (currentScrollY < lastScrollY) {
-          // Rolando para cima - sempre mostrar
-          setIsVisible(true);
-        } else if (currentScrollY > lastScrollY) {
-          // Rolando para baixo - ocultar
-          setIsVisible(false);
-        }
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  // Keep search bar always visible for now
+  // TODO: Implement proper scroll behavior later
 
   // Close dropdown when clicking outside
   useEffect(() => {
