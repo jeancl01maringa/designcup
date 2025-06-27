@@ -1,42 +1,109 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Search, Filter } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Search, ChevronDown } from "lucide-react";
 
 export function MobileSearchBar() {
-  const [, setLocation] = useLocation();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [, navigate] = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFormat, setSelectedFormat] = useState("all");
+  const [showFormatDropdown, setShowFormatDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const formats = [
+    { id: "all", name: "Formatos" },
+    { id: "feed", name: "Feed" },
+    { id: "poster", name: "Cartaz" },
+    { id: "stories", name: "Stories" },
+    { id: "images", name: "Imagens" }
+  ];
+
+  const selectFormat = (formatId: string) => {
+    setSelectedFormat(formatId);
+    setShowFormatDropdown(false);
+  };
+
+  const getFormatName = (formatId: string) => {
+    return formats.find(f => f.id === formatId)?.name || "Formatos";
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    if (searchQuery.trim()) {
+      const formatParam = selectedFormat !== "all" ? `&format=${selectedFormat}` : "";
+      navigate(`/todas-artes?search=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
     }
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowFormatDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="md:hidden bg-gray-100 border-b border-gray-200 sticky top-[64px] z-40">
       <div className="container-global py-3">
-        <form onSubmit={handleSearch} className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
+        <form onSubmit={handleSearch} className="flex items-center">
+          <div className="relative flex items-center w-full border border-gray-300 rounded-full focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden bg-white">
+            {/* Hambúrguer dos formatos à esquerda */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+                className="flex items-center justify-center py-3 px-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none border-r border-gray-200 bg-gray-50"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <ChevronDown className="ml-1 h-3 w-3" />
+              </button>
+              
+              {/* Dropdown dos formatos */}
+              {showFormatDropdown && (
+                <div className="absolute left-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden" ref={dropdownRef}>
+                  <div className="py-1">
+                    {formats.map((format) => (
+                      <button
+                        key={format.id}
+                        type="button"
+                        onClick={() => selectFormat(format.id)}
+                        className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition-colors ${
+                          selectedFormat === format.id ? 'bg-[#AA5E2F]/10 text-[#AA5E2F]' : 'text-gray-700'
+                        }`}
+                      >
+                        {format.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Campo de pesquisa no meio */}
+            <input
               type="text"
-              placeholder="Buscar por título"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-white border-gray-300 text-sm focus:border-[#191c2c] focus:ring-[#191c2c]"
+              placeholder="Busque por artes, categorias, temas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 py-3 px-3 border-0 focus:outline-none text-sm bg-transparent"
             />
+            
+            {/* Botão de pesquisa à direita */}
+            <button
+              type="submit"
+              className="flex items-center justify-center py-3 px-4 bg-[#191c2c] text-white hover:bg-[#14182a] transition-colors duration-150 focus:outline-none rounded-full mx-1"
+            >
+              <Search className="h-4 w-4" />
+            </button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="px-4 py-2 h-[40px] bg-[#191c2c] text-white border-[#191c2c] hover:bg-[#14182a] hover:border-[#14182a] rounded-full min-w-[80px] text-sm"
-          >
-            <Filter className="w-4 h-4 mr-1" />
-            Filtros
-          </Button>
         </form>
       </div>
     </div>
