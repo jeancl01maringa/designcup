@@ -25,7 +25,7 @@ const upload = multer({
     console.log('📁 Upload file:', file.fieldname, file.mimetype, file.originalname);
     
     // Para materiais extras das aulas, permitir mais tipos de arquivo
-    if (file.fieldname === 'extraMaterials') {
+    if (file.fieldname === 'extraMaterials' || file.fieldname.startsWith('extraMaterial_')) {
       const allowedTypes = [
         'image/jpeg', 'image/png', 'image/gif', 'image/webp', 
         'application/pdf', 
@@ -5659,8 +5659,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Converter imagem para WebP se for uma imagem
         if (coverFile.mimetype.startsWith('image/')) {
           try {
-            const sharp = require('sharp');
-            processedBuffer = await sharp(coverFile.buffer)
+            const sharp = await import('sharp');
+            processedBuffer = await sharp.default(coverFile.buffer)
               .webp({ quality: 80 })
               .resize(800, 600, { 
                 fit: 'inside',
@@ -5689,7 +5689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Upload extra materials
-      const materialFiles = files?.filter(f => f.fieldname === 'extraMaterials') || [];
+      const materialFiles = files?.filter(f => f.fieldname === 'extraMaterials' || f.fieldname.startsWith('extraMaterial_')) || [];
       for (let i = 0; i < materialFiles.length; i++) {
         const materialFile = materialFiles[i];
         const extension = materialFile.originalname.split('.').pop() || 'bin';
