@@ -75,8 +75,8 @@ export default function HeroSection() {
           sua rotina com <span className="text-[#1D1D1D] font-semibold">qualidade profissional.</span>
         </p>
         
-        {/* Search Bar with Format Dropdown */}
-        <div className="w-full max-w-2xl mt-8">
+        {/* Search Bar with Format Dropdown - Hidden on mobile */}
+        <div className="hidden md:block w-full max-w-2xl mt-8">
           <form onSubmit={handleSearch} className="relative flex items-center">
             <input
               type="text"

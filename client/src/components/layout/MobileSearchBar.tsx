@@ -32,8 +32,7 @@ export function MobileSearchBar() {
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="px-3 py-2 bg-[#191c2c] text-white border-[#191c2c] hover:bg-[#14182a] hover:border-[#14182a]"
+            className="px-4 py-2 h-[40px] bg-[#191c2c] text-white border-[#191c2c] hover:bg-[#14182a] hover:border-[#14182a] rounded-full min-w-[80px] text-sm"
           >
             <Filter className="w-4 h-4 mr-1" />
             Filtros
