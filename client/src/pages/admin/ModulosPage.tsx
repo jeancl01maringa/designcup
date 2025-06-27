@@ -24,6 +24,12 @@ interface Module {
   lessons?: Lesson[];
 }
 
+interface Course {
+  id: number;
+  title: string;
+  description?: string;
+}
+
 interface Lesson {
   id: number;
   moduleId: number;
@@ -51,7 +57,7 @@ export default function ModulosPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Buscar curso
-  const { data: course } = useQuery({
+  const { data: course } = useQuery<Course>({
     queryKey: [`/api/admin/courses/${courseId}`],
   });
 
@@ -335,7 +341,7 @@ export default function ModulosPage() {
             onClick={() => setLocation(`/admin/cursos/${courseId}`)}
             className="text-primary font-medium hover:text-primary/80 transition-colors"
           >
-            {course?.title || 'Kit de Mídias para Estética'}
+{course?.title || 'Carregando...'}
           </button>
           <span>/</span>
           <span>Conteúdo</span>
@@ -347,7 +353,7 @@ export default function ModulosPage() {
             <FileText className="h-6 w-6 text-orange-600" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold">{course?.title || 'Kit de Mídias para Estética'}</h1>
+            <h1 className="text-xl font-semibold">{course?.title || 'Carregando...'}</h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>Curso Online</span>
               <span>ID: 2569032</span>

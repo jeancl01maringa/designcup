@@ -87,6 +87,12 @@ export default function EditLessonPage() {
     enabled: !!lessonId,
   });
 
+  // Fetch course data based on lesson's courseId
+  const { data: course } = useQuery({
+    queryKey: [`/api/admin/courses/${lesson?.courseId}`],
+    enabled: !!lesson?.courseId,
+  });
+
 
 
   // Update editor content when lesson data loads
@@ -359,7 +365,7 @@ export default function EditLessonPage() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => setLocation(`/admin/cursos/${lesson?.moduleId ? Math.floor(lesson.moduleId / 10) : 1}/modulos`)}
+              onClick={() => setLocation(`/admin/cursos/${lesson?.courseId || 2}/modulos`)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Editar conteúdo
