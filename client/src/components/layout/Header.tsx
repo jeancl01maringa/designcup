@@ -519,6 +519,45 @@ const MobileMenuButton = () => {
 
 export default function Header() {
   const { isOpen } = useMobileMenu();
+  const [location, navigate] = useLocation();
+  const [showScrollSearchBar, setShowScrollSearchBar] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFormat, setSelectedFormat] = useState("all");
+
+  const formats = [
+    { id: "all", name: "Formato" },
+    { id: "feed", name: "Feed" },
+    { id: "poster", name: "Cartaz" },
+    { id: "stories", name: "Stories" }
+  ];
+
+  const getFormatName = (formatId: string) => {
+    return formats.find(f => f.id === formatId)?.name || "Formato";
+  };
+
+  const handleScrollSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/todas-artes?search=${encodeURIComponent(searchQuery.trim())}&format=${selectedFormat}`);
+    } else {
+      navigate("/todas-artes");
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Só mostra a barra de pesquisa scroll na homepage
+      if (location === "/") {
+        const scrollY = window.scrollY;
+        setShowScrollSearchBar(scrollY > 400); // Mostra após rolar 400px
+      } else {
+        setShowScrollSearchBar(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location]);
   
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -532,9 +571,43 @@ export default function Header() {
             <Logo />
           </div>
           
-          {/* Links de navegação */}
-          <div>
-            <NavLinks />
+          {/* Links de navegação ou barra de pesquisa scroll */}
+          <div className="flex-1 flex justify-center">
+            {showScrollSearchBar ? (
+              <form onSubmit={handleScrollSearch} className="flex items-center max-w-md w-full">
+                <div className="relative flex items-center w-full">
+                  <div className="relative">
+                    <select
+                      value={selectedFormat}
+                      onChange={(e) => setSelectedFormat(e.target.value)}
+                      className="bg-[#1a1d29] text-white px-4 py-2 rounded-l-full text-sm font-medium border-none outline-none appearance-none cursor-pointer min-w-[100px]"
+                    >
+                      {formats.map((format) => (
+                        <option key={format.id} value={format.id} className="bg-[#1a1d29] text-white">
+                          {format.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white pointer-events-none" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Busque por arquivos..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 px-4 py-2 bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-[#1a1d29] text-white px-4 py-2 rounded-r-full hover:bg-[#151821] transition-colors text-sm font-medium"
+                  >
+                    Pesquisar
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <NavLinks />
+            )}
           </div>
           
           {/* Botões do usuário - posicionados à direita */}

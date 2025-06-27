@@ -48,8 +48,6 @@ export function MobileSearchBar() {
     };
   }, []);
 
-  console.log('MobileSearchBar render - showFormatDropdown:', showFormatDropdown);
-
   return (
     <div className="md:hidden bg-gray-100 border-b border-gray-200 relative z-10">
       <div className="container-global py-3">
@@ -62,11 +60,7 @@ export function MobileSearchBar() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Clique no hambúrguer! Estado atual:', showFormatDropdown);
-                  setShowFormatDropdown(prev => {
-                    console.log('Mudando estado de', prev, 'para', !prev);
-                    return !prev;
-                  });
+                  setShowFormatDropdown(prev => !prev);
                 }}
                 className="flex items-center justify-center py-3 px-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none border-r border-gray-200 bg-gray-50"
               >
