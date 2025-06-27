@@ -234,8 +234,8 @@ export default function TodasArtesOptimized() {
     <div className="min-h-screen bg-gray-50">
       <div className="container-global py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="mb-6 md:mb-8">
+          <div className="flex items-center gap-4 mb-2 md:mb-4">
             <Button
               variant="ghost"
               size="sm"
@@ -246,10 +246,10 @@ export default function TodasArtesOptimized() {
               Voltar
             </Button>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">
             {searchTerm ? `Resultados da busca para "${searchTerm}"` : "Todos os Designs"}
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-sm md:text-lg">
             {searchTerm 
               ? `Aproximadamente ${filteredPosts.length > 0 ? filteredPosts.length : '0'} resultados, se você não encontrou o que procura, tente outra palavra-chave.`
               : "Explore nossa coleção completa de templates profissionais para impulsionar seu negócio."

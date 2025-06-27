@@ -220,11 +220,11 @@ export default function TodasArtes() {
     <div className="min-h-screen bg-gray-50">
       <div className="container-global py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">
             Todos os Designs
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-sm md:text-lg">
             Explore nossa coleção completa de templates profissionais para impulsionar seu negócio.
           </p>
         </div>

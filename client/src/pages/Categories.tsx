@@ -79,12 +79,12 @@ export default function Categories() {
         <div className="container-global flex flex-col items-center text-center">
           
           {/* Main Heading - Same fonts and styling as home */}
-          <h1 className="text-3xl md:text-4xl font-bold text-[#1D1D1D] leading-tight mb-6 font-montserrat">
+          <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-[#1D1D1D] leading-tight mb-4 md:mb-6 font-montserrat">
             Categorias
           </h1>
           
           {/* Description - Same styling as home */}
-          <p className="text-[#4B4B4B] text-base mb-6 max-w-2xl font-sans font-light">
+          <p className="text-[#4B4B4B] text-sm md:text-base mb-4 md:mb-6 max-w-2xl font-sans font-light">
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
           
