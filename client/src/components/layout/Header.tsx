@@ -156,7 +156,7 @@ const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
             {/* Lupa à direita */}
             <button
               type="submit"
-              className="flex items-center justify-center py-3.5 px-3 text-white bg-black hover:bg-black/80 transition-colors duration-150 focus:outline-none border-l border-gray-200 rounded-r-xl"
+              className="flex items-center justify-center py-3.5 px-3 text-white bg-[#191c2c] hover:bg-[#14182a] transition-colors duration-150 focus:outline-none border-l border-gray-200 rounded-r-xl"
             >
               <Search className="h-4 w-4" />
             </button>
