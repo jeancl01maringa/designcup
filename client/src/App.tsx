@@ -183,6 +183,9 @@ function App() {
   const isAuthPage = location.startsWith("/auth");
   const isAdminPage = location.startsWith("/admin");
   const showHeaderFooter = !isAuthPage && !isAdminPage;
+  
+  // Mostrar barra de pesquisa móvel apenas na home e na página "todas as artes"
+  const showMobileSearchBar = showHeaderFooter && (location === "/" || location === "/todas-artes");
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -190,7 +193,7 @@ function App() {
         <Context.Provider value={value}>
           <div className="flex flex-col min-h-screen">
             {showHeaderFooter && <Header />}
-            {showHeaderFooter && <MobileSearchBar />}
+            {showMobileSearchBar && <MobileSearchBar />}
             <main className="flex-grow">
               <Router />
             </main>
