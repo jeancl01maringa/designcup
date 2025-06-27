@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -69,38 +69,30 @@ export function ProfileMobileNav() {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="fixed top-20 left-4 z-50 bg-white shadow-md"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
           >
-            <Menu className="h-4 w-4" />
-            <span className="ml-2">Menu</span>
+            <Menu className="h-5 w-5" />
+            <span className="text-sm font-medium">Menu</span>
           </Button>
         </SheetTrigger>
         
         <SheetContent side="left" className="w-80 p-0">
-          <div className="h-full bg-white">
-            {/* Header */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-800">Meu Perfil</h2>
-                  <p className="text-sm text-gray-500 mt-1">Gerencie sua conta</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsOpen(false)}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+          <SheetHeader className="p-6 border-b border-gray-200">
+            <SheetTitle className="text-left">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">Meu Perfil</h2>
+                <p className="text-sm text-gray-500 mt-1">Gerencie sua conta</p>
               </div>
-            </div>
+            </SheetTitle>
+          </SheetHeader>
+          
+          <div className="h-full bg-white">
 
             {/* Menu items */}
-            <nav className="p-4 flex-1">
-              <ul className="space-y-2">
+            <nav className="p-6 flex-1">
+              <ul className="space-y-3">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location === item.href;
@@ -111,40 +103,40 @@ export function ProfileMobileNav() {
                         <a
                           onClick={() => setIsOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-200",
+                            "flex items-center gap-4 px-4 py-4 rounded-xl transition-colors duration-200",
                             isActive
-                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              ? "bg-primary/10 text-primary border border-primary/20"
                               : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                           )}
                         >
                           <div
                             className={cn(
-                              "w-8 h-8 rounded-full flex items-center justify-center",
+                              "w-10 h-10 rounded-lg flex items-center justify-center",
                               isActive
-                                ? "bg-blue-100"
+                                ? "bg-primary/20"
                                 : "bg-gray-100"
                             )}
                           >
                             <Icon
                               className={cn(
-                                "w-4 h-4",
-                                isActive ? "text-blue-600" : "text-gray-500"
+                                "w-5 h-5",
+                                isActive ? "text-primary" : "text-gray-600"
                               )}
                             />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p
                               className={cn(
-                                "font-medium text-sm",
-                                isActive ? "text-blue-700" : "text-gray-800"
+                                "font-semibold text-base",
+                                isActive ? "text-primary" : "text-gray-900"
                               )}
                             >
                               {item.label}
                             </p>
                             <p
                               className={cn(
-                                "text-xs truncate",
-                                isActive ? "text-blue-600" : "text-gray-500"
+                                "text-sm truncate mt-0.5",
+                                isActive ? "text-primary/70" : "text-gray-500"
                               )}
                             >
                               {item.description}
@@ -158,8 +150,8 @@ export function ProfileMobileNav() {
               </ul>
 
               {/* Ações */}
-              <div className="pt-4 mt-4 border-t border-gray-200">
-                <ul className="space-y-2">
+              <div className="pt-6 mt-6 border-t border-gray-200">
+                <ul className="space-y-3">
                   {/* Suporte via WhatsApp */}
                   {whatsappUrl && (
                     <li>
@@ -168,16 +160,16 @@ export function ProfileMobileNav() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-green-50 hover:text-green-700"
+                        className="flex items-center gap-4 px-4 py-4 rounded-xl transition-colors duration-200 text-gray-700 hover:bg-green-50 hover:text-green-700"
                       >
-                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-green-600" />
+                        <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                          <MessageSquare className="w-5 h-5 text-green-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-green-600">
+                          <p className="font-semibold text-base text-green-600">
                             Suporte por WhatsApp
                           </p>
-                          <p className="text-xs text-green-500 truncate">
+                          <p className="text-sm text-green-500 truncate mt-0.5">
                             Dúvidas e perguntas
                           </p>
                         </div>
@@ -193,16 +185,16 @@ export function ProfileMobileNav() {
                         setIsOpen(false);
                       }}
                       disabled={logoutMutation.isPending}
-                      className="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-colors duration-200 text-gray-700 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
                     >
-                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                        <LogOut className="w-4 w-4 text-red-600" />
+                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                        <LogOut className="w-5 h-5 text-red-600" />
                       </div>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-medium text-sm text-red-600">
+                        <p className="font-semibold text-base text-red-600">
                           Sair da conta
                         </p>
-                        <p className="text-xs text-red-500 truncate">
+                        <p className="text-sm text-red-500 truncate mt-0.5">
                           Encerrar sessão atual
                         </p>
                       </div>
