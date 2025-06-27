@@ -123,21 +123,35 @@ export default function CategorySection() {
     return () => window.removeEventListener('resize', updateScrollDimensions);
   }, [categoriesWithPosts]);
   
-  // Manipular o scroll para a esquerda
+  // Manipular o scroll para a esquerda com efeito infinito
   const handleScrollLeft = () => {
     if (scrollRef.current) {
-      const newPosition = Math.max(0, scrollPosition - 300);
-      scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
-      setScrollPosition(newPosition);
+      if (scrollPosition <= 0) {
+        // Se está no início, vai para o final (efeito infinito)
+        const newPosition = maxScroll;
+        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+        setScrollPosition(newPosition);
+      } else {
+        const newPosition = Math.max(0, scrollPosition - 300);
+        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+        setScrollPosition(newPosition);
+      }
     }
   };
   
-  // Manipular o scroll para a direita
+  // Manipular o scroll para a direita com efeito infinito
   const handleScrollRight = () => {
     if (scrollRef.current) {
-      const newPosition = Math.min(maxScroll, scrollPosition + 300);
-      scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
-      setScrollPosition(newPosition);
+      if (scrollPosition >= maxScroll) {
+        // Se está no final, volta para o início (efeito infinito)
+        const newPosition = 0;
+        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+        setScrollPosition(newPosition);
+      } else {
+        const newPosition = Math.min(maxScroll, scrollPosition + 300);
+        scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+        setScrollPosition(newPosition);
+      }
     }
   };
   
@@ -200,11 +214,10 @@ export default function CategorySection() {
     );
   }
 
-  // Verifica se pode rolar para esquerda ou direita
-  // Forçar exibição das setas se houver mais de 3 categorias ou se maxScroll > 50
-  const shouldShowArrows = categoriesWithPosts.length > 3 || maxScroll > 50;
-  const canScrollLeft = shouldShowArrows && scrollPosition > 0;
-  const canScrollRight = shouldShowArrows && (scrollPosition < maxScroll || maxScroll === 0);
+  // Verifica se pode rolar para esquerda ou direita (sempre mostrar para scroll infinito)
+  const shouldShowArrows = categoriesWithPosts.length > 1;
+  const canScrollLeft = shouldShowArrows;
+  const canScrollRight = shouldShowArrows;
   
   return (
     <section className="py-8 bg-white border-b border-gray-100">
