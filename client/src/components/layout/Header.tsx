@@ -659,23 +659,52 @@ export default function Header() {
     <header className="bg-white shadow-sm sticky top-0 z-50">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
       <div className={`container-global py-5 flex items-center transition-all duration-300 h-[94px] ${isOpen ? 'md:flex hidden' : 'flex'} ${showSearchInHeader ? 'justify-between' : 'justify-between'}`}>
-        {/* Logo - posicionado à esquerda */}
-        <div className="flex-shrink-0 w-36">
-          <Logo />
+        
+        {/* Layout Desktop - mantém estrutura original */}
+        <div className="hidden md:flex items-center justify-between w-full">
+          {/* Logo - posicionado à esquerda */}
+          <div className="flex-shrink-0 w-36">
+            <Logo />
+          </div>
+          
+          {/* Barra de pesquisa centralizada ou links de navegação */}
+          <div className={`${showSearchInHeader ? 'flex-1 flex justify-center max-w-3xl' : ''}`}>
+            <NavLinks showSearchBar={showSearchInHeader} />
+          </div>
+          
+          {/* Botões do usuário - posicionados à direita */}
+          <div className="flex items-center space-x-2 flex-shrink-0 w-36 justify-end">
+            <UserMenu />
+          </div>
+        </div>
+
+        {/* Layout Mobile - nova estrutura */}
+        <div className="flex md:hidden items-center justify-between w-full">
+          {/* Botão Entrar - lado esquerdo */}
+          <div className="flex-shrink-0">
+            <MobileUserMenu />
+          </div>
+          
+          {/* Logo - centralizado */}
+          <div className="flex-1 flex justify-center">
+            <Logo />
+          </div>
+          
+          {/* Menu hambúrguer - lado direito */}
+          <div className="flex-shrink-0">
+            <MobileMenuButton />
+          </div>
         </div>
         
-        {/* Barra de pesquisa centralizada ou links de navegação */}
-        <div className={`${showSearchInHeader ? 'flex-1 flex justify-center max-w-3xl' : ''}`}>
-          <NavLinks showSearchBar={showSearchInHeader} />
-        </div>
-        
-        {/* Botões do usuário - posicionados à direita */}
-        <div className="flex items-center space-x-2 flex-shrink-0 w-36 justify-end">
-          <UserMenu />
-          <MobileUserMenu />
-          <MobileMenuButton />
-        </div>
       </div>
+      
+      {/* Barra de pesquisa mobile - aparece quando a original sai de vista */}
+      {showSearchInHeader && (
+        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3">
+          <HeaderSearchBar />
+        </div>
+      )}
+      
       <MobileMenu />
     </header>
   );
