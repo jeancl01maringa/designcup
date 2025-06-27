@@ -291,7 +291,7 @@ export default function CategorySection() {
                     
                     {/* Retângulo branco centralizado com título da categoria - sempre visível - FORA do container com overflow */}
                     <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-30">
-                      <div className="bg-white rounded-full px-4 py-2 shadow-sm min-w-[120px]">
+                      <div className="bg-white rounded-full px-4 py-2 shadow-md min-w-[120px]">
                         <span className="text-black text-sm font-bold text-center block">
                           {category.name}
                         </span>
