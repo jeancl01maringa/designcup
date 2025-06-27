@@ -84,16 +84,8 @@ export function ProfileMobileNav() {
           <SheetContent side="bottom" className="w-full h-auto p-0 rounded-t-xl">
             <div className="bg-white rounded-t-xl">
               {/* Header compacto */}
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800">Meu Perfil</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsOpen(false)}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-800 text-center">Meu Perfil</h2>
               </div>
 
               {/* Menu items em grid - aproveitando a largura */}
