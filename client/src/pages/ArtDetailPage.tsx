@@ -819,12 +819,12 @@ export default function ArtDetailPage() {
           {/* Título e selo premium */}
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-lg font-bold text-gray-900">
                 {post.title}
               </h1>
               {isPremium && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium" style={{backgroundColor: '#fef3c7', color: '#a76e40'}}>
-                  <Crown size={14} className="text-current" />
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{backgroundColor: '#fef3c7', color: '#a76e40'}}>
+                  <Crown size={12} className="text-current" />
                   Premium
                 </div>
               )}
