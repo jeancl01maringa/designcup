@@ -206,7 +206,7 @@ export default function CategorySection() {
   const canScrollRight = shouldShowArrows;
   
   return (
-    <section className="py-8 bg-white border-b border-gray-100">
+    <section className="py-8 bg-white border-b border-gray-100 relative z-10">
       <div className="container-global">
         {/* Header */}
         <div className="mb-6">

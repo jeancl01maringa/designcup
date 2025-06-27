@@ -99,7 +99,7 @@ export default function HeroSection() {
                 </button>
                 
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]">
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-[99999]">
                     <div className="py-2">
                       {formats.map(format => (
                         <button
