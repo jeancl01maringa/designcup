@@ -590,13 +590,13 @@ export default function Header() {
           {/* Links de navegação ou barra de pesquisa scroll */}
           <div className="flex-1 flex justify-center">
             {showScrollSearchBar ? (
-              <form onSubmit={handleScrollSearch} className="relative flex items-center max-w-lg w-full">
+              <form onSubmit={handleScrollSearch} className="relative flex items-center max-w-2xl w-full">
                 <input
                   type="text"
                   placeholder="Busque por artes, categorias, temas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full py-4 px-6 pr-44 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
+                  className="w-full py-4 px-6 pr-48 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
                 />
                 
                 {/* Format Dropdown - Positioned to the right */}
