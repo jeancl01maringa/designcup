@@ -232,7 +232,7 @@ export default function CategorySection() {
           {/* Botões de navegação - Esquerda */}
           {canScrollLeft && (
             <button 
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-slate-900/90 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-slate-700/30"
+              className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 bg-slate-900/60 backdrop-blur-sm rounded-full h-10 w-10 shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900/80 hover:backdrop-blur-md hover:shadow-xl hover:scale-105 border border-slate-700/20"
               onClick={handleScrollLeft}
               aria-label="Categorias anteriores"
             >
@@ -308,7 +308,7 @@ export default function CategorySection() {
           
           {canScrollRight && (
             <button 
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-slate-900/90 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-slate-700/30"
+              className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-slate-900/60 backdrop-blur-sm rounded-full h-10 w-10 shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900/80 hover:backdrop-blur-md hover:shadow-xl hover:scale-105 border border-slate-700/20"
               onClick={handleScrollRight}
               aria-label="Próximas categorias"
             >
