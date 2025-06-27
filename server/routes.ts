@@ -5628,11 +5628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/admin/lessons/:id', upload.fields([
     { name: 'coverImage', maxCount: 1 },
-    { name: 'extraMaterial_0', maxCount: 1 },
-    { name: 'extraMaterial_1', maxCount: 1 },
-    { name: 'extraMaterial_2', maxCount: 1 },
-    { name: 'extraMaterial_3', maxCount: 1 },
-    { name: 'extraMaterial_4', maxCount: 1 },
+    { name: 'extraMaterials', maxCount: 10 },
   ]), async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
@@ -5654,7 +5650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let coverImageUrl = null;
-      let extraMaterials: string[] = [];
+      let extraMaterials: any[] = [];
 
       // Upload cover image to Supabase if provided
       if (files?.coverImage?.[0]) {
@@ -5694,10 +5690,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Upload extra materials
-      for (let i = 0; i < 5; i++) {
-        const fieldName = `extraMaterial_${i}`;
-        if (files?.[fieldName]?.[0]) {
-          const materialFile = files[fieldName][0];
+      if (files?.extraMaterials && Array.isArray(files.extraMaterials)) {
+        for (let i = 0; i < files.extraMaterials.length; i++) {
+          const materialFile = files.extraMaterials[i];
           const extension = materialFile.originalname.split('.').pop() || 'bin';
           const materialFileName = `lesson_${id}_material_${i}_${Date.now()}.${extension}`;
           
