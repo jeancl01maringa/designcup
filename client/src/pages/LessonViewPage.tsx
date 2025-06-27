@@ -478,14 +478,14 @@ export default function LessonViewPage() {
                 )}
 
                 {/* 4. Material Extra */}
-                {(currentLesson.files && currentLesson.files.length > 0) || (currentLesson.extra_materials && currentLesson.extra_materials.length > 0) ? (
+                {currentLesson.extra_materials && currentLesson.extra_materials.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                       <FileText className="h-5 w-5" />
                       Material Extra
                     </h3>
                     <div className="grid gap-2">
-                      {[...(currentLesson.files || []), ...(currentLesson.extra_materials || [])].map((file: any, index: number) => {
+                      {currentLesson.extra_materials.map((file: any, index: number) => {
                         // Handle both string URLs and object format
                         const fileUrl = typeof file === 'string' ? file : file.url;
                         const fileName = typeof file === 'string' ? 
@@ -524,7 +524,7 @@ export default function LessonViewPage() {
                       })}
                     </div>
                   </div>
-                ) : null}
+                )}
               </CardContent>
             </Card>
           </div>
