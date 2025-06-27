@@ -384,8 +384,8 @@ const MobileMenu = () => {
           </Button>
         </SheetTrigger>
         
-        <SheetContent side="top" className="w-full h-auto p-0">
-          <div className="bg-white">
+        <SheetContent side="bottom" className="w-full h-auto p-0 rounded-t-xl">
+          <div className="bg-white rounded-t-xl">
             {/* Header do Menu */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
