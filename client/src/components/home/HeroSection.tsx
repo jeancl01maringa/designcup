@@ -51,27 +51,27 @@ export default function HeroSection() {
   return (
     <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] pt-20 pb-8 md:pb-12">
       <div className="container-global flex flex-col items-center text-center">
-        {/* Badges - Moved above the heading */}
-        <div className="flex flex-wrap justify-center gap-6 mb-6">
-          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm border border-white/20">
-            <Users className="h-4 w-4 text-primary mr-1.5" />
-            <span className="text-xs font-medium text-[#1D1D1D]">+3 mil membros</span>
+        {/* Badges - Always side by side */}
+        <div className="flex flex-row justify-center gap-2 sm:gap-4 md:gap-6 mb-4 sm:mb-6 px-4">
+          <div className="bg-white/70 backdrop-blur-sm rounded-full py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 flex items-center justify-center shadow-sm border border-white/20 text-center">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary mr-1 sm:mr-1.5 flex-shrink-0" />
+            <span className="text-xs font-medium text-[#1D1D1D] whitespace-nowrap">+3 mil membros</span>
           </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-full py-2 px-4 flex items-center shadow-sm border border-white/20">
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1.5" />
-            <span className="text-xs font-medium text-[#1D1D1D]">Avaliado 5 estrelas</span>
+          <div className="bg-white/70 backdrop-blur-sm rounded-full py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 flex items-center justify-center shadow-sm border border-white/20 text-center">
+            <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500 mr-1 sm:mr-1.5 flex-shrink-0" />
+            <span className="text-xs font-medium text-[#1D1D1D] whitespace-nowrap">Avaliado 5 estrelas</span>
           </div>
         </div>
         
-        {/* Main Heading */}
-        <h1 className="text-3xl md:text-5xl font-bold text-[#1D1D1D] leading-tight mb-6 font-montserrat">
+        {/* Main Heading - Reduced font sizes */}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#1D1D1D] leading-tight mb-4 sm:mb-6 font-montserrat px-4 sm:px-0">
           A Melhor plataforma de<br />
           <span className="text-[#AA5E2F] bg-gradient-to-r from-[#AA5E2F] to-[#C8763A] bg-clip-text text-transparent">Artes para Estética do Brasil</span>
         </h1>
         
-        {/* Description */}
-        <p className="text-[#4B4B4B] text-lg md:text-xl mb-8 max-w-3xl font-sans font-light leading-relaxed">
-          <span className="text-[#1D1D1D] font-semibold">Artes 100% editáveis</span> para sua <span className="text-[#1D1D1D] font-semibold">clínica de estética,</span> criadas para facilitar<br /> 
+        {/* Description - Reduced font sizes */}
+        <p className="text-[#4B4B4B] text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-3xl font-sans font-light leading-relaxed px-4 sm:px-0">
+          <span className="text-[#1D1D1D] font-semibold">Artes 100% editáveis</span> para sua <span className="text-[#1D1D1D] font-semibold">clínica de estética,</span> criadas para facilitar<br className="hidden sm:block" /> 
           sua rotina com <span className="text-[#1D1D1D] font-semibold">qualidade profissional.</span>
         </p>
         
