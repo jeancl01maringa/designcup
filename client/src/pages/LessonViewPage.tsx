@@ -298,12 +298,7 @@ export default function LessonViewPage() {
                                 {lesson.title}
                               </span>
                             </div>
-                            {lesson.duration && lesson.duration > 0 && (
-                              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                                <Clock className="h-3 w-3" />
-                                {lesson.duration} min
-                              </div>
-                            )}
+
                           </button>
                         );
                       })}
