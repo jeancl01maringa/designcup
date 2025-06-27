@@ -5634,6 +5634,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { title, description, content, type, videoPlatform, isPremium, extraMaterials: existingMaterialsUpdate } = req.body;
+      
+      // Log the request to understand what's being sent
+      console.log('📝 Update request body:', { title, description, hasContent: !!content, type, videoPlatform, isPremium, hasExtraMaterials: !!existingMaterialsUpdate });
+      console.log('📁 Existing materials update:', existingMaterialsUpdate);
       const files = req.files as Express.Multer.File[];
       
       console.log('📁 Files received:', files?.map(f => ({ name: f.fieldname, original: f.originalname, type: f.mimetype })));
@@ -5706,8 +5710,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '') || '';
           const fileUrl = `${supabaseUrl}/storage/v1/object/public/lesson-materials/${materialFileName}`;
+          // Fix encoding issues with filename
+          const cleanFileName = Buffer.from(materialFile.originalname, 'latin1').toString('utf8');
+          
           materialsToUpdate.push({
-            name: materialFile.originalname,
+            name: cleanFileName,
             url: fileUrl,
             type: materialFile.mimetype,
             size: materialFile.size
@@ -5763,22 +5770,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Handle materials update
-      if (existingMaterialsUpdate) {
-        // Update with filtered existing materials (for removal)
-        try {
-          const parsedMaterials = typeof existingMaterialsUpdate === 'string' 
-            ? JSON.parse(existingMaterialsUpdate) 
-            : existingMaterialsUpdate;
-          updateFields.push(`extra_materials = $${paramCount}`);
-          updateValues.push(JSON.stringify(parsedMaterials));
-          paramCount++;
-        } catch (e) {
-          console.warn('Error parsing existing materials update:', e);
+      const hasNewUploads = materialsToUpdate.length > 0;
+      const hasExistingUpdate = existingMaterialsUpdate !== undefined && existingMaterialsUpdate !== null;
+      
+      if (hasExistingUpdate || hasNewUploads) {
+        let finalMaterials = [];
+        
+        if (hasExistingUpdate) {
+          // This is a removal/update request - use the filtered materials as-is
+          try {
+            const parsedMaterials = typeof existingMaterialsUpdate === 'string' 
+              ? JSON.parse(existingMaterialsUpdate) 
+              : existingMaterialsUpdate;
+            finalMaterials = Array.isArray(parsedMaterials) ? parsedMaterials : [];
+            console.log('🗑️ Materials update (removal):', finalMaterials);
+          } catch (e) {
+            console.warn('Error parsing existing materials update:', e);
+            finalMaterials = [];
+          }
+        } else {
+          // This is just adding new materials - get current ones first
+          try {
+            const currentLessonQuery = `SELECT extra_materials FROM lessons WHERE id = $1`;
+            const currentResult = await pool.query(currentLessonQuery, [id]);
+            if (currentResult.rows[0]?.extra_materials) {
+              const currentMaterials = currentResult.rows[0].extra_materials;
+              finalMaterials = Array.isArray(currentMaterials) 
+                ? currentMaterials 
+                : JSON.parse(currentMaterials);
+              console.log('📁 Current materials from DB:', finalMaterials);
+            }
+          } catch (e) {
+            console.warn('Error getting current materials:', e);
+            finalMaterials = [];
+          }
         }
-      } else if (materialsToUpdate.length > 0) {
-        // Add new materials
+        
+        // Add new materials only if this is not a removal request
+        if (hasNewUploads && !hasExistingUpdate) {
+          finalMaterials = finalMaterials.concat(materialsToUpdate);
+          console.log('➕ Adding new materials:', materialsToUpdate);
+          console.log('📋 Final materials list:', finalMaterials);
+        }
+        
         updateFields.push(`extra_materials = $${paramCount}`);
-        updateValues.push(JSON.stringify(materialsToUpdate));
+        updateValues.push(JSON.stringify(finalMaterials));
         paramCount++;
       }
 
