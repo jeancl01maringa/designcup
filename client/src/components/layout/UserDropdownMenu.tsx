@@ -92,11 +92,11 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
       onClick={handleOverlayClick}
     >
       <div 
-        className="mr-4 w-[280px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200"
+        className="mr-2 w-[260px] md:w-[280px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-80px)] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho com fundo escuro e layout alinhado à esquerda */}
-        <div className="bg-gray-800 pt-6 pb-4 px-6">
+        <div className="bg-gray-800 pt-4 pb-3 px-4 md:pt-6 md:pb-4 md:px-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden flex-shrink-0">
               <img 
@@ -136,10 +136,10 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         </div>
 
         {/* Lista de opções */}
-        <ul className="py-2">
+        <ul className="py-1">
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
-              className="w-full px-4 py-3 flex items-center gap-3"
+              className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/perfil')}
             >
               <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
@@ -154,7 +154,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
-              className="w-full px-4 py-3 flex items-center gap-3"
+              className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/assinatura')}
             >
               <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
@@ -169,7 +169,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
-              className="w-full px-4 py-3 flex items-center gap-3"
+              className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/edicoes-recentes')}
             >
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
@@ -189,7 +189,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
-              className="w-full px-4 py-3 flex items-center gap-3"
+              className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/curtidas')}
             >
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
@@ -204,7 +204,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
-              className="w-full px-4 py-3 flex items-center gap-3"
+              className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/salvos')}
             >
               <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
@@ -219,7 +219,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
-              className="w-full px-4 py-3 flex items-center gap-3"
+              className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/seguindo')}
             >
               <div className="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center">
@@ -237,14 +237,14 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         <div className="h-px bg-gray-200 mx-4"></div>
 
         {/* Suporte e Logout */}
-        <ul className="py-2">
+        <ul className="py-1">
           {whatsappUrl && (
             <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
               <a 
                 href={`${whatsappUrl}?text=Olá, preciso de ajuda!`}
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full px-4 py-3 flex items-center gap-3"
+                className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
                 onClick={onClose}
               >
                 <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
@@ -260,7 +260,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
             <button 
-              className="w-full px-4 py-3 flex items-center gap-3"
+              className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={handleLogout}
             >
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
