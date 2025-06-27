@@ -315,14 +315,6 @@ export default function LessonViewPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    {currentLesson.duration && currentLesson.duration > 0 && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {currentLesson.duration} min
-                        </Badge>
-                      </div>
-                    )}
                     <CardTitle className="text-2xl">{currentLesson.title}</CardTitle>
                   </div>
                 </div>
