@@ -232,11 +232,11 @@ export default function CategorySection() {
           {/* Botões de navegação - Esquerda */}
           {canScrollLeft && (
             <button 
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/40 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-white/80 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-white/30"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-slate-900/90 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-slate-700/30"
               onClick={handleScrollLeft}
               aria-label="Categorias anteriores"
             >
-              <ArrowLeft className="h-5 w-5 text-black transition-transform duration-300 group-hover:scale-110" />
+              <ArrowLeft className="h-5 w-5 text-white transition-transform duration-300 group-hover:scale-110" />
             </button>
           )}
           
@@ -308,11 +308,11 @@ export default function CategorySection() {
           
           {canScrollRight && (
             <button 
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/40 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-white/80 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-white/30"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-slate-900/90 backdrop-blur-md rounded-full h-10 w-10 shadow-md flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-slate-900 hover:backdrop-blur-lg hover:shadow-xl hover:scale-105 border border-slate-700/30"
               onClick={handleScrollRight}
               aria-label="Próximas categorias"
             >
-              <ArrowRight className="h-5 w-5 text-black transition-transform duration-300 group-hover:scale-110" />
+              <ArrowRight className="h-5 w-5 text-white transition-transform duration-300 group-hover:scale-110" />
             </button>
           )}
         </div>
