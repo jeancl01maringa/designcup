@@ -5806,8 +5806,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Add new materials only if this is not a removal request
-        if (hasNewUploads && !hasExistingUpdate) {
+        // Add new materials to existing ones
+        if (hasNewUploads) {
           finalMaterials = finalMaterials.concat(materialsToUpdate);
           console.log('➕ Adding new materials:', materialsToUpdate);
           console.log('📋 Final materials list:', finalMaterials);
@@ -5888,6 +5888,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           l.order_index as "orderIndex",
           l.created_at as "createdAt",
           l.updated_at as "updatedAt",
+          l.extra_materials as "extraMaterials",
+          l.cover_image as "coverImage",
+          l.video_platform as "videoPlatform",
+          l.is_premium as "isPremium",
           m.course_id as "courseId"
         FROM lessons l
         JOIN modules m ON l.module_id = m.id

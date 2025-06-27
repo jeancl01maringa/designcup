@@ -177,6 +177,8 @@ export default function EditLessonPage() {
         extraMaterials: [],
         coverImageFile: null,
       });
+      
+      console.log('📁 Lesson loaded with materials:', lesson.extraMaterials);
     }
   }, [lesson]);
 
