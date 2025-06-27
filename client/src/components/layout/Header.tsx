@@ -138,7 +138,7 @@ const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
             <button
               type="button"
               onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className="flex items-center justify-center py-3.5 px-3 text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-r border-gray-200"
+              className="flex items-center justify-center py-3.5 px-3 text-white bg-black hover:bg-black/80 transition-colors duration-150 focus:outline-none border-r border-gray-200"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -156,7 +156,7 @@ const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
             {/* Lupa à direita */}
             <button
               type="submit"
-              className="flex items-center justify-center py-3.5 px-3 text-white bg-[#AA5E2F] hover:bg-[#8b4a24] transition-colors duration-150 focus:outline-none border-l border-gray-200"
+              className="flex items-center justify-center py-3.5 px-3 text-white bg-black hover:bg-black/80 transition-colors duration-150 focus:outline-none border-l border-gray-200"
             >
               <Search className="h-4 w-4" />
             </button>
