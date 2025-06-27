@@ -19,28 +19,48 @@ const storage_multer = multer.memoryStorage();
 const upload = multer({
   storage: storage_multer,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
+    fileSize: 50 * 1024 * 1024, // 50MB para materiais extras
   },
   fileFilter: (req, file, cb) => {
+    console.log('📁 Upload file:', file.fieldname, file.mimetype, file.originalname);
+    
     // Para materiais extras das aulas, permitir mais tipos de arquivo
     if (file.fieldname === 'extraMaterials') {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 
-                           'application/pdf', 'application/msword', 
-                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                           'text/plain', 'application/zip', 'application/x-rar-compressed'];
+      const allowedTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 
+        'application/pdf', 
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/plain', 
+        'application/zip', 
+        'application/x-rar-compressed'
+      ];
       
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Tipo de arquivo não permitido para materiais extras. Use PDF, DOC, DOCX, TXT, ZIP, RAR ou imagens.'));
+        console.error('❌ Tipo não permitido para material extra:', file.mimetype);
+        cb(new Error('Tipo de arquivo não permitido para materiais extras. Use PDF, DOC, DOCX, XLS, XLSX, TXT, ZIP, RAR ou imagens.'));
       }
-    } else {
+    } else if (file.fieldname === 'coverImage') {
       // Para imagens de capa, manter apenas formatos de imagem
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
+        console.error('❌ Tipo não permitido para capa:', file.mimetype);
         cb(new Error('Tipo de arquivo não permitido para imagem de capa. Use apenas JPG, PNG, GIF ou WebP.'));
+      }
+    } else {
+      // Para outros uploads (artes, etc), manter apenas imagens
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        console.error('❌ Tipo não permitido:', file.mimetype);
+        cb(new Error('Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF ou WebP.'));
       }
     }
   },
@@ -5639,18 +5659,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Upload cover image to Supabase if provided
       if (files?.coverImage?.[0]) {
         const coverFile = files.coverImage[0];
-        const coverFileName = `lesson_cover_${id}_${Date.now()}.${coverFile.originalname.split('.').pop()}`;
+        let processedBuffer = coverFile.buffer;
+        
+        // Converter imagem para WebP se for uma imagem
+        if (coverFile.mimetype.startsWith('image/')) {
+          try {
+            const sharp = require('sharp');
+            processedBuffer = await sharp(coverFile.buffer)
+              .webp({ quality: 80 })
+              .resize(800, 600, { 
+                fit: 'inside',
+                withoutEnlargement: true 
+              })
+              .toBuffer();
+          } catch (sharpError) {
+            console.warn('Sharp não disponível, usando imagem original:', sharpError.message);
+          }
+        }
+        
+        const coverFileName = `lesson_cover_${id}_${Date.now()}.webp`;
         
         const { data: coverData, error: coverError } = await supabase.storage
-          .from('images')
-          .upload(coverFileName, coverFile.buffer, {
-            contentType: coverFile.mimetype,
+          .from('lesson-covers')
+          .upload(coverFileName, processedBuffer, {
+            contentType: 'image/webp',
           });
 
         if (coverError) {
           console.error('Erro ao fazer upload da capa:', coverError);
         } else {
-          coverImageUrl = `${process.env.VITE_SUPABASE_URL}/storage/v1/object/public/images/${coverFileName}`;
+          const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '') || '';
+          coverImageUrl = `${supabaseUrl}/storage/v1/object/public/lesson-covers/${coverFileName}`;
         }
       }
 
@@ -5659,10 +5698,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const fieldName = `extraMaterial_${i}`;
         if (files?.[fieldName]?.[0]) {
           const materialFile = files[fieldName][0];
-          const materialFileName = `lesson_material_${id}_${i}_${Date.now()}.${materialFile.originalname.split('.').pop()}`;
+          const extension = materialFile.originalname.split('.').pop() || 'bin';
+          const materialFileName = `lesson_${id}_material_${i}_${Date.now()}.${extension}`;
           
           const { data: materialData, error: materialError } = await supabase.storage
-            .from('images')
+            .from('lesson-materials')
             .upload(materialFileName, materialFile.buffer, {
               contentType: materialFile.mimetype,
             });
@@ -5670,7 +5710,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (materialError) {
             console.error('Erro ao fazer upload do material:', materialError);
           } else {
-            extraMaterials.push(`${process.env.VITE_SUPABASE_URL}/storage/v1/object/public/images/${materialFileName}`);
+            const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '') || '';
+            const fileUrl = `${supabaseUrl}/storage/v1/object/public/lesson-materials/${materialFileName}`;
+            extraMaterials.push({
+              name: materialFile.originalname,
+              url: fileUrl,
+              type: materialFile.mimetype,
+              size: materialFile.size
+            });
           }
         }
       }
