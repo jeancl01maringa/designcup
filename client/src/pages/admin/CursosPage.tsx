@@ -127,6 +127,28 @@ export default function CursosPage() {
     },
   });
 
+  // Mutation para toggle status do curso
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      const response = await apiRequest("PUT", `/api/admin/courses/${id}`, { isActive });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/courses"] });
+      toast({
+        title: "Status atualizado!",
+        description: "O status do curso foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -315,9 +337,19 @@ export default function CursosPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(course.isActive)}>
-                          {course.isActive ? 'Ativo' : 'Inativo'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getStatusColor(course.isActive)}>
+                            {course.isActive ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                          <Switch
+                            checked={course.isActive}
+                            onCheckedChange={(checked) => {
+                              toggleStatusMutation.mutate({ id: course.id, isActive: checked });
+                            }}
+                            disabled={toggleStatusMutation.isPending}
+                            size="sm"
+                          />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">

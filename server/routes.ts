@@ -5267,15 +5267,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const query = `
         SELECT 
-          c.*,
-          COUNT(DISTINCT cm.id) as "moduleCount",
-          COUNT(DISTINCT cl.id) as "lessonCount",
+          c.id,
+          c.title,
+          c.description,
+          c.short_description as "shortDescription",
+          c.cover_image as "coverImage",
+          c.is_active as "isActive",
+          c.created_at as "createdAt",
+          COUNT(DISTINCT m.id) as "moduleCount",
+          COUNT(DISTINCT l.id) as "lessonCount",
           COUNT(DISTINCT ce.id) as "enrollmentCount"
         FROM courses c
-        LEFT JOIN course_modules cm ON c.id = cm.course_id AND cm.is_active = true
-        LEFT JOIN course_lessons cl ON cm.id = cl.module_id AND cl.is_active = true
+        LEFT JOIN modules m ON c.id = m.course_id
+        LEFT JOIN lessons l ON m.id = l.module_id
         LEFT JOIN course_enrollments ce ON c.id = ce.course_id AND ce.is_active = true
-        GROUP BY c.id
+        GROUP BY c.id, c.title, c.description, c.short_description, c.cover_image, c.is_active, c.created_at
         ORDER BY c.created_at DESC
       `;
       
