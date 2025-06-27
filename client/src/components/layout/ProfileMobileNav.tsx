@@ -70,11 +70,10 @@ export function ProfileMobileNav() {
         <SheetTrigger asChild>
           <Button
             variant="outline"
-            size="sm"
-            className="fixed top-20 left-4 z-50 bg-white shadow-md"
+            size="icon"
+            className="fixed top-20 left-4 z-50 bg-white shadow-md hover:bg-gray-50 w-10 h-10 rounded-lg border border-gray-200"
           >
-            <Menu className="h-4 w-4" />
-            <span className="ml-2">Menu</span>
+            <Menu className="h-5 w-5 text-gray-700" />
           </Button>
         </SheetTrigger>
         
