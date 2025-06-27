@@ -26,6 +26,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const Logo = () => {
   const { logoUrl, hasCustomLogo, isLoading } = usePlatformLogo();
@@ -364,159 +369,157 @@ const MobileMenu = () => {
     { name: "Suporte", path: "/suporte" }
   ];
   
-  if (!isOpen) return null;
-  
   return (
-    <div className="fixed inset-0 z-50 md:hidden">
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/20" onClick={() => setIsOpen(false)} />
-      
-      {/* Menu Content */}
-      <div className="fixed inset-0 bg-white">
-        {/* Header do Menu */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+    <div className="md:hidden">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="lg"
+            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[44px] min-h-[44px] p-3"
           >
-            <X className="h-5 w-5 text-gray-600" />
-          </button>
-        </div>
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </Button>
+        </SheetTrigger>
         
-        {/* Content do Menu */}
-        <div className="px-4 py-6 space-y-6">
-          {/* Seção Navegação */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-              Navegação
-            </h3>
-            <div className="space-y-1">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.path} 
-                  href={item.path}
-                  className={`flex items-center px-3 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
-                    location === item.path 
-                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
+        <SheetContent side="top" className="w-full h-auto p-0">
+          <div className="bg-white">
+            {/* Header do Menu */}
+            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-600" />
+              </button>
             </div>
-          </div>
-          
-          {/* Seção Conta */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-              Conta
-            </h3>
-            <div className="space-y-1">
-              {user ? (
-                <>
-                  {/* Informações do usuário logado */}
-                  <div className="flex items-center px-3 py-3 rounded-lg bg-gray-50">
-                    <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
-                      {user.profileImage ? (
-                        <img 
-                          src={user.profileImage} 
-                          alt={user.username}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-600">
-                          <User className="h-5 w-5" />
+            
+            {/* Content do Menu */}
+            <div className="px-4 py-6 space-y-6">
+              {/* Seção Navegação */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
+                  Navegação
+                </h3>
+                <div className="space-y-1">
+                  {navItems.map((item) => (
+                    <Link 
+                      key={item.path} 
+                      href={item.path}
+                    >
+                      <a
+                        className={`flex items-center px-3 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                          location === item.path 
+                            ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                        }`}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {item.name}
+                      </a>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Seção Conta */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
+                  Conta
+                </h3>
+                <div className="space-y-1">
+                  {user ? (
+                    <>
+                      {/* Informações do usuário logado */}
+                      <div className="flex items-center px-3 py-3 rounded-lg bg-gray-50">
+                        <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
+                          {user.profileImage ? (
+                            <img 
+                              src={user.profileImage} 
+                              alt={user.username}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-600">
+                              <User className="h-5 w-5" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base font-medium text-gray-900 truncate">{user.username}</p>
-                      <p className="text-sm text-gray-500 capitalize">{user.tipo}</p>
-                    </div>
-                  </div>
-                  
-                  <button
-                    className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
-                    onClick={() => {
-                      logoutMutation.mutate();
-                      setIsOpen(false);
-                    }}
-                  >
-                    <LogOut className="h-5 w-5 mr-3" />
-                    <span>Sair da conta</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 h-14"
-                    onClick={() => {
-                      navigate("/planos");
-                      setIsOpen(false);
-                    }}
-                  >
-                    <svg className="h-6 w-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
-                    </svg>
-                    <span>Assine o Premium</span>
-                  </button>
-                  
-                  <button
-                    className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium border border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 h-14"
-                    onClick={() => {
-                      navigate("/auth");
-                      setIsOpen(false);
-                      // Ativar a tab de registro após navegar
-                      setTimeout(() => {
-                        document.querySelector('[value="register"]')?.dispatchEvent(
-                          new MouseEvent('click', { bubbles: true })
-                        );
-                      }, 100);
-                    }}
-                  >
-                    <UserPlus className="h-6 w-6 mr-3" />
-                    <span>Criar uma conta</span>
-                  </button>
-                  
-                  <button
-                    className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200 h-14"
-                    onClick={() => {
-                      navigate("/auth");
-                      setIsOpen(false);
-                    }}
-                  >
-                    <LogIn className="h-6 w-6 mr-3" />
-                    <span>Entrar na minha conta</span>
-                  </button>
-                </>
-              )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-medium text-gray-900 truncate">{user.username}</p>
+                          <p className="text-sm text-gray-500 capitalize">{user.tipo}</p>
+                        </div>
+                      </div>
+                      
+                      <button
+                        className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
+                        onClick={() => {
+                          logoutMutation.mutate();
+                          setIsOpen(false);
+                        }}
+                      >
+                        <LogOut className="h-5 w-5 mr-3" />
+                        <span>Sair da conta</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 h-14"
+                        onClick={() => {
+                          navigate("/planos");
+                          setIsOpen(false);
+                        }}
+                      >
+                        <svg className="h-6 w-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
+                        </svg>
+                        <span>Assine o Premium</span>
+                      </button>
+                      
+                      <button
+                        className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium border border-black text-black hover:bg-black hover:text-white bg-transparent transition-all duration-200 h-14"
+                        onClick={() => {
+                          navigate("/auth");
+                          setIsOpen(false);
+                          // Ativar a tab de registro após navegar
+                          setTimeout(() => {
+                            document.querySelector('[value="register"]')?.dispatchEvent(
+                              new MouseEvent('click', { bubbles: true })
+                            );
+                          }, 100);
+                        }}
+                      >
+                        <UserPlus className="h-6 w-6 mr-3" />
+                        <span>Criar uma conta</span>
+                      </button>
+                      
+                      <button
+                        className="flex items-center w-full px-4 py-4 rounded-full text-lg font-medium bg-black text-white hover:bg-gray-800 transition-all duration-200 h-14"
+                        onClick={() => {
+                          navigate("/auth");
+                          setIsOpen(false);
+                        }}
+                      >
+                        <LogIn className="h-6 w-6 mr-3" />
+                        <span>Entrar na minha conta</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
 
-const MobileMenuButton = () => {
-  const { isOpen, setIsOpen } = useMobileMenu();
-  
-  return (
-    <Button 
-      variant="ghost" 
-      size="lg"
-      className="md:hidden text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[44px] min-h-[44px] p-3"
-      onClick={() => setIsOpen(!isOpen)}
-    >
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-      </svg>
-    </Button>
-  );
-};
+
 
 export default function Header() {
   const { isOpen } = useMobileMenu();
@@ -665,7 +668,7 @@ export default function Header() {
         <div className="flex md:hidden items-center justify-between w-full">
           {/* Menu hambúrguer - lado esquerdo (ou menu de perfil se estivermos em páginas de perfil) */}
           <div className="flex-shrink-0">
-            {isProfilePage ? <ProfileMobileNav /> : <MobileMenuButton />}
+            {isProfilePage ? <ProfileMobileNav /> : <MobileMenu />}
           </div>
           
           {/* Logo - centralizado */}
@@ -680,8 +683,6 @@ export default function Header() {
         </div>
         
       </div>
-      
-      <MobileMenu />
     </header>
   );
 }
