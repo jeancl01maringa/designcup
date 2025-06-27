@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
+import { ProfileMobileNav } from "@/components/layout/ProfileMobileNav";
 import { useAuth } from "@/hooks/use-auth";
 import { useSupportNumber } from "@/hooks/use-support-number";
 import { usePlatformLogo } from "@/hooks/use-platform-logo";
@@ -520,6 +521,11 @@ const MobileMenuButton = () => {
 export default function Header() {
   const { isOpen } = useMobileMenu();
   const [location, navigate] = useLocation();
+  
+  // Detectar se estamos em páginas de perfil para mostrar o menu lateral
+  const isProfilePage = location.startsWith('/perfil') || location.startsWith('/curtidas') || 
+                       location.startsWith('/salvos') || location.startsWith('/seguindo') || 
+                       location.startsWith('/edicoes-recentes') || location.startsWith('/assinatura');
   const [showScrollSearchBar, setShowScrollSearchBar] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
@@ -657,9 +663,9 @@ export default function Header() {
 
         {/* Layout Mobile - nova estrutura */}
         <div className="flex md:hidden items-center justify-between w-full">
-          {/* Menu hambúrguer - lado esquerdo */}
+          {/* Menu hambúrguer - lado esquerdo (ou menu de perfil se estivermos em páginas de perfil) */}
           <div className="flex-shrink-0">
-            <MobileMenuButton />
+            {isProfilePage ? <ProfileMobileNav /> : <MobileMenuButton />}
           </div>
           
           {/* Logo - centralizado */}

@@ -71,9 +71,9 @@ export function ProfileMobileNav() {
           <Button
             variant="outline"
             size="icon"
-            className="fixed top-20 left-4 z-50 bg-white shadow-md hover:bg-gray-50 w-10 h-10 rounded-lg border border-gray-200"
+            className="bg-white shadow-sm hover:bg-gray-50 w-9 h-9 rounded-lg border border-gray-200"
           >
-            <Menu className="h-5 w-5 text-gray-700" />
+            <Menu className="h-4 w-4 text-gray-700" />
           </Button>
         </SheetTrigger>
         
