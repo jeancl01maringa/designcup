@@ -7,8 +7,10 @@ export function MobileSearchBar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
 
   const formats = [
     { id: "all", name: "Formatos" },
@@ -35,8 +37,49 @@ export function MobileSearchBar() {
     }
   };
 
-  // Keep search bar always visible for now
-  // TODO: Implement proper scroll behavior later
+  // Scroll detection logic
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show after scrolling down 100px
+      if (currentScrollY > 100) {
+        // Determine scroll direction
+        if (currentScrollY > lastScrollY.current) {
+          // Scrolling down - hide search bar
+          setScrollDirection('down');
+          setIsVisible(false);
+        } else {
+          // Scrolling up - show search bar
+          setScrollDirection('up');
+          setIsVisible(true);
+        }
+      } else {
+        // At top of page - hide search bar
+        setIsVisible(false);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    // Throttle scroll events
+    let ticking = false;
+    const scrollListener = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', scrollListener, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', scrollListener);
+    };
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -53,7 +96,7 @@ export function MobileSearchBar() {
   }, []);
 
   return (
-    <div className={`md:hidden bg-gray-100 border-b border-gray-200 relative z-10 transition-transform duration-300 ${
+    <div className={`md:hidden fixed top-16 left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-50 transition-transform duration-300 ease-in-out ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
       <div className="container-global py-3">
