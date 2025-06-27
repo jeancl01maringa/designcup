@@ -134,6 +134,20 @@ const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
   return (
     <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
       <div className="relative flex items-center w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden">
+        
+        {/* Mobile: Hambúrguer à esquerda */}
+        {isMobile && (
+          <button
+            type="button"
+            onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+            className={`flex items-center justify-center ${buttonHeight} px-3 text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-r border-gray-200`}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        
         <input
           type="text"
           placeholder="Busque por artes, categorias, temas..."
@@ -142,58 +156,58 @@ const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
           className={`flex-1 ${inputHeight} px-3 border-0 focus:outline-none text-sm bg-transparent`}
         />
         
-        {/* Format Dropdown */}
-        <div className="relative">
-          <div className="relative" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className={`flex items-center justify-center ${buttonHeight} px-3 text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-l border-gray-200`}
-            >
-              {isMobile ? (
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              ) : (
-                <>
-                  <span className="text-xs">{getFormatName(selectedFormat)}</span>
-                  <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
-                </>
-              )}
-            </button>
-            
-            {showFormatDropdown && (
-              <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] overflow-hidden">
-                <div className="py-1">
-                  {formats.map(format => (
-                    <button
-                      key={format.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        selectFormat(format.id);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus:bg-gray-100
-                        ${format.id === selectedFormat 
-                          ? 'bg-blue-50 text-blue-700 font-medium' 
-                          : 'text-gray-700'}`}
-                    >
-                      {format.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Desktop: Format Dropdown */}
+        {!isMobile && (
+          <div className="relative">
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+                className={`flex items-center justify-center ${buttonHeight} px-3 text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-l border-gray-200`}
+              >
+                <span className="text-xs">{getFormatName(selectedFormat)}</span>
+                <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         
-        <Button 
-          type="submit"
-          className="h-[35px] px-3 bg-black hover:bg-black/80 text-white border-0 rounded-r-lg"
-        >
-          <Search className="h-4 w-4" />
-        </Button>
+        {/* Mobile: Lupa à direita */}
+        {isMobile && (
+          <button
+            type="submit"
+            className={`flex items-center justify-center ${buttonHeight} px-3 text-white bg-[#AA5E2F] hover:bg-[#8b4a24] transition-colors duration-150 focus:outline-none border-l border-gray-200`}
+          >
+            <Search className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      
+      {/* Dropdown para ambos mobile e desktop */}
+      <div className="relative" ref={dropdownRef}>
+        {showFormatDropdown && (
+          <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] overflow-hidden">
+            <div className="py-1">
+              {formats.map(format => (
+                <button
+                  key={format.id}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectFormat(format.id);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-xs transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus:bg-gray-100
+                    ${format.id === selectedFormat 
+                      ? 'bg-blue-50 text-blue-700 font-medium' 
+                      : 'text-gray-700'}`}
+                >
+                  {format.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </form>
   );
@@ -381,11 +395,11 @@ const MobileUserMenu = () => {
       <div className="flex md:hidden items-center gap-2">
         <Button 
           variant="default" 
-          size="sm" 
-          className="flex items-center gap-1 bg-[#191c2c] hover:bg-[#14182a] text-white px-3 py-1.5 text-xs rounded-full"
+          size="lg" 
+          className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white px-4 py-3 text-sm rounded-full min-h-[44px]"
           onClick={() => navigate("/auth")}
         >
-          <LogIn className="h-3 w-3" />
+          <LogIn className="h-4 w-4" />
           <span>Entrar</span>
         </Button>
       </div>
@@ -625,8 +639,8 @@ const MobileMenuButton = () => {
   return (
     <Button 
       variant="ghost" 
-      size="icon"
-      className="md:hidden text-[#1D1D1D] hover:text-[#AA5E2F]"
+      size="lg"
+      className="md:hidden text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[44px] min-h-[44px] p-3"
       onClick={() => setIsOpen(!isOpen)}
     >
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
