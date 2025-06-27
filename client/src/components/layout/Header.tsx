@@ -524,6 +524,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const formats = [
     { id: "all", name: "Formato" },
@@ -563,22 +564,19 @@ export default function Header() {
   // Fechar dropdown quando clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showFormatDropdown) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowFormatDropdown(false);
       }
     };
 
-    if (showFormatDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showFormatDropdown]);
+  }, []);
   
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-white shadow-sm sticky top-0 z-50 overflow-visible">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
       <div className={`container-global py-5 flex items-center transition-all duration-300 h-[94px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         
@@ -592,18 +590,18 @@ export default function Header() {
           {/* Links de navegação ou barra de pesquisa scroll */}
           <div className="flex-1 flex justify-center">
             {showScrollSearchBar ? (
-              <form onSubmit={handleScrollSearch} className="relative flex items-center max-w-md w-full">
+              <form onSubmit={handleScrollSearch} className="relative flex items-center max-w-lg w-full">
                 <input
                   type="text"
                   placeholder="Busque por artes, categorias, temas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full py-3 px-6 pr-40 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
+                  className="w-full py-4 px-6 pr-44 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
                 />
                 
                 {/* Format Dropdown - Positioned to the right */}
                 <div className="absolute right-16 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-4">
-                  <div className="relative">
+                  <div className="relative" ref={dropdownRef}>
                     <button
                       type="button"
                       onClick={() => setShowFormatDropdown(!showFormatDropdown)}
@@ -641,7 +639,7 @@ export default function Header() {
                 {/* Search Button */}
                 <button
                   type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1a1d29] text-white px-4 py-2 rounded-lg hover:bg-[#151821] transition-colors text-sm font-medium flex items-center gap-2"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#1a1d29] text-white px-4 py-2.5 rounded-lg hover:bg-[#151821] transition-colors text-sm font-medium flex items-center gap-2"
                 >
                   <Search className="h-4 w-4" />
                 </button>
