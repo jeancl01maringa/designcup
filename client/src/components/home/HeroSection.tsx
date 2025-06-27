@@ -49,7 +49,7 @@ export default function HeroSection() {
     }
   };
   return (
-    <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] pt-20 pb-8 md:pb-12">
+    <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] pt-16 sm:pt-20 pb-8 md:pb-12">
       <div className="container-global flex flex-col items-center text-center">
         {/* Badges - Always side by side */}
         <div className="flex flex-row justify-center gap-2 sm:gap-4 md:gap-6 mb-4 sm:mb-6 px-4">
