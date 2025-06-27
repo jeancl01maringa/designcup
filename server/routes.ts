@@ -5649,19 +5649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let coverImageUrl = null;
-      let newExtraMaterials: any[] = [];
-      
-      // Handle existing materials update (for removal)
-      let updatedExistingMaterials = null;
-      if (existingMaterialsUpdate && typeof existingMaterialsUpdate === 'string') {
-        try {
-          updatedExistingMaterials = JSON.parse(existingMaterialsUpdate);
-        } catch (e) {
-          console.warn('Could not parse existingMaterialsUpdate:', e);
-        }
-      } else if (Array.isArray(existingMaterialsUpdate)) {
-        updatedExistingMaterials = existingMaterialsUpdate;
-      }
+      let materialsToUpdate: any[] = [];
 
       // Upload cover image to Supabase if provided
       const coverFile = files?.find(f => f.fieldname === 'coverImage');
@@ -5718,7 +5706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           const supabaseUrl = process.env.VITE_SUPABASE_URL?.replace(/"/g, '') || '';
           const fileUrl = `${supabaseUrl}/storage/v1/object/public/lesson-materials/${materialFileName}`;
-          extraMaterials.push({
+          materialsToUpdate.push({
             name: materialFile.originalname,
             url: fileUrl,
             type: materialFile.mimetype,
@@ -5774,9 +5762,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paramCount++;
       }
 
-      if (extraMaterials.length > 0) {
+      // Handle materials update
+      if (existingMaterialsUpdate) {
+        // Update with filtered existing materials (for removal)
+        try {
+          const parsedMaterials = typeof existingMaterialsUpdate === 'string' 
+            ? JSON.parse(existingMaterialsUpdate) 
+            : existingMaterialsUpdate;
+          updateFields.push(`extra_materials = $${paramCount}`);
+          updateValues.push(JSON.stringify(parsedMaterials));
+          paramCount++;
+        } catch (e) {
+          console.warn('Error parsing existing materials update:', e);
+        }
+      } else if (materialsToUpdate.length > 0) {
+        // Add new materials
         updateFields.push(`extra_materials = $${paramCount}`);
-        updateValues.push(JSON.stringify(extraMaterials));
+        updateValues.push(JSON.stringify(materialsToUpdate));
         paramCount++;
       }
 
