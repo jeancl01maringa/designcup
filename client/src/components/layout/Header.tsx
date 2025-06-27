@@ -82,7 +82,7 @@ const Logo = () => {
   );
 };
 
-const HeaderSearchBar = () => {
+const HeaderSearchBar = ({ isMobile = false }: { isMobile?: boolean }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
@@ -128,6 +128,9 @@ const HeaderSearchBar = () => {
     };
   }, []);
 
+  const inputHeight = isMobile ? "py-3.5" : "py-2.5";
+  const buttonHeight = isMobile ? "py-3.5" : "py-2.5";
+
   return (
     <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
       <div className="relative flex items-center w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden">
@@ -136,7 +139,7 @@ const HeaderSearchBar = () => {
           placeholder="Busque por artes, categorias, temas..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 py-2.5 px-3 border-0 focus:outline-none text-sm bg-transparent"
+          className={`flex-1 ${inputHeight} px-3 border-0 focus:outline-none text-sm bg-transparent`}
         />
         
         {/* Format Dropdown */}
@@ -145,10 +148,18 @@ const HeaderSearchBar = () => {
             <button
               type="button"
               onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className="flex items-center justify-between text-xs px-2 py-2.5 min-w-[75px] text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-l border-gray-200"
+              className={`flex items-center justify-center ${buttonHeight} px-3 text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 focus:outline-none border-l border-gray-200`}
             >
-              <span className="text-xs">{getFormatName(selectedFormat)}</span>
-              <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
+              {isMobile ? (
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              ) : (
+                <>
+                  <span className="text-xs">{getFormatName(selectedFormat)}</span>
+                  <ChevronDown className="ml-1 h-3 w-3 text-gray-500" />
+                </>
+              )}
             </button>
             
             {showFormatDropdown && (
@@ -680,9 +691,9 @@ export default function Header() {
 
         {/* Layout Mobile - nova estrutura */}
         <div className="flex md:hidden items-center justify-between w-full">
-          {/* Botão Entrar - lado esquerdo */}
+          {/* Menu hambúrguer - lado esquerdo */}
           <div className="flex-shrink-0">
-            <MobileUserMenu />
+            <MobileMenuButton />
           </div>
           
           {/* Logo - centralizado */}
@@ -690,9 +701,9 @@ export default function Header() {
             <Logo />
           </div>
           
-          {/* Menu hambúrguer - lado direito */}
+          {/* Botão Entrar - lado direito */}
           <div className="flex-shrink-0">
-            <MobileMenuButton />
+            <MobileUserMenu />
           </div>
         </div>
         
@@ -701,7 +712,7 @@ export default function Header() {
       {/* Barra de pesquisa mobile - aparece quando a original sai de vista */}
       {showSearchInHeader && (
         <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3">
-          <HeaderSearchBar />
+          <HeaderSearchBar isMobile={true} />
         </div>
       )}
       
