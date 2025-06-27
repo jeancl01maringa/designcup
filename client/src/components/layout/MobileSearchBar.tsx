@@ -48,8 +48,10 @@ export function MobileSearchBar() {
     };
   }, []);
 
+  console.log('MobileSearchBar render - showFormatDropdown:', showFormatDropdown);
+
   return (
-    <div className="md:hidden bg-gray-100 border-b border-gray-200 sticky top-[94px] z-50">
+    <div className="md:hidden bg-gray-100 border-b border-gray-200 relative z-10">
       <div className="container-global py-3">
         <form onSubmit={handleSearch} className="flex items-center">
           <div className="relative flex items-center w-full border border-gray-300 rounded-full focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden bg-white">
@@ -57,9 +59,14 @@ export function MobileSearchBar() {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('Clique no hambúrguer! Estado atual:', showFormatDropdown);
-                  setShowFormatDropdown(!showFormatDropdown);
+                  setShowFormatDropdown(prev => {
+                    console.log('Mudando estado de', prev, 'para', !prev);
+                    return !prev;
+                  });
                 }}
                 className="flex items-center justify-center py-3 px-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none border-r border-gray-200 bg-gray-50"
               >
