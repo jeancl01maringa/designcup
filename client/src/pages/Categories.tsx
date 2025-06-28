@@ -114,25 +114,28 @@ export default function Categories() {
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
           
-          <div className="w-full max-w-[600px] mx-auto px-4 sm:px-6">
-            <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-3 sm:pl-[15px] pr-[6px]">
+          <div className="w-full max-w-[480px] mx-auto px-3 sm:px-6">
+            <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-3 sm:pl-[15px] pr-2 sm:pr-[6px]">
               <input
                 type="text"
-                placeholder="Busque por artes, categorias..."
-                className="flex-1 border-none p-2 sm:p-3 text-sm text-[#333] outline-none placeholder:text-gray-400"
+                placeholder="Busque por artes..."
+                className="flex-1 border-none py-2 px-1 sm:p-3 text-sm text-[#333] outline-none placeholder:text-gray-400 min-w-0"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               
               <div className="w-px h-6 bg-[#e0e0e0] mx-2.5"></div>
               
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
-                  className="bg-none border-none text-sm text-[#333] cursor-pointer mr-2.5"
+                  className="bg-none border-none text-xs sm:text-sm text-[#333] cursor-pointer mr-1 sm:mr-2.5 flex items-center gap-1"
                   onClick={() => setShowFormatDropdown(!showFormatDropdown)}
                 >
-                  {selectedFormat} ▾
+                  <span className="truncate">Formatos</span>
+                  <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
                 
                 {showFormatDropdown && (
