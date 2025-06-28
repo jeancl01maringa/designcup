@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, ImageOff, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ export default function Categories() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState("Formatos");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const formats = [
     { id: "all", name: "Formatos" },
@@ -56,6 +57,20 @@ export default function Categories() {
     setSelectedFormat(format);
     setShowFormatDropdown(false);
   };
+
+  // Fechar dropdown ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowFormatDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Buscar categorias com estatísticas
   const { data: categories = [], isLoading, error } = useQuery<CategoryWithPosts[]>({
@@ -111,7 +126,7 @@ export default function Categories() {
               
               <div className="w-px h-6 bg-[#e0e0e0] mx-2.5"></div>
               
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
                   className="bg-none border-none text-sm text-[#333] cursor-pointer mr-2.5"
@@ -121,16 +136,16 @@ export default function Categories() {
                 </button>
                 
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-20">
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-50 shadow-lg">
                     <div className="py-2">
                       {formats.map(format => (
                         <button
                           key={format.id}
                           type="button"
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50
                             ${format.name === selectedFormat 
-                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
-                              : 'text-gray-700 hover:bg-gray-50'}`}
+                              ? 'bg-blue-50 text-blue-700 font-medium' 
+                              : 'text-gray-700'}`}
                           onClick={() => selectFormat(format.name)}
                         >
                           <span>{format.name}</span>
