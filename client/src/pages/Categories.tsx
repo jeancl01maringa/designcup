@@ -90,69 +90,90 @@ export default function Categories() {
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
           
-          {/* Search Bar - Same style as home page */}
+          {/* Search Bar - Cópia exata da home */}
           <div className="max-w-xl mx-auto mt-6">
-            <div className="flex shadow-none">
-              <div className="relative flex-grow">
-                <Input
-                  type="text"
-                  className="w-full px-4 py-3 h-[48px] text-base border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Buscar categorias..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <div className="relative">
-                <button
-                  type="button"
-                  className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 min-w-[120px]"
-                  onClick={() => setShowSortDropdown(!showSortDropdown)}
-                >
-                  <span className="text-gray-700 font-medium">{sortBy === "name" ? "Nome" : "Posts"}</span>
-                  <ChevronDown className="ml-3 h-4 w-4 text-gray-500" />
-                </button>
+            <form className="flex flex-col">
+              <div className="flex shadow-none">
+                <div className="relative flex-grow">
+                  <Input
+                    type="text"
+                    className="w-full px-4 py-3 h-[48px] text-base border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Buscar artes por palavra-chave..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
                 
-                {showSortDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-20">
-                    <div className="py-2">
-                      <button
-                        type="button"
-                        className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150
-                          ${sortBy === "name" 
-                            ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
-                            : 'text-gray-700 hover:bg-gray-50'}`}
-                        onClick={() => {
-                          setSortBy("name");
-                          setShowSortDropdown(false);
-                        }}
-                      >
-                        Nome
-                      </button>
-                      <button
-                        type="button"
-                        className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150
-                          ${sortBy === "posts" 
-                            ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
-                            : 'text-gray-700 hover:bg-gray-50'}`}
-                        onClick={() => {
-                          setSortBy("posts");
-                          setShowSortDropdown(false);
-                        }}
-                      >
-                        Posts
-                      </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 min-w-[120px]"
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  >
+                    <span className="text-gray-700 font-medium">{sortBy === "name" ? "Nome" : "Posts"}</span>
+                    <ChevronDown className="ml-3 h-4 w-4 text-gray-500" />
+                  </button>
+                  
+                  {showSortDropdown && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-20">
+                      <div className="py-2">
+                        <button
+                          type="button"
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
+                            ${sortBy === "name" 
+                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
+                              : 'text-gray-700 hover:bg-gray-50'}`}
+                          onClick={() => {
+                            setSortBy("name");
+                            setShowSortDropdown(false);
+                          }}
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span>Nome</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
+                            ${sortBy === "posts" 
+                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
+                              : 'text-gray-700 hover:bg-gray-50'}`}
+                          onClick={() => {
+                            setSortBy("posts");
+                            setShowSortDropdown(false);
+                          }}
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span>Posts</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="bg-black hover:bg-black/80 text-white h-[48px] rounded-r-md transition duration-300 flex-shrink-0"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
               </div>
-              
-              <Button 
-                type="button" 
-                className="bg-black hover:bg-black/80 text-white h-[48px] rounded-r-md transition duration-300 flex-shrink-0"
-              >
-                <Search className="h-5 w-5" />
-              </Button>
+            </form>
+            
+            <div className="flex items-center mt-4">
+              <div className="flex items-center text-black text-sm">
+                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Busque por categorias específicas</span>
+              </div>
             </div>
           </div>
 
