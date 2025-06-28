@@ -38,6 +38,55 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { usePostActions } from "@/hooks/use-post-actions";
 
+// Componente para seção de artes relacionadas com layout responsivo
+function RelatedArtworksSection({ artworks }: { artworks: any[] }) {
+  const [columns, setColumns] = useState(4);
+
+  useEffect(() => {
+    const updateColumns = () => {
+      const width = window.innerWidth;
+      if (width < 640) setColumns(2);      // mobile - 2 columns
+      else if (width < 768) setColumns(2); // sm
+      else if (width < 1024) setColumns(3); // md
+      else if (width < 1280) setColumns(4); // lg
+      else setColumns(5);                   // xl+
+    };
+
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
+
+  return (
+    <div className="mt-12">
+      <h2 className="text-xl font-bold mb-6">Artes relacionadas</h2>
+      <div className="flex gap-4">
+        {Array.from({ length: columns }, (_, colIndex) => (
+          <div key={colIndex} className="flex-1 space-y-4">
+            {artworks
+              .filter((_, index) => index % columns === colIndex)
+              .map((item: any) => (
+                <ArtworkCard
+                  key={item.id}
+                  artwork={{
+                    id: item.id,
+                    title: item.title,
+                    description: "",
+                    imageUrl: item.imageUrl || "/placeholder.jpg",
+                    category: "outros",
+                    createdAt: new Date(item.createdAt || Date.now()),
+                    isPro: Boolean(item.licenseType === 'premium' || item.isPro),
+                    format: item.formato || "1:1"
+                  }}
+                />
+              ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ArtDetailPage() {
   const [location, setLocation] = useLocation();
   const params = useParams<{ slug?: string; id?: string }>();
