@@ -231,7 +231,7 @@ export default function ArtDetailPage() {
       });
       
       if (relatedPosts.length > 0) {
-        console.log('POSTS RELACIONADOS ENCONTRADOS:', relatedPosts.map(p => ({
+        console.log('POSTS RELACIONADOS ENCONTRADOS:', relatedPosts.map((p: any) => ({
           id: p.id,
           formato: p.formato,
           imageUrl: p.imageUrl
@@ -772,8 +772,8 @@ export default function ArtDetailPage() {
           
           {/* Selo premium */}
           {isPremium && (
-            <div className="absolute top-4 right-4 z-10 bg-[#fef3c8] rounded-full w-4 h-4 lg:w-8 lg:h-8 flex items-center justify-center">
-              <Crown size={8} className="text-[#e7b36a] lg:w-4 lg:h-4" fill="currentColor" />
+            <div className="absolute top-4 right-4 z-10 bg-gradient-to-br from-amber-50 to-amber-100 backdrop-blur-sm rounded-full w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center shadow-lg border border-amber-200/50">
+              <Crown size={16} className="text-amber-600 lg:w-5 lg:h-5" fill="currentColor" />
             </div>
           )}
           

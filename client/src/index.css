@@ -127,7 +127,9 @@
   .category-badge {
     @apply text-xs font-medium px-3 py-1 rounded-full shadow-sm;
   }
-  
+}
+
+@layer components {
   /* Estilos para o grid de imagens */
   .image-card {
     position: relative;
@@ -148,16 +150,28 @@
     position: absolute !important;
     top: 8px !important;
     right: 8px !important;
-    background: #fef3c8 !important;
-    color: #e7b36a !important;
+    background: linear-gradient(135deg, #fef3c8 0%, #fde68a 100%) !important;
+    color: #d97706 !important;
     border-radius: 50% !important;
-    width: 32px !important;
-    height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     z-index: 10 !important; /* Z-index moderado apenas dentro do card */
     pointer-events: none !important; /* Evitar que bloqueie cliques */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    border: 1px solid rgba(217, 119, 6, 0.2) !important;
+  }
+  
+  /* Responsive sizes for premium badge */
+  @media (max-width: 768px) {
+    .badge-premium {
+      width: 40px !important;
+      height: 40px !important;
+      top: 12px !important;
+      right: 12px !important;
+    }
   }
 
   .hover-actions {
