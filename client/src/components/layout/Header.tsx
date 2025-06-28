@@ -359,13 +359,14 @@ const MobileMenu = () => {
   const [location, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
   const { isOpen, setIsOpen } = useMobileMenu();
+  const { whatsappUrl } = useSupportNumber();
   
   const navItems = [
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
     { name: "Planos", path: "/planos" },
-    { name: "Tutoriais", path: "/tutoriais" },
-    { name: "Suporte", path: "/suporte" }
+    { name: "Cursos", path: "/cursos" },
+    { name: "Suporte", path: "whatsapp" } // Especial para WhatsApp
   ];
   
   return (
@@ -399,7 +400,7 @@ const MobileMenu = () => {
                 {navItems.map((item) => {
                   // Função para obter o ícone correto baseado no nome
                   const getIcon = (name: string) => {
-                    if (name.toLowerCase().includes('tutorial') || name.toLowerCase().includes('aula')) {
+                    if (name.toLowerCase().includes('curso') || name.toLowerCase().includes('tutorial') || name.toLowerCase().includes('aula')) {
                       return (
                         <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM4 8a1 1 0 000 2h1v3a1 1 0 001 1h3a1 1 0 001-1V9a1 1 0 100-2H4z"/>
@@ -448,6 +449,27 @@ const MobileMenu = () => {
                       </svg>
                     );
                   };
+
+                  // Tratar suporte de forma especial para abrir WhatsApp
+                  if (item.path === "whatsapp") {
+                    return (
+                      <div
+                        key={item.name}
+                        className="flex items-center px-0 py-4 text-base font-normal text-gray-900 transition-all duration-200 hover:bg-gray-50 rounded-lg cursor-pointer"
+                        onClick={() => {
+                          if (whatsappUrl) {
+                            window.open(`${whatsappUrl}?text=Olá, preciso de ajuda!`, '_blank');
+                          }
+                          setIsOpen(false);
+                        }}
+                      >
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                          {getIcon(item.name)}
+                        </div>
+                        <span className="flex-1">{item.name}</span>
+                      </div>
+                    );
+                  }
 
                   return (
                     <Link 
