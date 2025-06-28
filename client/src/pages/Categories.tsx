@@ -114,12 +114,12 @@ export default function Categories() {
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
           
-          <div className="w-full max-w-[600px] mx-auto px-4">
-            <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-[15px] pr-[6px]">
+          <div className="w-full max-w-[600px] mx-auto px-4 sm:px-6">
+            <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-3 sm:pl-[15px] pr-[6px]">
               <input
                 type="text"
-                placeholder="Busque por artes, categorias, temas..."
-                className="flex-1 border-none p-3 text-sm text-[#333] outline-none"
+                placeholder="Busque por artes, categorias..."
+                className="flex-1 border-none p-2 sm:p-3 text-sm text-[#333] outline-none placeholder:text-gray-400"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
