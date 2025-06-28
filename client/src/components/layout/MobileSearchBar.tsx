@@ -96,7 +96,7 @@ export function MobileSearchBar() {
   }, []);
 
   return (
-    <div className={`md:hidden fixed top-24 left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-40 transition-transform duration-300 ease-in-out ${
+    <div className={`md:hidden fixed top-[70px] left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-40 transition-transform duration-300 ease-in-out ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
       <div className="container-global py-3">
