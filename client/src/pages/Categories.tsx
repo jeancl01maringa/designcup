@@ -115,7 +115,7 @@ export default function Categories() {
           </p>
           
           <div className="max-w-[600px] mx-auto">
-            <div className="flex items-center bg-white border border-[#c27b56] rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] overflow-hidden pl-[15px] pr-[6px]">
+            <div className="flex items-center bg-white border border-[#c27b56] rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-[15px] pr-[6px]">
               <input
                 type="text"
                 placeholder="Busque por artes, categorias, temas..."
@@ -130,14 +130,18 @@ export default function Categories() {
                 <button
                   type="button"
                   className="bg-none border-none text-sm text-[#333] cursor-pointer mr-2.5"
-                  onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+                  onClick={() => {
+                    console.log('Formato dropdown clicked, current state:', showFormatDropdown);
+                    setShowFormatDropdown(!showFormatDropdown);
+                  }}
                 >
                   {selectedFormat} ▾
                 </button>
                 
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-50 shadow-lg">
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-[9999] shadow-lg">
                     <div className="py-2">
+                      {console.log('Renderizando dropdown com formatos:', formats)}
                       {formats.map(format => (
                         <button
                           key={format.id}
