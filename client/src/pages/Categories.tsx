@@ -90,8 +90,7 @@ export default function Categories() {
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
           
-          {/* Search Bar - Cópia exata da home */}
-          <div className="max-w-xl mx-auto mt-6">
+          <div className="max-w-xl mx-auto">
             <form className="flex flex-col">
               <div className="flex shadow-none">
                 <div className="relative flex-grow">
@@ -110,7 +109,7 @@ export default function Categories() {
                     className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 min-w-[120px]"
                     onClick={() => setShowSortDropdown(!showSortDropdown)}
                   >
-                    <span className="text-gray-700 font-medium">{sortBy === "name" ? "Nome" : "Posts"}</span>
+                    <span className="text-gray-700 font-medium">Formatos</span>
                     <ChevronDown className="ml-3 h-4 w-4 text-gray-500" />
                   </button>
                   
@@ -119,39 +118,58 @@ export default function Categories() {
                       <div className="py-2">
                         <button
                           type="button"
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
-                            ${sortBy === "name" 
-                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
-                              : 'text-gray-700 hover:bg-gray-50'}`}
-                          onClick={() => {
-                            setSortBy("name");
-                            setShowSortDropdown(false);
-                          }}
+                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500"
                         >
                           <div className="w-5 h-5 flex items-center justify-center">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
                             </svg>
                           </div>
-                          <span>Nome</span>
+                          <span>Formatos</span>
                         </button>
                         <button
                           type="button"
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
-                            ${sortBy === "posts" 
-                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
-                              : 'text-gray-700 hover:bg-gray-50'}`}
-                          onClick={() => {
-                            setSortBy("posts");
-                            setShowSortDropdown(false);
-                          }}
+                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span>Feed</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
                         >
                           <div className="w-5 h-5 flex items-center justify-center">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                             </svg>
                           </div>
-                          <span>Posts</span>
+                          <span>Cartaz</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span>Stories</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span>Imagens</span>
                         </button>
                       </div>
                     </div>
@@ -172,7 +190,7 @@ export default function Categories() {
                 <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <span>Busque por categorias específicas</span>
+                <span>Explore nossa biblioteca de templates</span>
               </div>
             </div>
           </div>
