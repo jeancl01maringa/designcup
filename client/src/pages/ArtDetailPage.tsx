@@ -92,6 +92,8 @@ export default function ArtDetailPage() {
     dimensions: string;
     isCurrent: boolean;
   } | null>(null);
+
+
   
   // Garantir que a página sempre inicie no topo
   useEffect(() => {
@@ -1342,26 +1344,7 @@ export default function ArtDetailPage() {
       
       {/* Seção de artes relacionadas - Layout responsivo igual ao feed */}
       {relatedArtworks && relatedArtworks.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-xl font-bold mb-6">Artes relacionadas</h2>
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {relatedArtworks.map((item: RelatedFormat) => (
-              <ArtworkCard
-                key={item.id}
-                artwork={{
-                  id: item.id,
-                  title: item.title,
-                  description: "",
-                  imageUrl: item.imageUrl || "/placeholder.jpg",
-                  category: "outros",
-                  createdAt: new Date(item.createdAt || Date.now()),
-                  isPro: Boolean(item.licenseType === 'premium' || item.isPro),
-                  format: item.formato || "1:1"
-                }}
-              />
-            ))}
-          </div>
-        </div>
+        <RelatedArtworksSection artworks={relatedArtworks} />
       )}
     </div>
   );
