@@ -40,9 +40,22 @@ interface CategoryWithPosts {
 }
 
 export default function Categories() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("name");
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFormatDropdown, setShowFormatDropdown] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState("Formatos");
+
+  const formats = [
+    { id: "all", name: "Formatos" },
+    { id: "feed", name: "Feed" },
+    { id: "square", name: "Cartaz" },
+    { id: "stories", name: "Stories" },
+    { id: "portrait", name: "Imagens" }
+  ];
+
+  const selectFormat = (format: string) => {
+    setSelectedFormat(format);
+    setShowFormatDropdown(false);
+  };
 
   // Buscar categorias com estatísticas
   const { data: categories = [], isLoading, error } = useQuery<CategoryWithPosts[]>({
@@ -56,12 +69,8 @@ export default function Categories() {
 
   // Filtrar categorias baseado na busca
   const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => {
-    if (sortBy === "name") return a.name.localeCompare(b.name);
-    if (sortBy === "posts") return b.postCount - a.postCount;
-    return 0;
-  });
+    category.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ).sort((a, b) => a.name.localeCompare(b.name));
 
   if (error) {
     return (
@@ -98,8 +107,8 @@ export default function Categories() {
                     type="text"
                     className="w-full px-4 py-3 h-[48px] text-base border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Buscar artes por palavra-chave..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 
@@ -107,70 +116,55 @@ export default function Categories() {
                   <button
                     type="button"
                     className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 min-w-[120px]"
-                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                    onClick={() => setShowFormatDropdown(!showFormatDropdown)}
                   >
-                    <span className="text-gray-700 font-medium">Formatos</span>
+                    <span className="text-gray-700 font-medium">{selectedFormat}</span>
                     <ChevronDown className="ml-3 h-4 w-4 text-gray-500" />
                   </button>
                   
-                  {showSortDropdown && (
+                  {showFormatDropdown && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-20">
                       <div className="py-2">
-                        <button
-                          type="button"
-                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500"
-                        >
-                          <div className="w-5 h-5 flex items-center justify-center">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <span>Formatos</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
-                        >
-                          <div className="w-5 h-5 flex items-center justify-center">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <span>Feed</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
-                        >
-                          <div className="w-5 h-5 flex items-center justify-center">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <span>Cartaz</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
-                        >
-                          <div className="w-5 h-5 flex items-center justify-center">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <span>Stories</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3 text-gray-700 hover:bg-gray-50"
-                        >
-                          <div className="w-5 h-5 flex items-center justify-center">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <span>Imagens</span>
-                        </button>
+                        {formats.map(format => (
+                          <button
+                            key={format.id}
+                            type="button"
+                            className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
+                              ${format.name === selectedFormat 
+                                ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
+                                : 'text-gray-700 hover:bg-gray-50'}`}
+                            onClick={() => selectFormat(format.name)}
+                          >
+                            <div className="w-5 h-5 flex items-center justify-center">
+                              {format.id === 'feed' && (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                              {format.id === 'square' && (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                              {format.id === 'stories' && (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                              {format.id === 'portrait' && (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                              {format.id === 'all' && (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                            <span>{format.name}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -194,11 +188,6 @@ export default function Categories() {
               </div>
             </div>
           </div>
-
-          {/* Results count */}
-          <p className="text-sm text-[#4B4B4B] mt-4 font-light">
-            {filteredCategories.length} {filteredCategories.length === 1 ? 'categoria encontrada' : 'categorias encontradas'}
-          </p>
         </div>
       </section>
 
