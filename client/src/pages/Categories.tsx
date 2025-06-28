@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, ImageOff, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
 
 interface DbCategory {
@@ -41,6 +42,7 @@ interface CategoryWithPosts {
 export default function Categories() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // Buscar categorias com estatísticas
   const { data: categories = [], isLoading, error } = useQuery<CategoryWithPosts[]>({
@@ -88,34 +90,68 @@ export default function Categories() {
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
           
-          {/* Search Bar with Format Dropdown - Exact copy from home */}
-          <div className="w-full max-w-xl mt-6">
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                placeholder="Busque por artes, categorias, temas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full py-3 px-5 pr-32 rounded-lg border border-[#FAF3EC] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/30 focus:border-[#AA5E2F] transition-all font-sans"
-              />
-              
-              {/* Format Dropdown - Positioned to the right */}
-              <div className="absolute right-12 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-3">
-                <div className="relative">
-                  <select 
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="text-xs font-normal appearance-none bg-transparent focus:outline-none focus:ring-0 pr-6 pl-1 cursor-pointer min-w-[90px] text-black font-sans"
-                  >
-                    <option value="name">Nome</option>
-                    <option value="posts">Posts</option>
-                  </select>
-                  <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-black" />
-                </div>
+          {/* Search Bar - Same style as home page */}
+          <div className="max-w-xl mx-auto mt-6">
+            <div className="flex shadow-none">
+              <div className="relative flex-grow">
+                <Input
+                  type="text"
+                  className="w-full px-4 py-3 h-[48px] text-base border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Buscar categorias..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
               
-              <Button className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-3 rounded-md bg-[#191c2c] hover:bg-[#14182a] shadow-sm">
-                <Search className="h-4 w-4 text-white" />
+              <div className="relative">
+                <button
+                  type="button"
+                  className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 min-w-[120px]"
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                >
+                  <span className="text-gray-700 font-medium">{sortBy === "name" ? "Nome" : "Posts"}</span>
+                  <ChevronDown className="ml-3 h-4 w-4 text-gray-500" />
+                </button>
+                
+                {showSortDropdown && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-20">
+                    <div className="py-2">
+                      <button
+                        type="button"
+                        className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150
+                          ${sortBy === "name" 
+                            ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
+                            : 'text-gray-700 hover:bg-gray-50'}`}
+                        onClick={() => {
+                          setSortBy("name");
+                          setShowSortDropdown(false);
+                        }}
+                      >
+                        Nome
+                      </button>
+                      <button
+                        type="button"
+                        className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150
+                          ${sortBy === "posts" 
+                            ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
+                            : 'text-gray-700 hover:bg-gray-50'}`}
+                        onClick={() => {
+                          setSortBy("posts");
+                          setShowSortDropdown(false);
+                        }}
+                      >
+                        Posts
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <Button 
+                type="button" 
+                className="bg-black hover:bg-black/80 text-white h-[48px] rounded-r-md transition duration-300 flex-shrink-0"
+              >
+                <Search className="h-5 w-5" />
               </Button>
             </div>
           </div>

@@ -208,7 +208,7 @@ export default function CursosPage() {
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white">
               <Plus className="h-4 w-4 mr-2" />
               Novo Curso
             </Button>

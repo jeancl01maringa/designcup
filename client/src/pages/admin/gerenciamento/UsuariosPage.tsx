@@ -368,7 +368,7 @@ export default function UsuariosPage() {
           </div>
           <Button 
             onClick={() => setIsCreateDialogOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
           >
             <Plus className="h-4 w-4" />
             Criar Novo Usuário
