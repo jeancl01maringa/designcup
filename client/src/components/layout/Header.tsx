@@ -13,7 +13,6 @@ import {
   UserPlus,
   ChevronDown,
   MessageSquare,
-  X,
   Crown,
   Search
 } from "lucide-react";
