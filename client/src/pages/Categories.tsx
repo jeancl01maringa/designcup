@@ -114,7 +114,7 @@ export default function Categories() {
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
           
-          <div className="max-w-[750px] mx-auto px-4">
+          <div className="max-w-[850px] mx-auto px-4">
             <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-[15px] pr-[6px]">
               <input
                 type="text"
