@@ -193,7 +193,7 @@ function App() {
         <Context.Provider value={value}>
           <div className="flex flex-col min-h-screen">
             {showHeaderFooter && <Header />}
-            {showMobileSearchBar && <MobileSearchBar />}
+            {/* {showMobileSearchBar && <MobileSearchBar />} */}
             <main className="flex-grow">
               <Router />
             </main>
