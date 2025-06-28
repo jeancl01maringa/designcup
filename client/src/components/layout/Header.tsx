@@ -393,32 +393,76 @@ const MobileMenu = () => {
             
             {/* Header do Menu */}
             <div className="flex items-center justify-center px-4 py-2">
-              <h2 className="text-lg font-semibold text-gray-900">Criar</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
             </div>
             
             {/* Content do Menu */}
             <div className="px-6 py-4 space-y-4">
               {/* Lista de opções estilo Instagram */}
               <div className="space-y-0">
-                {navItems.map((item) => (
-                  <Link 
-                    key={item.path} 
-                    href={item.path}
-                  >
-                    <a
-                      className="flex items-center px-0 py-4 text-base font-normal text-gray-900 transition-all duration-200 hover:bg-gray-50 rounded-lg"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                {navItems.map((item) => {
+                  // Função para obter o ícone correto baseado no nome
+                  const getIcon = (name: string) => {
+                    if (name.toLowerCase().includes('tutorial') || name.toLowerCase().includes('aula')) {
+                      return (
                         <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                          <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM4 8a1 1 0 000 2h1v3a1 1 0 001 1h3a1 1 0 001-1V9a1 1 0 100-2H4z"/>
                         </svg>
-                      </div>
-                      <span className="flex-1">{item.name}</span>
-                    </a>
-                  </Link>
-                ))}
+                      );
+                    }
+                    if (name.toLowerCase().includes('categoria')) {
+                      return (
+                        <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                        </svg>
+                      );
+                    }
+                    if (name.toLowerCase().includes('arte') || name.toLowerCase().includes('todas')) {
+                      return (
+                        <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd"/>
+                        </svg>
+                      );
+                    }
+                    if (name.toLowerCase().includes('plano')) {
+                      return (
+                        <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z"/>
+                        </svg>
+                      );
+                    }
+                    if (name.toLowerCase().includes('admin') || name.toLowerCase().includes('painel')) {
+                      return (
+                        <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
+                        </svg>
+                      );
+                    }
+                    // Ícone padrão para home
+                    return (
+                      <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                      </svg>
+                    );
+                  };
+
+                  return (
+                    <Link 
+                      key={item.path} 
+                      href={item.path}
+                    >
+                      <a
+                        className="flex items-center px-0 py-4 text-base font-normal text-gray-900 transition-all duration-200 hover:bg-gray-50 rounded-lg"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                          {getIcon(item.name)}
+                        </div>
+                        <span className="flex-1">{item.name}</span>
+                      </a>
+                    </Link>
+                  );
+                })}
               </div>
               
               {/* Espaçamento extra para deixar mais clean */}
