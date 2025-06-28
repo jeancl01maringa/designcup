@@ -268,10 +268,10 @@ const MobileUserMenu = () => {
         <Button 
           variant="default" 
           size="lg" 
-          className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white px-4 py-3 text-sm rounded-full min-h-[44px]"
+          className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white px-4 py-3 text-sm rounded-full min-h-[48px]"
           onClick={() => navigate("/auth")}
         >
-          <LogIn className="h-4 w-4" />
+          <LogIn className="h-5 w-5" />
           <span>Entrar</span>
         </Button>
       </div>
@@ -327,11 +327,11 @@ const MobileUserMenu = () => {
       {/* Profile Photo Button for Mobile */}
       <Button 
         variant="ghost" 
-        size="sm"
-        className="flex items-center gap-1 p-1"
+        size="lg"
+        className="flex items-center gap-1 p-2 min-w-[48px] min-h-[48px]"
         onClick={() => setIsDropdownOpen(true)}
       >
-        <div className="rounded-full overflow-hidden w-8 h-8">
+        <div className="rounded-full overflow-hidden w-10 h-10">
           {user.profileImage ? (
             <img 
               src={user.profileImage} 
@@ -340,7 +340,7 @@ const MobileUserMenu = () => {
             />
           ) : (
             <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
-              <User className="h-4 w-4" />
+              <User className="h-5 w-5" />
             </div>
           )}
         </div>
@@ -376,9 +376,9 @@ const MobileMenu = () => {
           <Button 
             variant="ghost" 
             size="lg"
-            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[44px] min-h-[44px] p-3"
+            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[48px] min-h-[48px] p-3"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </Button>
