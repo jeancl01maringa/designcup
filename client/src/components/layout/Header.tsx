@@ -390,10 +390,7 @@ const MobileMenu = () => {
               <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
             </div>
             
-            {/* Header do Menu */}
-            <div className="flex items-center justify-center px-4 py-2">
-              <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
-            </div>
+
             
             {/* Content do Menu */}
             <div className="px-6 py-4 space-y-4">
