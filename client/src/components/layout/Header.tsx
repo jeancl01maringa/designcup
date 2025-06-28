@@ -268,7 +268,7 @@ const MobileUserMenu = () => {
         <Button 
           variant="default" 
           size="lg" 
-          className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white px-4 py-3 text-sm rounded-full min-h-[48px]"
+          className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white px-4 py-2 text-sm rounded-full min-h-[44px]"
           onClick={() => navigate("/auth")}
         >
           <LogIn className="h-5 w-5" />
@@ -328,7 +328,7 @@ const MobileUserMenu = () => {
       <Button 
         variant="ghost" 
         size="lg"
-        className="flex items-center gap-1 p-2 min-w-[48px] min-h-[48px]"
+        className="flex items-center gap-1 p-1 min-w-[44px] min-h-[44px]"
         onClick={() => setIsDropdownOpen(true)}
       >
         <div className="rounded-full overflow-hidden w-10 h-10">
@@ -376,7 +376,7 @@ const MobileMenu = () => {
           <Button 
             variant="ghost" 
             size="lg"
-            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[48px] min-h-[48px] p-3"
+            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[44px] min-h-[44px] p-2"
           >
             <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -568,7 +568,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50 overflow-visible">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
-      <div className={`container-global py-5 flex items-center transition-all duration-300 h-[94px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
+      <div className={`container-global py-3 flex items-center transition-all duration-300 h-[70px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         
         {/* Layout Desktop - mantém estrutura original */}
         <div className="hidden md:flex items-center justify-between w-full">
