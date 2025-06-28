@@ -76,6 +76,11 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
       return userPlan.planName;
     }
     
+    // Verificar primeiro se o usuário é premium nos dados já carregados
+    if (user?.tipo === 'premium') {
+      return 'Premium';
+    }
+    
     return 'Plano Gratuito';
   };
 
@@ -112,7 +117,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           </div>
           
           {/* Botão de upgrade para usuários gratuitos */}
-          {(!userPlan || userPlan.planName === 'Plano Gratuito') && (
+          {user?.tipo !== 'premium' && (!userPlan || userPlan.planName === 'Plano Gratuito') && (
             <div className="mt-4">
               <button
                 onClick={() => handleClick('/planos')}
@@ -125,7 +130,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           )}
           
           {/* Para usuários premium */}
-          {userPlan && userPlan.planName !== 'Plano Gratuito' && (
+          {(user?.tipo === 'premium' || (userPlan && userPlan.planName !== 'Plano Gratuito')) && (
             <div className="bg-amber-50 text-amber-700 py-2 px-4 rounded-md border border-amber-200/50 mt-3">
               <div className="flex items-center justify-center gap-2">
                 <Crown className="w-4 h-4 text-amber-600 fill-amber-600" />
