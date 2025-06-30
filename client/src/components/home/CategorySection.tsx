@@ -209,7 +209,7 @@ export default function CategorySection() {
     <section className="py-8 bg-white border-b border-gray-100">
       <div className="container-global">
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between">
+        <div className="mb-4 flex items-start justify-between">
           <div>
             <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
               <span className="mr-2">📁</span>
