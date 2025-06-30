@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Post } from "@shared/schema";
 import { ArtworkCard } from "./ArtworkCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Star, ImageIcon, Crown, ArrowRight } from "lucide-react";
+import { Star, ImageIcon, ArrowRight } from "lucide-react";
 
 interface ArtworkGridProps {
   category?: string;
@@ -136,22 +135,6 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
 
   return (
     <div className="space-y-6">
-      {/* Estatísticas dos posts */}
-      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-blue-50 text-blue-700">
-            {filteredPosts.length} posts encontrados
-          </Badge>
-          <Badge variant="secondary" className="bg-yellow-50 text-yellow-700">
-            <Crown className="w-3 h-3 mr-1" />
-            {filteredPosts.filter(p => p.isPro === true || p.licenseType === 'premium').length} premium
-          </Badge>
-          <Badge variant="secondary" className="bg-green-50 text-green-700">
-            {filteredPosts.filter(p => p.isPro !== true && p.licenseType !== 'premium').length} gratuitos
-          </Badge>
-        </div>
-      </div>
-
       {/* Grid masonry Pinterest-style */}
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {columnArrays.map((columnPosts, columnIndex) => (
