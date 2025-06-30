@@ -520,7 +520,8 @@ export default function Header() {
     { id: "all", name: "Formato" },
     { id: "feed", name: "Feed" },
     { id: "poster", name: "Cartaz" },
-    { id: "stories", name: "Stories" }
+    { id: "stories", name: "Stories" },
+    { id: "images", name: "Imagens" }
   ];
 
   const getFormatName = (formatId: string) => {
