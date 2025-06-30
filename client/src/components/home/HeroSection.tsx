@@ -156,6 +156,68 @@ export default function HeroSection() {
             </Button>
           </form>
         </div>
+
+        {/* Mobile Search Bar with Format Dropdown - Visible only on mobile */}
+        <div className="block md:hidden w-full max-w-lg mt-8 px-4">
+          <form onSubmit={handleSearch} className="relative flex items-center">
+            <div className="flex items-center w-full border border-gray-300 rounded-full focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] overflow-hidden bg-white">
+              {/* Hambúrguer dos formatos à esquerda */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowFormatDropdown(prev => !prev);
+                  }}
+                  className="flex items-center justify-center py-3 px-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none border-r border-gray-200 bg-gray-50"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                  <ChevronDown className="ml-1 h-3 w-3" />
+                </button>
+                
+                {/* Dropdown dos formatos */}
+                {showFormatDropdown && (
+                  <div className="absolute left-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] overflow-hidden" ref={dropdownRef}>
+                    <div className="py-1">
+                      {formats.map((format) => (
+                        <button
+                          key={format.id}
+                          type="button"
+                          onClick={() => selectFormat(format.id)}
+                          className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition-colors ${
+                            selectedFormat === format.id ? 'bg-[#AA5E2F]/10 text-[#AA5E2F]' : 'text-gray-700'
+                          }`}
+                        >
+                          {format.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Campo de pesquisa no meio */}
+              <input
+                type="text"
+                placeholder="Busque por artes, categorias..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 py-3 px-3 border-0 focus:outline-none text-sm bg-transparent placeholder:truncate"
+              />
+              
+              {/* Botão de pesquisa à direita */}
+              <button
+                type="submit"
+                className="flex items-center justify-center w-10 h-10 bg-[#191c2c] text-white hover:bg-[#14182a] transition-colors duration-150 focus:outline-none rounded-full mx-1"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </section>
   );
