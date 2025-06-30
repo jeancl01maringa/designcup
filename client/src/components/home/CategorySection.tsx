@@ -209,21 +209,34 @@ export default function CategorySection() {
     <section className="py-8 bg-white border-b border-gray-100">
       <div className="container-global">
         {/* Header */}
-        <div className="mb-6">
-          <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
-            <span className="mr-2">📁</span>
-            Escolha sua categoria
-          </h3>
-          <p className="text-gray-600 text-sm font-light">
-            Encontre recursos ideais para sua clínica de estética
-          </p>
-          <div className="flex items-center mt-2">
-            <div className="flex mt-1">
-              <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
-              <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
-              <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
+              <span className="mr-2">📁</span>
+              Escolha sua categoria
+            </h3>
+            <p className="text-gray-600 text-sm font-light">
+              Encontre recursos ideais para sua clínica de estética
+            </p>
+            <div className="flex items-center mt-2">
+              <div className="flex mt-1">
+                <span className="inline-block h-1 w-6 rounded-full bg-black mr-1"></span>
+                <span className="inline-block h-1 w-1 rounded-full bg-black/30 mr-1"></span>
+                <span className="inline-block h-1 w-1 rounded-full bg-black/30"></span>
+              </div>
             </div>
           </div>
+          
+          {/* Botão Ver categorias - canto superior direito */}
+          <Link 
+            href="/categorias" 
+            className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            Ver categorias
+          </Link>
         </div>
         
         {/* Container com referência para controle de scroll */}
@@ -317,12 +330,7 @@ export default function CategorySection() {
           )}
         </div>
         
-        {/* Link para todas as categorias */}
-        <div className="text-center mt-8">
-          <Link href="/categorias" className="text-black text-sm hover:underline font-medium">
-            Ver todas as categorias
-          </Link>
-        </div>
+
       </div>
     </section>
   );
