@@ -121,15 +121,23 @@ export function MobileSearchBar() {
               
               {/* Dropdown dos formatos */}
               {showFormatDropdown && (
-                <div className="absolute left-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] overflow-hidden" ref={dropdownRef}>
+                <div 
+                  className="fixed left-4 top-[160px] w-36 bg-white border border-gray-200 rounded-lg shadow-xl z-[99999] overflow-hidden" 
+                  ref={dropdownRef}
+                  style={{ zIndex: 99999 }}
+                >
                   <div className="py-1">
                     {formats.map((format) => (
                       <button
                         key={format.id}
                         type="button"
-                        onClick={() => selectFormat(format.id)}
-                        className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition-colors ${
-                          selectedFormat === format.id ? 'bg-[#AA5E2F]/10 text-[#AA5E2F]' : 'text-gray-700'
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          selectFormat(format.id);
+                        }}
+                        className={`block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                          selectedFormat === format.id ? 'bg-[#AA5E2F]/10 text-[#AA5E2F] font-medium' : 'text-gray-700'
                         }`}
                       >
                         {format.name}
