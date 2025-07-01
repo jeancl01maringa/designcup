@@ -320,6 +320,7 @@ export default function MonetizacaoPage() {
                         <tr className="border-b bg-muted/50">
                           <th className="h-12 px-4 text-left align-middle font-medium">Data</th>
                           <th className="h-12 px-4 text-left align-middle font-medium">Valor</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium">UTM Campaign</th>
                           <th className="h-12 px-4 text-left align-middle font-medium">Descrição</th>
                           <th className="h-12 px-4 text-left align-middle font-medium">Ações</th>
                         </tr>
@@ -333,6 +334,11 @@ export default function MonetizacaoPage() {
                               </td>
                               <td className="h-12 px-4 align-middle font-medium">
                                 {formatarMoeda(parseFloat(investment.amount))}
+                              </td>
+                              <td className="h-12 px-4 align-middle">
+                                <Badge variant="outline" className="text-xs">
+                                  {investment.utm_campaign || 'Sem UTM'}
+                                </Badge>
                               </td>
                               <td className="h-12 px-4 align-middle">
                                 {investment.description || 'Sem descrição'}
@@ -351,7 +357,7 @@ export default function MonetizacaoPage() {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={4} className="h-24 text-center text-muted-foreground">
+                            <td colSpan={5} className="h-24 text-center text-muted-foreground">
                               Nenhum investimento registrado
                             </td>
                           </tr>

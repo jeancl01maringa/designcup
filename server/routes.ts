@@ -6841,17 +6841,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Acesso negado' });
       }
 
-      const { date, amount, description } = req.body;
+      const { date, amount, description, utm_campaign } = req.body;
       
       if (!date || !amount) {
         return res.status(400).json({ message: 'Data e valor são obrigatórios' });
       }
 
       const result = await pool.query(`
-        INSERT INTO traffic_investments (date, amount, description)
-        VALUES ($1, $2, $3)
+        INSERT INTO traffic_investments (date, amount, description, utm_campaign)
+        VALUES ($1, $2, $3, $4)
         RETURNING *
-      `, [date, amount, description || null]);
+      `, [date, amount, description || null, utm_campaign || null]);
 
       res.status(201).json(result.rows[0]);
     } catch (error: any) {
@@ -6872,7 +6872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { id } = req.params;
-      const { date, amount, description } = req.body;
+      const { date, amount, description, utm_campaign } = req.body;
       
       if (!date || !amount) {
         return res.status(400).json({ message: 'Data e valor são obrigatórios' });
@@ -6880,10 +6880,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await pool.query(`
         UPDATE traffic_investments 
-        SET date = $1, amount = $2, description = $3, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $4
+        SET date = $1, amount = $2, description = $3, utm_campaign = $4, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
         RETURNING *
-      `, [date, amount, description || null, id]);
+      `, [date, amount, description || null, utm_campaign || null, id]);
 
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Investimento não encontrado' });
