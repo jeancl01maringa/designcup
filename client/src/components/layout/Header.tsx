@@ -39,7 +39,7 @@ const Logo = () => {
     return (
       <div className="flex items-center">
         <Link href="/" className="flex items-center">
-          <div className="h-6 md:h-8 w-32 md:w-40 bg-transparent" />
+          <div className="h-8 md:h-8 w-32 md:w-40 bg-transparent" />
         </Link>
       </div>
     );
@@ -52,7 +52,7 @@ const Logo = () => {
           <img 
             src={logoUrl} 
             alt="Logo da Plataforma" 
-            className="h-6 md:h-8 w-auto max-w-[150px] md:max-w-[200px] object-contain"
+            className="h-8 md:h-8 w-auto max-w-[150px] md:max-w-[200px] object-contain"
             onError={(e) => {
               // Em caso de erro, mostra o logo padrão
               const target = e.target as HTMLImageElement;
@@ -73,11 +73,11 @@ const Logo = () => {
           />
         ) : (
           <div className="flex items-center">
-            <svg className="h-5 md:h-7 w-5 md:w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-7 md:h-7 w-7 md:w-7 text-[#AA5E2F]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
               <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
             </svg>
-            <span className="ml-2 font-bold text-sm md:text-lg lg:text-xl">
+            <span className="ml-2 font-bold text-base md:text-lg lg:text-xl">
               <span className="text-[#1D1D1D]">Design</span><span className="text-[#AA5E2F]">paraEstética</span>
             </span>
           </div>
