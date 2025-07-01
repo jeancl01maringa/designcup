@@ -100,21 +100,25 @@ const NavLinks = () => {
   ];
   
   return (
-    <nav className="hidden md:flex items-center space-x-3">
+    <nav className="hidden md:flex items-center space-x-2">
       {navItems.map((item) => (
         <Link 
           key={item.path} 
           href={item.path}
-          className={`text-[#1D1D1D] hover:border hover:border-gray-200 hover:bg-gray-50/50 font-medium text-sm transition-all duration-200 px-3 py-2 rounded-lg ${location === item.path ? 'text-[#393B40] border border-gray-300 bg-gray-50' : ''}`}
+          className={`relative text-[#1D1D1D] font-medium text-sm px-4 py-2.5 rounded-xl transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-sm ${location === item.path ? 'text-[#393B40] bg-gray-100/80 shadow-sm' : 'hover:bg-gray-50/80'}`}
         >
           {item.name}
+          {/* Underline indicator para página ativa */}
+          {location === item.path && (
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-0.5 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full"></div>
+          )}
         </Link>
       ))}
       <SupportContact 
         variant="ghost" 
         size="sm" 
         showIcon={false}
-        className="text-[#1D1D1D] hover:border hover:border-gray-200 hover:bg-gray-50/50 font-medium text-sm transition-all duration-200 px-3 py-2 rounded-lg"
+        className="text-[#1D1D1D] font-medium text-sm px-4 py-2.5 rounded-xl transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-sm hover:bg-gray-50/80"
       />
     </nav>
   );
