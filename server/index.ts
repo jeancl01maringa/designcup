@@ -4,10 +4,14 @@ import { setupVite, serveStatic, log } from "./vite";
 import { storage, ensureTagTablesExist, ensureHotmartFieldsExist } from "./storage";
 import { setupSupabaseTables, migrateLocalDataToSupabase } from "./supabase";
 import { db } from "./db";
+import path from "path";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Servir arquivos de logos estaticamente
+app.use('/logos', express.static(path.join(process.cwd(), 'public', 'logos')));
 
 app.use((req, res, next) => {
   const start = Date.now();

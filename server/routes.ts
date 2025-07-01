@@ -4892,30 +4892,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Arquivo muito grande. Máximo 5MB.' });
       }
 
-      // Importar função especializada de upload de logo
-      const { uploadLogoToSupabase } = await import('./supabase-upload.js');
-
-      // Gerar nome único para o arquivo
-      const fileName = `logo_${Date.now()}`;
+      // Salvar logo localmente para evitar problemas com Supabase
+      const fs = await import('fs/promises');
+      const path = await import('path');
       
-      // Upload para Supabase Storage usando função especializada para logos
-      const uploadResult = await uploadLogoToSupabase(
-        file.buffer,
-        file.originalname,
-        file.mimetype,
-        'images', // Usar bucket 'images' que já tem políticas corretas
-        `logos/${fileName}` // Criar subpasta para organizar
-      );
-
-      if (uploadResult.error) {
-        console.error('Erro no upload Supabase:', uploadResult.error);
-        return res.status(500).json({ 
-          message: 'Erro ao fazer upload para o Supabase',
-          error: uploadResult.error
-        });
+      // Criar diretório de logos se não existir
+      const logoDir = path.join(process.cwd(), 'public', 'logos');
+      try {
+        await fs.mkdir(logoDir, { recursive: true });
+      } catch (error) {
+        // Diretório já existe
       }
 
-      const logoPath = uploadResult.url;
+      // Processar arquivo (converter SVG para PNG se necessário)
+      let finalBuffer = file.buffer;
+      let fileExtension = '';
+      
+      if (file.mimetype === 'image/svg+xml') {
+        // Converter SVG para PNG usando Sharp
+        const sharp = await import('sharp');
+        try {
+          finalBuffer = await sharp.default(file.buffer, { density: 300 })
+            .resize(800, 800, { 
+              fit: 'inside', 
+              withoutEnlargement: true,
+              background: { r: 255, g: 255, b: 255, alpha: 0 }
+            })
+            .png({ quality: 100, compressionLevel: 6 })
+            .toBuffer();
+          fileExtension = '.png';
+          console.log(`SVG convertido para PNG: ${(finalBuffer.length / 1024).toFixed(1)}KB`);
+        } catch (error) {
+          console.warn('Erro na conversão SVG, usando original:', error);
+          fileExtension = '.svg';
+        }
+      } else {
+        // Para outros formatos, manter original ou otimizar
+        const sharp = await import('sharp');
+        try {
+          finalBuffer = await sharp.default(file.buffer)
+            .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+            .png({ quality: 95 })
+            .toBuffer();
+          fileExtension = '.png';
+        } catch (error) {
+          // Manter formato original se não conseguir converter
+          fileExtension = file.originalname.includes('.') ? 
+            '.' + file.originalname.split('.').pop() : '.png';
+        }
+      }
+
+      // Gerar nome único para o arquivo
+      const fileName = `logo_${Date.now()}${fileExtension}`;
+      const filePath = path.join(logoDir, fileName);
+      
+      // Salvar arquivo
+      await fs.writeFile(filePath, finalBuffer);
+      
+      // URL pública do logo
+      const logoPath = `/logos/${fileName}`;
       if (!logoPath) {
         return res.status(500).json({ 
           message: 'URL do logo não foi retornada do Supabase' 
