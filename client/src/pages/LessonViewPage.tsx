@@ -333,43 +333,45 @@ export default function LessonViewPage() {
 
                 {/* Navegação e controles para mobile - visível apenas em mobile */}
                 <div className="lg:hidden">
-                  <div className="flex items-center justify-between py-4 border-t border-b">
-                    <div className="text-sm text-muted-foreground">
-                      Aula {Math.max(currentLessonIndex + 1, 1)} de {currentModule?.lessons.length}
+                  <div className="flex flex-col gap-3 py-4 border-t border-b">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        Aula {Math.max(currentLessonIndex + 1, 1)} de {currentModule?.lessons.length}
+                      </div>
+                      
+                      <Button
+                        onClick={markAsCompleted}
+                        variant={isLessonCompleted(lessonId) ? "default" : "outline"}
+                        size="sm"
+                        className="flex items-center gap-1 text-xs"
+                      >
+                        <CheckCircle className="h-3 w-3" />
+                        {isLessonCompleted(lessonId) ? "Concluir" : "Concluir"}
+                      </Button>
                     </div>
-                    
-                    <Button
-                      onClick={markAsCompleted}
-                      variant={isLessonCompleted(lessonId) ? "default" : "outline"}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      {isLessonCompleted(lessonId) ? "Concluída" : "Marcar como concluída"}
-                    </Button>
                   </div>
 
                   {/* Navegação entre aulas */}
-                  <div className="flex justify-between gap-4 pt-4">
+                  <div className="flex justify-between gap-2 pt-2">
                     <Button
                       variant="outline"
                       onClick={() => prevLesson && navigateToLesson(prevLesson.id)}
                       disabled={!prevLesson}
-                      className="flex items-center gap-2 flex-1 max-w-32"
+                      className="flex items-center gap-1 flex-1 text-xs px-3"
                       size="sm"
                     >
-                      <ArrowLeft className="h-4 w-4" />
-                      <span className="hidden sm:block">Anterior</span>
+                      <ArrowLeft className="h-3 w-3" />
+                      Anterior
                     </Button>
                     
                     <Button
                       onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
                       disabled={!nextLesson}
-                      className="flex items-center gap-2 flex-1 max-w-32"
+                      className="flex items-center gap-1 flex-1 text-xs px-3"
                       size="sm"
                     >
-                      <span className="hidden sm:block">Próxima</span>
-                      <ArrowLeft className="h-4 w-4 rotate-180" />
+                      Próxima
+                      <ArrowLeft className="h-3 w-3 rotate-180" />
                     </Button>
                   </div>
                 </div>
@@ -505,16 +507,16 @@ export default function LessonViewPage() {
                   </div>
                 )}
 
-                {/* 2. Navegação e Avaliação */}
-                <div className="flex items-center justify-between py-4 border-t border-b">
+                {/* 2. Navegação e Avaliação - OCULTO NO MOBILE */}
+                <div className="hidden lg:flex items-center justify-between py-4 border-t border-b">
                   <div className="text-sm text-muted-foreground">
                     Aula {Math.max(currentLessonIndex + 1, 1)} de {currentModule?.lessons.length}
                   </div>
                   
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     {/* Sistema de Avaliação com 5 estrelas - Média da Comunidade */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Avalie:</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground">Avalie:</span>
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((star) => {
                           const averageRating = lessonRating?.average_rating || 0;
@@ -528,7 +530,7 @@ export default function LessonViewPage() {
                               disabled={ratingMutation.isPending}
                             >
                               <Star
-                                className={`h-4 w-4 ${
+                                className={`h-3 w-3 ${
                                   star <= (hoveredRating || Math.round(averageRating))
                                     ? 'fill-yellow-400 text-yellow-400'
                                     : 'text-gray-300'
@@ -541,8 +543,8 @@ export default function LessonViewPage() {
                       
                       {/* Exibir média e quantidade de avaliações */}
                       {lessonRating && lessonRating.rating_count > 0 && (
-                        <span className="text-sm text-muted-foreground">
-                          {Number(lessonRating.average_rating).toFixed(1)} ({lessonRating.rating_count} avaliações)
+                        <span className="text-xs text-muted-foreground">
+                          {Number(lessonRating.average_rating).toFixed(1)} ({lessonRating.rating_count})
                         </span>
                       )}
                     </div>
