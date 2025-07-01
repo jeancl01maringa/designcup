@@ -16,14 +16,17 @@ import {
   Calendar,
   CreditCard,
   Target,
-  ArrowUpIcon,
-  ArrowDownIcon,
+  ArrowUp,
+  ArrowDown,
   Eye,
   UserPlus,
   Banknote,
   BarChart3,
   Zap,
-  PiggyBank
+  PiggyBank,
+  Edit,
+  Trash2,
+  PlusCircle
 } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -157,9 +160,9 @@ export default function MonetizacaoPage() {
               <div className="text-2xl font-bold text-gray-900">{formatarMoeda(faturamentoReal)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {crescimentoFaturamento >= 0 ? (
-                  <ArrowUpIcon className="mr-1 h-3 w-3 text-green-500" />
+                  <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
                 ) : (
-                  <ArrowDownIcon className="mr-1 h-3 w-3 text-red-500" />
+                  <ArrowDown className="mr-1 h-3 w-3 text-red-500" />
                 )}
                 {formatarPorcentagem(Math.abs(crescimentoFaturamento))} em relação ao período anterior
               </div>
@@ -196,7 +199,7 @@ export default function MonetizacaoPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatarMoeda(lucro)}</div>
+              <div className="text-2xl font-bold text-gray-900">{formatarMoeda(lucroReal)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 <ArrowUpIcon className="mr-1 h-3 w-3 text-green-500" />
                 {formatarPorcentagem(crescimentoLucro)} de crescimento
@@ -213,7 +216,7 @@ export default function MonetizacaoPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{roas.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-gray-900">{roasReal.toFixed(2)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 <ArrowUpIcon className="mr-1 h-3 w-3 text-green-500" />
                 {formatarPorcentagem(crescimentoRoas)} de eficiência
@@ -226,6 +229,7 @@ export default function MonetizacaoPage() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="traffic">Investimentos em Tráfego</TabsTrigger>
             <TabsTrigger value="plans">Performance de Planos</TabsTrigger>
             <TabsTrigger value="subscribers">Assinantes Recentes</TabsTrigger>
           </TabsList>
@@ -288,6 +292,94 @@ export default function MonetizacaoPage() {
                       <span>LTV Médio</span>
                       <Badge variant="secondary">{formatarMoeda(150)}</Badge>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="traffic" className="space-y-4">
+            <div className="grid gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <div>
+                    <CardTitle>Gestão de Investimentos em Tráfego</CardTitle>
+                    <CardDescription>
+                      Controle diário dos seus investimentos em anúncios e tráfego pago
+                    </CardDescription>
+                  </div>
+                  <Button>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Adicionar Investimento
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="h-12 px-4 text-left align-middle font-medium">Data</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium">Valor</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium">Descrição</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.isArray(trafficInvestments) && trafficInvestments.length > 0 ? (
+                          trafficInvestments.map((investment: any) => (
+                            <tr key={investment.id} className="border-b">
+                              <td className="h-12 px-4 align-middle">
+                                {format(new Date(investment.date), 'dd/MM/yyyy', { locale: ptBR })}
+                              </td>
+                              <td className="h-12 px-4 align-middle font-medium">
+                                {formatarMoeda(parseFloat(investment.amount))}
+                              </td>
+                              <td className="h-12 px-4 align-middle">
+                                {investment.description || 'Sem descrição'}
+                              </td>
+                              <td className="h-12 px-4 align-middle">
+                                <div className="flex items-center space-x-2">
+                                  <Button variant="outline" size="sm">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="outline" size="sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="h-24 text-center text-muted-foreground">
+                              Nenhum investimento registrado
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Resumo dos investimentos */}
+                  <div className="mt-6 grid gap-4 md:grid-cols-3">
+                    <Card className="border-l-4 border-l-blue-500">
+                      <CardContent className="pt-6">
+                        <div className="text-2xl font-bold">{formatarMoeda(investimentoTrafego)}</div>
+                        <p className="text-xs text-muted-foreground">Total Investido</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-green-500">
+                      <CardContent className="pt-6">
+                        <div className="text-2xl font-bold">{formatarMoeda(mediaDiariaInvestimento)}</div>
+                        <p className="text-xs text-muted-foreground">Média Diária</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-purple-500">
+                      <CardContent className="pt-6">
+                        <div className="text-2xl font-bold">{roasReal.toFixed(2)}</div>
+                        <p className="text-xs text-muted-foreground">ROAS Atual</p>
+                      </CardContent>
+                    </Card>
                   </div>
                 </CardContent>
               </Card>
