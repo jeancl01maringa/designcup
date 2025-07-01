@@ -32,7 +32,6 @@ export default function Home() {
           <div className="mb-4 flex items-start justify-between">
             <div>
               <h3 className="text-black font-semibold text-sm sm:text-base md:text-lg font-inter mb-1 flex items-center">
-                <span className="mr-2">🎨</span>
                 Artes de alta qualidade para sua Clínica
               </h3>
               <p className="text-gray-600 text-xs sm:text-sm font-light">

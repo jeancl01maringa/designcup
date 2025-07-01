@@ -212,7 +212,6 @@ export default function CategorySection() {
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h3 className="text-black font-semibold text-sm sm:text-base md:text-lg font-inter mb-1 flex items-center">
-              <span className="mr-2">📁</span>
               Escolha sua categoria
             </h3>
             <p className="text-gray-600 text-xs sm:text-sm font-light">
