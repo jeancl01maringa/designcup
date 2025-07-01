@@ -376,10 +376,10 @@ const MobileMenu = () => {
           <Button 
             variant="ghost" 
             size="lg"
-            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[44px] min-h-[44px] p-2"
+            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[56px] min-h-[56px] p-3"
           >
-            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </Button>
         </SheetTrigger>
