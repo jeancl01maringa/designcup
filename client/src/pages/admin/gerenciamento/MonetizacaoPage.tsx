@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
@@ -31,6 +31,84 @@ import {
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
+
+// Componente para performance por UTM
+function UtmPerformanceSection() {
+  const [utmStats, setUtmStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUtmStats = async () => {
+      try {
+        const response = await fetch('/api/admin/traffic-investments/utm-stats');
+        if (response.ok) {
+          const data = await response.json();
+          setUtmStats(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas UTM:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUtmStats();
+  }, []);
+
+  const formatarMoeda = (valor: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(valor);
+  };
+
+  if (loading) {
+    return (
+      <div className="mt-6">
+        <h3 className="text-lg font-medium mb-4">Performance por UTM Campaign</h3>
+        <div className="text-center py-8 text-muted-foreground">
+          Carregando estatísticas...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6">
+      <h3 className="text-lg font-medium mb-4">Performance por UTM Campaign</h3>
+      {utmStats.length > 0 ? (
+        <div className="grid gap-4">
+          {utmStats.map((utm: any) => (
+            <Card key={utm.utm_campaign} className="border">
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">{utm.utm_campaign}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {utm.total_entries} investimento(s)
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold">
+                      {formatarMoeda(parseFloat(utm.total_investment))}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Média: {formatarMoeda(parseFloat(utm.avg_investment))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          Nenhuma campanha UTM encontrada
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MonetizacaoPage() {
   const [periodo, setPeriodo] = useState("30");
@@ -387,6 +465,9 @@ export default function MonetizacaoPage() {
                       </CardContent>
                     </Card>
                   </div>
+
+                  {/* Performance por UTM Campaign */}
+                  <UtmPerformanceSection />
                 </CardContent>
               </Card>
             </div>

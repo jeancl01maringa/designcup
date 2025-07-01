@@ -6967,6 +6967,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Estatísticas por UTM Campaign
+  app.get('/api/admin/traffic-investments/utm-stats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { startDate, endDate } = req.query;
+      
+      let query = `
+        SELECT 
+          utm_campaign,
+          COALESCE(SUM(amount), 0) as total_investment,
+          COUNT(*) as total_entries,
+          COALESCE(AVG(amount), 0) as avg_investment
+        FROM traffic_investments
+        WHERE utm_campaign IS NOT NULL AND utm_campaign != ''
+      `;
+      const params: any[] = [];
+      
+      if (startDate) {
+        query += ' AND date >= $' + (params.length + 1);
+        params.push(startDate);
+      }
+      
+      if (endDate) {
+        query += ' AND date <= $' + (params.length + 1);
+        params.push(endDate);
+      }
+      
+      query += ' GROUP BY utm_campaign ORDER BY total_investment DESC';
+
+      const result = await pool.query(query, params);
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar estatísticas por UTM:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
