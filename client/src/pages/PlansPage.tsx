@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,11 @@ interface Plan {
 export default function PlansPage() {
   const [isAnnual, setIsAnnual] = useState(false);
   const { toast } = useToast();
+
+  // Scroll para o topo quando a página carrega
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const {
     data: plans = [],
