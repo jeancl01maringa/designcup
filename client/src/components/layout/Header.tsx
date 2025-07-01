@@ -93,6 +93,7 @@ const NavLinks = () => {
   const [location] = useLocation();
   
   const navItems = [
+    { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
     { name: "Cursos", path: "/cursos" },
     { name: "Planos", path: "/planos" }
