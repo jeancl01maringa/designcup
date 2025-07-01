@@ -251,10 +251,124 @@ export default function LessonViewPage() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-0">
+        <div className="flex flex-col lg:grid lg:grid-cols-4 gap-0">
           
-          {/* Sidebar - Lista de Aulas */}
-          <div className="lg:col-span-1 bg-gray-50 border-r border-gray-200">
+          {/* Conteúdo Principal - PRIMEIRO NO MOBILE */}
+          <div className="order-1 lg:order-2 lg:col-span-3 p-4 lg:p-6 bg-white">
+            <Card className="border-0 shadow-none">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl lg:text-2xl">{currentLesson.title}</CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                {/* 1. Conteúdo da Aula (Vídeo/Texto) */}
+                {currentLesson.type === 'video' ? (
+                  <div className="space-y-4">
+                    {/* Renderizar vídeo do YouTube ou outros links */}
+                    {currentLesson.content && currentLesson.content.includes('youtube.com') ? (
+                      <div className="aspect-video">
+                        <iframe
+                          src={currentLesson.content.replace('watch?v=', 'embed/')}
+                          className="w-full h-full rounded-lg"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : currentLesson.content && currentLesson.content.includes('youtu.be') ? (
+                      <div className="aspect-video">
+                        <iframe
+                          src={currentLesson.content.replace('youtu.be/', 'youtube.com/embed/')}
+                          className="w-full h-full rounded-lg"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : currentLesson.content ? (
+                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="text-center">
+                          <Play className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                          <p className="text-gray-600">Link do vídeo:</p>
+                          <a 
+                            href={currentLesson.content} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline break-all"
+                          >
+                            {currentLesson.content}
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="text-center text-gray-500">
+                          <Play className="h-16 w-16 mx-auto mb-4" />
+                          <p>Nenhum vídeo configurado para esta aula</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="prose max-w-none">
+                    {currentLesson.content ? (
+                      <div dangerouslySetInnerHTML={{ __html: currentLesson.content }} />
+                    ) : (
+                      <p className="text-gray-500">Nenhum conteúdo disponível para esta aula.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Navegação e controles para mobile - visível apenas em mobile */}
+                <div className="lg:hidden">
+                  <div className="flex items-center justify-between py-4 border-t border-b">
+                    <div className="text-sm text-muted-foreground">
+                      Aula {Math.max(currentLessonIndex + 1, 1)} de {currentModule?.lessons.length}
+                    </div>
+                    
+                    <Button
+                      onClick={markAsCompleted}
+                      variant={isLessonCompleted(lessonId) ? "default" : "outline"}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      {isLessonCompleted(lessonId) ? "Concluída" : "Marcar como concluída"}
+                    </Button>
+                  </div>
+
+                  {/* Navegação entre aulas */}
+                  <div className="flex justify-between pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => prevLesson && navigateToLesson(prevLesson.id)}
+                      disabled={!prevLesson}
+                      className="flex items-center gap-2"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Anterior
+                    </Button>
+                    
+                    <Button
+                      onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
+                      disabled={!nextLesson}
+                      className="flex items-center gap-2"
+                    >
+                      Próxima
+                      <ArrowLeft className="h-4 w-4 rotate-180" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar - Lista de Aulas - SEGUNDO NO MOBILE */}
+          <div className="order-2 lg:order-1 lg:col-span-1 bg-gray-50 border-r lg:border-r border-t lg:border-t-0 border-gray-200">
             <div className="p-4 border-b border-gray-200">
               <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 mb-4 text-gray-700 hover:text-gray-900">
                 <ArrowLeft className="h-4 w-4" />
