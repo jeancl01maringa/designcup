@@ -181,9 +181,9 @@ export default function MonetizacaoPage() {
               <div className="text-2xl font-bold text-gray-900">{formatarMoeda(investimentoTrafego)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {crescimentoTrafego >= 0 ? (
-                  <ArrowUpIcon className="mr-1 h-3 w-3 text-green-500" />
+                  <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
                 ) : (
-                  <ArrowDownIcon className="mr-1 h-3 w-3 text-red-500" />
+                  <ArrowDown className="mr-1 h-3 w-3 text-red-500" />
                 )}
                 {formatarPorcentagem(Math.abs(crescimentoTrafego))} vs período anterior
               </div>
@@ -201,7 +201,7 @@ export default function MonetizacaoPage() {
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{formatarMoeda(lucroReal)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <ArrowUpIcon className="mr-1 h-3 w-3 text-green-500" />
+                <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
                 {formatarPorcentagem(crescimentoLucro)} de crescimento
               </div>
             </CardContent>
@@ -218,7 +218,7 @@ export default function MonetizacaoPage() {
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{roasReal.toFixed(2)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <ArrowUpIcon className="mr-1 h-3 w-3 text-green-500" />
+                <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
                 {formatarPorcentagem(crescimentoRoas)} de eficiência
               </div>
             </CardContent>
