@@ -211,11 +211,11 @@ export default function CategorySection() {
         {/* Header */}
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
+            <h3 className="text-black font-semibold text-base sm:text-lg font-inter mb-1 flex items-center">
               <span className="mr-2">📁</span>
               Escolha sua categoria
             </h3>
-            <p className="text-gray-600 text-sm font-light">
+            <p className="text-gray-600 text-xs sm:text-sm font-light">
               Encontre recursos ideais para sua clínica de estética
             </p>
             <div className="flex items-center mt-2">
@@ -230,12 +230,13 @@ export default function CategorySection() {
           {/* Botão Ver categorias - canto superior direito */}
           <Link 
             href="/categorias" 
-            className="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-gray-200 shadow-sm"
+            className="bg-white hover:bg-gray-50 text-gray-700 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors border border-gray-200 shadow-sm"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
             </svg>
-            Ver categorias
+            <span className="hidden sm:inline">Ver categorias</span>
+            <span className="sm:hidden">Ver</span>
           </Link>
         </div>
         

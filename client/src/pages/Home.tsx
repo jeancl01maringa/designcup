@@ -31,11 +31,11 @@ export default function Home() {
           {/* Header seguindo o mesmo padrão da seção de categorias */}
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <h3 className="text-black font-semibold text-lg font-inter mb-1 flex items-center">
+              <h3 className="text-black font-semibold text-base sm:text-lg font-inter mb-1 flex items-center">
                 <span className="mr-2">🎨</span>
                 Artes de alta qualidade para sua Clínica
               </h3>
-              <p className="text-gray-600 text-sm font-light">
+              <p className="text-gray-600 text-xs sm:text-sm font-light">
                 Modelos premium, editáveis e prontos para usar
               </p>
               <div className="flex items-center mt-2">
@@ -56,9 +56,9 @@ export default function Home() {
                     e.stopPropagation();
                     setFilterDropdownOpen(!filterDropdownOpen);
                   }}
-                  className="bg-white hover:bg-gray-50 text-gray-700 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center gap-2 transition-colors border border-gray-200 shadow-sm"
+                  className="bg-white hover:bg-gray-50 text-gray-700 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors border border-gray-200 shadow-sm"
                 >
-                  <Filter className="w-4 h-4" />
+                  <Filter className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Filtros</span>
                 </button>
                 
