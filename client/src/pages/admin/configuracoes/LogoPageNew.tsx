@@ -92,33 +92,8 @@ export default function LogoPage() {
       setIsUploading(true);
       
       try {
-        // 1. Upload via API do backend (o backend fará a otimização)
-        const publicUrl = await uploadToBackend(file);
-        
-        // 3. Remover logo antigo se existir
-        const currentLogoUrl = (currentLogo as any)?.value;
-        if (currentLogoUrl && currentLogoUrl.includes('supabase')) {
-          await removeOldLogo(currentLogoUrl);
-        }
-        
-        // 4. Salvar nova URL no banco
-        const response = await fetch('/api/settings', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            key: 'logo_plataforma',
-            value: publicUrl,
-            description: 'Logo personalizado da plataforma'
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Falha ao salvar no banco de dados');
-        }
-
-        return await response.json();
+        // Upload para o banco de dados (salva direto como base64)
+        return await uploadToDatabase(file);
       } finally {
         setIsUploading(false);
       }
