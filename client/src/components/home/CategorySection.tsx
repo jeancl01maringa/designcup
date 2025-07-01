@@ -123,19 +123,23 @@ export default function CategorySection() {
     return () => window.removeEventListener('resize', updateScrollDimensions);
   }, [categoriesWithPosts]);
   
-  // Manipular o scroll para a esquerda com efeito infinito contínuo
+  // Manipular o scroll para a esquerda
   const handleScrollLeft = () => {
     if (scrollRef.current) {
-      const newPosition = scrollPosition - 300;
+      const containerWidth = containerRef.current?.clientWidth || 0;
+      const scrollAmount = Math.min(300, containerWidth * 0.8);
+      const newPosition = Math.max(0, scrollPosition - scrollAmount);
       scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
       setScrollPosition(newPosition);
     }
   };
   
-  // Manipular o scroll para a direita com efeito infinito contínuo  
+  // Manipular o scroll para a direita
   const handleScrollRight = () => {
     if (scrollRef.current) {
-      const newPosition = scrollPosition + 300;
+      const containerWidth = containerRef.current?.clientWidth || 0;
+      const scrollAmount = Math.min(300, containerWidth * 0.8);
+      const newPosition = Math.min(maxScroll, scrollPosition + scrollAmount);
       scrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
       setScrollPosition(newPosition);
     }
@@ -200,10 +204,9 @@ export default function CategorySection() {
     );
   }
 
-  // Verifica se pode rolar para esquerda ou direita (sempre mostrar para scroll infinito)
-  const shouldShowArrows = categoriesWithPosts.length > 1;
-  const canScrollLeft = shouldShowArrows;
-  const canScrollRight = shouldShowArrows;
+  // Verifica se pode rolar para esquerda ou direita
+  const canScrollLeft = scrollPosition > 0;
+  const canScrollRight = scrollPosition < maxScroll;
   
   return (
     <section className="py-8 bg-white border-b border-gray-100">
@@ -261,9 +264,9 @@ export default function CategorySection() {
             }}
           >
             <div className="flex space-x-6 w-max">
-              {/* Renderizar categorias múltiplas vezes para scroll infinito */}
-              {[...categoriesWithPosts, ...categoriesWithPosts, ...categoriesWithPosts].map((category, index) => (
-                <div key={`${category.id}-${index}`} className="flex-none w-80">
+              {/* Renderizar categorias normalmente */}
+              {categoriesWithPosts.map((category, index) => (
+                <div key={category.id} className="flex-none w-80">
                   <div className="relative">
                     <Link 
                       href={`/categorias/${category.slug || category.id}`} 
