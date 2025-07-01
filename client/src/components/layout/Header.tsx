@@ -318,20 +318,6 @@ const MobileUserMenu = () => {
         </Button>
       )}
       
-      {isFreeUser && (
-        <Button 
-          variant="default" 
-          size="sm"
-          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-4 py-2 h-10 text-sm"
-          onClick={() => navigate("/planos")}
-        >
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732L14.146 12.8l-1.179 4.456a1 1 0 01-1.934 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732L9.854 7.2l1.179-4.456A1 1 0 0112 2z" clipRule="evenodd" />
-          </svg>
-          <span>Premium</span>
-        </Button>
-      )}
-      
       {/* Profile Photo Button for Mobile */}
       <Button 
         variant="ghost" 
@@ -504,6 +490,27 @@ const MobileMenu = () => {
                   );
                 })}
               </div>
+              
+              {/* Botão Premium para usuários free */}
+              {user && (!user.tipo || user.tipo === 'free') && (
+                <div className="border-t border-gray-100 pt-4">
+                  <div
+                    className="flex items-center px-4 py-3 text-base font-medium text-white transition-all duration-200 hover:from-[#E03E28] hover:to-[#E89538] rounded-xl cursor-pointer group bg-gradient-to-r from-[#F84830] to-[#F8A441]"
+                    onClick={() => {
+                      navigate("/planos");
+                      setIsOpen(false);
+                    }}
+                  >
+                    <div className="w-10 h-10 bg-white/20 border border-white/20 rounded-xl flex items-center justify-center mr-4 shadow-sm group-hover:shadow-md transition-all duration-200">
+                      <Crown className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="flex-1 text-white font-semibold">Assinar Premium</span>
+                    <svg className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </div>
+              )}
               
               {/* Espaçamento extra para deixar mais clean */}
               <div className="pb-4"></div>
