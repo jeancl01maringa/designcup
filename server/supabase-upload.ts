@@ -90,7 +90,7 @@ export async function uploadImageToSupabase(
 }
 
 /**
- * Faz upload especializado para logos (preserva SVG, otimiza outros formatos)
+ * Faz upload especializado para logos (converte SVG para PNG de alta qualidade)
  */
 export async function uploadLogoToSupabase(
   buffer: Buffer,
@@ -101,32 +101,54 @@ export async function uploadLogoToSupabase(
 ): Promise<{ url: string | null; error: string | null }> {
   try {
     let finalBuffer = buffer;
-    let contentType = mimeType;
-    let fileExtension = '';
+    let contentType = 'image/png';
+    let fileExtension = '.png';
     
     // Gerar timestamp único para evitar cache
     const timestamp = Date.now();
     
-    // Se for SVG, preservar o formato original
-    if (mimeType === 'image/svg+xml') {
-      fileExtension = '.svg';
-      contentType = 'image/svg+xml';
-      console.log(`Preservando SVG original: ${originalName}`);
-    } else {
-      // Para outros formatos, otimizar para WebP
-      try {
+    console.log(`Processando logo: ${originalName} (${mimeType})`);
+    
+    // Converter para PNG de alta qualidade (funciona com SVG e outros formatos)
+    try {
+      if (mimeType === 'image/svg+xml') {
+        console.log(`Convertendo SVG ${originalName} para PNG de alta qualidade...`);
+        
+        // Para SVG, criar PNG de alta resolução
+        finalBuffer = await sharp(buffer, { density: 300 })
+          .resize(800, 800, { 
+            fit: 'inside', 
+            withoutEnlargement: true,
+            background: { r: 255, g: 255, b: 255, alpha: 0 } // Fundo transparente
+          })
+          .png({ 
+            quality: 100,
+            compressionLevel: 6,
+            adaptiveFiltering: true
+          })
+          .toBuffer();
+          
+        console.log(`SVG convertido para PNG de alta qualidade: ${(finalBuffer.length / 1024).toFixed(1)}KB`);
+      } else {
+        // Para outros formatos, otimizar mantendo boa qualidade
         finalBuffer = await sharp(buffer)
-          .resize(500, 500, { 
+          .resize(800, 800, { 
             fit: 'inside', 
             withoutEnlargement: true 
           })
-          .webp({ quality: 90 })
+          .png({ 
+            quality: 95,
+            compressionLevel: 6
+          })
           .toBuffer();
-        fileExtension = '.webp';
-        contentType = 'image/webp';
-        console.log(`Convertendo ${originalName} para WebP otimizado`);
-      } catch (error) {
-        console.warn('Falha na conversão WebP, usando original:', error);
+          
+        console.log(`${originalName} otimizado para PNG: ${(finalBuffer.length / 1024).toFixed(1)}KB`);
+      }
+    } catch (sharpError) {
+      console.warn('Falha na conversão, usando original:', sharpError);
+      // Se falhar, manter o buffer original
+      if (mimeType.startsWith('image/')) {
+        contentType = mimeType;
         fileExtension = originalName.includes('.') ? '.' + originalName.split('.').pop() : '';
       }
     }
