@@ -100,12 +100,12 @@ const NavLinks = () => {
   ];
   
   return (
-    <nav className="hidden md:flex items-center space-x-5">
+    <nav className="hidden md:flex items-center space-x-3">
       {navItems.map((item) => (
         <Link 
           key={item.path} 
           href={item.path}
-          className={`text-[#1D1D1D] hover:border-b-2 hover:border-gray-300 hover:pb-1 font-medium text-sm transition-all duration-200 ${location === item.path ? 'text-[#393B40] border-b-2 border-gray-400 pb-1' : ''}`}
+          className={`text-[#1D1D1D] hover:border hover:border-gray-200 hover:bg-gray-50/50 font-medium text-sm transition-all duration-200 px-3 py-2 rounded-lg ${location === item.path ? 'text-[#393B40] border border-gray-300 bg-gray-50' : ''}`}
         >
           {item.name}
         </Link>
@@ -114,7 +114,7 @@ const NavLinks = () => {
         variant="ghost" 
         size="sm" 
         showIcon={false}
-        className="text-[#1D1D1D] hover:border-b-2 hover:border-gray-300 hover:pb-1 font-medium text-sm transition-all duration-200 p-0 h-auto"
+        className="text-[#1D1D1D] hover:border hover:border-gray-200 hover:bg-gray-50/50 font-medium text-sm transition-all duration-200 px-3 py-2 rounded-lg"
       />
     </nav>
   );
