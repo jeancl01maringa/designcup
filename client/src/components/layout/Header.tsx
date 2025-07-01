@@ -105,7 +105,7 @@ const NavLinks = () => {
         <Link 
           key={item.path} 
           href={item.path}
-          className={`text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors ${location === item.path ? 'text-[#AA5E2F]' : ''}`}
+          className={`text-[#1D1D1D] hover:border-b-2 hover:border-gray-300 hover:pb-1 font-medium text-sm transition-all duration-200 ${location === item.path ? 'text-[#393B40] border-b-2 border-gray-400 pb-1' : ''}`}
         >
           {item.name}
         </Link>
@@ -114,7 +114,7 @@ const NavLinks = () => {
         variant="ghost" 
         size="sm" 
         showIcon={false}
-        className="text-[#1D1D1D] hover:text-[#AA5E2F] font-medium text-sm transition-colors p-0 h-auto"
+        className="text-[#1D1D1D] hover:border-b-2 hover:border-gray-300 hover:pb-1 font-medium text-sm transition-all duration-200 p-0 h-auto"
       />
     </nav>
   );
