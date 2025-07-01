@@ -65,9 +65,8 @@ export default function HeroSection() {
         
         {/* Main Heading - Fixed line breaks */}
         <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-[#393B40] leading-tight mb-4 sm:mb-6 font-montserrat px-4 sm:px-0">
-          <span className="block">A Melhor plataforma de Artes</span>
+          <span className="block text-[44px]">A Melhor plataforma de Artes</span>
           <span className="block font-bold bg-gradient-to-r from-[#F84930] to-[#F8A441] bg-clip-text text-transparent">para Estética do Brasil</span>
-          <span className="block font-bold bg-gradient-to-r from-[#F84930] to-[#F8A441] bg-clip-text text-transparent">Estética do Brasil</span>
         </h1>
         
         {/* Description - Reduced font sizes */}
