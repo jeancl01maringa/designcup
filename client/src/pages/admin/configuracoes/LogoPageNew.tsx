@@ -51,29 +51,23 @@ export default function LogoPage() {
     }
   };
 
-  // Função para fazer upload para Supabase Storage
-  const uploadToSupabase = async (file: File): Promise<string> => {
-    const fileName = `logo_${Date.now()}.webp`;
-    const filePath = `logos/${fileName}`;
+  // Função para fazer upload via API do backend
+  const uploadToBackend = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('logo', file);
 
-    const { data, error } = await supabase.storage
-      .from('images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    const response = await fetch('/api/admin/upload-logo', {
+      method: 'POST',
+      body: formData,
+    });
 
-    if (error) {
-      console.error('Erro no upload para Supabase:', error);
-      throw new Error(`Falha no upload: ${error.message}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erro no upload');
     }
 
-    // Obter URL público
-    const { data: publicUrlData } = supabase.storage
-      .from('images')
-      .getPublicUrl(filePath);
-
-    return publicUrlData.publicUrl;
+    const data = await response.json();
+    return data.logoPath;
   };
 
   // Função para remover logo antigo do Supabase
@@ -99,11 +93,8 @@ export default function LogoPage() {
       setIsUploading(true);
       
       try {
-        // 1. Otimizar imagem
-        const optimizedFile = await optimizeImage(file);
-        
-        // 2. Upload para Supabase Storage
-        const publicUrl = await uploadToSupabase(optimizedFile);
+        // 1. Upload via API do backend (o backend fará a otimização)
+        const publicUrl = await uploadToBackend(file);
         
         // 3. Remover logo antigo se existir
         const currentLogoUrl = (currentLogo as any)?.value;
