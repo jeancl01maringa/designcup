@@ -31,6 +31,7 @@ import {
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
+import { UTMDebugger } from "@/components/admin/UTMDebugger";
 
 // Componente para performance por UTM Campaign
 function UtmPerformanceSection() {
@@ -225,6 +226,9 @@ export default function MonetizacaoPage() {
       />
       
       <div className="space-y-6">
+        {/* UTM Debugger */}
+        <UTMDebugger />
+
         {/* Cards de Métricas Principais */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Card Faturamento */}
