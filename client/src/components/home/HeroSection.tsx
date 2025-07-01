@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { Star, Users, Search, ChevronDown } from "lucide-react";
+import { Crown, Users, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function HeroSection() {
@@ -54,7 +54,7 @@ export default function HeroSection() {
         {/* Badges - Always side by side */}
         <div className="flex flex-row justify-center gap-2 sm:gap-4 md:gap-6 mb-4 sm:mb-6 px-4">
           <div className="bg-white/70 backdrop-blur-sm rounded-full py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 flex items-center justify-center shadow-sm border border-white/20 text-center">
-            <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500 mr-1 sm:mr-1.5 flex-shrink-0" />
+            <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500 mr-1 sm:mr-1.5 flex-shrink-0" />
             <span className="text-xs font-medium text-[#1D1D1D] whitespace-nowrap">Artes Premium e Exclusivas</span>
           </div>
         </div>
