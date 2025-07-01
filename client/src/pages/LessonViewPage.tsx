@@ -250,12 +250,15 @@ export default function LessonViewPage() {
         <title>{currentLesson.title} - {course.title}</title>
       </Helmet>
 
-      {/* Botão voltar - SEMPRE NO TOPO NO MOBILE */}
+      {/* Nome do curso e botão voltar - SEMPRE NO TOPO NO MOBILE */}
       <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
-        <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar ao curso
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+          <h2 className="font-semibold text-base text-gray-900">{course.title}</h2>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto">
@@ -331,6 +334,67 @@ export default function LessonViewPage() {
                   </div>
                 )}
 
+                {/* Descrição da Aula - Mobile */}
+                <div className="lg:hidden">
+                  {currentLesson.description && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Descrição</h3>
+                      <div 
+                        className="prose max-w-none text-gray-600 leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: currentLesson.description }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Material Extra - Mobile */}
+                  {currentLesson.extra_materials && currentLesson.extra_materials.length > 0 && (
+                    <div className="space-y-4 mt-6">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Material Extra
+                      </h3>
+                      <div className="grid gap-2">
+                        {currentLesson.extra_materials.map((file: any, index: number) => {
+                          const fileUrl = typeof file === 'string' ? file : file.url;
+                          const fileName = typeof file === 'string' ? 
+                            file.split('/').pop() || `Arquivo ${index + 1}` : 
+                            file.name || `Arquivo ${index + 1}`;
+                          const fileExtension = fileName.split('.').pop()?.toLowerCase();
+                          
+                          return (
+                            <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                                  <FileText className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm">{fileName}</p>
+                                  <p className="text-xs text-gray-500 capitalize">
+                                    {fileExtension === 'pdf' ? 'Documento PDF' : 
+                                     fileExtension === 'doc' || fileExtension === 'docx' ? 'Documento Word' :
+                                     fileExtension === 'txt' ? 'Arquivo de Texto' :
+                                     fileExtension === 'zip' || fileExtension === 'rar' ? 'Arquivo Compactado' :
+                                     'Arquivo'}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(fileUrl, '_blank')}
+                                className="flex items-center gap-1"
+                              >
+                                <Download className="h-3 w-3" />
+                                Baixar
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Navegação e controles para mobile - visível apenas em mobile */}
                 <div className="lg:hidden">
                   <div className="flex flex-col gap-3 py-4 border-t border-b">
@@ -389,7 +453,7 @@ export default function LessonViewPage() {
                   Voltar ao curso
                 </Button>
               </div>
-              <h3 className="font-semibold text-base lg:text-lg text-gray-900">{course.title}</h3>
+              <h3 className="hidden lg:block font-semibold text-base lg:text-lg text-gray-900">{course.title}</h3>
             </div>
             
             <ScrollArea className="h-[300px] lg:h-[calc(100vh-120px)]">
