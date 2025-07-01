@@ -64,7 +64,7 @@ export default function HeroSection() {
         </div>
         
         {/* Main Heading - Fixed line breaks */}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#1D1D1D] leading-tight mb-4 sm:mb-6 font-montserrat px-4 sm:px-0">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-[#393B40] leading-tight mb-4 sm:mb-6 font-montserrat px-4 sm:px-0">
           <span className="block">A Melhor plataforma</span>
           <span className="block bg-gradient-to-r from-[#F84930] to-[#F8A441] bg-clip-text text-transparent">de Artes para Estética</span>
           <span className="block bg-gradient-to-r from-[#F84930] to-[#F8A441] bg-clip-text text-transparent">do Brasil</span>
@@ -72,8 +72,8 @@ export default function HeroSection() {
         
         {/* Description - Reduced font sizes */}
         <p className="text-[#4B4B4B] text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-3xl font-sans font-light leading-relaxed px-4 sm:px-0">
-          <span className="text-[#1D1D1D] font-semibold">Artes 100% editáveis</span> para sua <span className="text-[#1D1D1D] font-semibold">clínica de estética,</span> criadas para facilitar<br className="hidden sm:block" /> 
-          sua rotina com <span className="text-[#1D1D1D] font-semibold">qualidade profissional.</span>
+          <span className="text-[#393B40] font-semibold">Artes 100% editáveis</span> para sua <span className="text-[#393B40] font-semibold">clínica de estética,</span> criadas para facilitar<br className="hidden sm:block" /> 
+          sua rotina com <span className="text-[#393B40] font-semibold">qualidade profissional.</span>
         </p>
         
         {/* Search Bar with Format Dropdown - Hidden on mobile */}
