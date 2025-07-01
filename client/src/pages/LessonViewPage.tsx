@@ -437,8 +437,8 @@ export default function LessonViewPage() {
             </ScrollArea>
           </div>
 
-          {/* Conteúdo Principal */}
-          <div className="lg:col-span-3 p-6 bg-white">
+          {/* Conteúdo Principal - VERSÃO DESKTOP OCULTA */}
+          <div className="hidden lg:block lg:col-span-3 p-6 bg-white">
             <Card className="border-0 shadow-none">
               <CardHeader>
                 <div className="flex items-center justify-between">
