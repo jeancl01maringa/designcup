@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Play, FileText, Download, Clock, CheckCircle, Lock, Book, Star } from "lucide-react";
+import { ArrowLeft, Play, FileText, Download, Clock, CheckCircle, Lock, Book, Star, ChevronDown, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useCourseProgress } from "@/hooks/use-course-progress";
@@ -445,60 +445,150 @@ export default function LessonViewPage() {
 
           {/* Sidebar - Lista de Aulas - SEGUNDO NO MOBILE */}
           <div className="order-2 lg:order-1 lg:col-span-1 bg-gray-50 border-r lg:border-r border-t lg:border-t-0 border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              {/* Botão voltar apenas no desktop */}
-              <div className="hidden lg:block">
+            
+            {/* Layout Desktop - Mantém o original */}
+            <div className="hidden lg:block">
+              <div className="p-4 border-b border-gray-200">
                 <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 mb-4 text-gray-700 hover:text-gray-900">
                   <ArrowLeft className="h-4 w-4" />
                   Voltar ao curso
                 </Button>
+                <h3 className="font-semibold text-lg text-gray-900">{course.title}</h3>
               </div>
-              <h3 className="hidden lg:block font-semibold text-base lg:text-lg text-gray-900">{course.title}</h3>
-            </div>
-            
-            <ScrollArea className="h-[300px] lg:h-[calc(100vh-120px)]">
-              <div className="p-3 lg:p-4 space-y-3 lg:space-y-4">
-                {course.modules.map((module) => (
-                  <div key={module.id} className="space-y-2">
-                    <h4 className="font-medium text-sm text-gray-900 sticky top-0 bg-gray-50 py-2">
-                      {module.title}
-                    </h4>
-                    
-                    <div className="space-y-1">
-                      {module.lessons.map((lesson) => {
-                        const isActive = lesson.id === lessonId;
-                        const isCompleted = isLessonCompleted(lesson.id);
-                        
-                        return (
-                          <button
-                            key={lesson.id}
-                            onClick={() => navigateToLesson(lesson.id)}
-                            className={`w-full text-left p-2 lg:p-3 rounded-lg transition-colors ${
-                              isActive 
-                                ? 'bg-blue-50 border border-blue-200' 
-                                : 'hover:bg-gray-50'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              {isCompleted ? (
-                                <CheckCircle className="h-3 w-3 lg:h-4 lg:w-4 text-green-600 flex-shrink-0" />
-                              ) : lesson.type === 'video' ? (
-                                <Play className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400 flex-shrink-0" />
-                              ) : (
-                                <FileText className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400 flex-shrink-0" />
-                              )}
-                              <span className={`text-xs lg:text-sm break-words ${isActive ? 'font-medium text-blue-900' : 'text-gray-700'}`}>
-                                {lesson.title}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
+              
+              <ScrollArea className="h-[calc(100vh-120px)]">
+                <div className="p-4 space-y-4">
+                  {course.modules.map((module) => (
+                    <div key={module.id} className="space-y-2">
+                      <h4 className="font-medium text-sm text-gray-900 sticky top-0 bg-gray-50 py-2">
+                        {module.title}
+                      </h4>
+                      
+                      <div className="space-y-1">
+                        {module.lessons.map((lesson) => {
+                          const isActive = lesson.id === lessonId;
+                          const isCompleted = isLessonCompleted(lesson.id);
+                          
+                          return (
+                            <button
+                              key={lesson.id}
+                              onClick={() => navigateToLesson(lesson.id)}
+                              className={`w-full text-left p-3 rounded-lg transition-colors ${
+                                isActive 
+                                  ? 'bg-blue-50 border border-blue-200' 
+                                  : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {isCompleted ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                ) : lesson.type === 'video' ? (
+                                  <Play className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                ) : (
+                                  <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                )}
+                                <span className={`text-sm break-words ${isActive ? 'font-medium text-blue-900' : 'text-gray-700'}`}>
+                                  {lesson.title}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Layout Mobile - Novo design com dropdowns conforme imagem */}
+            <div className="lg:hidden bg-white">
+              <div className="p-4 border-b border-gray-200">
+                <h3 className="text-xl font-bold text-gray-900">Lista de Conteúdos</h3>
               </div>
-            </ScrollArea>
+              
+              <div className="p-4 space-y-4">
+                {course.modules.map((module, moduleIndex) => {
+                  const currentModuleLessons = module.lessons;
+                  const completedLessons = currentModuleLessons.filter(lesson => isLessonCompleted(lesson.id)).length;
+                  const totalLessons = currentModuleLessons.length;
+                  const isCurrentModule = currentModuleLessons.some(lesson => lesson.id === lessonId);
+                  
+                  return (
+                    <div key={module.id} className="bg-gray-50 rounded-lg p-4 border">
+                      {/* Cabeçalho do Módulo */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                            {moduleIndex + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-lg text-gray-900">{module.title}</h4>
+                            <p className="text-sm text-gray-600">{totalLessons} aulas</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-base font-semibold text-gray-700">{completedLessons}/{totalLessons}</p>
+                          <ChevronDown className="h-5 w-5 text-gray-500 mx-auto mt-1" />
+                        </div>
+                      </div>
+
+                      {/* Lista de Aulas */}
+                      <div className="space-y-3">
+                        {currentModuleLessons.map((lesson) => {
+                          const isActive = lesson.id === lessonId;
+                          const isCompleted = isLessonCompleted(lesson.id);
+                          
+                          return (
+                            <div key={lesson.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                              <div className="flex items-center gap-3 flex-1">
+                                <Play className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <h5 className={`font-semibold text-base ${
+                                    isActive ? 'text-blue-900' : 'text-gray-900'
+                                  }`}>
+                                    {lesson.title}
+                                  </h5>
+                                  {lesson.description && (
+                                    <div className="text-sm text-gray-600 mt-1"
+                                         dangerouslySetInnerHTML={{ 
+                                           __html: lesson.description.length > 50 ? 
+                                           lesson.description.substring(0, 50) + '...' : 
+                                           lesson.description 
+                                         }}
+                                    />
+                                  )}
+                                </div>
+                                <div className="text-center">
+                                  <span className="text-lg font-bold text-gray-900">{isCompleted ? '1' : '0'}</span>
+                                </div>
+                              </div>
+                              <Button
+                                onClick={() => navigateToLesson(lesson.id)}
+                                size="sm"
+                                variant={isActive ? "default" : "secondary"}
+                                className="ml-3 font-semibold text-sm px-4 py-2"
+                              >
+                                Assistir
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Sobre o Curso */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">Sobre o Curso</h4>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <BookOpen className="h-5 w-5" />
+                    <span className="text-base font-medium">{course.modules.length} módulos</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Conteúdo Principal - VERSÃO DESKTOP OCULTA */}
