@@ -100,6 +100,11 @@ export default function TodasArtesOptimized() {
       };
       setSelectedFormat(formatMap[format] || 'all');
     }
+
+    // Scroll para o topo quando carregar com parâmetros de pesquisa
+    if (search || format) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, [location]);
 
   const {
