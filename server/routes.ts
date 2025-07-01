@@ -4887,26 +4887,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Formato de arquivo inválido. Use PNG, JPG ou SVG.' });
       }
 
-      // Validar tamanho (máximo 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        return res.status(400).json({ message: 'Arquivo muito grande. Máximo 2MB.' });
+      // Validar tamanho (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ message: 'Arquivo muito grande. Máximo 5MB.' });
       }
 
       // Importar função de upload do Supabase
-      const { uploadImageToSupabase, ensureBucket } = await import('./supabase-upload.js');
-      
-      // Assegurar que o bucket logos existe
-      await ensureBucket('logos');
+      const { uploadImageToSupabase } = await import('./supabase-upload.js');
 
       // Gerar nome único para o arquivo
       const fileName = `logo_${Date.now()}`;
       
-      // Upload para Supabase Storage com conversão WebP (exceto SVG)
+      // Upload para Supabase Storage no bucket 'images' (que já funciona)
       const uploadResult = await uploadImageToSupabase(
         file.buffer,
         file.originalname,
-        'logos',
-        fileName
+        'images', // Usar bucket 'images' que já tem políticas corretas
+        `logos/${fileName}` // Criar subpasta para organizar
       );
 
       if (uploadResult.error) {
