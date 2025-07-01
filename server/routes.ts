@@ -4892,16 +4892,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Arquivo muito grande. Máximo 5MB.' });
       }
 
-      // Importar função de upload do Supabase
-      const { uploadImageToSupabase } = await import('./supabase-upload.js');
+      // Importar função especializada de upload de logo
+      const { uploadLogoToSupabase } = await import('./supabase-upload.js');
 
       // Gerar nome único para o arquivo
       const fileName = `logo_${Date.now()}`;
       
-      // Upload para Supabase Storage no bucket 'images' (que já funciona)
-      const uploadResult = await uploadImageToSupabase(
+      // Upload para Supabase Storage usando função especializada para logos
+      const uploadResult = await uploadLogoToSupabase(
         file.buffer,
         file.originalname,
+        file.mimetype,
         'images', // Usar bucket 'images' que já tem políticas corretas
         `logos/${fileName}` // Criar subpasta para organizar
       );

@@ -90,6 +90,80 @@ export async function uploadImageToSupabase(
 }
 
 /**
+ * Faz upload especializado para logos (preserva SVG, otimiza outros formatos)
+ */
+export async function uploadLogoToSupabase(
+  buffer: Buffer,
+  originalName: string,
+  mimeType: string,
+  bucket: string,
+  fileName: string
+): Promise<{ url: string | null; error: string | null }> {
+  try {
+    let finalBuffer = buffer;
+    let contentType = mimeType;
+    let fileExtension = '';
+    
+    // Gerar timestamp único para evitar cache
+    const timestamp = Date.now();
+    
+    // Se for SVG, preservar o formato original
+    if (mimeType === 'image/svg+xml') {
+      fileExtension = '.svg';
+      contentType = 'image/svg+xml';
+      console.log(`Preservando SVG original: ${originalName}`);
+    } else {
+      // Para outros formatos, otimizar para WebP
+      try {
+        finalBuffer = await sharp(buffer)
+          .resize(500, 500, { 
+            fit: 'inside', 
+            withoutEnlargement: true 
+          })
+          .webp({ quality: 90 })
+          .toBuffer();
+        fileExtension = '.webp';
+        contentType = 'image/webp';
+        console.log(`Convertendo ${originalName} para WebP otimizado`);
+      } catch (error) {
+        console.warn('Falha na conversão WebP, usando original:', error);
+        fileExtension = originalName.includes('.') ? '.' + originalName.split('.').pop() : '';
+      }
+    }
+
+    const finalPath = `${fileName}_${timestamp}${fileExtension}`;
+    
+    console.log(`Fazendo upload do logo: ${bucket}/${finalPath} (${(finalBuffer.length / 1024).toFixed(1)}KB)`);
+
+    // Upload para o Supabase com upsert
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(finalPath, finalBuffer, { 
+        contentType, 
+        upsert: true 
+      });
+
+    if (error) {
+      console.error('Erro no upload do logo:', error);
+      return { url: null, error: error.message };
+    }
+
+    // Obter URL pública com timestamp para cache-busting
+    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
+
+    console.log(`Upload do logo bem-sucedido: ${publicUrl}`);
+    return { url: publicUrl, error: null };
+
+  } catch (error) {
+    console.error('Erro geral no upload do logo:', error);
+    return { 
+      url: null, 
+      error: error instanceof Error ? error.message : 'Erro desconhecido no upload do logo' 
+    };
+  }
+}
+
+/**
  * Assegura que o bucket existe e tem as políticas corretas
  */
 export async function ensureBucket(bucketName: string): Promise<boolean> {
