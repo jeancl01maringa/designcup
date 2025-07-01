@@ -116,6 +116,7 @@ function UtmPerformanceSection() {
 }
 
 export default function MonetizacaoPage() {
+  const queryClient = useQueryClient();
   const [periodo, setPeriodo] = useState("30");
 
   // Calcular datas baseado no período selecionado
@@ -155,6 +156,16 @@ export default function MonetizacaoPage() {
 
   // Estado para feedback de cópia
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  
+  // Estados para gestão de investimentos
+  const [isAddingInvestment, setIsAddingInvestment] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState<any>(null);
+  const [investmentForm, setInvestmentForm] = useState({
+    amount: '',
+    description: '',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    utm_campaign: ''
+  });
 
   // Função para copiar código UTM
   const copyToClipboard = async (text: string, type: string) => {
@@ -165,6 +176,97 @@ export default function MonetizacaoPage() {
     } catch (err) {
       console.error('Erro ao copiar:', err);
     }
+  };
+
+  // Função para resetar formulário
+  const resetForm = () => {
+    setInvestmentForm({
+      amount: '',
+      description: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      utm_campaign: ''
+    });
+    setEditingInvestment(null);
+    setIsAddingInvestment(false);
+  };
+
+  // Mutações para CRUD de investimentos
+  const addInvestmentMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('/api/admin/traffic-investments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments/stats"] });
+      resetForm();
+    }
+  });
+
+  const updateInvestmentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number, data: any }) => apiRequest(`/api/admin/traffic-investments/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments/stats"] });
+      resetForm();
+    }
+  });
+
+  const deleteInvestmentMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/admin/traffic-investments/${id}`, {
+      method: 'DELETE'
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments/stats"] });
+    }
+  });
+
+  // Função para adicionar investimento
+  const addInvestment = () => {
+    const data = {
+      amount: parseFloat(investmentForm.amount),
+      description: investmentForm.description,
+      date: investmentForm.date,
+      utm_campaign: investmentForm.utm_campaign || null
+    };
+    addInvestmentMutation.mutate(data);
+  };
+
+  // Função para editar investimento
+  const updateInvestment = () => {
+    if (!editingInvestment) return;
+    
+    const data = {
+      amount: parseFloat(investmentForm.amount),
+      description: investmentForm.description,
+      date: investmentForm.date,
+      utm_campaign: investmentForm.utm_campaign || null
+    };
+    updateInvestmentMutation.mutate({ id: editingInvestment.id, data });
+  };
+
+  // Função para excluir investimento
+  const deleteInvestment = (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir este investimento?')) return;
+    deleteInvestmentMutation.mutate(id);
+  };
+
+  // Função para iniciar edição
+  const startEdit = (investment: any) => {
+    setInvestmentForm({
+      amount: investment.amount.toString(),
+      description: investment.description || '',
+      date: format(new Date(investment.date), 'yyyy-MM-dd'),
+      utm_campaign: investment.utm_campaign || ''
+    });
+    setEditingInvestment(investment);
+    setIsAddingInvestment(true);
   };
 
   // Dados reais da Hotmart
