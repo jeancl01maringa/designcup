@@ -6790,6 +6790,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === ROTAS PARA INVESTIMENTOS EM TRÁFEGO ===
+  
+  // Buscar investimentos em tráfego
+  app.get('/api/admin/traffic-investments', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { startDate, endDate, limit } = req.query;
+      
+      let query = 'SELECT * FROM traffic_investments';
+      const params: any[] = [];
+      const conditions: string[] = [];
+      
+      if (startDate) {
+        conditions.push('date >= $' + (params.length + 1));
+        params.push(startDate);
+      }
+      
+      if (endDate) {
+        conditions.push('date <= $' + (params.length + 1));
+        params.push(endDate);
+      }
+      
+      if (conditions.length > 0) {
+        query += ' WHERE ' + conditions.join(' AND ');
+      }
+      
+      query += ' ORDER BY date DESC';
+      
+      if (limit) {
+        query += ' LIMIT $' + (params.length + 1);
+        params.push(parseInt(limit as string));
+      }
+
+      const result = await pool.query(query, params);
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar investimentos em tráfego:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Criar novo investimento em tráfego
+  app.post('/api/admin/traffic-investments', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { date, amount, description } = req.body;
+      
+      if (!date || !amount) {
+        return res.status(400).json({ message: 'Data e valor são obrigatórios' });
+      }
+
+      const result = await pool.query(`
+        INSERT INTO traffic_investments (date, amount, description)
+        VALUES ($1, $2, $3)
+        RETURNING *
+      `, [date, amount, description || null]);
+
+      res.status(201).json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao criar investimento em tráfego:', error);
+      if (error.code === '23505') { // Violação de constraint único
+        res.status(400).json({ message: 'Já existe um investimento para esta data' });
+      } else {
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  });
+
+  // Atualizar investimento em tráfego
+  app.put('/api/admin/traffic-investments/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { id } = req.params;
+      const { date, amount, description } = req.body;
+      
+      if (!date || !amount) {
+        return res.status(400).json({ message: 'Data e valor são obrigatórios' });
+      }
+
+      const result = await pool.query(`
+        UPDATE traffic_investments 
+        SET date = $1, amount = $2, description = $3, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4
+        RETURNING *
+      `, [date, amount, description || null, id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Investimento não encontrado' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao atualizar investimento em tráfego:', error);
+      if (error.code === '23505') {
+        res.status(400).json({ message: 'Já existe um investimento para esta data' });
+      } else {
+        res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+    }
+  });
+
+  // Deletar investimento em tráfego
+  app.delete('/api/admin/traffic-investments/:id', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { id } = req.params;
+
+      const result = await pool.query(`
+        DELETE FROM traffic_investments 
+        WHERE id = $1
+        RETURNING *
+      `, [id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Investimento não encontrado' });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Erro ao deletar investimento em tráfego:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Buscar estatísticas de investimentos em tráfego
+  app.get('/api/admin/traffic-investments/stats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      const { startDate, endDate } = req.query;
+      
+      let query = `
+        SELECT 
+          COALESCE(SUM(amount), 0) as total_investment,
+          COALESCE(AVG(amount), 0) as avg_daily_investment,
+          COUNT(*) as total_days
+        FROM traffic_investments
+      `;
+      const params: any[] = [];
+      const conditions: string[] = [];
+      
+      if (startDate) {
+        conditions.push('date >= $' + (params.length + 1));
+        params.push(startDate);
+      }
+      
+      if (endDate) {
+        conditions.push('date <= $' + (params.length + 1));
+        params.push(endDate);
+      }
+      
+      if (conditions.length > 0) {
+        query += ' WHERE ' + conditions.join(' AND ');
+      }
+
+      const result = await pool.query(query, params);
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao buscar estatísticas de investimentos:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

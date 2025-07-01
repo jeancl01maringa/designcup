@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { PageHeader } from "@/components/admin/layout/PageHeader";
@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function MonetizacaoPage() {
   const [periodo, setPeriodo] = useState("30");
@@ -49,6 +50,35 @@ export default function MonetizacaoPage() {
   // Buscar planos
   const { data: planos } = useQuery({
     queryKey: ["/api/admin/planos"],
+  });
+
+  // Buscar dados de vendas da Hotmart
+  const { data: subscriptionsStats } = useQuery({
+    queryKey: ["/api/admin/subscriptions/stats"],
+  });
+
+  // Buscar investimentos em tráfego
+  const { data: trafficInvestments } = useQuery({
+    queryKey: ["/api/admin/traffic-investments"],
+    queryFn: async () => {
+      const dataInicio = format(startOfDay(subDays(new Date(), parseInt(periodo))), 'yyyy-MM-dd');
+      const dataFim = format(endOfDay(new Date()), 'yyyy-MM-dd');
+      
+      const response = await apiRequest("GET", `/api/admin/traffic-investments?startDate=${dataInicio}&endDate=${dataFim}`);
+      return await response.json();
+    },
+  });
+
+  // Buscar estatísticas de investimentos
+  const { data: trafficStats } = useQuery({
+    queryKey: ["/api/admin/traffic-investments/stats", periodo],
+    queryFn: async () => {
+      const dataInicio = format(startOfDay(subDays(new Date(), parseInt(periodo))), 'yyyy-MM-dd');
+      const dataFim = format(endOfDay(new Date()), 'yyyy-MM-dd');
+      
+      const response = await apiRequest("GET", `/api/admin/traffic-investments/stats?startDate=${dataInicio}&endDate=${dataFim}`);
+      return await response.json();
+    },
   });
 
   // Calcular métricas
