@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, ImageOff } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ImageOff, Eye } from 'lucide-react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -296,6 +296,13 @@ export default function CategorySection() {
                         
                         {/* Overlay sutil permanente para contraste */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                        
+                        {/* Ícone de preview centralizado - sempre visível */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                            <Eye className="w-6 h-6" style={{ color: '#F84930' }} />
+                          </div>
+                        </div>
                         
                         {/* Overlay com nome da categoria no hover */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
