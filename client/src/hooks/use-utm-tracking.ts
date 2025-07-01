@@ -13,14 +13,11 @@ interface UTMData {
   utm_term?: string;
 }
 
-interface UTMifyData {
-  getUtms: () => UTMData;
-  isReady: boolean;
-}
-
 declare global {
   interface Window {
-    UTMify?: UTMifyData;
+    utms?: {
+      getUtmParams: () => UTMData;
+    };
   }
 }
 
@@ -30,11 +27,16 @@ export function useUTMTracking() {
 
   useEffect(() => {
     const checkUTMify = () => {
-      if (window.UTMify && window.UTMify.isReady) {
-        const utms = window.UTMify.getUtms();
-        setUtmData(utms);
-        setIsReady(true);
-        return true;
+      if (window.utms && typeof window.utms.getUtmParams === 'function') {
+        try {
+          const utms = window.utms.getUtmParams();
+          setUtmData(utms);
+          setIsReady(true);
+          console.log('[UTM] UTMify carregado, dados:', utms);
+          return true;
+        } catch (error) {
+          console.error('[UTM] Erro ao chamar getUtmParams:', error);
+        }
       }
       return false;
     };
@@ -44,16 +46,20 @@ export function useUTMTracking() {
       return;
     }
 
+    console.log('[UTM] Aguardando carregamento do script UTMify...');
+
     // Aguardar carregamento do UTMify
     const interval = setInterval(() => {
       if (checkUTMify()) {
         clearInterval(interval);
       }
-    }, 100);
+    }, 500);
 
-    // Cleanup após 10 segundos
+    // Cleanup após 5 segundos e usar fallback
     const timeout = setTimeout(() => {
       clearInterval(interval);
+      console.log('[UTM] Timeout - usando fallback da URL');
+      
       // Fallback: capturar UTMs da URL manualmente
       const urlParams = new URLSearchParams(window.location.search);
       const fallbackUtms: UTMData = {
@@ -64,12 +70,16 @@ export function useUTMTracking() {
         utm_term: urlParams.get('utm_term') || undefined,
       };
       
-      // Só atualizar se encontrou UTMs
+      // Atualizar mesmo que vazio (para mostrar que está pronto)
+      setUtmData(fallbackUtms);
+      setIsReady(true);
+      
       if (Object.values(fallbackUtms).some(value => value)) {
-        setUtmData(fallbackUtms);
-        setIsReady(true);
+        console.log('[UTM] UTMs encontrados na URL:', fallbackUtms);
+      } else {
+        console.log('[UTM] Nenhum UTM encontrado na URL');
       }
-    }, 10000);
+    }, 5000);
 
     return () => {
       clearInterval(interval);

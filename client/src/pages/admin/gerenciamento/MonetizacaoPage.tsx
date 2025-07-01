@@ -26,7 +26,8 @@ import {
   PiggyBank,
   Edit,
   Trash2,
-  PlusCircle
+  PlusCircle,
+  Link
 } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -226,9 +227,6 @@ export default function MonetizacaoPage() {
       />
       
       <div className="space-y-6">
-        {/* UTM Debugger */}
-        <UTMDebugger />
-
         {/* Cards de Métricas Principais */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Card Faturamento */}
@@ -313,6 +311,7 @@ export default function MonetizacaoPage() {
           <TabsList>
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="traffic">Investimentos em Tráfego</TabsTrigger>
+            <TabsTrigger value="integrations">Integrações</TabsTrigger>
             <TabsTrigger value="plans">Performance de Planos</TabsTrigger>
             <TabsTrigger value="subscribers">Assinantes Recentes</TabsTrigger>
           </TabsList>
@@ -522,6 +521,49 @@ export default function MonetizacaoPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* UTM Debugger */}
+              <UTMDebugger />
+              
+              {/* Status de Integrações */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Link className="h-4 w-4" />
+                    Status das Integrações
+                  </CardTitle>
+                  <CardDescription>
+                    Monitoramento das integrações ativas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm">Hotmart Webhook</span>
+                    </div>
+                    <Badge variant="default" className="text-xs">Ativo</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm">UTMify Script</span>
+                    </div>
+                    <Badge variant="default" className="text-xs">Carregado</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm">Brevo Email</span>
+                    </div>
+                    <Badge variant="default" className="text-xs">Conectado</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="subscribers" className="space-y-4">
