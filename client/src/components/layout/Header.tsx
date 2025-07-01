@@ -223,7 +223,7 @@ const UserMenu = () => {
       {isFreeUser && (
         <Button 
           variant="default" 
-          className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 h-[35px] text-xs border-0"
+          className="flex items-center gap-1 bg-gradient-to-r from-[#F84830] to-[#F8A441] hover:from-[#E03E28] hover:to-[#E89538] text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 h-[35px] text-xs border-0"
           onClick={() => navigate("/planos")}
         >
           <Crown className="h-3 w-3" />

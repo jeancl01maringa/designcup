@@ -1206,7 +1206,7 @@ export default function ArtDetailPage() {
             <div className="space-y-3">
               <Button 
                 onClick={() => setLocation('/planos')}
-                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                className="w-full bg-gradient-to-r from-[#F84830] to-[#F8A441] hover:from-[#E03E28] hover:to-[#E89538] text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
               >
                 <Crown size={16} className="text-white drop-shadow-sm" />
                 <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>

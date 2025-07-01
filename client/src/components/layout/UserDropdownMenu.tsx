@@ -121,9 +121,9 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
             <div className="mt-4">
               <button
                 onClick={() => handleClick('/planos')}
-                className="bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center gap-2 text-xs md:text-sm w-full border border-gray-200"
+                className="bg-gradient-to-r from-[#F84830] to-[#F8A441] hover:from-[#E03E28] hover:to-[#E89538] text-white font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center justify-center gap-2 text-xs md:text-sm w-full border-0 shadow-sm"
               >
-                <Crown className="w-4 h-4 text-amber-500" />
+                <Crown className="w-4 h-4 text-white" />
                 Assinar Premium
               </button>
             </div>
