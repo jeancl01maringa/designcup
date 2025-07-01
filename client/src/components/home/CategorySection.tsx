@@ -305,14 +305,14 @@ export default function CategorySection() {
                     </Link>
                     
                     {/* Retângulo branco centralizado com título da categoria - sempre visível - FORA do container com overflow */}
-                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-30">
-                      <div className="bg-white rounded-full px-8 py-3 shadow-lg shadow-gray-400/30 min-w-[180px] flex items-center justify-start gap-3">
+                    <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 z-30">
+                      <div className="bg-white rounded-full px-8 py-3 shadow-lg shadow-gray-400/30 min-w-[180px] flex items-center gap-3 relative">
                         <img 
                           src="/category-icon.png" 
                           alt="Ícone" 
                           className="w-7 h-7 flex-shrink-0"
                         />
-                        <span className="text-black text-sm font-bold">
+                        <span className="text-black text-sm font-bold flex-1 text-center">
                           {category.name}
                         </span>
                       </div>
