@@ -51,12 +51,12 @@ export default function LogoPage() {
     }
   };
 
-  // Função para fazer upload via API do backend
-  const uploadToBackend = async (file: File): Promise<string> => {
+  // Função para fazer upload no banco de dados
+  const uploadToDatabase = async (file: File): Promise<{ logoId: number }> => {
     const formData = new FormData();
     formData.append('logo', file);
 
-    const response = await fetch('/api/admin/upload-logo', {
+    const response = await fetch('/api/logo/upload', {
       method: 'POST',
       body: formData,
     });
@@ -66,8 +66,7 @@ export default function LogoPage() {
       throw new Error(errorData.message || 'Erro no upload');
     }
 
-    const data = await response.json();
-    return data.logoPath;
+    return await response.json();
   };
 
   // Função para remover logo antigo do Supabase

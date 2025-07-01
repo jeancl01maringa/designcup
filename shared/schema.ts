@@ -512,3 +512,16 @@ export type LessonRating = typeof lessonRatings.$inferSelect;
 export type InsertLessonRating = typeof lessonRatings.$inferInsert;
 export type LessonComment = typeof lessonComments.$inferSelect;
 export type InsertLessonComment = typeof lessonComments.$inferInsert;
+
+// Platform logo storage
+export const platformLogo = pgTable("platform_logo", {
+  id: serial("id").primaryKey(),
+  imageData: text("image_data").notNull(), // Base64 encoded image
+  mimeType: text("mime_type").notNull(),
+  filename: text("filename").notNull(),
+  size: integer("size").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+});
+
+export type PlatformLogo = typeof platformLogo.$inferSelect;
+export type InsertPlatformLogo = typeof platformLogo.$inferInsert;

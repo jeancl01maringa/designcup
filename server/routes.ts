@@ -4868,7 +4868,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logo upload routes
+  // Logo upload in database (base64)
+  app.post('/api/logo/upload', upload.single('logo'), async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'Nenhum arquivo enviado' });
+      }
+
+      const file = req.file;
+      
+      // Validar tipo de arquivo
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+      if (!validTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: 'Formato de arquivo inválido. Use PNG, JPG ou SVG.' });
+      }
+
+      // Validar tamanho (máximo 2MB para base64)
+      if (file.size > 2 * 1024 * 1024) {
+        return res.status(400).json({ message: 'Arquivo muito grande. Máximo 2MB.' });
+      }
+
+      // Converter arquivo para base64
+      const base64Data = file.buffer.toString('base64');
+      
+      // Limpar logos anteriores (manter apenas o último)
+      await pool.query('DELETE FROM platform_logo');
+      
+      // Inserir novo logo
+      const logoId = await pool.query(`
+        INSERT INTO platform_logo (image_data, mime_type, filename, size, uploaded_at)
+        VALUES ($1, $2, $3, $4, NOW())
+        RETURNING id
+      `, [base64Data, file.mimetype, file.originalname, file.size]);
+
+      console.log(`Logo salvo no banco com ID: ${logoId.rows[0].id}`);
+      
+      res.json({
+        success: true,
+        message: 'Logo atualizado com sucesso',
+        logoId: logoId.rows[0].id
+      });
+
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      res.status(500).json({ message: 'Erro ao fazer upload do logo' });
+    }
+  });
+
+  // Buscar logo atual
+  app.get('/api/logo', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT image_data, mime_type, filename 
+        FROM platform_logo 
+        ORDER BY uploaded_at DESC 
+        LIMIT 1
+      `);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Logo não encontrado' });
+      }
+
+      const logo = result.rows[0];
+      
+      // Retornar logo como data URL
+      const dataUrl = `data:${logo.mime_type};base64,${logo.image_data}`;
+      
+      res.json({
+        dataUrl,
+        filename: logo.filename,
+        mimeType: logo.mime_type
+      });
+
+    } catch (error: any) {
+      console.error('Error fetching logo:', error);
+      res.status(500).json({ message: 'Erro ao buscar logo' });
+    }
+  });
+
+  // Logo upload routes (arquivo local - manter para compatibilidade)
   app.post('/api/settings/logo', upload.single('logo'), async (req, res) => {
     try {
       if (!req.isAuthenticated() || !req.user?.isAdmin) {
