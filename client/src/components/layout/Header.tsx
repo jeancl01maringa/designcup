@@ -567,7 +567,7 @@ export default function Header() {
   }, []);
   
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 overflow-visible">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50 overflow-visible">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
       <div className={`container-global py-3 flex items-center transition-all duration-300 h-[70px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         
