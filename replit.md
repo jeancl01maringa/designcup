@@ -78,6 +78,7 @@ Changelog:
 - June 23, 2025. Implemented corrected Hotmart webhook following user's documented model: plan data, expiration dates, and transaction codes now come directly from Hotmart webhook dispatches rather than local configurations. Webhook captures real Hotmart plan details including name, price, currency, and transaction ID for complete subscription management.
 - June 24, 2025. Completed comprehensive Brevo email automation integration: automated welcome emails for new users, purchase confirmations via Hotmart webhook, cancellation notifications, admin alerts for new users and sales, automatic contact list management, and professional HTML email templates. System includes error handling and logging while maintaining platform functionality if email service is unavailable.
 - June 25, 2025. Implemented community-based lesson rating system: replaced individual localStorage ratings with database-persisted community ratings. System now calculates average ratings across all users for each lesson, stores ratings and comments in lesson_ratings/lesson_comments tables, and displays real-time community averages with rating counts. Also removed "Módulo principal" and "Mostrar turmas" labels from admin modules page per user request.
+- July 1, 2025. Enhanced homepage design: updated main title gradient from brown (#AA5E2F to #C8763A) to vibrant orange gradient (#F84930 to #F8A441) matching the platform logo colors. This improves visual consistency and brand alignment across the homepage hero section.
 
 ## User Preferences
 
