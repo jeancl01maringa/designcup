@@ -4,6 +4,8 @@ import { Sidebar } from "./Sidebar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -28,6 +30,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         currentPath={location}
         userData={user}
       />
+      
+      {/* Botão mobile fixo para abrir sidebar - estilo Instagram */}
+      {!sidebarOpen && isMobile && (
+        <Button
+          onClick={toggleSidebar}
+          size="lg"
+          className="fixed top-4 left-4 z-40 bg-white shadow-lg border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-full p-3 min-w-[48px] min-h-[48px] md:hidden"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
       
       {/* Main Content */}
       <main className={cn(
