@@ -56,6 +56,7 @@ export default function LessonViewPage() {
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
   const { completedLessons, toggleLessonCompletion, isLessonCompleted } = useCourseProgress(courseId);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [openModules, setOpenModules] = useState<Set<number>>(new Set());
   const queryClient = useQueryClient();
 
   // Buscar dados do curso completo
@@ -177,6 +178,18 @@ export default function LessonViewPage() {
       toast({ title: "Aula marcada como concluída!" });
     }
   };
+
+  const toggleModule = (moduleId: number) => {
+    const newOpenModules = new Set(openModules);
+    if (newOpenModules.has(moduleId)) {
+      newOpenModules.delete(moduleId);
+    } else {
+      newOpenModules.add(moduleId);
+    }
+    setOpenModules(newOpenModules);
+  };
+
+
 
   if (!hasAccess) {
     return (
@@ -516,8 +529,11 @@ export default function LessonViewPage() {
                   
                   return (
                     <div key={module.id} className="bg-gray-50 rounded-lg p-4 border">
-                      {/* Cabeçalho do Módulo */}
-                      <div className="flex items-center justify-between mb-4">
+                      {/* Cabeçalho do Módulo - CLICÁVEL PARA ABRIR/FECHAR */}
+                      <button 
+                        onClick={() => toggleModule(module.id)}
+                        className="w-full flex items-center justify-between mb-4 text-left"
+                      >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
                             {moduleIndex + 1}
@@ -529,52 +545,56 @@ export default function LessonViewPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-base font-semibold text-gray-700">{completedLessons}/{totalLessons}</p>
-                          <ChevronDown className="h-5 w-5 text-gray-500 mx-auto mt-1" />
+                          <ChevronDown className={`h-5 w-5 text-gray-500 mx-auto mt-1 transition-transform ${
+                            openModules.has(module.id) ? 'rotate-180' : ''
+                          }`} />
                         </div>
-                      </div>
+                      </button>
 
-                      {/* Lista de Aulas */}
-                      <div className="space-y-3">
-                        {currentModuleLessons.map((lesson) => {
-                          const isActive = lesson.id === lessonId;
-                          const isCompleted = isLessonCompleted(lesson.id);
-                          
-                          return (
-                            <div key={lesson.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                              <div className="flex items-center gap-3 flex-1">
-                                <Play className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                                <div className="flex-1">
-                                  <h5 className={`font-semibold text-base ${
-                                    isActive ? 'text-blue-900' : 'text-gray-900'
-                                  }`}>
-                                    {lesson.title}
-                                  </h5>
-                                  {lesson.description && (
-                                    <div className="text-sm text-gray-600 mt-1"
-                                         dangerouslySetInnerHTML={{ 
-                                           __html: lesson.description.length > 50 ? 
-                                           lesson.description.substring(0, 50) + '...' : 
-                                           lesson.description 
-                                         }}
-                                    />
-                                  )}
+                      {/* Lista de Aulas - APARECE APENAS SE MÓDULO ESTIVER ABERTO */}
+                      {openModules.has(module.id) && (
+                        <div className="space-y-3">
+                          {currentModuleLessons.map((lesson) => {
+                            const isActive = lesson.id === lessonId;
+                            const isCompleted = isLessonCompleted(lesson.id);
+                            
+                            return (
+                              <div key={lesson.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <Play className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                                  <div className="flex-1">
+                                    <h5 className={`font-semibold text-base ${
+                                      isActive ? 'text-blue-900' : 'text-gray-900'
+                                    }`}>
+                                      {lesson.title}
+                                    </h5>
+                                    {lesson.description && (
+                                      <div className="text-sm text-gray-600 mt-1"
+                                           dangerouslySetInnerHTML={{ 
+                                             __html: lesson.description.length > 50 ? 
+                                             lesson.description.substring(0, 50) + '...' : 
+                                             lesson.description 
+                                           }}
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="text-center">
+                                    <span className="text-lg font-bold text-gray-900">{isCompleted ? '1' : '0'}</span>
+                                  </div>
                                 </div>
-                                <div className="text-center">
-                                  <span className="text-lg font-bold text-gray-900">{isCompleted ? '1' : '0'}</span>
-                                </div>
+                                <Button
+                                  onClick={() => navigateToLesson(lesson.id)}
+                                  size="sm"
+                                  variant={isActive ? "default" : "secondary"}
+                                  className="ml-3 font-semibold text-sm px-4 py-2"
+                                >
+                                  Assistir
+                                </Button>
                               </div>
-                              <Button
-                                onClick={() => navigateToLesson(lesson.id)}
-                                size="sm"
-                                variant={isActive ? "default" : "secondary"}
-                                className="ml-3 font-semibold text-sm px-4 py-2"
-                              >
-                                Assistir
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
