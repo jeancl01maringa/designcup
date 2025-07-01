@@ -1,265 +1,325 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Upload, CheckCircle, AlertCircle, Image as ImageIcon } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { PageHeader } from "@/components/admin/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import browserImageCompression from 'browser-image-compression';
+import { apiRequest } from "@/lib/queryClient";
+import { Upload, Save, Loader2, Image as ImageIcon, RotateCw } from "lucide-react";
 
-interface LogoData {
-  dataUrl: string;
-  filename: string;
-  mimeType: string;
-}
+const logoSchema = z.object({
+  logo: z.any().optional(),
+});
+
+type LogoFormData = z.infer<typeof logoSchema>;
 
 export default function LogoPage() {
-  const [isUploading, setIsUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Buscar logo atual
-  const { data: currentLogo, isLoading: loadingLogo } = useQuery<LogoData>({
+  const { data: currentLogo, isLoading: isLoadingLogo } = useQuery({
     queryKey: ["/api/logo"],
     queryFn: async () => {
-      const response = await fetch('/api/logo');
-      if (!response.ok) {
-        throw new Error('Logo não encontrado');
+      try {
+        const response = await apiRequest("GET", "/api/logo");
+        return await response.json();
+      } catch (error) {
+        return null;
       }
-      return response.json();
     },
-    retry: false,
   });
 
-  // Otimizar imagem antes do upload
-  const optimizeImage = async (file: File): Promise<File> => {
-    try {
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 800,
-        useWebWorker: true,
-      };
-      return await browserImageCompression(file, options);
-    } catch (error) {
-      console.warn('Erro na otimização, usando arquivo original:', error);
-      return file;
-    }
-  };
+  const form = useForm<LogoFormData>({
+    resolver: zodResolver(logoSchema),
+    defaultValues: {
+      logo: null,
+    },
+  });
 
-  // Upload mutation
-  const uploadMutation = useMutation({
+  const updateLogoMutation = useMutation({
     mutationFn: async (file: File) => {
-      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('logo', file);
       
-      try {
-        // Otimizar arquivo
-        const optimizedFile = await optimizeImage(file);
-        
-        // Upload para o banco
-        const formData = new FormData();
-        formData.append('logo', optimizedFile);
-
-        const response = await fetch('/api/logo/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Erro no upload');
-        }
-
-        return await response.json();
-      } finally {
-        setIsUploading(false);
+      const response = await fetch('/api/logo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao fazer upload do logo');
       }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Logo atualizado!",
-        description: "O logo da plataforma foi atualizado com sucesso.",
+        title: "Sucesso",
+        description: "Logo atualizado com sucesso!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/logo"] });
+      setPreviewUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar logo",
         variant: "destructive",
-        title: "Erro no upload",
-        description: error.message,
       });
     },
   });
 
-  const handleFileSelect = (file: File) => {
-    // Validar arquivo
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
-    if (!validTypes.includes(file.type)) {
-      toast({
-        variant: "destructive",
-        title: "Formato inválido",
-        description: "Use apenas PNG, JPG ou SVG.",
-      });
-      return;
-    }
-
-    // Validar tamanho (máximo 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: "Arquivo muito grande",
-        description: "O arquivo deve ter no máximo 2MB.",
-      });
-      return;
-    }
-
-    uploadMutation.mutate(file);
-  };
-
-  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleFileSelect(file);
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Erro",
+          description: "Por favor, selecione apenas arquivos de imagem",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validar tamanho (máx 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Erro",
+          description: "O arquivo deve ter no máximo 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Criar preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      form.setValue('logo', file);
     }
   };
 
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault();
-    setDragOver(false);
-    
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      handleFileSelect(file);
+  const onSubmit = async (data: LogoFormData) => {
+    if (!data.logo) {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione um arquivo de logo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await updateLogoMutation.mutateAsync(data.logo);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragOver(false);
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Logo da Plataforma</h1>
-        <p className="text-muted-foreground">
-          Personalize o logo que aparece no cabeçalho da plataforma
-        </p>
-      </div>
+    <AdminLayout>
+      <div className="space-y-6">
+        <PageHeader
+          title="Gerenciar Logo"
+          description="Configure o logo da plataforma que aparece no cabeçalho"
+        />
 
-      {/* Logo Atual */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" />
-            Logo Atual
-          </CardTitle>
-          <CardDescription>
-            Este é o logo que aparece atualmente no cabeçalho
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loadingLogo ? (
-            <div className="flex items-center justify-center h-32 bg-muted rounded-lg">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : currentLogo ? (
-            <div className="flex items-center justify-center p-6 bg-muted rounded-lg">
-              <img 
-                src={currentLogo.dataUrl} 
-                alt="Logo atual" 
-                className="max-h-20 max-w-48 object-contain"
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-32 bg-muted rounded-lg text-muted-foreground">
-              <div className="text-center">
-                <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Nenhum logo personalizado configurado</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Logo da Plataforma
+            </CardTitle>
+            <CardDescription>
+              Faça upload de um novo logo. Recomendamos formato PNG ou SVG com fundo transparente.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Logo atual */}
+                {currentLogo?.dataUrl && (
+                  <div className="space-y-2">
+                    <FormLabel>Logo Atual</FormLabel>
+                    <div className="p-4 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex items-center justify-center">
+                        <img 
+                          src={currentLogo.dataUrl} 
+                          alt="Logo atual" 
+                          className="max-h-24 max-w-full object-contain"
+                          style={{
+                            imageRendering: 'crisp-edges',
+                            filter: 'contrast(1.1) brightness(1.05)'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-      {/* Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Atualizar Logo
-          </CardTitle>
-          <CardDescription>
-            Faça upload de uma nova imagem (PNG, JPG ou SVG - máx. 2MB)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragOver 
-                ? 'border-primary bg-primary/5' 
-                : 'border-muted-foreground/25 hover:border-muted-foreground/50'
-            }`}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-          >
-            {isUploading ? (
-              <div className="space-y-2">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="text-sm text-muted-foreground">Fazendo upload...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
-                <div>
-                  <p className="text-lg font-medium">
-                    Arraste uma imagem aqui ou clique para selecionar
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    PNG, JPG ou SVG até 2MB
-                  </p>
-                </div>
-                <div>
-                  <input
-                    type="file"
-                    id="logo-upload"
-                    accept="image/png,image/jpeg,image/jpg,image/svg+xml"
-                    onChange={handleFileInput}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                  <Button asChild variant="outline">
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      Selecionar Arquivo
-                    </label>
+                {/* Upload novo logo */}
+                <FormField
+                  control={form.control}
+                  name="logo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Novo Logo</FormLabel>
+                      <FormControl>
+                        <div className="space-y-4">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                          />
+                          
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={triggerFileInput}
+                            className="w-full h-32 border-2 border-dashed hover:border-primary/50 transition-colors"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <Upload className="h-8 w-8 text-muted-foreground" />
+                              <span className="text-sm font-medium">Clique para selecionar um arquivo</span>
+                              <span className="text-xs text-muted-foreground">PNG, JPG, SVG (máx. 5MB)</span>
+                            </div>
+                          </Button>
+
+                          {/* Preview do novo logo */}
+                          {previewUrl && (
+                            <div className="space-y-2">
+                              <FormLabel>Preview do Novo Logo</FormLabel>
+                              <div className="p-4 border-2 border-dashed border-green-200 rounded-lg bg-green-50">
+                                <div className="flex items-center justify-center">
+                                  <img 
+                                    src={previewUrl} 
+                                    alt="Preview do novo logo" 
+                                    className="max-h-24 max-w-full object-contain"
+                                    style={{
+                                      imageRendering: 'crisp-edges',
+                                      filter: 'contrast(1.1) brightness(1.05)'
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex items-center gap-4">
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading || updateLogoMutation.isPending || !previewUrl}
+                    className="min-w-[120px] bg-blue-600 hover:bg-blue-700"
+                  >
+                    {(isLoading || updateLogoMutation.isPending) ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Salvar Logo
+                      </>
+                    )}
                   </Button>
+
+                  {currentLogo && (
+                    <div className="text-sm text-muted-foreground">
+                      Última atualização: {new Date().toLocaleString('pt-BR')}
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
 
-          {/* Status */}
-          {uploadMutation.isSuccess && (
-            <div className="flex items-center gap-2 mt-4 text-green-600">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm">Logo atualizado com sucesso!</span>
-            </div>
-          )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Onde o logo aparece</CardTitle>
+            <CardDescription>
+              O logo configurado será exibido automaticamente nos seguintes locais:
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                Cabeçalho principal da plataforma
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                Menu de navegação mobile
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                Páginas de login e registro
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                Emails automáticos da plataforma
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-          {uploadMutation.isError && (
-            <div className="flex items-center gap-2 mt-4 text-red-600">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">
-                {uploadMutation.error?.message || 'Erro no upload'}
-              </span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Dicas para o melhor resultado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                Use formato PNG ou SVG para melhor qualidade
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                Prefira fundo transparente para melhor integração
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                Mantenha proporção retangular horizontal (landscape)
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
+                Teste em diferentes tamanhos de tela após o upload
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    </AdminLayout>
   );
 }
