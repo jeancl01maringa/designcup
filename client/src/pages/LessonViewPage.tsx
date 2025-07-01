@@ -250,21 +250,29 @@ export default function LessonViewPage() {
         <title>{currentLesson.title} - {course.title}</title>
       </Helmet>
 
+      {/* Botão voltar - SEMPRE NO TOPO NO MOBILE */}
+      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+        <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+          <ArrowLeft className="h-4 w-4" />
+          Voltar ao curso
+        </Button>
+      </div>
+
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:grid lg:grid-cols-4 gap-0">
           
           {/* Conteúdo Principal - PRIMEIRO NO MOBILE */}
           <div className="order-1 lg:order-2 lg:col-span-3 p-4 lg:p-6 bg-white">
             <Card className="border-0 shadow-none">
-              <CardHeader>
+              <CardHeader className="px-0 lg:px-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-xl lg:text-2xl">{currentLesson.title}</CardTitle>
+                    <CardTitle className="text-xl lg:text-2xl break-words">{currentLesson.title}</CardTitle>
                   </div>
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 px-0 lg:px-6">
                 {/* 1. Conteúdo da Aula (Vídeo/Texto) */}
                 {currentLesson.type === 'video' ? (
                   <div className="space-y-4">
@@ -342,23 +350,25 @@ export default function LessonViewPage() {
                   </div>
 
                   {/* Navegação entre aulas */}
-                  <div className="flex justify-between pt-4">
+                  <div className="flex justify-between gap-4 pt-4">
                     <Button
                       variant="outline"
                       onClick={() => prevLesson && navigateToLesson(prevLesson.id)}
                       disabled={!prevLesson}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 flex-1 max-w-32"
+                      size="sm"
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      Anterior
+                      <span className="hidden sm:block">Anterior</span>
                     </Button>
                     
                     <Button
                       onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
                       disabled={!nextLesson}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 flex-1 max-w-32"
+                      size="sm"
                     >
-                      Próxima
+                      <span className="hidden sm:block">Próxima</span>
                       <ArrowLeft className="h-4 w-4 rotate-180" />
                     </Button>
                   </div>
@@ -370,15 +380,18 @@ export default function LessonViewPage() {
           {/* Sidebar - Lista de Aulas - SEGUNDO NO MOBILE */}
           <div className="order-2 lg:order-1 lg:col-span-1 bg-gray-50 border-r lg:border-r border-t lg:border-t-0 border-gray-200">
             <div className="p-4 border-b border-gray-200">
-              <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 mb-4 text-gray-700 hover:text-gray-900">
-                <ArrowLeft className="h-4 w-4" />
-                Voltar ao curso
-              </Button>
-              <h3 className="font-semibold text-lg text-gray-900">{course.title}</h3>
+              {/* Botão voltar apenas no desktop */}
+              <div className="hidden lg:block">
+                <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 mb-4 text-gray-700 hover:text-gray-900">
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar ao curso
+                </Button>
+              </div>
+              <h3 className="font-semibold text-base lg:text-lg text-gray-900">{course.title}</h3>
             </div>
             
-            <ScrollArea className="h-[calc(100vh-120px)]">
-              <div className="p-4 space-y-4">
+            <ScrollArea className="h-[300px] lg:h-[calc(100vh-120px)]">
+              <div className="p-3 lg:p-4 space-y-3 lg:space-y-4">
                 {course.modules.map((module) => (
                   <div key={module.id} className="space-y-2">
                     <h4 className="font-medium text-sm text-gray-900 sticky top-0 bg-gray-50 py-2">
@@ -394,7 +407,7 @@ export default function LessonViewPage() {
                           <button
                             key={lesson.id}
                             onClick={() => navigateToLesson(lesson.id)}
-                            className={`w-full text-left p-3 rounded-lg transition-colors ${
+                            className={`w-full text-left p-2 lg:p-3 rounded-lg transition-colors ${
                               isActive 
                                 ? 'bg-blue-50 border border-blue-200' 
                                 : 'hover:bg-gray-50'
@@ -402,17 +415,16 @@ export default function LessonViewPage() {
                           >
                             <div className="flex items-center gap-2">
                               {isCompleted ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <CheckCircle className="h-3 w-3 lg:h-4 lg:w-4 text-green-600 flex-shrink-0" />
                               ) : lesson.type === 'video' ? (
-                                <Play className="h-4 w-4 text-gray-400" />
+                                <Play className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400 flex-shrink-0" />
                               ) : (
-                                <FileText className="h-4 w-4 text-gray-400" />
+                                <FileText className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400 flex-shrink-0" />
                               )}
-                              <span className={`text-sm ${isActive ? 'font-medium text-blue-900' : 'text-gray-700'}`}>
+                              <span className={`text-xs lg:text-sm break-words ${isActive ? 'font-medium text-blue-900' : 'text-gray-700'}`}>
                                 {lesson.title}
                               </span>
                             </div>
-
                           </button>
                         );
                       })}
