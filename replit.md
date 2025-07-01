@@ -82,6 +82,7 @@ Changelog:
 - July 1, 2025. Updated premium branding consistency: replaced star icons with crown icons throughout the platform to better symbolize premium features. Created custom favicon with crown design using brand gradient colors (#F84930 to #F8A441) for professional visual identity. Removed emoji icons from section headers for cleaner, more professional appearance.
 - July 1, 2025. Enhanced category section mobile UX: fixed horizontal scroll instability by removing infinite scroll loop, implemented proper scroll boundaries and touch controls, corrected border clipping issues by adjusting container padding. Categories now navigate smoothly without "samba" effect on mobile devices.
 - July 1, 2025. Applied brand gradient to premium buttons: updated all "Assine o Premium" buttons across Header, ArtDetailPage, and UserDropdownMenu to use logo colors (#F84830 to #F8A441) for consistent premium branding throughout the platform.
+- July 1, 2025. Implemented comprehensive UTM campaign tracking system: added utm_campaign field to traffic_investments table, updated API routes for UTM data capture, enhanced monetization dashboard with UTM performance analytics. Users can now track ROAS per specific campaign (e.g., facebook_ads_botox, google_ads_harmonizacao) for granular advertising performance analysis.
 
 ## User Preferences
 

@@ -32,9 +32,9 @@ import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 
-// Componente para performance por UTM
+// Componente para performance por UTM Campaign
 function UtmPerformanceSection() {
-  const [utmStats, setUtmStats] = useState([]);
+  const [utmStats, setUtmStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -77,14 +77,14 @@ function UtmPerformanceSection() {
     <div className="mt-6">
       <h3 className="text-lg font-medium mb-4">Performance por UTM Campaign</h3>
       {utmStats.length > 0 ? (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {utmStats.map((utm: any) => (
             <Card key={utm.utm_campaign} className="border">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">{utm.utm_campaign}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <h4 className="font-medium text-sm">{utm.utm_campaign}</h4>
+                    <p className="text-xs text-muted-foreground">
                       {utm.total_entries} investimento(s)
                     </p>
                   </div>
@@ -103,7 +103,8 @@ function UtmPerformanceSection() {
         </div>
       ) : (
         <div className="text-center py-8 text-muted-foreground">
-          Nenhuma campanha UTM encontrada
+          <p>Nenhuma campanha UTM encontrada</p>
+          <p className="text-xs mt-2">Adicione investimentos com UTM para ver estatísticas por campanha</p>
         </div>
       )}
     </div>
