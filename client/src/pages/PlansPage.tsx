@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Star, BadgeCheck, X, Crown, Palette, Headphones, RefreshCw, Sparkles, CheckCircle, Zap, Infinity, Calendar, Gift, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +45,9 @@ export default function PlansPage() {
     error,
   } = useQuery<Plan[]>({
     queryKey: ["/api/plans"],
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    refetchOnWindowFocus: false, // Não recarregar ao focar na janela
+    retry: 1, // Tentar apenas 1 vez em caso de erro
   });
 
   // Função para converter valor string para number
@@ -53,10 +57,15 @@ export default function PlansPage() {
     return parseFloat(cleanValue) || 0;
   };
 
-  // Filtrar e ordenar planos baseado na seleção
-  const filteredPlans = plans
-    .filter((plan: Plan) => plan.active !== false)
-    .filter((plan: Plan) => {
+  // Otimizar processamento dos planos com useMemo
+  const sortedPlans = useMemo(() => {
+    if (!plans.length) return [];
+    
+    // Filtrar planos ativos
+    const activePlans = plans.filter((plan: Plan) => plan.active !== false);
+    
+    // Filtrar por período selecionado
+    const filteredPlans = activePlans.filter((plan: Plan) => {
       // Sempre mostrar plano gratuito
       if (plan.isGratuito) return true;
       
@@ -71,8 +80,8 @@ export default function PlansPage() {
       }
     });
 
-  const sortedPlans = filteredPlans
-    .sort((a: Plan, b: Plan) => {
+    // Ordenar planos
+    return filteredPlans.sort((a: Plan, b: Plan) => {
       if (a.isGratuito && !b.isGratuito) return -1;
       if (!a.isGratuito && b.isGratuito) return 1;
       if (a.isGratuito && b.isGratuito) return 0;
@@ -80,6 +89,7 @@ export default function PlansPage() {
       const priceB = parsePrice(b.valor || '0');
       return priceA - priceB;
     });
+  }, [plans, isAnnual]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -247,9 +257,34 @@ export default function PlansPage() {
 
           {/* Plans Grid */}
           {isLoading ? (
-            <div className="text-center py-12">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-              <p className="mt-4 text-gray-600">Carregando planos...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="relative flex flex-col h-full">
+                  <CardHeader className="text-center pb-4">
+                    <div className="flex flex-col items-center">
+                      <Skeleton className="h-8 w-8 rounded mb-2" />
+                      <Skeleton className="h-6 w-32 mb-4" />
+                    </div>
+                    <div className="mt-4">
+                      <Skeleton className="h-12 w-24 mx-auto mb-2" />
+                      <Skeleton className="h-4 w-16 mx-auto" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <div className="space-y-3">
+                      {[1, 2, 3, 4].map((j) => (
+                        <div key={j} className="flex items-center gap-3">
+                          <Skeleton className="h-4 w-4" />
+                          <Skeleton className="h-4 flex-1" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-6">
+                    <Skeleton className="h-12 w-full" />
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
           ) : error ? (
             <div className="text-center py-12">
