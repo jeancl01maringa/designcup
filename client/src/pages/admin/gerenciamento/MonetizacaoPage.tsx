@@ -27,7 +27,9 @@ import {
   Edit,
   Trash2,
   PlusCircle,
-  Link
+  Link,
+  Copy,
+  Check
 } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -150,6 +152,20 @@ export default function MonetizacaoPage() {
   const { data: trafficStats } = useQuery({
     queryKey: ["/api/admin/traffic-investments/stats", periodo],
   });
+
+  // Estado para feedback de cópia
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  // Função para copiar código UTM
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCode(type);
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar:', err);
+    }
+  };
 
   // Dados reais da Hotmart
   const faturamentoReal = subscriptionsStats ? parseFloat((subscriptionsStats as any).total_revenue || '0') : 0;
@@ -524,45 +540,150 @@ export default function MonetizacaoPage() {
           </TabsContent>
 
           <TabsContent value="integrations" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              {/* UTM Debugger */}
-              <UTMDebugger />
-              
-              {/* Status de Integrações */}
-              <Card>
+            <div className="grid gap-4 lg:grid-cols-3">
+              {/* Códigos UTM para Campanhas */}
+              <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Link className="h-4 w-4" />
-                    Status das Integrações
+                    <Target className="h-4 w-4" />
+                    Códigos UTM para Campanhas
                   </CardTitle>
                   <CardDescription>
-                    Monitoramento das integrações ativas
+                    Copie e cole estes códigos nas suas campanhas do Facebook e Google
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm">Hotmart Webhook</span>
+                <CardContent className="space-y-4">
+                  {/* Facebook Ads */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">f</span>
+                      </div>
+                      <span className="font-medium">Facebook Ads</span>
                     </div>
-                    <Badge variant="default" className="text-xs">Ativo</Badge>
+                    <div className="bg-muted rounded p-2 text-xs font-mono flex items-center justify-between">
+                      <code>?utm_source=facebook&utm_medium=cpc&utm_campaign=nome_da_sua_campanha</code>
+                      <button
+                        onClick={() => copyToClipboard('?utm_source=facebook&utm_medium=cpc&utm_campaign=nome_da_sua_campanha', 'facebook')}
+                        className="ml-2 p-1 hover:bg-white rounded transition-colors"
+                        title="Copiar código"
+                      >
+                        {copiedCode === 'facebook' ? 
+                          <Check className="h-3 w-3 text-green-600" /> : 
+                          <Copy className="h-3 w-3 text-muted-foreground" />
+                        }
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Substitua "nome_da_sua_campanha" pelo nome específico (ex: botox_janeiro, harmonizacao_verao)
+                    </p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm">UTMify Script</span>
+
+                  {/* Google Ads */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">G</span>
+                      </div>
+                      <span className="font-medium">Google Ads</span>
                     </div>
-                    <Badge variant="default" className="text-xs">Carregado</Badge>
+                    <div className="bg-muted rounded p-2 text-xs font-mono flex items-center justify-between">
+                      <code>?utm_source=google&utm_medium=cpc&utm_campaign=nome_da_sua_campanha</code>
+                      <button
+                        onClick={() => copyToClipboard('?utm_source=google&utm_medium=cpc&utm_campaign=nome_da_sua_campanha', 'google')}
+                        className="ml-2 p-1 hover:bg-white rounded transition-colors"
+                        title="Copiar código"
+                      >
+                        {copiedCode === 'google' ? 
+                          <Check className="h-3 w-3 text-green-600" /> : 
+                          <Copy className="h-3 w-3 text-muted-foreground" />
+                        }
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Substitua "nome_da_sua_campanha" pelo nome específico (ex: preenchimento_sp, skincare_promocao)
+                    </p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm">Brevo Email</span>
+
+                  {/* Instagram */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-pink-500 rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">I</span>
+                      </div>
+                      <span className="font-medium">Instagram Ads</span>
                     </div>
-                    <Badge variant="default" className="text-xs">Conectado</Badge>
+                    <div className="bg-muted rounded p-2 text-xs font-mono flex items-center justify-between">
+                      <code>?utm_source=instagram&utm_medium=story&utm_campaign=nome_da_sua_campanha</code>
+                      <button
+                        onClick={() => copyToClipboard('?utm_source=instagram&utm_medium=story&utm_campaign=nome_da_sua_campanha', 'instagram')}
+                        className="ml-2 p-1 hover:bg-white rounded transition-colors"
+                        title="Copiar código"
+                      >
+                        {copiedCode === 'instagram' ? 
+                          <Check className="h-3 w-3 text-green-600" /> : 
+                          <Copy className="h-3 w-3 text-muted-foreground" />
+                        }
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Para stories promocionais e anúncios no Instagram
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h4 className="font-medium text-blue-900 mb-1">Como usar:</h4>
+                    <ol className="text-xs text-blue-800 space-y-1">
+                      <li>1. Copie o código UTM apropriado</li>
+                      <li>2. Cole no final da URL do seu site nas campanhas</li>
+                      <li>3. O sistema capturará automaticamente os dados</li>
+                      <li>4. Acompanhe o ROAS por campanha aqui no painel</li>
+                    </ol>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Status de Integrações e UTM Debugger */}
+              <div className="space-y-4">
+                {/* Status de Integrações */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Link className="h-4 w-4" />
+                      Status das Integrações
+                    </CardTitle>
+                    <CardDescription>
+                      Monitoramento das integrações ativas
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Hotmart Webhook</span>
+                      </div>
+                      <Badge variant="default" className="text-xs">Ativo</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">UTMify Script</span>
+                      </div>
+                      <Badge variant="default" className="text-xs">Carregado</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Brevo Email</span>
+                      </div>
+                      <Badge variant="default" className="text-xs">Conectado</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* UTM Debugger */}
+                <UTMDebugger />
+              </div>
             </div>
           </TabsContent>
 

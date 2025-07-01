@@ -23,21 +23,21 @@ O sistema agora captura automaticamente os UTMs das suas campanhas do Hotmart e 
 
 ## 🚀 Como Usar
 
-### Passo 1: URLs de Campanha
-Configure suas campanhas com UTMs:
-```
-https://designparaestetica.com.br?utm_source=facebook&utm_medium=cpc&utm_campaign=botox_janeiro_2025
-```
+### Passo 1: Copiar Códigos UTM
+1. Acesse Admin > Monetização > aba "Integrações"
+2. Na seção "Códigos UTM para Campanhas"
+3. Clique no botão copiar ao lado do código desejado
+4. Cole no final da URL do seu site nas campanhas
 
-### Passo 2: Monitoramento
-1. Acesse o painel de monetização admin
-2. Veja o "UTM Debugger" no topo da página
-3. Teste adicionando UTMs na URL atual
+### Passo 2: Configurar Campanhas
+- **Facebook**: `?utm_source=facebook&utm_medium=cpc&utm_campaign=sua_campanha`
+- **Google**: `?utm_source=google&utm_medium=cpc&utm_campaign=sua_campanha`
+- **Instagram**: `?utm_source=instagram&utm_medium=story&utm_campaign=sua_campanha`
 
-### Passo 3: Análise de Performance
-- Na aba "Investimentos em Tráfego" você vê todos os UTMs
-- Seção "Performance por UTM Campaign" mostra estatísticas
-- Compare ROAS entre diferentes campanhas
+### Passo 3: Monitoramento
+- UTM Debugger na aba "Integrações" mostra UTMs detectados
+- Performance por campanha na aba "Investimentos em Tráfego"
+- Análise de ROAS detalhada por fonte de tráfego
 
 ## 📊 Exemplos de Campanhas
 
