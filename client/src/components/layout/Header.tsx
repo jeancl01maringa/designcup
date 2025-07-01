@@ -53,6 +53,10 @@ const Logo = () => {
             src={logoUrl} 
             alt="Logo da Plataforma" 
             className="h-8 md:h-8 w-auto max-w-[150px] md:max-w-[200px] object-contain"
+            style={{ 
+              imageRendering: 'crisp-edges',
+              filter: 'contrast(1.1) brightness(1.05)'
+            }}
             onError={(e) => {
               // Em caso de erro, mostra o logo padrão
               const target = e.target as HTMLImageElement;
