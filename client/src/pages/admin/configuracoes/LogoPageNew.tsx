@@ -29,8 +29,15 @@ export default function LogoPage() {
 
   // Buscar o logo atual da plataforma
   const { data: currentLogo, isLoading } = useQuery({
-    queryKey: ["/api/settings/logo_plataforma"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    queryKey: ["/api/logo"],
+    queryFn: async () => {
+      const response = await fetch('/api/logo');
+      if (!response.ok) {
+        throw new Error('Logo não encontrado');
+      }
+      return response.json();
+    },
+    retry: false,
   });
 
   // Função para otimizar imagem
@@ -92,8 +99,11 @@ export default function LogoPage() {
       setIsUploading(true);
       
       try {
+        // Otimizar arquivo primeiro
+        const optimizedFile = await optimizeImage(file);
+        
         // Upload para o banco de dados (salva direto como base64)
-        return await uploadToDatabase(file);
+        return await uploadToDatabase(optimizedFile);
       } finally {
         setIsUploading(false);
       }
@@ -105,7 +115,7 @@ export default function LogoPage() {
       });
       setSelectedFile(null);
       setPreviewUrl(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/settings/logo_plataforma"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/logo"] });
     },
     onError: (error: Error) => {
       toast({
@@ -119,15 +129,8 @@ export default function LogoPage() {
   // Mutation para deletar logo
   const deleteLogoMutation = useMutation({
     mutationFn: async () => {
-      const currentLogoUrl = (currentLogo as any)?.value;
-      
-      // Remover do Supabase Storage
-      if (currentLogoUrl && currentLogoUrl.includes('supabase')) {
-        await removeOldLogo(currentLogoUrl);
-      }
-      
       // Remover do banco de dados
-      const response = await fetch('/api/settings/logo_plataforma', {
+      const response = await fetch('/api/logo', {
         method: 'DELETE',
       });
 
@@ -142,7 +145,7 @@ export default function LogoPage() {
         title: "Sucesso!",
         description: "Logo removido com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/settings/logo_plataforma"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/logo"] });
     },
     onError: (error: Error) => {
       toast({
@@ -188,7 +191,7 @@ export default function LogoPage() {
     await updateLogoMutation.mutateAsync(selectedFile);
   };
 
-  const logoUrl = (currentLogo as any)?.value || "/generated-icon.png";
+  const logoUrl = currentLogo?.dataUrl || "/generated-icon.png";
 
   return (
     <AdminLayout>
@@ -227,7 +230,7 @@ export default function LogoPage() {
                 )}
               </div>
 
-              {(currentLogo as any)?.value && (
+              {currentLogo?.dataUrl && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="w-full">

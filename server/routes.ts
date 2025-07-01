@@ -4950,6 +4950,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Remover logo
+  app.delete('/api/logo', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+
+      // Remover todos os logos
+      const result = await pool.query('DELETE FROM platform_logo');
+      
+      console.log(`${result.rowCount || 0} logo(s) removido(s) do banco`);
+      
+      res.json({
+        success: true,
+        message: 'Logo removido com sucesso'
+      });
+
+    } catch (error: any) {
+      console.error('Error deleting logo:', error);
+      res.status(500).json({ message: 'Erro ao remover logo' });
+    }
+  });
+
   // Logo upload routes (arquivo local - manter para compatibilidade)
   app.post('/api/settings/logo', upload.single('logo'), async (req, res) => {
     try {
