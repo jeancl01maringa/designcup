@@ -122,11 +122,13 @@ export function MobileSearchBar() {
               {/* Dropdown dos formatos */}
               {showFormatDropdown && (
                 <div 
-                  className="fixed left-4 top-[160px] w-36 bg-white border border-gray-200 rounded-lg shadow-xl z-[99999] overflow-hidden" 
+                  className="absolute left-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50" 
                   ref={dropdownRef}
-                  style={{ zIndex: 99999 }}
                 >
-                  <div className="py-1">
+                  <div className="py-2">
+                    <div className="px-4 py-2 text-sm font-medium border-b border-gray-200 text-gray-900">
+                      Formatos
+                    </div>
                     {formats.map((format) => (
                       <button
                         key={format.id}
@@ -136,10 +138,32 @@ export function MobileSearchBar() {
                           e.stopPropagation();
                           selectFormat(format.id);
                         }}
-                        className={`block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                          selectedFormat === format.id ? 'bg-[#AA5E2F]/10 text-[#AA5E2F] font-medium' : 'text-gray-700'
+                        className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-50 flex items-center gap-3 text-gray-700 ${
+                          selectedFormat === format.id ? 'bg-gray-50' : ''
                         }`}
                       >
+                        <div className="w-5 h-5 flex items-center justify-center">
+                          {format.id === 'feed' && (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {format.id === 'poster' && (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {format.id === 'stories' && (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {format.id === 'images' && (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
                         {format.name}
                       </button>
                     ))}
