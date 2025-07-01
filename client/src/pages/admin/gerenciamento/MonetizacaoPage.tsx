@@ -192,11 +192,7 @@ export default function MonetizacaoPage() {
 
   // Mutações para CRUD de investimentos
   const addInvestmentMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/admin/traffic-investments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }),
+    mutationFn: (data: any) => apiRequest('POST', '/api/admin/traffic-investments', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments/stats"] });
@@ -205,11 +201,8 @@ export default function MonetizacaoPage() {
   });
 
   const updateInvestmentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number, data: any }) => apiRequest(`/api/admin/traffic-investments/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }),
+    mutationFn: ({ id, data }: { id: number, data: any }) => 
+      apiRequest('PUT', `/api/admin/traffic-investments/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments/stats"] });
@@ -218,9 +211,7 @@ export default function MonetizacaoPage() {
   });
 
   const deleteInvestmentMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/admin/traffic-investments/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/admin/traffic-investments/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/traffic-investments/stats"] });
@@ -508,7 +499,7 @@ export default function MonetizacaoPage() {
                       Controle diário dos seus investimentos em anúncios e tráfego pago
                     </CardDescription>
                   </div>
-                  <Button>
+                  <Button onClick={() => setIsAddingInvestment(true)}>
                     <PlusCircle className="h-4 w-4 mr-2" />
                     Adicionar Investimento
                   </Button>
@@ -545,10 +536,18 @@ export default function MonetizacaoPage() {
                               </td>
                               <td className="h-12 px-4 align-middle">
                                 <div className="flex items-center space-x-2">
-                                  <Button variant="outline" size="sm">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => startEdit(investment)}
+                                  >
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="outline" size="sm">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => deleteInvestment(investment.id)}
+                                  >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
@@ -831,6 +830,75 @@ export default function MonetizacaoPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal para Adicionar/Editar Investimento */}
+      {isAddingInvestment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              {editingInvestment ? 'Editar Investimento' : 'Adicionar Investimento'}
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Data</label>
+                <input
+                  type="date"
+                  value={investmentForm.date}
+                  onChange={(e) => setInvestmentForm({...investmentForm, date: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Valor (R$)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={investmentForm.amount}
+                  onChange={(e) => setInvestmentForm({...investmentForm, amount: e.target.value})}
+                  placeholder="0,00"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Descrição</label>
+                <input
+                  type="text"
+                  value={investmentForm.description}
+                  onChange={(e) => setInvestmentForm({...investmentForm, description: e.target.value})}
+                  placeholder="Ex: Campanha Facebook - Botox"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">UTM Campaign (opcional)</label>
+                <input
+                  type="text"
+                  value={investmentForm.utm_campaign}
+                  onChange={(e) => setInvestmentForm({...investmentForm, utm_campaign: e.target.value})}
+                  placeholder="Ex: facebook_ads_botox"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button variant="outline" onClick={resetForm}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={editingInvestment ? updateInvestment : addInvestment}
+                disabled={!investmentForm.amount || !investmentForm.description}
+              >
+                {editingInvestment ? 'Salvar' : 'Adicionar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
