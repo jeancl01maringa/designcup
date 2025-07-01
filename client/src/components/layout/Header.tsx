@@ -292,7 +292,7 @@ const MobileUserMenu = () => {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-1 border-primary text-primary hover:bg-primary/10 px-2"
+          className="flex items-center gap-1 border-blue-300 text-blue-500 hover:bg-blue-50 px-2"
           onClick={() => navigate("/admin")}
         >
           <svg 
