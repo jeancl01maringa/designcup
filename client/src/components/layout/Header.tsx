@@ -141,20 +141,20 @@ const UserMenu = () => {
   
   if (!user) {
     return (
-      <div className="hidden md:flex items-center gap-3">
+      <div className="hidden md:flex items-center gap-1.5">
         <Button 
           variant="default" 
           size="sm"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-5 py-2 h-10 text-sm border-0"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 py-1.5 h-8 text-xs border-0"
           onClick={() => navigate("/planos")}
         >
-          <Crown className="h-4 w-4" />
+          <Crown className="h-3.5 w-3.5" />
           <span>Assine o Premium</span>
         </Button>
         <Button 
           variant="outline" 
           size="sm"
-          className="flex items-center gap-2 border-[#191c2c] text-[#191c2c] hover:bg-[#191c2c] hover:text-white bg-transparent transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
+          className="flex items-center gap-1.5 border-[#191c2c] text-[#191c2c] hover:bg-[#191c2c] hover:text-white bg-transparent transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
           onClick={() => {
             navigate("/auth");
             // Ativar a tab de registro
@@ -165,16 +165,16 @@ const UserMenu = () => {
             }, 100);
           }}
         >
-          <UserPlus className="h-4 w-4" />
+          <UserPlus className="h-3.5 w-3.5" />
           <span>Cadastre-se</span>
         </Button>
         <Button 
           variant="default" 
           size="sm" 
-          className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white shadow-sm transition-all duration-200 rounded-full px-5 py-2 h-10 text-sm"
+          className="flex items-center gap-1.5 bg-[#191c2c] hover:bg-[#14182a] text-white shadow-sm transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
           onClick={() => navigate("/auth")}
         >
-          <LogIn className="h-4 w-4" />
+          <LogIn className="h-3.5 w-3.5" />
           <span>Entrar</span>
         </Button>
       </div>
@@ -582,17 +582,17 @@ export default function Header() {
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
       <div className={`container-global py-3 flex items-center transition-all duration-300 h-[70px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
         
-        {/* Layout Desktop - mantém estrutura original */}
-        <div className="hidden md:flex items-center justify-between w-full">
+        {/* Layout Desktop - melhor distribuição de espaço */}
+        <div className="hidden md:flex items-center w-full">
           {/* Logo - posicionado à esquerda */}
-          <div className="flex-shrink-0 w-36">
+          <div className="flex-shrink-0 w-32">
             <Logo />
           </div>
           
-          {/* Links de navegação ou barra de pesquisa scroll */}
-          <div className="flex-1 flex justify-center">
+          {/* Links de navegação ou barra de pesquisa scroll - centralizado */}
+          <div className="flex-1 flex justify-center px-8">
             {showScrollSearchBar ? (
-              <form onSubmit={handleScrollSearch} className="relative flex items-center max-w-2xl w-full">
+              <form onSubmit={handleScrollSearch} className="relative flex items-center max-w-xl w-full">
                 <input
                   type="text"
                   placeholder="Busque por artes, categorias, temas..."
@@ -652,7 +652,7 @@ export default function Header() {
           </div>
           
           {/* Botões do usuário - posicionados à direita */}
-          <div className="flex items-center space-x-2 flex-shrink-0 w-36 justify-end">
+          <div className="flex items-center space-x-1.5 flex-shrink-0 w-32 justify-end">
             <UserMenu />
           </div>
         </div>
