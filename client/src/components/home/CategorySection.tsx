@@ -306,7 +306,7 @@ export default function CategorySection() {
                     
                     {/* Retângulo branco centralizado com título da categoria - sempre visível - FORA do container com overflow */}
                     <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-30">
-                      <div className="bg-white rounded-full px-4 py-2 shadow-lg shadow-gray-400/30 min-w-[120px] flex items-center justify-center gap-2">
+                      <div className="bg-white rounded-full px-6 py-2 shadow-lg shadow-gray-400/30 min-w-[150px] flex items-center justify-center gap-2">
                         <img 
                           src="/category-icon.png" 
                           alt="Ícone" 
