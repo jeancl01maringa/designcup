@@ -148,7 +148,8 @@ export default function CategorySection() {
   // Lidar com evento de scroll manual
   const handleScroll = () => {
     if (scrollRef.current) {
-      setScrollPosition(scrollRef.current.scrollLeft);
+      const newPosition = scrollRef.current.scrollLeft;
+      setScrollPosition(newPosition);
     }
   };
   
@@ -257,13 +258,17 @@ export default function CategorySection() {
           {/* Contêiner de rolagem horizontal */}
           <div 
             ref={scrollRef}
-            className="overflow-x-auto scrollbar-hide px-4 pb-4"
+            className="overflow-x-auto scrollbar-hide pb-4"
             style={{ 
               scrollbarWidth: 'none',  // Firefox
-              msOverflowStyle: 'none'  // IE/Edge
+              msOverflowStyle: 'none',  // IE/Edge
+              touchAction: 'pan-x',    // Permitir apenas scroll horizontal
+              overscrollBehavior: 'contain', // Evitar bounce
+              WebkitOverflowScrolling: 'touch', // Scroll suave no iOS
+              scrollSnapType: 'x proximity'    // Snap suave
             }}
           >
-            <div className="flex space-x-6 w-max">
+            <div className="flex space-x-6 w-max px-4">
               {/* Renderizar categorias normalmente */}
               {categoriesWithPosts.map((category, index) => (
                 <div key={category.id} className="flex-none w-80">
