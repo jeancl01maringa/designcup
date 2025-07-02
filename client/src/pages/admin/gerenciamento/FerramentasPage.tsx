@@ -15,6 +15,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, MoreVertical, Edit, Trash2, ExternalLink, Wrench, Folder, Eye, EyeOff, Crown, Upload } from "lucide-react";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { PageHeader } from "@/components/admin/layout/PageHeader";
 
 interface Tool {
   id: number;
@@ -338,22 +340,21 @@ export default function FerramentasPage() {
 
   if (toolsLoading || categoriesLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ferramentas</h1>
-          <p className="text-gray-600">Gerencie as ferramentas e categorias disponíveis no site.</p>
-        </div>
-      </div>
-
+    <AdminLayout>
+      <PageHeader 
+        title="Ferramentas" 
+        description="Gerencie as ferramentas e categorias disponíveis no site"
+      />
+      
       <Tabs defaultValue="tools" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tools" className="flex items-center gap-2">
@@ -879,6 +880,6 @@ export default function FerramentasPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </AdminLayout>
   );
 }
