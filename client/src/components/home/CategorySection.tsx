@@ -263,9 +263,7 @@ export default function CategorySection() {
               scrollbarWidth: 'none',  // Firefox
               msOverflowStyle: 'none',  // IE/Edge
               WebkitOverflowScrolling: 'touch', // Scroll suave no iOS
-              overflowY: 'hidden', // Força overflow vertical como hidden
-              touchAction: 'pan-x pinch-zoom', // Permite apenas scroll horizontal e zoom
-              overscrollBehaviorY: 'none' // Remove completamente qualquer bounce vertical
+              overflowY: 'hidden' // Força overflow vertical como hidden
             }}
           >
             <div className="flex space-x-6 w-max px-4">
