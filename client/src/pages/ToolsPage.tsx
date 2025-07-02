@@ -165,11 +165,11 @@ export default function ToolsPage() {
                         <img
                           src={tool.image_url}
                           alt={tool.name}
-                          className="w-12 h-12 rounded-lg object-cover border"
+                          className="w-12 h-12 rounded-xl object-cover border"
                         />
                       ) : (
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center">
-                          <Wrench className="h-6 w-6 text-orange-600" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                          <ExternalLink className="h-6 w-6 text-gray-500" />
                         </div>
                       )}
                       <div>
@@ -201,10 +201,10 @@ export default function ToolsPage() {
 
                   <Button
                     onClick={() => window.open(tool.url, '_blank')}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
                   >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Acessar Ferramenta
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="font-medium text-sm">ACESSAR FERRAMENTA</span>
                   </Button>
                 </CardContent>
               </Card>

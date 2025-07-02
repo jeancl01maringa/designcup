@@ -554,11 +554,11 @@ export default function FerramentasPage() {
                               <img
                                 src={tool.image_url}
                                 alt={tool.name}
-                                className="w-8 h-8 rounded object-cover"
+                                className="w-8 h-8 rounded-lg object-cover border"
                               />
                             ) : (
-                              <div className="w-8 h-8 bg-orange-100 rounded flex items-center justify-center">
-                                <Wrench className="h-4 w-4 text-orange-600" />
+                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <ExternalLink className="h-4 w-4 text-gray-500" />
                               </div>
                             )}
                             <div>
