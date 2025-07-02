@@ -84,6 +84,8 @@ Changelog:
 - July 1, 2025. Applied brand gradient to premium buttons: updated all "Assine o Premium" buttons across Header, ArtDetailPage, and UserDropdownMenu to use logo colors (#F84830 to #F8A441) for consistent premium branding throughout the platform.
 - July 1, 2025. Implemented comprehensive UTM campaign tracking system: added utm_campaign field to traffic_investments table, updated API routes for UTM data capture, enhanced monetization dashboard with UTM performance analytics. Users can now track ROAS per specific campaign (e.g., facebook_ads_botox, google_ads_harmonizacao) for granular advertising performance analysis.
 - July 2, 2025. Fixed mobile UX issues: removed premium button from mobile header and relocated to hamburger menu for cleaner interface. Eliminated vertical scrolling interference in categories section by removing touchAction and overscrollBehavior properties that were causing "swaying" effect during page scroll.
+- July 2, 2025. Corrected premium button styling inconsistency: updated "Assine o Premium" button for non-logged users to use brand gradient (#F84830 to #F8A441) instead of blue/purple gradient, ensuring visual consistency across all user states.
+- July 2, 2025. Fixed duplicate video preview and title on lesson pages: removed redundant desktop-specific content section that was causing duplication of video players and lesson titles below material sections. Streamlined responsive layout to use single unified content area.
 
 ## User Preferences
 
