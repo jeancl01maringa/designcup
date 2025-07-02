@@ -149,7 +149,7 @@ const UserMenu = () => {
         <Button 
           variant="default" 
           size="sm"
-          className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 py-1.5 h-8 text-xs border-0"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-[#F84830] to-[#F8A441] hover:from-[#E03E28] hover:to-[#E89538] text-white shadow-lg transition-all duration-300 rounded-full font-medium px-3 py-1.5 h-8 text-xs border-0"
           onClick={() => navigate("/planos")}
         >
           <Crown className="h-3.5 w-3.5" />
