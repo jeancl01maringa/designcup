@@ -243,7 +243,7 @@ export default function CategorySection() {
         </div>
         
         {/* Container com referência para controle de scroll */}
-        <div className="relative" ref={containerRef}>
+        <div className="relative overflow-hidden" ref={containerRef}>
           {/* Botões de navegação - Esquerda */}
           {canScrollLeft && (
             <button 
@@ -258,11 +258,14 @@ export default function CategorySection() {
           {/* Contêiner de rolagem horizontal */}
           <div 
             ref={scrollRef}
-            className="overflow-x-auto scrollbar-hide pb-4"
+            className="overflow-x-auto overflow-y-hidden scrollbar-hide pb-4"
             style={{ 
               scrollbarWidth: 'none',  // Firefox
               msOverflowStyle: 'none',  // IE/Edge
-              WebkitOverflowScrolling: 'touch' // Scroll suave no iOS
+              WebkitOverflowScrolling: 'touch', // Scroll suave no iOS
+              overflowY: 'hidden', // Força overflow vertical como hidden
+              touchAction: 'pan-x pinch-zoom', // Permite apenas scroll horizontal e zoom
+              overscrollBehaviorY: 'none' // Remove completamente qualquer bounce vertical
             }}
           >
             <div className="flex space-x-6 w-max px-4">
