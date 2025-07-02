@@ -262,10 +262,7 @@ export default function CategorySection() {
             style={{ 
               scrollbarWidth: 'none',  // Firefox
               msOverflowStyle: 'none',  // IE/Edge
-              touchAction: 'pan-x',    // Permitir apenas scroll horizontal
-              overscrollBehavior: 'contain', // Evitar bounce
-              WebkitOverflowScrolling: 'touch', // Scroll suave no iOS
-              scrollSnapType: 'x proximity'    // Snap suave
+              WebkitOverflowScrolling: 'touch' // Scroll suave no iOS
             }}
           >
             <div className="flex space-x-6 w-max px-4">
