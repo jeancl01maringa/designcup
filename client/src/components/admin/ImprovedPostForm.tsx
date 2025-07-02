@@ -1240,10 +1240,10 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                             width: "100%"
                           }}
                         >
-                          {formData.formatFiles[format].imagePreview ? (
+                          {formData.formatFiles[format]?.imagePreview ? (
                             <div className="relative w-full h-full">
                               <ImageWithFallback 
-                                src={formData.formatFiles[format].imagePreview}
+                                src={formData.formatFiles[format]?.imagePreview}
                                 alt="Preview"
                                 className="object-contain max-h-full max-w-full"
                                 fallbackClassName="h-12 w-12 text-gray-300"
@@ -1327,10 +1327,10 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                             </div>
                           </div>
                           
-                          {formData.formatFiles[format].links.length > 0 ? (
+                          {formData.formatFiles[format]?.links?.length > 0 ? (
                             <div className="space-y-2 mt-4">
                               <h4 className="text-sm font-medium">Links adicionados:</h4>
-                              {formData.formatFiles[format].links.map((link) => (
+                              {formData.formatFiles[format]?.links?.map((link) => (
                                 <div key={link.id} className="flex justify-between items-center bg-muted/50 p-2 rounded">
                                   <div className="flex items-center gap-2">
                                     <LinkIcon className="h-4 w-4 text-blue-600" />
@@ -1457,9 +1457,9 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                           height: "150px"
                         }}
                       >
-                        {formData.formatFiles[format].imagePreview ? (
+                        {formData.formatFiles[format]?.imagePreview ? (
                           <ImageWithFallback 
-                            src={formData.formatFiles[format].imagePreview}
+                            src={formData.formatFiles[format]?.imagePreview}
                             alt={`Preview de ${format}`}
                             className="object-contain max-h-full max-w-full"
                             fallbackClassName="h-12 w-12 text-gray-300"
