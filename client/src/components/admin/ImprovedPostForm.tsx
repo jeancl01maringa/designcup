@@ -667,7 +667,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
   const getFormatsWithContent = (): PostFormat[] => {
     return formData.formats.filter(format => {
-      const formatFile = formData.formatFiles[format];
+      const formatFile = formData.formatFiles[format] || { ...defaultFormatFile };
       return (
         (formatFile.imagePreview !== null) || 
         formatFile.links.length > 0
@@ -736,7 +736,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       // Preparar imagem principal (pode ser vazia nesse caso)
       let mainImageUrl = "";
       for (const format of formData.formats) {
-        if (formData.formatFiles[format].imagePreview) {
+        if (formData.formatFiles[format]?.imagePreview) {
           mainImageUrl = formData.formatFiles[format].imagePreview;
           break;
         }
@@ -822,7 +822,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       // Pegue a primeira imagem disponível para usar como imageUrl principal
       let mainImageUrl = "";
       for (const format of formData.formats) {
-        if (formData.formatFiles[format].imagePreview) {
+        if (formData.formatFiles[format]?.imagePreview) {
           mainImageUrl = formData.formatFiles[format].imagePreview;
           break;
         }
@@ -1476,12 +1476,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                           </Badge>
                         </div>
                         
-                        {formData.formatFiles[format].links.length > 0 ? (
+                        {formData.formatFiles[format]?.links?.length > 0 ? (
                           <div className="space-y-1 mt-2">
                             <p className="text-xs text-muted-foreground">
-                              {formData.formatFiles[format].links.length} link(s) adicionado(s):
+                              {formData.formatFiles[format]?.links?.length || 0} link(s) adicionado(s):
                             </p>
-                            {formData.formatFiles[format].links.map((link) => (
+                            {formData.formatFiles[format]?.links?.map((link) => (
                               <div key={link.id} className="flex items-center gap-1">
                                 <ExternalLink className="h-3 w-3 text-blue-600" />
                                 <a 
