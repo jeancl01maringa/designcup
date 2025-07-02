@@ -525,3 +525,62 @@ export const platformLogo = pgTable("platform_logo", {
 
 export type PlatformLogo = typeof platformLogo.$inferSelect;
 export type InsertPlatformLogo = typeof platformLogo.$inferInsert;
+
+// Tools categories schema
+export const toolCategories = pgTable("tool_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Tools schema
+export const tools = pgTable("tools", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  url: text("url").notNull(),
+  categoryId: integer("category_id").references(() => toolCategories.id, { onDelete: "set null" }),
+  imageUrl: text("image_url"),
+  isNew: boolean("is_new").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const toolsRelations = relations(tools, ({ one }) => ({
+  category: one(toolCategories, {
+    fields: [tools.categoryId],
+    references: [toolCategories.id],
+  }),
+}));
+
+export const toolCategoriesRelations = relations(toolCategories, ({ many }) => ({
+  tools: many(tools),
+}));
+
+// Tool schemas for form validation
+export const insertToolCategorySchema = createInsertSchema(toolCategories)
+  .pick({
+    name: true,
+    description: true,
+    isActive: true,
+  });
+
+export const insertToolSchema = createInsertSchema(tools)
+  .pick({
+    name: true,
+    description: true,
+    url: true,
+    categoryId: true,
+    imageUrl: true,
+    isNew: true,
+    isActive: true,
+  });
+
+export type ToolCategory = typeof toolCategories.$inferSelect;
+export type InsertToolCategory = typeof toolCategories.$inferInsert;
+export type Tool = typeof tools.$inferSelect;
+export type InsertTool = typeof tools.$inferInsert;

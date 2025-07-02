@@ -7007,6 +7007,270 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================================================================
+  // TOOLS ROUTES
+  // =============================================================================
+
+  // Get all tools with categories
+  app.get('/api/tools', async (req, res) => {
+    try {
+      const { category } = req.query;
+      
+      let query = `
+        SELECT 
+          t.*,
+          tc.name as category_name,
+          tc.description as category_description
+        FROM tools t
+        LEFT JOIN tool_categories tc ON t.category_id = tc.id
+        WHERE t.is_active = true
+      `;
+      
+      const params: any[] = [];
+      
+      if (category) {
+        query += ' AND tc.name = $1';
+        params.push(category);
+      }
+      
+      query += ' ORDER BY t.is_new DESC, t.created_at DESC';
+      
+      const result = await pool.query(query, params);
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar ferramentas:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get all tool categories
+  app.get('/api/tool-categories', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT tc.*, COUNT(t.id) as tools_count
+        FROM tool_categories tc
+        LEFT JOIN tools t ON tc.id = t.category_id AND t.is_active = true
+        WHERE tc.is_active = true
+        GROUP BY tc.id
+        ORDER BY tc.name
+      `);
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar categorias de ferramentas:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // =============================================================================
+  // ADMIN TOOLS ROUTES
+  // =============================================================================
+
+  // Get all tools for admin (including inactive)
+  app.get('/api/admin/tools', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT 
+          t.*,
+          tc.name as category_name,
+          tc.description as category_description
+        FROM tools t
+        LEFT JOIN tool_categories tc ON t.category_id = tc.id
+        ORDER BY t.created_at DESC
+      `);
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar ferramentas (admin):', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Get all tool categories for admin (including inactive)
+  app.get('/api/admin/tool-categories', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT tc.*, COUNT(t.id) as tools_count
+        FROM tool_categories tc
+        LEFT JOIN tools t ON tc.id = t.category_id
+        GROUP BY tc.id
+        ORDER BY tc.name
+      `);
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar categorias de ferramentas (admin):', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Create new tool
+  app.post('/api/admin/tools', upload.single('image'), async (req, res) => {
+    try {
+      const { name, description, url, categoryId, isNew } = req.body;
+      let imageUrl = null;
+
+      // Upload image if provided
+      if (req.file) {
+        const fileName = `tool_${Date.now()}_${req.file.originalname}`;
+        
+        const { data, error } = await supabase.storage
+          .from('images')
+          .upload(fileName, req.file.buffer, {
+            contentType: req.file.mimetype,
+          });
+
+        if (error) {
+          console.error('Erro no upload da imagem:', error);
+        } else {
+          const { data: publicData } = supabase.storage
+            .from('images')
+            .getPublicUrl(fileName);
+          imageUrl = publicData.publicUrl;
+        }
+      }
+
+      const result = await pool.query(`
+        INSERT INTO tools (name, description, url, category_id, image_url, is_new)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [name, description, url, categoryId || null, imageUrl, isNew === 'true']);
+
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao criar ferramenta:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Update tool
+  app.put('/api/admin/tools/:id', upload.single('image'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, url, categoryId, isNew, isActive } = req.body;
+      let imageUrl = req.body.imageUrl;
+
+      // Upload new image if provided
+      if (req.file) {
+        const fileName = `tool_${Date.now()}_${req.file.originalname}`;
+        
+        const { data, error } = await supabase.storage
+          .from('images')
+          .upload(fileName, req.file.buffer, {
+            contentType: req.file.mimetype,
+          });
+
+        if (error) {
+          console.error('Erro no upload da imagem:', error);
+        } else {
+          const { data: publicData } = supabase.storage
+            .from('images')
+            .getPublicUrl(fileName);
+          imageUrl = publicData.publicUrl;
+        }
+      }
+
+      const result = await pool.query(`
+        UPDATE tools 
+        SET name = $1, description = $2, url = $3, category_id = $4, 
+            image_url = $5, is_new = $6, is_active = $7, updated_at = NOW()
+        WHERE id = $8
+        RETURNING *
+      `, [name, description, url, categoryId || null, imageUrl, isNew === 'true', isActive !== 'false', id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Ferramenta não encontrada' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao atualizar ferramenta:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Delete tool
+  app.delete('/api/admin/tools/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const result = await pool.query('DELETE FROM tools WHERE id = $1 RETURNING *', [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Ferramenta não encontrada' });
+      }
+
+      res.json({ message: 'Ferramenta excluída com sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao excluir ferramenta:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Create new tool category
+  app.post('/api/admin/tool-categories', async (req, res) => {
+    try {
+      const { name, description } = req.body;
+      
+      const result = await pool.query(`
+        INSERT INTO tool_categories (name, description)
+        VALUES ($1, $2)
+        RETURNING *
+      `, [name, description]);
+
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao criar categoria de ferramenta:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Update tool category
+  app.put('/api/admin/tool-categories/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, isActive } = req.body;
+      
+      const result = await pool.query(`
+        UPDATE tool_categories 
+        SET name = $1, description = $2, is_active = $3, updated_at = NOW()
+        WHERE id = $4
+        RETURNING *
+      `, [name, description, isActive !== 'false', id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Categoria não encontrada' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao atualizar categoria de ferramenta:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Delete tool category
+  app.delete('/api/admin/tool-categories/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if category has tools
+      const toolsCheck = await pool.query('SELECT COUNT(*) FROM tools WHERE category_id = $1', [id]);
+      
+      if (parseInt(toolsCheck.rows[0].count) > 0) {
+        return res.status(400).json({ message: 'Não é possível excluir categoria que possui ferramentas' });
+      }
+      
+      const result = await pool.query('DELETE FROM tool_categories WHERE id = $1 RETURNING *', [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Categoria não encontrada' });
+      }
+
+      res.json({ message: 'Categoria excluída com sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao excluir categoria de ferramenta:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

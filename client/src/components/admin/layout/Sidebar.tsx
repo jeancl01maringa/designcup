@@ -28,7 +28,8 @@ import {
   Image,
   CreditCard,
   BookOpen,
-  Play
+  Play,
+  Wrench
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
@@ -140,6 +141,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
           label: "Gerenciar Tags",
           path: "/admin/gerenciamento/tags",
           icon: <Tag className="h-4 w-4" />,
+        },
+        {
+          id: "ferramentas",
+          label: "Ferramentas",
+          path: "/admin/gerenciamento/ferramentas",
+          icon: <Wrench className="h-4 w-4" />,
         }
       ],
     },

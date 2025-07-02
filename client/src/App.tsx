@@ -21,8 +21,9 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import PopupDisplay from "@/components/PopupDisplay";
 
-// Página pública de planos
+// Páginas públicas
 import PlansPage from "@/pages/PlansPage";
+import ToolsPage from "@/pages/ToolsPage";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
@@ -32,6 +33,7 @@ import PlanosPage from "@/pages/admin/PlanosPage";
 import FileFormatsPage from "@/pages/admin/gerenciamento/FileFormatsPage";
 import PostFormatsPage from "@/pages/admin/gerenciamento/PostFormatsPage";
 import TagsPage from "@/pages/admin/gerenciamento/TagsPage";
+import FerramentasPage from "@/pages/admin/gerenciamento/FerramentasPage";
 import UsuariosPage from "@/pages/admin/gerenciamento/UsuariosPage";
 import AssinantesPage from "@/pages/admin/gerenciamento/AssinantesPage";
 import MarketingPage from "@/pages/admin/MarketingPage";
@@ -74,6 +76,7 @@ function Router() {
       <Route path="/preview/:id" component={ArtDetailPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/planos" component={PlansPage} />
+      <Route path="/ferramentas" component={ToolsPage} />
       <Route path="/cursos">
         <ProtectedRoute path="/cursos" component={CursosUserPage} />
       </Route>
@@ -138,6 +141,9 @@ function Router() {
       </Route>
       <Route path="/admin/gerenciamento/tags">
         <ProtectedRoute path="/admin/gerenciamento/tags" component={TagsPage} requireAdmin={true} />
+      </Route>
+      <Route path="/admin/gerenciamento/ferramentas">
+        <ProtectedRoute path="/admin/gerenciamento/ferramentas" component={FerramentasPage} requireAdmin={true} />
       </Route>
       <Route path="/admin/usuarios">
         <ProtectedRoute path="/admin/usuarios" component={UsuariosPage} requireAdmin={true} />
