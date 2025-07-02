@@ -476,6 +476,82 @@ export default function LessonViewPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Ações da Aula - Mobile - MOVIDAS PARA BAIXO DO CONTEÚDO */}
+                  <div className="bg-gray-50 p-4 rounded-lg border space-y-4 mt-6">
+                    {/* Sistema de Avaliação - Mobile */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Avalie esta aula:</span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const averageRating = lessonRating?.average_rating || 0;
+                          return (
+                            <button
+                              key={star}
+                              onClick={() => ratingMutation.mutate(star)}
+                              onMouseEnter={() => setHoveredRating(star)}
+                              onMouseLeave={() => setHoveredRating(0)}
+                              className="p-1 hover:scale-110 transition-transform"
+                              disabled={ratingMutation.isPending}
+                            >
+                              <Star
+                                className={`h-4 w-4 ${
+                                  star <= (hoveredRating || Math.round(averageRating))
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300'
+                              }`}
+                            />
+                          </button>
+                        );
+                      })}
+                      </div>
+                    </div>
+                    
+                    {/* Exibir média de avaliações */}
+                    {lessonRating && lessonRating.rating_count > 0 && (
+                      <div className="text-xs text-gray-600 text-center">
+                        Média: {Number(lessonRating.average_rating).toFixed(1)} ({lessonRating.rating_count} avaliações)
+                      </div>
+                    )}
+
+                    {/* Botão Concluir - Mobile */}
+                    <Button 
+                      onClick={() => toggleLessonCompletion(lessonId)}
+                      variant={isLessonCompleted(lessonId) ? "default" : "outline"}
+                      className={`w-full flex items-center justify-center gap-2 ${
+                        isLessonCompleted(lessonId) 
+                          ? 'bg-green-300 hover:bg-green-400 text-green-900 border-green-400' 
+                          : 'hover:bg-green-100 hover:text-green-800 hover:border-green-300'
+                      }`}
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      {isLessonCompleted(lessonId) ? 'Aula Concluída' : 'Marcar como Concluída'}
+                    </Button>
+
+                    {/* Navegação entre aulas */}
+                    <div className="flex justify-between gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => prevLesson && navigateToLesson(prevLesson.id)}
+                        disabled={!prevLesson}
+                        className="flex items-center gap-1 flex-1 text-xs px-3"
+                        size="sm"
+                      >
+                        <ArrowLeft className="h-3 w-3" />
+                        Anterior
+                      </Button>
+                      
+                      <Button
+                        onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
+                        disabled={!nextLesson}
+                        className="flex items-center gap-1 flex-1 text-xs px-3"
+                        size="sm"
+                      >
+                        Próxima
+                        <ArrowLeft className="h-3 w-3 rotate-180" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* 3. Descrição da Aula - DESKTOP */}
@@ -692,81 +768,7 @@ export default function LessonViewPage() {
                   );
                 })}
 
-                {/* Ações no Mobile - aparecem depois das listas */}
-                <div className="bg-white p-4 rounded-lg border space-y-4">
-                  {/* Sistema de Avaliação - Mobile */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Avalie esta aula:</span>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => {
-                        const averageRating = lessonRating?.average_rating || 0;
-                        return (
-                          <button
-                            key={star}
-                            onClick={() => ratingMutation.mutate(star)}
-                            onMouseEnter={() => setHoveredRating(star)}
-                            onMouseLeave={() => setHoveredRating(0)}
-                            className="p-1 hover:scale-110 transition-transform"
-                            disabled={ratingMutation.isPending}
-                          >
-                            <Star
-                              className={`h-4 w-4 ${
-                                star <= (hoveredRating || Math.round(averageRating))
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
-                            }`}
-                          />
-                        </button>
-                      );
-                    })}
-                    </div>
-                  </div>
-                  
-                  {/* Exibir média de avaliações */}
-                  {lessonRating && lessonRating.rating_count > 0 && (
-                    <div className="text-xs text-gray-600 text-center">
-                      Média: {Number(lessonRating.average_rating).toFixed(1)} ({lessonRating.rating_count} avaliações)
-                    </div>
-                  )}
 
-                  {/* Botão Concluir - Mobile */}
-                  <Button 
-                    onClick={() => toggleLessonCompletion(lessonId)}
-                    variant={isLessonCompleted(lessonId) ? "default" : "outline"}
-                    className={`w-full flex items-center justify-center gap-2 ${
-                      isLessonCompleted(lessonId) 
-                        ? 'bg-green-300 hover:bg-green-400 text-green-900 border-green-400' 
-                        : 'hover:bg-green-100 hover:text-green-800 hover:border-green-300'
-                    }`}
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    {isLessonCompleted(lessonId) ? 'Aula Concluída' : 'Marcar como Concluída'}
-                  </Button>
-
-                  {/* Navegação entre aulas */}
-                  <div className="flex justify-between gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => prevLesson && navigateToLesson(prevLesson.id)}
-                      disabled={!prevLesson}
-                      className="flex items-center gap-1 flex-1 text-xs px-3"
-                      size="sm"
-                    >
-                      <ArrowLeft className="h-3 w-3" />
-                      Anterior
-                    </Button>
-                    
-                    <Button
-                      onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
-                      disabled={!nextLesson}
-                      className="flex items-center gap-1 flex-1 text-xs px-3"
-                      size="sm"
-                    >
-                      Próxima
-                      <ArrowLeft className="h-3 w-3 rotate-180" />
-                    </Button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
