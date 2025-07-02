@@ -82,12 +82,12 @@ export default function ToolsPage() {
             <div className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full">
               <Wrench className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-gray-900">
               Ferramentas Úteis
             </h1>
           </div>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Gerencie as ferramentas e categorias disponíveis no site.
+            Descubra ferramentas úteis selecionadas para profissionais de estética.
           </p>
         </div>
 
