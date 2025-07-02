@@ -166,14 +166,21 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     if (postFormats.length > 0) {
       postFormats.forEach(format => {
         if (format.is_active) {
+          // Adicionar tanto maiúsculo quanto minúsculo para compatibilidade
           defaultFiles[format.name] = { ...defaultFormatFile };
+          defaultFiles[format.name.toLowerCase()] = { ...defaultFormatFile };
         }
       });
     } else {
       // Fallback para formatos básicos enquanto os dados são carregados
+      defaultFiles['Feed'] = { ...defaultFormatFile };
       defaultFiles['feed'] = { ...defaultFormatFile };
+      defaultFiles['Stories'] = { ...defaultFormatFile };
       defaultFiles['stories'] = { ...defaultFormatFile };
+      defaultFiles['Cartaz'] = { ...defaultFormatFile };
       defaultFiles['cartaz'] = { ...defaultFormatFile };
+      defaultFiles['Banner'] = { ...defaultFormatFile };
+      defaultFiles['banner'] = { ...defaultFormatFile };
     }
     
     return defaultFiles;
@@ -841,7 +848,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       // Preparar dados dos formatos para criação de múltiplas entradas
       const formatos = formData.formats.map(format => {
         const typedFormat = format as PostFormat;
-        const formatFile = formData.formatFiles[typedFormat];
+        const formatFile = formData.formatFiles[typedFormat] || formData.formatFiles[typedFormat.toLowerCase()] || { ...defaultFormatFile };
         
         // Extrair o primeiro link do Canva se existir
         const canvaLink = formatFile.links.find(link => link.provider === 'canva');
@@ -905,9 +912,19 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       
     } catch (error) {
       console.error("Erro ao enviar o formulário:", error);
+      console.error("Detalhes do erro:", {
+        message: (error as any)?.message,
+        stack: (error as any)?.stack,
+        formData: formData,
+        isEdit,
+        initialData: initialData?.id
+      });
+      
+      const errorMessage = (error as any)?.message || "Não foi possível salvar a postagem. Tente novamente.";
+      
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível salvar a postagem. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
