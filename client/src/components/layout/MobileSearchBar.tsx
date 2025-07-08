@@ -32,8 +32,16 @@ export function MobileSearchBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      const formatParam = selectedFormat !== "all" ? `&format=${selectedFormat}` : "";
-      navigate(`/todas-artes?search=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
+      // Verificar se o termo de busca é um número (possível ID)
+      const isNumeric = /^\d+$/.test(searchQuery.trim());
+      if (isNumeric) {
+        // Navegar diretamente para o post
+        navigate(`/post/${searchQuery.trim()}`);
+      } else {
+        // Buscar por termo
+        const formatParam = selectedFormat !== "all" ? `&format=${selectedFormat}` : "";
+        navigate(`/todas-artes?search=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
+      }
     }
   };
 
@@ -150,7 +158,7 @@ export function MobileSearchBar() {
             {/* Campo de pesquisa no meio */}
             <input
               type="text"
-              placeholder="Busque por artes, categorias..."
+              placeholder="Busque por artes, categorias ou ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 py-3 px-3 border-0 focus:outline-none text-sm bg-transparent placeholder:truncate"

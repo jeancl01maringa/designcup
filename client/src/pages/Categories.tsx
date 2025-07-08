@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, ImageOff, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 interface DbCategory {
   id: number;
@@ -44,6 +44,7 @@ export default function Categories() {
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState("Formatos");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [, navigate] = useLocation();
 
   const formats = [
     { id: "all", name: "Formatos" },
@@ -56,6 +57,21 @@ export default function Categories() {
   const selectFormat = (format: string) => {
     setSelectedFormat(format);
     setShowFormatDropdown(false);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      // Verificar se o termo de busca é um número (possível ID)
+      const isNumeric = /^\d+$/.test(searchQuery.trim());
+      if (isNumeric) {
+        // Navegar diretamente para o post
+        navigate(`/post/${searchQuery.trim()}`);
+      } else {
+        // Buscar por termo
+        const formatParam = selectedFormat !== "Formatos" ? `&format=${selectedFormat.toLowerCase()}` : "";
+        navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
+      }
+    }
   };
 
   // Fechar dropdown ao clicar fora
@@ -118,10 +134,11 @@ export default function Categories() {
             <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-3 sm:pl-[15px] pr-2 sm:pr-[6px]">
               <input
                 type="text"
-                placeholder="Busque por artes..."
+                placeholder="Busque por artes ou ID..."
                 className="flex-1 border-none py-2 px-1 sm:p-3 text-sm text-[#333] outline-none placeholder:text-gray-400 min-w-0"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
               
               <div className="w-px h-6 bg-[#e0e0e0] mx-2.5"></div>
@@ -161,6 +178,7 @@ export default function Categories() {
               
               <button
                 type="button"
+                onClick={handleSearch}
                 className="bg-[#151922] text-white border-none py-2.5 px-3.5 rounded-lg cursor-pointer"
               >
                 <Search className="h-4 w-4" />

@@ -21,8 +21,16 @@ export default function SearchSection() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      const formatParam = selectedFormat !== "Formatos" ? `&format=${selectedFormat.toLowerCase()}` : "";
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
+      // Verificar se o termo de busca é um número (possível ID)
+      const isNumeric = /^\d+$/.test(searchQuery.trim());
+      if (isNumeric) {
+        // Navegar diretamente para o post
+        navigate(`/post/${searchQuery.trim()}`);
+      } else {
+        // Buscar por termo
+        const formatParam = selectedFormat !== "Formatos" ? `&format=${selectedFormat.toLowerCase()}` : "";
+        navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}${formatParam}`);
+      }
     }
   };
 
@@ -41,7 +49,7 @@ export default function SearchSection() {
                 <Input
                   type="text"
                   className="w-full px-4 py-3 h-[48px] text-base border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Buscar artes por palavra-chave..."
+                  placeholder="Buscar artes por palavra-chave ou ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
