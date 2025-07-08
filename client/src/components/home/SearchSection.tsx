@@ -18,14 +18,29 @@ export default function SearchSection() {
     { id: "portrait", name: "Imagens" }
   ];
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       // Verificar se o termo de busca é um número (possível ID)
       const isNumeric = /^\d+$/.test(searchQuery.trim());
       if (isNumeric) {
-        // Navegar diretamente para o post
-        navigate(`/preview/${searchQuery.trim()}`);
+        try {
+          // Buscar o post pela API para verificar se existe
+          const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
+          const results = await response.json();
+          
+          if (results && results.length > 0) {
+            // Se encontrou o post, navegar para ele
+            navigate(`/preview/${searchQuery.trim()}`);
+          } else {
+            // Se não encontrou, fazer busca normal
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar post:', error);
+          // Em caso de erro, fazer busca normal
+          navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        }
       } else {
         // Buscar por termo
         const formatParam = selectedFormat !== "Formatos" ? `&format=${selectedFormat.toLowerCase()}` : "";

@@ -487,39 +487,97 @@ export class DatabaseStorage implements IStorage {
   
   async searchArtworks(query: string): Promise<Artwork[]> {
     try {
-      console.log("DATABASE searchArtworks - Buscando artes com query:", query);
+      console.log("DATABASE searchArtworks - Buscando posts com query:", query);
       const lowerQuery = query.toLowerCase();
       
-      // Usando a função ilike do Supabase para busca case-insensitive
-      const { data, error } = await supabase
-        .from('artworks')
-        .select('*')
-        .or(`title.ilike.%${lowerQuery}%,description.ilike.%${lowerQuery}%,category.ilike.%${lowerQuery}%`);
+      // Primeiro tentar buscar via PostgreSQL direto para ter mais flexibilidade
+      try {
+        // Buscar por ID exato primeiro (como texto)
+        let searchQuery = `
+          SELECT id, title, description, image_url, formato as format, is_pro, category_id, created_at
+          FROM posts 
+          WHERE CAST(id AS TEXT) = $1
+          ORDER BY created_at DESC
+          LIMIT 1
+        `;
         
-      if (error) {
-        console.error("DATABASE searchArtworks - Erro ao buscar artes:", error.message);
-        return [];
+        const idResult = await pool.query(searchQuery, [query]);
+        
+        if (idResult.rows.length > 0) {
+          console.log(`DATABASE searchArtworks - Post encontrado por ID: ${query}`);
+          const post = idResult.rows[0];
+          return [{
+            id: post.id,
+            title: post.title,
+            description: post.description || '',
+            imageUrl: post.image_url || '',
+            format: post.format || '',
+            isPro: post.is_pro || false,
+            category: post.category_id || '',
+            createdAt: new Date(post.created_at)
+          }];
+        }
+        
+        // Se não encontrou por ID, buscar por texto
+        searchQuery = `
+          SELECT id, title, description, image_url, formato as format, is_pro, category_id, created_at
+          FROM posts 
+          WHERE LOWER(title) LIKE $1 
+             OR LOWER(description) LIKE $1
+             OR CAST(id AS TEXT) LIKE $1
+          ORDER BY created_at DESC
+          LIMIT 20
+        `;
+        
+        const textResult = await pool.query(searchQuery, [`%${lowerQuery}%`]);
+        
+        if (textResult.rows.length > 0) {
+          console.log(`DATABASE searchArtworks - ${textResult.rows.length} posts encontrados por texto`);
+          return textResult.rows.map(post => ({
+            id: post.id,
+            title: post.title,
+            description: post.description || '',
+            imageUrl: post.image_url || '',
+            format: post.format || '',
+            isPro: post.is_pro || false,
+            category: post.category_id || '',
+            createdAt: new Date(post.created_at)
+          }));
+        }
+        
+      } catch (pgError) {
+        console.error("DATABASE searchArtworks - Erro PostgreSQL:", pgError);
+        
+        // Fallback para Supabase se PostgreSQL falhar
+        const { data, error } = await supabase
+          .from('posts')
+          .select('id, title, description, image_url, formato, is_pro, category_id, created_at')
+          .or(`title.ilike.%${lowerQuery}%,description.ilike.%${lowerQuery}%,id.eq.${query}`)
+          .order('created_at', { ascending: false })
+          .limit(20);
+          
+        if (error) {
+          console.error("DATABASE searchArtworks - Erro Supabase:", error.message);
+          return [];
+        }
+        
+        if (data && data.length > 0) {
+          console.log(`DATABASE searchArtworks - ${data.length} posts encontrados via Supabase`);
+          return data.map(post => ({
+            id: post.id,
+            title: post.title,
+            description: post.description || '',
+            imageUrl: post.image_url || '',
+            format: post.formato || '',
+            isPro: post.is_pro || false,
+            category: post.category_id || '',
+            createdAt: new Date(post.created_at)
+          }));
+        }
       }
       
-      if (!data || data.length === 0) {
-        console.log(`DATABASE searchArtworks - Nenhuma arte encontrada com a query "${query}"`);
-        return [];
-      }
-      
-      // Mapear os dados do Supabase para o formato esperado pela aplicação
-      const result = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        imageUrl: item.image_url,
-        format: item.format,
-        isPro: item.is_pro,
-        category: item.category,
-        createdAt: new Date(item.created_at)
-      }));
-      
-      console.log(`DATABASE searchArtworks - Encontradas ${result.length} artes`);
-      return result;
+      console.log(`DATABASE searchArtworks - Nenhum post encontrado com a query "${query}"`);
+      return [];
     } catch (error) {
       console.error("DATABASE searchArtworks - Exceção:", error);
       return [];
