@@ -36,7 +36,7 @@ export function MobileSearchBar() {
       const isNumeric = /^\d+$/.test(searchQuery.trim());
       if (isNumeric) {
         // Navegar diretamente para o post
-        navigate(`/post/${searchQuery.trim()}`);
+        navigate(`/preview/${searchQuery.trim()}`);
       } else {
         // Buscar por termo
         const formatParam = selectedFormat !== "all" ? `&format=${selectedFormat}` : "";
