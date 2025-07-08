@@ -1292,7 +1292,7 @@ export class DatabaseStorage implements IStorage {
           }
           
           if (filters.formatId) {
-            whereConditions.push(`format_id = $${paramIndex}`);
+            whereConditions.push(`formato = $${paramIndex}`);
             queryParams.push(filters.formatId);
             paramIndex++;
           }
@@ -1369,7 +1369,7 @@ export class DatabaseStorage implements IStorage {
             
             // Filtro de formato
             if (filters.formatId) {
-              conditions.push(`format_id = $${sqlParams.length + 1}`);
+              conditions.push(`formato = $${sqlParams.length + 1}`);
               sqlParams.push(filters.formatId);
             }
             
