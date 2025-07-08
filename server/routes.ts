@@ -1430,20 +1430,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/admin/categories/:id', async (req, res) => {
     try {
+      console.log('PUT /api/admin/categories/:id - Recebido:', req.params.id, req.body);
+      
       const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ 
+          message: 'ID da categoria inválido'
+        });
+      }
+      
       const parsedData = insertCategorySchema.partial().safeParse(req.body);
       
       if (!parsedData.success) {
+        console.log('Erro de validação:', parsedData.error.format());
         return res.status(400).json({ 
-          message: 'Invalid category data',
+          message: 'Dados da categoria inválidos',
           errors: parsedData.error.format() 
         });
       }
       
+      console.log('Dados validados:', parsedData.data);
+      
       const category = await storage.updateCategory(id, parsedData.data);
+      
+      console.log('Categoria atualizada com sucesso:', category);
       res.json(category);
     } catch (error) {
-      res.status(500).json({ message: 'Error updating category' });
+      console.error('Erro ao atualizar categoria:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      res.status(500).json({ 
+        message: 'Erro ao atualizar categoria',
+        error: errorMessage
+      });
     }
   });
 
