@@ -68,6 +68,9 @@ export interface IStorage {
   getPosts(filters?: {
     searchTerm?: string;
     categoryId?: number;
+    formatId?: number;
+    licenseType?: string;
+    isVisible?: boolean;
     status?: string;
     month?: number;
     year?: number;
@@ -1247,6 +1250,9 @@ export class DatabaseStorage implements IStorage {
   async getPosts(filters?: {
     searchTerm?: string;
     categoryId?: number;
+    formatId?: number;
+    licenseType?: string;
+    isVisible?: boolean;
     status?: string;
     month?: number;
     year?: number;
@@ -1282,6 +1288,24 @@ export class DatabaseStorage implements IStorage {
           if (filters.status) {
             whereConditions.push(`status = $${paramIndex}`);
             queryParams.push(filters.status);
+            paramIndex++;
+          }
+          
+          if (filters.formatId) {
+            whereConditions.push(`format_id = $${paramIndex}`);
+            queryParams.push(filters.formatId);
+            paramIndex++;
+          }
+          
+          if (filters.licenseType) {
+            whereConditions.push(`license_type = $${paramIndex}`);
+            queryParams.push(filters.licenseType);
+            paramIndex++;
+          }
+          
+          if (filters.isVisible !== undefined) {
+            whereConditions.push(`is_visible = $${paramIndex}`);
+            queryParams.push(filters.isVisible);
             paramIndex++;
           }
           
@@ -1341,6 +1365,24 @@ export class DatabaseStorage implements IStorage {
             if (filters.status) {
               conditions.push(`status = $${sqlParams.length + 1}`);
               sqlParams.push(filters.status);
+            }
+            
+            // Filtro de formato
+            if (filters.formatId) {
+              conditions.push(`format_id = $${sqlParams.length + 1}`);
+              sqlParams.push(filters.formatId);
+            }
+            
+            // Filtro de tipo de licença
+            if (filters.licenseType) {
+              conditions.push(`license_type = $${sqlParams.length + 1}`);
+              sqlParams.push(filters.licenseType);
+            }
+            
+            // Filtro de visibilidade
+            if (filters.isVisible !== undefined) {
+              conditions.push(`is_visible = $${sqlParams.length + 1}`);
+              sqlParams.push(filters.isVisible);
             }
             
             // Filtro de data

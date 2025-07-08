@@ -1786,6 +1786,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filters = {
         searchTerm: req.query.search as string,
         categoryId: req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined,
+        formatId: req.query.formatId ? parseInt(req.query.formatId as string) : undefined,
+        licenseType: req.query.licenseType as string,
+        isVisible: req.query.isVisible ? req.query.isVisible === 'true' : undefined,
         status: req.query.status as string,
         month: req.query.month ? parseInt(req.query.month as string) : undefined,
         year: req.query.year ? parseInt(req.query.year as string) : undefined,

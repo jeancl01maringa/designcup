@@ -64,6 +64,9 @@ import { MobileOptimizedPostForm } from "@/components/admin/MobileOptimizedPostF
 interface PostFilter {
   searchTerm?: string;
   categoryId?: number | null;
+  formatId?: number | null;
+  licenseType?: string;
+  isVisible?: boolean | null;
   status?: string;
   month?: number;
   year?: number;
@@ -80,7 +83,7 @@ export default function PostagensPage() {
   const [isDeleteBatchModalOpen, setIsDeleteBatchModalOpen] = useState(false);
   const [groupPosts, setGroupPosts] = useState<Post[]>([]);
 
-  // Buscar categorias (necessário para o formulário)
+  // Buscar categorias (necessário para o formulário e filtros)
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/admin/categories'],
     queryFn: async () => {
@@ -89,6 +92,20 @@ export default function PostagensPage() {
         return await response.json();
       } catch (error) {
         console.error("Erro ao buscar categorias:", error);
+        return [];
+      }
+    }
+  });
+
+  // Buscar formatos para os filtros
+  const { data: formats = [] } = useQuery({
+    queryKey: ['/api/admin/post-formats'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/admin/post-formats');
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao buscar formatos:", error);
         return [];
       }
     }
@@ -184,6 +201,9 @@ export default function PostagensPage() {
         const params = new URLSearchParams();
         if (filters.searchTerm) params.append('search', filters.searchTerm);
         if (filters.categoryId) params.append('categoryId', filters.categoryId.toString());
+        if (filters.formatId) params.append('formatId', filters.formatId.toString());
+        if (filters.licenseType) params.append('licenseType', filters.licenseType);
+        if (filters.isVisible !== null && filters.isVisible !== undefined) params.append('isVisible', filters.isVisible.toString());
         if (filters.status) params.append('status', filters.status);
         if (filters.month) params.append('month', filters.month.toString());
         if (filters.year) params.append('year', filters.year.toString());
@@ -497,57 +517,128 @@ export default function PostagensPage() {
         description="Gerencie as postagens do site"
       />
 
-      {/* Filtros e ações */}
-      <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome ou ID..."
-              className="pl-8"
-              value={filters.searchTerm || ''}
-              onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
-            />
+      {/* Filtros organizados */}
+      <div className="bg-muted/30 border rounded-lg p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+          {/* Busca por título */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              Buscar por título
+            </label>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar..."
+                className="pl-8"
+                value={filters.searchTerm || ''}
+                onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
+              />
+            </div>
           </div>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="p-2">
-                <p className="text-sm font-medium mb-2">Status</p>
-                <Select
-                  value={filters.status || ''}
-                  onValueChange={(value) => setFilters({ ...filters, status: value || undefined })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
-                    <SelectItem value="aprovado">Aprovado</SelectItem>
-                    <SelectItem value="rascunho">Rascunho</SelectItem>
-                    <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                  </SelectContent>
-                </Select>
 
-                <Separator className="my-2" />
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-2"
-                  onClick={() => setFilters({})}
-                >
-                  Limpar filtros
-                </Button>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Categoria */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              Categoria
+            </label>
+            <Select
+              value={filters.categoryId?.toString() || 'all'}
+              onValueChange={(value) => setFilters({ ...filters, categoryId: value === 'all' ? null : parseInt(value) })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Todas as categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
+          {/* Tipo (Formato) */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              Tipo
+            </label>
+            <Select
+              value={filters.formatId?.toString() || 'all'}
+              onValueChange={(value) => setFilters({ ...filters, formatId: value === 'all' ? null : parseInt(value) })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {formats.map((format) => (
+                  <SelectItem key={format.id} value={format.id.toString()}>
+                    {format.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Premium */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              Premium
+            </label>
+            <Select
+              value={filters.licenseType || 'all'}
+              onValueChange={(value) => setFilters({ ...filters, licenseType: value === 'all' ? undefined : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="free">Free</SelectItem>
+                <SelectItem value="premium">Premium</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Visibilidade */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              Visibilidade
+            </label>
+            <Select
+              value={filters.isVisible === null || filters.isVisible === undefined ? 'all' : filters.isVisible.toString()}
+              onValueChange={(value) => setFilters({ ...filters, isVisible: value === 'all' ? null : value === 'true' })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="true">Visível</SelectItem>
+                <SelectItem value="false">Oculto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Limpar filtros */}
+        <div className="flex justify-start">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setFilters({})}
+            className="text-muted-foreground"
+          >
+            Limpar Filtros
+          </Button>
+        </div>
+      </div>
+
+      {/* Ações da página */}
+      <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
+        <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
             size="icon" 
