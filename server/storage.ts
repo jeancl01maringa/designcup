@@ -1274,9 +1274,17 @@ export class DatabaseStorage implements IStorage {
         // Aplicar filtros se existirem
         if (filters) {
           if (filters.searchTerm) {
-            whereConditions.push(`(title ILIKE $${paramIndex} OR description ILIKE $${paramIndex} OR unique_code ILIKE $${paramIndex})`);
-            queryParams.push(`%${filters.searchTerm}%`);
-            paramIndex++;
+            // Verificar se o termo de busca é um número (possível ID)
+            const isNumeric = /^\d+$/.test(filters.searchTerm);
+            if (isNumeric) {
+              whereConditions.push(`(id = $${paramIndex} OR title ILIKE $${paramIndex + 1} OR description ILIKE $${paramIndex + 1} OR unique_code ILIKE $${paramIndex + 1})`);
+              queryParams.push(parseInt(filters.searchTerm), `%${filters.searchTerm}%`);
+              paramIndex += 2;
+            } else {
+              whereConditions.push(`(title ILIKE $${paramIndex} OR description ILIKE $${paramIndex} OR unique_code ILIKE $${paramIndex})`);
+              queryParams.push(`%${filters.searchTerm}%`);
+              paramIndex++;
+            }
           }
           
           if (filters.categoryId) {
@@ -1350,9 +1358,15 @@ export class DatabaseStorage implements IStorage {
           if (filters) {
             // Filtro de texto para pesquisa
             if (filters.searchTerm) {
-              const searchTerm = `%${filters.searchTerm}%`;
-              conditions.push(`(title ILIKE $${sqlParams.length + 1} OR description ILIKE $${sqlParams.length + 1} OR unique_code ILIKE $${sqlParams.length + 1})`);
-              sqlParams.push(searchTerm);
+              const isNumeric = /^\d+$/.test(filters.searchTerm);
+              if (isNumeric) {
+                conditions.push(`(id = $${sqlParams.length + 1} OR title ILIKE $${sqlParams.length + 2} OR description ILIKE $${sqlParams.length + 2} OR unique_code ILIKE $${sqlParams.length + 2})`);
+                sqlParams.push(parseInt(filters.searchTerm), `%${filters.searchTerm}%`);
+              } else {
+                const searchTerm = `%${filters.searchTerm}%`;
+                conditions.push(`(title ILIKE $${sqlParams.length + 1} OR description ILIKE $${sqlParams.length + 1} OR unique_code ILIKE $${sqlParams.length + 1})`);
+                sqlParams.push(searchTerm);
+              }
             }
             
             // Filtro de categoria
