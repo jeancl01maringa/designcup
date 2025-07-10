@@ -90,6 +90,7 @@ Changelog:
 - July 10, 2025. Fixed critical category routing issue: some categories from home page (HOF, Labial, Laser, Sobrancelhas) were showing "not found" due to incomplete category mapping in ArtworkGrid component. Updated hardcoded category map to include all existing categories (IDs 10-13) with correct slug mappings, ensuring all category links from home page properly display their posts.
 - July 10, 2025. Cleaned up category filter displays in TodasArtesOptimized page: removed unnecessary "(0)" post count indicators from category dropdown options in both desktop and mobile filter interfaces. Category dropdowns now show only clean category names without confusing zero-count numbers.
 - July 10, 2025. Optimized home feed display: limited main feed to maximum 8 lines of posts to reduce scrolling before "Ver todas as artes" button. Feed ensures balanced distribution across all columns to prevent empty spaces, maintaining consistent masonry layout on mobile (2 cols) and desktop (5 cols). Fixed mobile grid imbalance by implementing line-by-line distribution logic that guarantees exactly equal number of posts per column by only showing complete rows.
+- July 10, 2025. Initiated login/register page redesign with centered layout implementation: removed right-side promotional content, configured routing for /auth/login and /auth/register paths, and started integration of official logo from admin panel. Working on complete layout transformation to match user specifications with centralized form design and brand consistency.
 
 ## User Preferences
 

@@ -14,16 +14,14 @@ export default function AuthPage() {
   }, [location, navigate]);
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-8">
-        <Switch>
-          <Route path="/auth/login" component={LoginPage} />
-          <Route path="/auth/register" component={RegisterPage} />
-          <Route path="/auth">
-            <Redirect to="/auth/login" />
-          </Route>
-        </Switch>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Switch>
+        <Route path="/auth/login" component={LoginPage} />
+        <Route path="/auth/register" component={RegisterPage} />
+        <Route path="/auth">
+          <Redirect to="/auth/login" />
+        </Route>
+      </Switch>
     </div>
   );
 }
