@@ -295,7 +295,7 @@ export default function TodasArtesOptimized() {
                   <SelectItem value="all">Todas as categorias</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name} ({category.post_count || 0})
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -418,7 +418,7 @@ export default function TodasArtesOptimized() {
                     <SelectItem value="all">Todas as categorias</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name} ({category.post_count || 0})
+                        {category.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
