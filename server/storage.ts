@@ -1991,75 +1991,8 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`DATABASE updatePost - Atualizando post com ID ${id}:`, JSON.stringify(post));
       
-      // Verificar se a categoria existe no Supabase antes de continuar
-      if (post.categoryId) {
-        console.log(`DATABASE updatePost - Verificando se a categoria com ID ${post.categoryId} existe`);
-        try {
-          const { data: categoryData, error: categoryError } = await supabase
-            .from('categories')
-            .select('*')
-            .eq('id', post.categoryId)
-            .single();
-            
-          if (categoryError || !categoryData) {
-            console.warn(`DATABASE updatePost - Categoria com ID ${post.categoryId} não encontrada no Supabase`);
-            console.log("DATABASE updatePost - Tentando usar categoria padrão (ID 6 - Corporal)");
-            post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
-          } else {
-            console.log(`DATABASE updatePost - Categoria com ID ${post.categoryId} encontrada no Supabase:`, categoryData);
-            
-            // Verificar se a categoria existe no PostgreSQL direto e criar se não existir
-            try {
-              console.log(`DATABASE updatePost - Verificando se categoria ID ${post.categoryId} existe no PostgreSQL`);
-              const checkResult = await pool.query('SELECT id FROM categories WHERE id = $1', [post.categoryId]);
-              
-              if (checkResult.rows.length === 0) {
-                console.log(`DATABASE updatePost - Categoria ID ${post.categoryId} não existe no PostgreSQL, criando...`);
-                
-                // Criar tabela categories se não existir
-                await pool.query(`
-                  CREATE TABLE IF NOT EXISTS categories (
-                    id SERIAL PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    slug TEXT,
-                    description TEXT,
-                    image_url TEXT,
-                    is_active BOOLEAN DEFAULT true,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                  )
-                `);
-                
-                // Inserir a categoria no PostgreSQL
-                await pool.query(`
-                  INSERT INTO categories (id, name, slug, description, image_url, is_active, created_at)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7)
-                  ON CONFLICT (id) DO NOTHING
-                `, [
-                  categoryData.id,
-                  categoryData.name,
-                  categoryData.slug || '',
-                  categoryData.description || '',
-                  categoryData.image_url || null,
-                  categoryData.is_active !== false, // Se for null ou undefined, assume true
-                  categoryData.created_at || new Date()
-                ]);
-                
-                console.log(`DATABASE updatePost - Categoria ID ${post.categoryId} criada no PostgreSQL`);
-              } else {
-                console.log(`DATABASE updatePost - Categoria ID ${post.categoryId} já existe no PostgreSQL`);
-              }
-            } catch (pgCategoryError) {
-              console.error(`DATABASE updatePost - Erro ao verificar/criar categoria ID ${post.categoryId} no PostgreSQL:`, pgCategoryError);
-              console.log("DATABASE updatePost - Usando categoria padrão (ID 6 - Corporal)");
-              post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
-            }
-          }
-        } catch (categoryCheckError) {
-          console.error("DATABASE updatePost - Erro ao verificar categoria:", categoryCheckError);
-          console.log("DATABASE updatePost - Usando categoria padrão (ID 6 - Corporal)");
-          post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
-        }
-      }
+      // REMOVIDO: Verificação de categoria forçada que mudava sempre para ID 6
+      // Simplesmente usar a categoria enviada pelo frontend
       
       // Mapear do formato da aplicação para o formato do PostgreSQL
       const dbPost: any = {};
