@@ -229,9 +229,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                 allFormats.push(formatName);
               }
               
-              // Se existe imagem URL, adicionar ao preview
-              if (formatInfo.imageUrl && formatFiles[formatName]) {
-                formatFiles[formatName].imagePreview = formatInfo.imageUrl;
+              // Se existe formatName válido, carregar dados
+              if (formatName && formatFiles[formatName]) {
+                if (formatInfo.imageUrl) {
+                  formatFiles[formatName].imagePreview = formatInfo.imageUrl;
+                }
                 formatFiles[formatName].links = formatInfo.links || [];
                 console.log("EDIT MODE: Links carregados do formatData para", formatName, formatInfo.links?.length || 0, formatInfo.links);
               }
@@ -1348,12 +1350,10 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                             </div>
                           </div>
                           
-                          {(() => {
-                            console.log("LINKS DISPLAY: Formato", format, "Links:", formData.formatFiles[format]?.links?.length || 0, formData.formatFiles[format]?.links);
-                            return formData.formatFiles[format]?.links?.length > 0 ? (
-                              <div className="space-y-2 mt-4">
-                                <h4 className="text-sm font-medium">Links adicionados:</h4>
-                                {formData.formatFiles[format]?.links?.map((link) => (
+                          {formData.formatFiles[format]?.links?.length > 0 ? (
+                            <div className="space-y-2 mt-4">
+                              <h4 className="text-sm font-medium">Links adicionados:</h4>
+                              {formData.formatFiles[format]?.links?.map((link) => (
                                 <div key={link.id} className="flex justify-between items-center bg-muted/50 p-2 rounded">
                                   <div className="flex items-center gap-2">
                                     <LinkIcon className="h-4 w-4 text-blue-600" />
@@ -1380,8 +1380,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                               <LinkIcon className="h-10 w-10 mb-2 text-gray-300" />
                               <p className="text-sm text-muted-foreground">Nenhum link adicionado</p>
                             </div>
-                          );
-                        })()}
+                          )}
                         </div>
                       </div>
                     </div>
