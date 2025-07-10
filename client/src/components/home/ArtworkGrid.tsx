@@ -59,10 +59,13 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
           2: "depilacao",
           3: "facial", 
           4: "botox",
-          5: "sala-de-beleza",
+          5: "salao-de-beleza",
           6: "corporal",
           7: "massagem",
-          8: "pele"
+          10: "hof",
+          11: "labial",
+          12: "laser", 
+          13: "sobrancelhas"
         };
         return categoryMap[post.categoryId] === category;
       });
