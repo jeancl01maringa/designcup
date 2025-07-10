@@ -59,33 +59,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="w-full max-w-sm space-y-8 bg-white rounded-lg shadow-lg p-8">
-      {/* Logo oficial */}
+    <div className="space-y-6">
+      {/* Texto de cabeçalho */}
       <div className="text-center">
-        {logoData?.imageUrl ? (
-          <img
-            src={logoData.imageUrl}
-            alt="Design para Estética"
-            className="h-16 mx-auto mb-6"
-          />
-        ) : logoData?.dataUrl ? (
-          <img
-            src={logoData.dataUrl}
-            alt="Design para Estética"
-            className="h-16 mx-auto mb-6"
-          />
-        ) : (
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#F84930] to-[#F8A441] bg-clip-text text-transparent mb-6">
-            Design para Estética
-          </h1>
-        )}
-        <p className="text-gray-600 text-sm mb-6">
+        <p className="text-gray-600 text-sm">
           Acesse sua conta ou crie uma nova para continuar
         </p>
       </div>
 
       {/* Abas Login/Cadastro */}
-      <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+      <div className="flex bg-gray-100 rounded-lg p-1">
         <Link 
           to="/auth/login"
           className="flex-1 py-2 text-center text-sm font-medium rounded-md text-gray-500 hover:text-gray-900"
@@ -98,6 +81,12 @@ export default function RegisterPage() {
         >
           Cadastre-se
         </button>
+      </div>
+
+      {/* Título da seção */}
+      <div className="text-left">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Cadastre-se</h2>
+        <p className="text-sm text-gray-600">Crie sua conta para começar a usar nossa plataforma</p>
       </div>
 
       <Form {...form}>
@@ -131,7 +120,7 @@ export default function RegisterPage() {
                   <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="seu@email.com"
+                      placeholder="exemplo@email.com"
                       type="email"
                       {...field}
                       className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
@@ -166,11 +155,11 @@ export default function RegisterPage() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 text-white font-medium bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200"
+            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg"
             disabled={registerMutation.isPending}
           >
             {registerMutation.isPending ? (
-              <div className="flex items-center">
+              <div className="flex items-center justify-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
