@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Image as ImageIcon, Trash2, Save } from "lucide-react";
 import imageCompression from 'browser-image-compression';
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 
 export default function PersonalizarPage() {
   const { toast } = useToast();
@@ -84,9 +85,8 @@ export default function PersonalizarPage() {
 
       // Upload para Supabase Storage
       const formData = new FormData();
-      formData.append('file', compressedFile);
-      formData.append('bucket', type === 'logo' ? 'logos' : 'images');
-      formData.append('folder', type === 'logo' ? 'platform' : 'login-backgrounds');
+      formData.append('image', compressedFile);
+      formData.append('folder', type === 'logo' ? 'logos' : 'images');
 
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
@@ -146,16 +146,17 @@ export default function PersonalizarPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Personalizar</h1>
-        <p className="text-gray-600 mt-2">
-          Configure o logo da plataforma e a imagem de fundo da página de login
-        </p>
-      </div>
+    <AdminLayout>
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Personalizar</h1>
+          <p className="text-gray-600 mt-2">
+            Configure o logo da plataforma e a imagem de fundo da página de login
+          </p>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Logo da Plataforma */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Logo da Plataforma */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -294,14 +295,14 @@ export default function PersonalizarPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      {/* Instruções */}
-      <Card>
-        <CardHeader>
+        {/* Instruções */}
+        <Card>
+          <CardHeader>
           <CardTitle>Como usar</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </CardHeader>
+          <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Logo da Plataforma</h4>
@@ -322,8 +323,9 @@ export default function PersonalizarPage() {
               </ul>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </AdminLayout>
   );
 }
