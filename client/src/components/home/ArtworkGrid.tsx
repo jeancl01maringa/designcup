@@ -79,16 +79,19 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
     }
 
     // Limitar a 8 linhas no feed principal
-    // Calcular máximo de posts baseado em 8 linhas e número de colunas
-    const maxLines = 8;
-    const maxPosts = maxLines * columns;
-    const postsToShow = filtered.slice(0, maxPosts);
+    // Garantir distribuição equilibrada entre colunas
+    const maxPostsPerColumn = 8;
+    const maxTotalPosts = maxPostsPerColumn * columns;
+    const postsToShow = filtered.slice(0, maxTotalPosts);
 
-    // Organizar posts em colunas para layout masonry
+    // Organizar posts em colunas para layout masonry balanceado
     const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
     postsToShow.forEach((post, index) => {
       const columnIndex = index % columns;
-      columnArrays[columnIndex].push(post);
+      // Limitar cada coluna a 8 posts para evitar espaços em branco
+      if (columnArrays[columnIndex].length < maxPostsPerColumn) {
+        columnArrays[columnIndex].push(post);
+      }
     });
 
     return { filteredPosts: filtered, columnArrays };
