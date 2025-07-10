@@ -52,7 +52,9 @@ import {
   XCircle,
   RefreshCcw,
   Loader2,
-  Crown
+  Crown,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -82,6 +84,10 @@ export default function PostagensPage() {
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
   const [isDeleteBatchModalOpen, setIsDeleteBatchModalOpen] = useState(false);
   const [groupPosts, setGroupPosts] = useState<Post[]>([]);
+  
+  // Estados de paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 12;
 
   // Buscar categorias (necessário para o formulário e filtros)
   const { data: categories = [] } = useQuery<Category[]>({
@@ -376,10 +382,17 @@ export default function PostagensPage() {
     }
   };
 
+  // Lógica de paginação
+  const totalPosts = posts?.length || 0;
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const currentPosts = posts?.slice(startIndex, endIndex) || [];
+
   // Manipulador para seleção de todas as postagens
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedPosts(posts?.map(post => post.id) || []);
+      setSelectedPosts(currentPosts?.map(post => post.id) || []);
     } else {
       setSelectedPosts([]);
     }
@@ -394,8 +407,8 @@ export default function PostagensPage() {
     }
   };
 
-  // Verificar se todas as postagens estão selecionadas
-  const allSelected = posts?.length ? selectedPosts.length === posts.length : false;
+  // Verificar se todas as postagens da página atual estão selecionadas
+  const allSelected = currentPosts?.length ? currentPosts.every(post => selectedPosts.includes(post.id)) : false;
 
   // Manipulador para edição de postagem
   const handleEditPost = async (post: Post) => {
@@ -509,6 +522,20 @@ export default function PostagensPage() {
 
     updateStatusMutation.mutate({ ids: selectedPosts, status });
   };
+
+  // Controles de paginação
+  const goToPreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  // Reset para primeira página quando filtros mudam
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   return (
     <AdminLayout>
@@ -750,14 +777,14 @@ export default function PostagensPage() {
                   Carregando postagens...
                 </TableCell>
               </TableRow>
-            ) : posts?.length === 0 ? (
+            ) : currentPosts?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={11} className="h-48 text-center">
                   Nenhuma postagem encontrada.
                 </TableCell>
               </TableRow>
             ) : (
-              posts?.map((post) => (
+              currentPosts?.map((post) => (
                 <TableRow key={post.id} className="hover:bg-muted/30">
                   <TableCell className="py-3">
                     <Checkbox 
@@ -895,6 +922,38 @@ export default function PostagensPage() {
           </Button>
         </div>
       )}
+
+      {/* Controles de paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border rounded-lg p-4 mt-4 bg-muted/50">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages} • {totalPosts} postagens
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={goToPreviousPage}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Anterior
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Próxima
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Diálogo de confirmação de exclusão (individual) */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <AlertDialogContent className="max-w-md p-6">
