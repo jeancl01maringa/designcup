@@ -193,7 +193,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
 
     // Processar cada post do grupo para extrair format data - CADA POST = UM FORMATO ESPECÍFICO
     posts.forEach(post => {
-      console.log("EDIT MODE: Processando post", post.id, "formato:", post.formato, "imagem:", post.imageUrl?.substring(0, 50) + "...", "canvaUrl:", post.canvaUrl ? "SIM" : "NÃO");
+      console.log("EDIT MODE DEBUG: Post", post.id, {
+        formato: post.formato,
+        imageUrl: post.imageUrl,
+        canvaUrl: post.canvaUrl,
+        formatData: post.formatData
+      });
       
       // LÓGICA PRINCIPAL: Cada post representa UM formato específico com sua própria imagem
       if (post.formato) {
@@ -214,7 +219,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
               url: post.canvaUrl
             }] : []
           };
-          console.log("EDIT MODE: Formato", formatName, "configurado com imagem própria:", post.imageUrl?.substring(0, 50) + "...");
+          console.log("EDIT MODE: Formato", formatName, "configurado:", {
+            imageUrl: post.imageUrl,
+            hasLinks: post.canvaUrl ? 1 : 0,
+            canvaUrl: post.canvaUrl
+          });
         }
       }
     });
@@ -260,14 +269,18 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           console.log("EDIT MODE: Usando formato padrão 'feed'");
         }
         
-        // Carregar imagem existente para TODOS os formatos (não só o primeiro)
-        if (initialData.imageUrl) {
-          allFormats.forEach(format => {
-            if (formatFiles[format]) {
-              formatFiles[format].imagePreview = initialData.imageUrl;
-              console.log("EDIT MODE: Imagem carregada para formato:", format, initialData.imageUrl);
-            }
-          });
+        // Para post individual, usar apenas sua própria imagem e link
+        if (initialData.imageUrl && initialData.formato) {
+          const singleFormat = initialData.formato as PostFormat;
+          if (formatFiles[singleFormat]) {
+            formatFiles[singleFormat].imagePreview = initialData.imageUrl;
+            formatFiles[singleFormat].links = initialData.canvaUrl ? [{
+              id: nanoid(),
+              provider: 'canva',
+              url: initialData.canvaUrl
+            }] : [];
+            console.log("EDIT MODE: Post individual - imagem e link para:", singleFormat, initialData.imageUrl, initialData.canvaUrl);
+          }
         }
       }
 
