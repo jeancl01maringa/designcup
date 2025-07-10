@@ -78,21 +78,24 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
       );
     }
 
-    // Limitar a 8 linhas no feed principal
-    // Garantir distribuição equilibrada entre colunas
+    // Limitar a 8 posts por coluna no feed principal
     const maxPostsPerColumn = 8;
-    const maxTotalPosts = maxPostsPerColumn * columns;
-    const postsToShow = filtered.slice(0, maxTotalPosts);
+    
+    // Calcular quantos posts pegar para garantir distribuição equilibrada
+    const postsNeeded = Math.min(filtered.length, maxPostsPerColumn * columns);
+    
+    // Garantir que o número de posts seja divisível pelo número de colunas
+    const postsToDistribute = Math.floor(postsNeeded / columns) * columns;
+    const postsToShow = filtered.slice(0, postsToDistribute);
 
-    // Organizar posts em colunas para layout masonry balanceado
+    // Organizar posts em colunas de forma equilibrada
     const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
-    postsToShow.forEach((post, index) => {
-      const columnIndex = index % columns;
-      // Limitar cada coluna a 8 posts para evitar espaços em branco
-      if (columnArrays[columnIndex].length < maxPostsPerColumn) {
-        columnArrays[columnIndex].push(post);
-      }
-    });
+    
+    // Distribuir posts sequencialmente para garantir equilíbrio
+    for (let i = 0; i < postsToShow.length; i++) {
+      const columnIndex = i % columns;
+      columnArrays[columnIndex].push(postsToShow[i]);
+    }
 
     return { filteredPosts: filtered, columnArrays };
   }, [posts, category, searchTerm, columns]);
