@@ -83,19 +83,38 @@ export default function PersonalizarPage() {
         setBackgroundPreview(previewUrl);
       }
 
-      // Upload para Supabase Storage
+      // Upload para Supabase Storage usando endpoint correto
       const formData = new FormData();
-      formData.append('image', compressedFile);
-      formData.append('folder', type === 'logo' ? 'logos' : 'images');
+      let uploadUrl = '';
+      
+      if (type === 'logo') {
+        formData.append('logo', compressedFile);
+        uploadUrl = '/api/logo/upload';
+      } else {
+        formData.append('file', compressedFile);
+        uploadUrl = '/api/upload';
+      }
 
-      const uploadResponse = await fetch('/api/upload', {
+      console.log(`Fazendo upload ${type} para ${uploadUrl}, arquivo: ${(compressedFile.size / 1024).toFixed(1)}KB`);
+
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
 
-      if (!uploadResponse.ok) throw new Error('Erro no upload');
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        throw new Error(`Erro no upload: ${errorText}`);
+      }
       
-      const { imageUrl } = await uploadResponse.json();
+      const uploadResult = await uploadResponse.json();
+      const imageUrl = uploadResult.imageUrl || uploadResult.url;
+      
+      if (!imageUrl) {
+        throw new Error('URL da imagem não retornada pelo servidor');
+      }
+      
+      console.log(`Upload concluído: ${imageUrl}`);
       
       // Atualizar configuração no banco
       const settingKey = type === 'logo' ? 'logo_url' : 'login_background_url';
