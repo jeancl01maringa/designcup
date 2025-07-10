@@ -75,6 +75,8 @@ function Router() {
       <Route path="/arte/:slug" component={ArtDetailPage} />
       <Route path="/preview/:id" component={ArtDetailPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/auth/login" component={AuthPage} />
+      <Route path="/auth/register" component={AuthPage} />
       <Route path="/planos" component={PlansPage} />
       <Route path="/ferramentas" component={ToolsPage} />
       <Route path="/cursos">
