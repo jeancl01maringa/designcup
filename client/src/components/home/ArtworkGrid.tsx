@@ -82,8 +82,8 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
     let postsToShow: Post[] = [];
     
     if (columns === 2) {
-      // Mobile: exatamente 14 posts (7 por coluna)
-      postsToShow = filtered.slice(0, 14);
+      // Mobile: força exatamente 12 posts (6 por coluna) para garantir equilíbrio
+      postsToShow = filtered.slice(0, 12);
     } else if (columns === 3) {
       // Tablet: exatamente 15 posts (5 por coluna)
       postsToShow = filtered.slice(0, 15);
