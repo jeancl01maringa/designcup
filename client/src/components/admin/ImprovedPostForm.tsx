@@ -191,11 +191,11 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     const formatFiles = createDefaultFormatFiles();
     const allFormats: PostFormat[] = [];
 
-    // Processar cada post do grupo para extrair format data
+    // Processar cada post do grupo para extrair format data - CADA POST = UM FORMATO ESPECÍFICO
     posts.forEach(post => {
-      console.log("EDIT MODE: Processando post", post.id, "formato:", post.formato, "canvaUrl:", post.canvaUrl ? "SIM" : "NÃO");
+      console.log("EDIT MODE: Processando post", post.id, "formato:", post.formato, "imagem:", post.imageUrl?.substring(0, 50) + "...", "canvaUrl:", post.canvaUrl ? "SIM" : "NÃO");
       
-      // Para posts agrupados, usar o campo `formato` diretamente
+      // LÓGICA PRINCIPAL: Cada post representa UM formato específico com sua própria imagem
       if (post.formato) {
         const formatName = post.formato as PostFormat;
         
@@ -203,69 +203,23 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
           allFormats.push(formatName);
         }
         
-        // Carregar dados específicos deste formato
+        // CARREGAR DADOS ESPECÍFICOS DESTE FORMATO - SEM SOBRESCREVER
         if (formatFiles[formatName]) {
           formatFiles[formatName] = {
             imageFile: null,
-            imagePreview: post.imageUrl || null,
+            imagePreview: post.imageUrl || null, // IMAGEM ESPECÍFICA DESTE POST/FORMATO
             links: post.canvaUrl ? [{ 
-              provider: 'Canva', 
-              url: post.canvaUrl, 
-              id: crypto.randomUUID() 
+              id: nanoid(),
+              provider: 'canva', 
+              url: post.canvaUrl
             }] : []
           };
-        }
-      }
-      
-      // Fallback: tentar processar formatData se existir
-      if (post.formatData) {
-        try {
-          const formats = JSON.parse(post.formatData);
-          console.log("EDIT MODE: formatData parsed para post", post.id, formats);
-          if (Array.isArray(formats)) {
-            formats.forEach((formatInfo: any) => {
-              const formatName = formatInfo.type;
-              if (formatName && !allFormats.includes(formatName)) {
-                allFormats.push(formatName);
-              }
-              
-              // Se existe formatName válido, carregar dados
-              if (formatName && formatFiles[formatName]) {
-                if (formatInfo.imageUrl) {
-                  formatFiles[formatName].imagePreview = formatInfo.imageUrl;
-                }
-                formatFiles[formatName].links = formatInfo.links || [];
-                console.log("EDIT MODE: Links carregados do formatData para", formatName, formatInfo.links?.length || 0, formatInfo.links);
-              }
-            });
-          }
-        } catch (error) {
-          console.error("Erro ao parsear formatData:", error);
-        }
-      }
-      
-      // SEMPRE verificar canvaUrl direto no post para cada formato
-      if (post.formato && formatFiles[post.formato]) {
-        if (!allFormats.includes(post.formato)) {
-          allFormats.push(post.formato);
-        }
-        
-        if (post.imageUrl) {
-          formatFiles[post.formato].imagePreview = post.imageUrl;
-        }
-        
-        // Se há canvaUrl no post, adicionar como link
-        if (post.canvaUrl) {
-          formatFiles[post.formato].links = [{
-            id: nanoid(),
-            provider: "canva",
-            url: post.canvaUrl
-          }];
-          console.log("EDIT MODE: Link do Canva adicionado para", post.formato, post.canvaUrl);
+          console.log("EDIT MODE: Formato", formatName, "configurado com imagem própria:", post.imageUrl?.substring(0, 50) + "...");
         }
       }
     });
 
+    console.log("EDIT MODE: Processamento concluído. Formatos:", allFormats, "cada um com sua imagem específica");
     return { formatFiles, allFormats };
   };
 
@@ -317,6 +271,8 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         }
       }
 
+      console.log("EDIT MODE: Categoria do initialData:", initialData.categoryId, "categoria original:", initialData.category);
+      
       const newFormData = {
         title: initialData.title || "",
         categoryId: initialData.categoryId || null,
