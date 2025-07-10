@@ -185,9 +185,9 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
           icon: <Phone className="h-4 w-4" />,
         },
         {
-          id: "logo",
-          label: "Alterar Logo",
-          path: "/admin/configuracoes/logo",
+          id: "personalizar",
+          label: "Personalizar",
+          path: "/admin/configuracoes/personalizar",
           icon: <Image className="h-4 w-4" />,
         }
       ],

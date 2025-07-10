@@ -7293,6 +7293,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoints para settings de personalização
+  app.get('/api/settings', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT key, value, description 
+        FROM settings 
+        WHERE key IN ('logo_url', 'login_background_url')
+        ORDER BY key
+      `);
+
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Erro ao buscar configurações:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  app.post('/api/settings', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado - apenas administradores' });
+      }
+
+      const { key, value } = req.body;
+
+      // Validar que a key é permitida
+      if (!['logo_url', 'login_background_url'].includes(key)) {
+        return res.status(400).json({ message: 'Chave de configuração não permitida' });
+      }
+
+      // Inserir ou atualizar a configuração
+      const result = await pool.query(`
+        INSERT INTO settings (key, value, updated_at)
+        VALUES ($1, $2, NOW())
+        ON CONFLICT (key) 
+        DO UPDATE SET value = $2, updated_at = NOW()
+        RETURNING *
+      `, [key, value]);
+
+      console.log(`Configuração atualizada: ${key} = ${value}`);
+      res.json(result.rows[0]);
+    } catch (error: any) {
+      console.error('Erro ao atualizar configuração:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
