@@ -767,9 +767,9 @@ export default function PostagensPage() {
                     />
                   </TableCell>
                   <TableCell className="font-medium py-3">#{post.id}</TableCell>
-                  <TableCell className="py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-14 w-14 rounded bg-muted flex items-center justify-center overflow-hidden shadow-sm" style={{ aspectRatio: '1/1' }}>
+                  <TableCell className="py-3 max-w-xs">
+                    <div className="flex items-start gap-3">
+                      <div className="h-14 w-14 rounded bg-muted flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0" style={{ aspectRatio: '1/1' }}>
                         {post.imageUrl ? (
                           <ImageWithFallback 
                             src={post.imageUrl}
@@ -785,7 +785,9 @@ export default function PostagensPage() {
                           </svg>
                         )}
                       </div>
-                      <div className="font-medium">{post.title}</div>
+                      <div className="font-medium text-sm leading-relaxed break-words overflow-wrap-anywhere min-w-0 flex-1">
+                        {post.title}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell py-3">
