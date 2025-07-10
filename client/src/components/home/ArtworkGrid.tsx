@@ -81,20 +81,27 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
     // Limitar a 8 posts por coluna no feed principal
     const maxPostsPerColumn = 8;
     
-    // Calcular quantos posts pegar para garantir distribuição equilibrada
-    const postsNeeded = Math.min(filtered.length, maxPostsPerColumn * columns);
+    // Para mobile (2 colunas), máximo 16 posts (8 por coluna)
+    // Para desktop (5 colunas), máximo 40 posts (8 por coluna)
+    const totalPostsToShow = Math.min(filtered.length, maxPostsPerColumn * columns);
     
-    // Garantir que o número de posts seja divisível pelo número de colunas
-    const postsToDistribute = Math.floor(postsNeeded / columns) * columns;
-    const postsToShow = filtered.slice(0, postsToDistribute);
+    // Garantir distribuição perfeitamente equilibrada
+    const postsPerColumn = Math.floor(totalPostsToShow / columns);
+    const actualTotalPosts = postsPerColumn * columns;
+    const postsToShow = filtered.slice(0, actualTotalPosts);
 
-    // Organizar posts em colunas de forma equilibrada
+    // Organizar posts em colunas de forma perfeitamente equilibrada
     const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
     
-    // Distribuir posts sequencialmente para garantir equilíbrio
+    // Distribuir posts garantindo exatamente o mesmo número por coluna
     for (let i = 0; i < postsToShow.length; i++) {
       const columnIndex = i % columns;
       columnArrays[columnIndex].push(postsToShow[i]);
+    }
+
+    // Debug final para verificar distribuição (remover depois)
+    if (columns === 2) {
+      console.log(`Mobile Final: Col1=${columnArrays[0]?.length || 0}, Col2=${columnArrays[1]?.length || 0}`);
     }
 
     return { filteredPosts: filtered, columnArrays };
