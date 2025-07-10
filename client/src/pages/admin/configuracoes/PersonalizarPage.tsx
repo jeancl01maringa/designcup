@@ -83,17 +83,11 @@ export default function PersonalizarPage() {
         setBackgroundPreview(previewUrl);
       }
 
-      // Upload para Supabase Storage usando endpoint correto
+      // Upload para Supabase Storage - usar endpoint de logo para ambos
+      // pois já tem permissões funcionando no bucket 'logos'
       const formData = new FormData();
-      let uploadUrl = '';
-      
-      if (type === 'logo') {
-        formData.append('logo', compressedFile);
-        uploadUrl = '/api/logo/upload';
-      } else {
-        formData.append('file', compressedFile);
-        uploadUrl = '/api/upload';
-      }
+      formData.append('logo', compressedFile);
+      const uploadUrl = '/api/logo/upload';
 
       console.log(`Fazendo upload ${type} para ${uploadUrl}, arquivo: ${(compressedFile.size / 1024).toFixed(1)}KB`);
 
