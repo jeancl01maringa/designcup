@@ -78,22 +78,35 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
       );
     }
 
-    // Estratégia final: garantir perfeito equilíbrio limitando por linhas completas
-    const maxLinesInHomeFeed = 8;
-    const maxPostsTotal = maxLinesInHomeFeed * columns;
+    // Solução radical: números específicos para cada breakpoint
+    let postsToShow: Post[] = [];
     
-    // Pegar apenas o número exato que resulta em linhas completas
-    const availablePosts = Math.min(filtered.length, maxPostsTotal);
-    const completeLines = Math.floor(availablePosts / columns);
-    const postsToShow = filtered.slice(0, completeLines * columns);
+    if (columns === 2) {
+      // Mobile: exatamente 14 posts (7 por coluna)
+      postsToShow = filtered.slice(0, 14);
+    } else if (columns === 3) {
+      // Tablet: exatamente 15 posts (5 por coluna)
+      postsToShow = filtered.slice(0, 15);
+    } else if (columns === 4) {
+      // Desktop pequeno: exatamente 16 posts (4 por coluna)
+      postsToShow = filtered.slice(0, 16);
+    } else {
+      // Desktop grande: exatamente 20 posts (4 por coluna)
+      postsToShow = filtered.slice(0, 20);
+    }
     
-    // Organizar em colunas linha por linha para distribuição perfeitamente equilibrada
+    // Distribuir posts garantindo equilíbrio absoluto
     const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
     
-    // Distribuir posts linha por linha garantindo mesmo número em cada coluna
+    // Distribuir post por post, coluna por coluna
     for (let i = 0; i < postsToShow.length; i++) {
       const columnIndex = i % columns;
       columnArrays[columnIndex].push(postsToShow[i]);
+    }
+    
+    // Debug final - confirmar distribuição
+    if (columns === 2) {
+      console.log(`FINAL CHECK: Total=${postsToShow.length}, Col1=${columnArrays[0].length}, Col2=${columnArrays[1].length}`);
     }
 
     return { filteredPosts: filtered, columnArrays };
