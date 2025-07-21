@@ -109,7 +109,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <ArtworkGrid />
+          <ArtworkGrid sortOrder={selectedSort} />
         </div>
       </section>
     </div>

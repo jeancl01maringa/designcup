@@ -8,6 +8,7 @@ import { Star, ImageIcon, ArrowRight } from "lucide-react";
 interface ArtworkGridProps {
   category?: string;
   searchTerm?: string;
+  sortOrder?: string;
 }
 
 // Hook para calcular o número de colunas baseado na largura da tela
@@ -32,7 +33,7 @@ function useResponsiveColumns() {
   return columns;
 }
 
-export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) {
+export default function ArtworkGrid({ category, searchTerm, sortOrder }: ArtworkGridProps) {
   const {
     data: posts,
     isLoading,
@@ -95,29 +96,43 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
       }
     }
     
-    // Manter ordem cronológica das mais recentes para mais antigas
-    // Embaralhar apenas dentro de grupos de posts da mesma data para misturar categorias
-    const groupedByDate = new Map<string, Post[]>();
+    // Aplicar ordenação baseada no filtro selecionado
+    let shuffledPosts: Post[] = [];
     
-    uniquePosts.forEach(post => {
-      const dateKey = new Date(post.createdAt || '').toDateString();
-      if (!groupedByDate.has(dateKey)) {
-        groupedByDate.set(dateKey, []);
-      }
-      groupedByDate.get(dateKey)!.push(post);
-    });
-    
-    // Embaralhar posts dentro de cada data e depois juntar mantendo ordem cronológica
-    const shuffledPosts: Post[] = [];
-    const sortedDates = Array.from(groupedByDate.keys()).sort((a, b) => 
-      new Date(b).getTime() - new Date(a).getTime()
-    );
-    
-    sortedDates.forEach(dateKey => {
-      const postsOfDate = groupedByDate.get(dateKey) || [];
-      const shuffledPostsOfDate = [...postsOfDate].sort(() => Math.random() - 0.5);
-      shuffledPosts.push(...shuffledPostsOfDate);
-    });
+    if (sortOrder === "Recentes") {
+      // Ordenar do mais recente para o mais antigo
+      shuffledPosts = [...uniquePosts].sort((a, b) => 
+        new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+      );
+    } else if (sortOrder === "Antigos") {
+      // Ordenar do mais antigo para o mais recente
+      shuffledPosts = [...uniquePosts].sort((a, b) => 
+        new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime()
+      );
+    } else {
+      // "Em alta" - Manter ordem cronológica das mais recentes para mais antigas
+      // mas embaralhar dentro de grupos de posts da mesma data para misturar categorias
+      const groupedByDate = new Map<string, Post[]>();
+      
+      uniquePosts.forEach(post => {
+        const dateKey = new Date(post.createdAt || '').toDateString();
+        if (!groupedByDate.has(dateKey)) {
+          groupedByDate.set(dateKey, []);
+        }
+        groupedByDate.get(dateKey)!.push(post);
+      });
+      
+      // Embaralhar posts dentro de cada data e depois juntar mantendo ordem cronológica
+      const sortedDates = Array.from(groupedByDate.keys()).sort((a, b) => 
+        new Date(b).getTime() - new Date(a).getTime()
+      );
+      
+      sortedDates.forEach(dateKey => {
+        const postsOfDate = groupedByDate.get(dateKey) || [];
+        const shuffledPostsOfDate = [...postsOfDate].sort(() => Math.random() - 0.5);
+        shuffledPosts.push(...shuffledPostsOfDate);
+      });
+    }
 
     // Definir quantidade de posts baseado no número de colunas
     let postsToShow: Post[] = [];
@@ -151,7 +166,7 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
     }
 
     return { filteredPosts: filtered, columnArrays };
-  }, [posts, category, searchTerm, columns]);
+  }, [posts, category, searchTerm, columns, sortOrder]);
 
   if (isLoading) {
     return (
