@@ -81,9 +81,12 @@ export default function CategorySection() {
   
   // Constrói a estrutura de categorias com posts associados
   const categoriesWithPosts: CategoryWithPosts[] = dbCategories.map(category => {
-    // Filtrar posts para esta categoria
+    // Filtrar posts para esta categoria - APENAS formato Cartaz
     const categoryPosts = dbPosts
-      .filter(post => post.categoryId === category.id)
+      .filter(post => 
+        post.categoryId === category.id && 
+        (post as any).formato === 'Cartaz'
+      )
       .map(post => ({
         id: post.id,
         title: post.title,
