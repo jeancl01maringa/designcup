@@ -78,21 +78,41 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
       );
     }
 
-    // Solução radical: números específicos para cada breakpoint
+    // Evitar duplicatas: manter apenas um post por group_id
+    const uniquePosts: Post[] = [];
+    const seenGroupIds = new Set<string>();
+    
+    // Ordenar por data (mais recentes primeiro) antes de processar
+    const sortedPosts = [...filtered].sort((a, b) => 
+      new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+    );
+    
+    for (const post of sortedPosts) {
+      const groupId = (post as any).group_id || `single_${post.id}`;
+      if (!seenGroupIds.has(groupId)) {
+        seenGroupIds.add(groupId);
+        uniquePosts.push(post);
+      }
+    }
+    
+    // Embaralhar os posts únicos para misturar categorias
+    const shuffledPosts = [...uniquePosts].sort(() => Math.random() - 0.5);
+
+    // Definir quantidade de posts baseado no número de colunas
     let postsToShow: Post[] = [];
     
     if (columns === 2) {
       // Mobile: força exatamente 12 posts (6 por coluna) para garantir equilíbrio
-      postsToShow = filtered.slice(0, 12);
+      postsToShow = shuffledPosts.slice(0, 12);
     } else if (columns === 3) {
       // Tablet: exatamente 15 posts (5 por coluna)
-      postsToShow = filtered.slice(0, 15);
+      postsToShow = shuffledPosts.slice(0, 15);
     } else if (columns === 4) {
       // Desktop pequeno: exatamente 16 posts (4 por coluna)
-      postsToShow = filtered.slice(0, 16);
+      postsToShow = shuffledPosts.slice(0, 16);
     } else {
       // Desktop grande: exatamente 20 posts (4 por coluna)
-      postsToShow = filtered.slice(0, 20);
+      postsToShow = shuffledPosts.slice(0, 20);
     }
     
     // Distribuir posts garantindo equilíbrio absoluto
