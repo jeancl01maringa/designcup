@@ -95,8 +95,29 @@ export default function ArtworkGrid({ category, searchTerm }: ArtworkGridProps) 
       }
     }
     
-    // Embaralhar os posts únicos para misturar categorias
-    const shuffledPosts = [...uniquePosts].sort(() => Math.random() - 0.5);
+    // Manter ordem cronológica das mais recentes para mais antigas
+    // Embaralhar apenas dentro de grupos de posts da mesma data para misturar categorias
+    const groupedByDate = new Map<string, Post[]>();
+    
+    uniquePosts.forEach(post => {
+      const dateKey = new Date(post.createdAt || '').toDateString();
+      if (!groupedByDate.has(dateKey)) {
+        groupedByDate.set(dateKey, []);
+      }
+      groupedByDate.get(dateKey)!.push(post);
+    });
+    
+    // Embaralhar posts dentro de cada data e depois juntar mantendo ordem cronológica
+    const shuffledPosts: Post[] = [];
+    const sortedDates = Array.from(groupedByDate.keys()).sort((a, b) => 
+      new Date(b).getTime() - new Date(a).getTime()
+    );
+    
+    sortedDates.forEach(dateKey => {
+      const postsOfDate = groupedByDate.get(dateKey) || [];
+      const shuffledPostsOfDate = [...postsOfDate].sort(() => Math.random() - 0.5);
+      shuffledPosts.push(...shuffledPostsOfDate);
+    });
 
     // Definir quantidade de posts baseado no número de colunas
     let postsToShow: Post[] = [];
