@@ -80,31 +80,20 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     }
 
     // Evitar duplicatas: manter apenas um post por group_id, priorizando formato Cartaz
-    const uniquePosts: Post[] = [];
-    
-    // Ordenar por data (mais recentes primeiro) antes de processar
-    const sortedPosts = [...filtered].sort((a, b) => 
-      new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
-    );
-    
-    // Agrupar posts por group_id e priorizar formato Cartaz
     const groupedPosts = new Map<string, Post[]>();
     
-    for (const post of sortedPosts) {
+    // Agrupar posts por group_id primeiro
+    for (const post of filtered) {
       const groupId = (post as any).group_id || `single_${post.id}`;
       if (!groupedPosts.has(groupId)) {
         groupedPosts.set(groupId, []);
       }
       groupedPosts.get(groupId)!.push(post);
-      
-      // Debug para verificar duplicatas
-      if (groupedPosts.get(groupId)!.length > 1) {
-        console.log(`GRUPO ${groupId}:`, groupedPosts.get(groupId)!.map(p => `${p.id}-${(p as any).formato}`));
-      }
     }
     
     // Para cada grupo, selecionar apenas um post (preferindo Cartaz)
-    Array.from(groupedPosts.entries()).forEach(([groupId, groupPosts]) => {
+    const uniquePosts: Post[] = [];
+    Array.from(groupedPosts.values()).forEach((groupPosts) => {
       // Priorizar Cartaz, depois Stories, depois outros formatos
       const cartazPost = groupPosts.find((p: any) => p.formato === 'Cartaz');
       const storiesPost = groupPosts.find((p: any) => p.formato === 'Stories');
@@ -133,28 +122,8 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
         new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime()
       );
     } else {
-      // "Em alta" - Manter ordem cronológica das mais recentes para mais antigas
-      // mas embaralhar dentro de grupos de posts da mesma data para misturar categorias
-      const groupedByDate = new Map<string, Post[]>();
-      
-      uniquePosts.forEach(post => {
-        const dateKey = new Date(post.createdAt || '').toDateString();
-        if (!groupedByDate.has(dateKey)) {
-          groupedByDate.set(dateKey, []);
-        }
-        groupedByDate.get(dateKey)!.push(post);
-      });
-      
-      // Embaralhar posts dentro de cada data e depois juntar mantendo ordem cronológica
-      const sortedDates = Array.from(groupedByDate.keys()).sort((a, b) => 
-        new Date(b).getTime() - new Date(a).getTime()
-      );
-      
-      sortedDates.forEach(dateKey => {
-        const postsOfDate = groupedByDate.get(dateKey) || [];
-        const shuffledPostsOfDate = [...postsOfDate].sort(() => Math.random() - 0.5);
-        shuffledPosts.push(...shuffledPostsOfDate);
-      });
+      // "Em alta" - Ordenação totalmente aleatória
+      shuffledPosts = [...uniquePosts].sort(() => Math.random() - 0.5);
     }
 
     // Definir quantidade de posts baseado no número de colunas
