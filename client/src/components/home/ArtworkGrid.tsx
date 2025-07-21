@@ -79,20 +79,38 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
       );
     }
 
-    // Evitar duplicatas: manter apenas um post por group_id
+    // Evitar duplicatas: manter apenas um post por group_id, priorizando formato Cartaz
     const uniquePosts: Post[] = [];
-    const seenGroupIds = new Set<string>();
     
     // Ordenar por data (mais recentes primeiro) antes de processar
     const sortedPosts = [...filtered].sort((a, b) => 
       new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
     );
     
+    // Agrupar posts por group_id e priorizar formato Cartaz
+    const groupedPosts = new Map<string, Post[]>();
+    
     for (const post of sortedPosts) {
       const groupId = (post as any).group_id || `single_${post.id}`;
-      if (!seenGroupIds.has(groupId)) {
-        seenGroupIds.add(groupId);
-        uniquePosts.push(post);
+      if (!groupedPosts.has(groupId)) {
+        groupedPosts.set(groupId, []);
+      }
+      groupedPosts.get(groupId)!.push(post);
+    }
+    
+    // Para cada grupo, selecionar apenas um post (preferindo Cartaz)
+    for (const [groupId, groupPosts] of groupedPosts) {
+      // Priorizar Cartaz, depois Stories, depois outros formatos
+      const cartazPost = groupPosts.find(p => (p as any).formato === 'Cartaz');
+      const storiesPost = groupPosts.find(p => (p as any).formato === 'Stories');
+      
+      if (cartazPost) {
+        uniquePosts.push(cartazPost);
+      } else if (storiesPost) {
+        uniquePosts.push(storiesPost);
+      } else {
+        // Se não tem nem Cartaz nem Stories, pegar o primeiro do grupo
+        uniquePosts.push(groupPosts[0]);
       }
     }
     
