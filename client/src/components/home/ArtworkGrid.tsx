@@ -96,13 +96,18 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
         groupedPosts.set(groupId, []);
       }
       groupedPosts.get(groupId)!.push(post);
+      
+      // Debug para verificar duplicatas
+      if (groupedPosts.get(groupId)!.length > 1) {
+        console.log(`GRUPO ${groupId}:`, groupedPosts.get(groupId)!.map(p => `${p.id}-${(p as any).formato}`));
+      }
     }
     
     // Para cada grupo, selecionar apenas um post (preferindo Cartaz)
-    for (const [groupId, groupPosts] of groupedPosts) {
+    Array.from(groupedPosts.entries()).forEach(([groupId, groupPosts]) => {
       // Priorizar Cartaz, depois Stories, depois outros formatos
-      const cartazPost = groupPosts.find(p => (p as any).formato === 'Cartaz');
-      const storiesPost = groupPosts.find(p => (p as any).formato === 'Stories');
+      const cartazPost = groupPosts.find((p: any) => p.formato === 'Cartaz');
+      const storiesPost = groupPosts.find((p: any) => p.formato === 'Stories');
       
       if (cartazPost) {
         uniquePosts.push(cartazPost);
@@ -112,7 +117,7 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
         // Se não tem nem Cartaz nem Stories, pegar o primeiro do grupo
         uniquePosts.push(groupPosts[0]);
       }
-    }
+    });
     
     // Aplicar ordenação baseada no filtro selecionado
     let shuffledPosts: Post[] = [];
