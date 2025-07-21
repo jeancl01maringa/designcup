@@ -111,18 +111,17 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     // Aplicar ordenação baseada no filtro selecionado
     let shuffledPosts: Post[] = [];
     
-    if (sortOrder === "Recentes") {
-      // Ordenar do mais recente para o mais antigo
-      shuffledPosts = [...uniquePosts].sort((a, b) => 
+    if (sortOrder === "Em alta") {
+      // Feed padrão: Randomizar mas priorizando posts mais recentes
+      // Primeiro ordenar por data (mais recentes primeiro)
+      const sortedByDate = [...uniquePosts].sort((a, b) => 
         new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
       );
-    } else if (sortOrder === "Antigos") {
-      // Ordenar do mais antigo para o mais recente
-      shuffledPosts = [...uniquePosts].sort((a, b) => 
-        new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime()
-      );
+      
+      // Depois embaralhar para dar efeito randomizado mas mantendo tendência recente
+      shuffledPosts = [...sortedByDate].sort(() => Math.random() - 0.5);
     } else {
-      // "Em alta" - Ordenação totalmente aleatória
+      // Qualquer filtro selecionado: sempre randomizado
       shuffledPosts = [...uniquePosts].sort(() => Math.random() - 0.5);
     }
 
