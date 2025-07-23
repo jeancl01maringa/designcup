@@ -112,6 +112,22 @@ export class BrevoService {
   }
 
   /**
+   * Envia email usando template da Brevo
+   */
+  static async enviarEmailTemplate(email: string, nome: string, templateId: number, params: any = {}): Promise<boolean> {
+    return await this.enviarEmail({
+      to: email,
+      toName: nome,
+      subject: '', // Subject vem do template
+      templateId,
+      params: {
+        NOME: nome,
+        ...params
+      }
+    });
+  }
+
+  /**
    * Email de boas-vindas para novos usuários
    */
   static async enviarBoasVindas(email: string, nome: string): Promise<boolean> {
