@@ -132,8 +132,8 @@ router.post('/', async (req, res) => {
         // Enviar email de boas-vindas para novo usuário
         try {
           await BrevoService.enviarEmailTemplate(email, name, 1, { 
-            NOME: name,
-            EMAIL: email 
+            nome: name,
+            email: email 
           });
           await BrevoService.adicionarContato(email, name, [1]); // Lista ID 1 para novos usuários
           console.log('📧 Email de boas-vindas enviado via template ID 1 para:', email);
@@ -189,10 +189,10 @@ router.post('/', async (req, res) => {
         // Enviar email de confirmação de compra
         try {
           await BrevoService.enviarEmailTemplate(email, name, 1, { 
-            NOME: name,
-            EMAIL: email,
-            PLANO: planName,
-            VALOR: planPrice.toFixed(2)
+            nome: name,
+            email: email,
+            plano: planName,
+            valor: planPrice.toFixed(2)
           });
           console.log('📧 Email de confirmação de compra enviado via template ID 1 para:', email);
           
@@ -229,20 +229,13 @@ router.post('/', async (req, res) => {
         console.log(`✅ Assinatura atualizada para usuário ${userId} com plano Hotmart ${planName}`);
         
         // Enviar email de confirmação de compra para usuário existente
-        console.log('🔍 DEBUG: Iniciando envio de email para usuário existente');
         try {
-          console.log('🔍 DEBUG: Chamando BrevoService.enviarEmailTemplate com:', {
-            email, name, templateId: 1, params: { NOME: name, EMAIL: email, PLANO: planName, VALOR: planPrice.toFixed(2) }
+          await BrevoService.enviarEmailTemplate(email, name, 1, { 
+            nome: name,
+            email: email,
+            plano: planName,
+            valor: planPrice.toFixed(2)
           });
-          
-          const emailSuccess = await BrevoService.enviarEmailTemplate(email, name, 1, { 
-            NOME: name,
-            EMAIL: email,
-            PLANO: planName,
-            VALOR: planPrice.toFixed(2)
-          });
-          
-          console.log('📧 Email de confirmação resultado:', emailSuccess ? 'SUCESSO' : 'FALHA');
           console.log('📧 Email de confirmação de compra enviado via template ID 1 para:', email);
           
           // Notificar administrador sobre nova compra
