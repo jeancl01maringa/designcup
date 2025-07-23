@@ -227,6 +227,30 @@ router.post('/', async (req, res) => {
         ]);
         
         console.log(`✅ Assinatura atualizada para usuário ${userId} com plano Hotmart ${planName}`);
+        
+        // Enviar email de confirmação de compra para usuário existente
+        console.log('🔍 DEBUG: Iniciando envio de email para usuário existente');
+        try {
+          console.log('🔍 DEBUG: Chamando BrevoService.enviarEmailTemplate com:', {
+            email, name, templateId: 1, params: { NOME: name, EMAIL: email, PLANO: planName, VALOR: planPrice.toFixed(2) }
+          });
+          
+          const emailSuccess = await BrevoService.enviarEmailTemplate(email, name, 1, { 
+            NOME: name,
+            EMAIL: email,
+            PLANO: planName,
+            VALOR: planPrice.toFixed(2)
+          });
+          
+          console.log('📧 Email de confirmação resultado:', emailSuccess ? 'SUCESSO' : 'FALHA');
+          console.log('📧 Email de confirmação de compra enviado via template ID 1 para:', email);
+          
+          // Notificar administrador sobre nova compra
+          await BrevoService.notificarNovaCompra('jean.maringa@hotmail.com', name, email, planName, planPrice);
+          console.log('📧 Notificação enviada ao administrador sobre nova compra');
+        } catch (emailError) {
+          console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
+        }
       }
 
       return res.status(200).json({ 
