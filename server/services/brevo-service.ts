@@ -115,16 +115,36 @@ export class BrevoService {
    * Envia email usando template da Brevo
    */
   static async enviarEmailTemplate(email: string, nome: string, templateId: number, params: any = {}): Promise<boolean> {
-    return await this.enviarEmail({
-      to: email,
-      toName: nome,
-      subject: '', // Subject vem do template
-      templateId,
-      params: {
-        NOME: nome,
-        ...params
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'api-key': process.env.BREVO_API_KEY || ''
+        },
+        body: JSON.stringify({
+          to: [{ email, name: nome }],
+          templateId,
+          params: {
+            NOME: nome,
+            ...params
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('❌ Erro ao enviar email via template Brevo:', error);
+        return false;
       }
-    });
+
+      console.log('✅ Email enviado via template Brevo:', templateId);
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao enviar email via template Brevo:', error);
+      return false;
+    }
   }
 
   /**
