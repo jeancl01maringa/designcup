@@ -1,17 +1,20 @@
-import express from 'express';
-import { pool } from '../db';
-import { scrypt, randomBytes } from 'crypto';
-import { promisify } from 'util';
-import BrevoService from '../services/brevo-service';
+import { Router } from 'express';
+import { Pool } from 'pg';
+import { BrevoService } from '../services/brevo-service.js';
 
-const scryptAsync = promisify(scrypt);
-const router = express.Router();
+export const router = Router();
 
-// Função para hash da senha
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+// Pool PostgreSQL para webhook
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+// Função de hash de senha para usuários Hotmart
+async function hashPassword(password: string): Promise<string> {
+  const crypto = await import('crypto');
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${hash}.${salt}`;
 }
 
 // Funções de validação
@@ -46,19 +49,81 @@ router.post('/', async (req, res) => {
       
       // Captura dados do plano da Hotmart
       const planName = payload.data?.subscription?.plan?.name || payload.data?.product?.name || 'Plano Premium';
-      const planType = planName?.toLowerCase().includes('anual') ? 'anual' : 'mensal';
       
-      // Extrai preço corretamente do formato da Hotmart ANTES de tudo
+      // Captura dados da assinatura/subscription para extrair tipo e datas reais
+      let planType = 'mensal'; // default
+      let endDate = new Date();
+      let startDate = new Date();
+      
+      console.log('🔍 Debug dados da subscription:', JSON.stringify({
+        subscription: payload.data?.subscription,
+        purchase: payload.data?.purchase
+      }));
+      
+      // Extrai data de vencimento real da Hotmart
+      if (payload.data?.subscription?.expiry_date || payload.data?.subscription?.expire_date) {
+        const expiryTimestamp = payload.data.subscription.expiry_date || payload.data.subscription.expire_date;
+        endDate = new Date(expiryTimestamp);
+        console.log('✅ Data de vencimento extraída da subscription:', endDate);
+      } else if (payload.data?.purchase?.date_next_charge) {
+        // Usa date_next_charge como data de vencimento se disponível
+        endDate = new Date(payload.data.purchase.date_next_charge);
+        console.log('✅ Data de vencimento extraída do date_next_charge:', endDate);
+      } else if (payload.data?.subscription?.plan?.type) {
+        // Se não tem data específica, usa o tipo do plano
+        const hotmartPlanType = payload.data.subscription.plan.type.toLowerCase();
+        if (hotmartPlanType.includes('annual') || hotmartPlanType.includes('yearly')) {
+          planType = 'anual';
+          endDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+        } else {
+          planType = 'mensal';
+          endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        }
+        console.log('✅ Tipo de plano extraído da Hotmart:', hotmartPlanType, '-> definido como:', planType);
+      } else {
+        // Fallback: analisa o nome do plano
+        planType = planName?.toLowerCase().includes('anual') ? 'anual' : 'mensal';
+        endDate = planType === 'anual' 
+          ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        console.log('⚠️ Usando fallback para tipo de plano baseado no nome:', planType);
+      }
+      
+      // Extrai data de início (data da compra)
+      if (payload.data?.purchase?.approved_date) {
+        startDate = new Date(payload.data.purchase.approved_date);
+      } else if (payload.data?.subscription?.start_date) {
+        startDate = new Date(payload.data.subscription.start_date);
+      }
+      
+      // Extrai preço corretamente do formato da Hotmart
       let planPrice = 0;
       let planCurrency = 'BRL';
       
       console.log('🔍 Debug preço original:', JSON.stringify({
+        subscriptionPrice: payload.data?.subscription?.plan?.price,
         purchasePrice: payload.data?.purchase?.price,
         productPrice: payload.data?.product?.price
       }));
       
-      // Tenta extrair do purchase.price primeiro
-      if (payload.data?.purchase?.price) {
+      // Tenta extrair do subscription.plan.price primeiro (mais específico)
+      if (payload.data?.subscription?.plan?.price) {
+        const priceData = payload.data.subscription.plan.price;
+        if (typeof priceData === 'object' && priceData !== null && priceData.value !== undefined) {
+          planPrice = parseFloat(priceData.value) || 0;
+          planCurrency = priceData.currency_value || 'BRL';
+          console.log('✅ Preço extraído do subscription.plan.price (objeto):', planPrice, planCurrency);
+        } else if (typeof priceData === 'number') {
+          planPrice = priceData;
+          console.log('✅ Preço extraído do subscription.plan.price (número):', planPrice);
+        } else if (typeof priceData === 'string') {
+          planPrice = parseFloat(priceData) || 0;
+          console.log('✅ Preço extraído do subscription.plan.price (string):', planPrice);
+        }
+      }
+      
+      // Se não encontrou no subscription, tenta extrair do purchase.price
+      if (planPrice === 0 && payload.data?.purchase?.price) {
         const priceData = payload.data.purchase.price;
         if (typeof priceData === 'object' && priceData !== null && priceData.value !== undefined) {
           planPrice = parseFloat(priceData.value) || 0;
@@ -91,12 +156,7 @@ router.post('/', async (req, res) => {
       
       console.log(`🎯 Dados da compra Hotmart: Email=${email}, Plano=${planName}, Tipo=${planType}, Transação=${transactionId}`);
       console.log(`💰 Preço final extraído: ${planPrice}, Moeda: ${planCurrency}`);
-      
-      const now = new Date();
-      // Calcula data de expiração baseada no tipo de plano da Hotmart
-      const endDate = planType === 'anual' 
-        ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      console.log(`📅 Datas: Início=${startDate.toISOString()}, Vencimento=${endDate.toISOString()}`);
 
       if (!email) {
         console.log('❌ Email não encontrado no payload');
@@ -125,7 +185,7 @@ router.post('/', async (req, res) => {
             origem_assinatura, tipo_plano, data_assinatura, acesso_vitalicio
           )
           VALUES ($1, $2, $3, $4, 'premium', '2', $5, true, $6, false, 'Cliente Hotmart', 'hotmart', $7, $8, false)
-        `, [email, username, hashedPassword, telefone, endDate, now, planType, now]);
+        `, [email, username, hashedPassword, telefone, endDate, startDate, planType, startDate]);
         
         console.log(`✅ Novo usuário criado: ${name} (${email}) - Plano Hotmart: ${planName}`);
         
@@ -156,7 +216,7 @@ router.post('/', async (req, res) => {
             active = true,
             data_assinatura = $5
           WHERE email = $1
-        `, [email, planType, endDate, telefone, now]);
+        `, [email, planType, endDate, telefone, startDate]);
         
         console.log(`✅ Usuário atualizado para premium: ${name} (${email}) - Plano Hotmart: ${planName}`);
       }
@@ -175,9 +235,9 @@ router.post('/', async (req, res) => {
             transaction_id, origin, last_event, telefone, created_at,
             hotmart_plan_id, hotmart_plan_name, hotmart_plan_price, hotmart_currency
           )
-          VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6, $7, $8, $9, $10, $11)
+          VALUES ($1, $2, $3, $4, 'active', $5, 'hotmart', 'PURCHASE_APPROVED', $6, CURRENT_TIMESTAMP, $7, $8, $9, $10)
         `, [
-          userId, planType, now, endDate, transactionId, telefone, now,
+          userId, planType, startDate, endDate, transactionId, telefone,
           payload.data?.subscription?.plan?.id || payload.data?.product?.id || planType, // hotmart_plan_id vem da Hotmart
           planName, // hotmart_plan_name vem da Hotmart  
           planPrice, // hotmart_plan_price extraído corretamente
@@ -316,46 +376,30 @@ router.post('/', async (req, res) => {
         } catch (emailError) {
           console.log('⚠️ Erro ao enviar email de cancelamento:', emailError);
         }
-        
-        return res.status(200).json({ 
-          success: true, 
-          message: 'Usuário rebaixado com sucesso' 
-        });
       } else {
-        console.log(`⚠️ Usuário não encontrado: ${email}`);
-        return res.status(404).json({ error: 'Usuário não encontrado' });
+        console.log(`⚠️ Usuário ${email} não encontrado para cancelamento`);
       }
 
-    } catch (err) {
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Cancelamento processado com sucesso' 
+      });
+
+    } catch (err: any) {
       console.error('❌ Erro ao processar cancelamento:', err);
-      return res.status(500).json({ error: 'Erro ao processar webhook' });
+      console.error('❌ Stack trace:', err.stack);
+      return res.status(500).json({ 
+        error: 'Erro ao processar cancelamento', 
+        details: err.message 
+      });
     }
   }
 
-  // Evento não reconhecido ou validação falhou
-  console.log('⚠️ WEBHOOK NÃO PROCESSADO:', {
-    event: payload?.event,
-    buyerEmail: payload?.data?.buyer?.email,
-    purchaseStatus: payload?.data?.purchase?.status,
-    isValidPurchase: isValidPurchase(payload),
-    isValidCancellation: isValidCancellation(payload),
-    razao: !isValidPurchase(payload) && !isValidCancellation(payload) ? 'Evento não reconhecido ou dados inválidos' : 'Evento processado mas não capturado aqui'
-  });
-  
+  // Outros eventos são ignorados mas logados
+  console.log(`ℹ️ Evento ${payload?.event} ignorado - webhook funcionando`);
   return res.status(200).json({ 
     success: true, 
-    message: 'Evento recebido mas não processado' 
-  });
-});
-
-// Endpoint de teste para verificar se o webhook está acessível
-router.get('/test', (req, res) => {
-  console.log('🧪 Endpoint de teste do webhook chamado');
-  res.json({ 
-    status: 'OK', 
-    message: 'Webhook está funcionando',
-    timestamp: new Date().toISOString(),
-    url: req.originalUrl
+    message: 'Webhook recebido mas evento não processado' 
   });
 });
 
