@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { BrevoService } from '../services/brevo-service.js';
 
 export const router = Router();
@@ -44,8 +45,30 @@ router.post('/', async (req, res) => {
     try {
       const email = payload.data?.buyer?.email?.toLowerCase().trim();
       const name = payload.data?.buyer?.name || 'Usuário';
-      const telefone = payload.data?.buyer?.phone || payload.data?.buyer?.checkout_phone || '';
-      const transactionId = payload.data?.purchase?.transaction;
+      
+      // Captura telefone de múltiplas fontes da Hotmart para garantir precisão
+      let telefone = '';
+      if (payload.data?.buyer?.phone) {
+        telefone = payload.data.buyer.phone;
+      } else if (payload.data?.buyer?.checkout_phone) {
+        telefone = payload.data.buyer.checkout_phone;
+      } else if (payload.data?.buyer?.checkout_phone_code && payload.data?.buyer?.checkout_phone) {
+        // Combina código + número se disponível
+        telefone = `${payload.data.buyer.checkout_phone_code}${payload.data.buyer.checkout_phone}`;
+      }
+      
+      // Remove caracteres não numéricos para padronizar
+      telefone = telefone.replace(/[^\d]/g, '');
+      
+      // Captura ID da transação de múltiplas fontes para garantir rastreabilidade
+      const transactionId = payload.data?.purchase?.transaction || 
+                           payload.data?.purchase?.order_id || 
+                           payload.data?.purchase?.payment_id || 
+                           payload.data?.transaction?.id || 
+                           `HP_${Date.now()}`; // Fallback com timestamp
+      
+      console.log(`📞 Telefone capturado da Hotmart: ${telefone || 'não informado'}`);
+      console.log(`💳 Transação ID capturada: ${transactionId}`);
       
       // Captura dados do plano da Hotmart
       const planName = payload.data?.subscription?.plan?.name || payload.data?.product?.name || 'Plano Premium';
