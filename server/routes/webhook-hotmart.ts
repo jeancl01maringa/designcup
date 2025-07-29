@@ -332,8 +332,16 @@ router.post('/', async (req, res) => {
     }
   }
 
-  // Evento não reconhecido
-  console.log('⚠️ Evento não reconhecido:', payload.event);
+  // Evento não reconhecido ou validação falhou
+  console.log('⚠️ WEBHOOK NÃO PROCESSADO:', {
+    event: payload?.event,
+    buyerEmail: payload?.data?.buyer?.email,
+    purchaseStatus: payload?.data?.purchase?.status,
+    isValidPurchase: isValidPurchase(payload),
+    isValidCancellation: isValidCancellation(payload),
+    razao: !isValidPurchase(payload) && !isValidCancellation(payload) ? 'Evento não reconhecido ou dados inválidos' : 'Evento processado mas não capturado aqui'
+  });
+  
   return res.status(200).json({ 
     success: true, 
     message: 'Evento recebido mas não processado' 
