@@ -82,7 +82,7 @@ export default function LoginPage() {
                     placeholder="exemplo@email.com"
                     type="email"
                     {...field}
-                    className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930] rounded-lg"
+                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -101,7 +101,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     type="password"
                     {...field}
-                    className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930] rounded-lg"
+                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -111,7 +111,7 @@ export default function LoginPage() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg shadow-lg"
+            className="w-full h-12 text-white font-semibold bg-[#171a2b] hover:bg-[#0f1220] transition-all duration-200 rounded-lg shadow-lg"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? "Entrando..." : "Entrar"}

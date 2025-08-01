@@ -20,6 +20,10 @@ const registerSchema = z.object({
   email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
   whatsapp: z.string().min(1, "WhatsApp é obrigatório"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -111,6 +115,7 @@ export default function RegisterPage() {
       email: "",
       whatsapp: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -161,7 +166,26 @@ export default function RegisterPage() {
                   <Input
                     placeholder="Seu nome completo"
                     {...field}
-                    className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930] rounded-lg"
+                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="exemplo@email.com"
+                    type="email"
+                    {...field}
+                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -178,7 +202,7 @@ export default function RegisterPage() {
                 <FormControl>
                   <div className="flex gap-2">
                     <select 
-                      className="h-12 bg-white border border-gray-300 rounded-lg px-3 text-sm text-gray-700 w-28 flex-shrink-0 outline-none transition-colors focus:border-[#F84930] focus:ring-2 focus:ring-[#F84930]/20"
+                      className="h-12 bg-white border border-gray-300 rounded-lg px-3 text-sm text-gray-700 w-28 flex-shrink-0 outline-none transition-colors focus:border-[#171a2b] focus:ring-2 focus:ring-[#171a2b]/20"
                       value={selectedCountryCode}
                       onChange={(e) => {
                         setSelectedCountryCode(e.target.value);
@@ -225,28 +249,9 @@ export default function RegisterPage() {
                           form.clearErrors('whatsapp');
                         }
                       }}
-                      className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930] flex-1 rounded-lg"
+                      className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] flex-1 rounded-lg"
                     />
                   </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="exemplo@email.com"
-                    type="email"
-                    {...field}
-                    className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930] rounded-lg"
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -264,7 +269,26 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     type="password"
                     {...field}
-                    className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930] rounded-lg"
+                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700 font-medium">Confirmar senha</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="••••••••"
+                    type="password"
+                    {...field}
+                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -274,7 +298,7 @@ export default function RegisterPage() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg shadow-lg"
+            className="w-full h-12 text-white font-semibold bg-[#171a2b] hover:bg-[#0f1220] transition-all duration-200 rounded-lg shadow-lg"
             disabled={registerMutation.isPending}
           >
             {registerMutation.isPending ? "Criando conta..." : "Cadastrar"}
