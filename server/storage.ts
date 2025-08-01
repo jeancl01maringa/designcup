@@ -129,7 +129,7 @@ export class DatabaseStorage implements IStorage {
       
       // Tentar primeiro no PostgreSQL direto (onde estão os dados reais)
       const result = await pool.query(`
-        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active, bio
+        SELECT id, username, email, password, is_admin, created_at, telefone, whatsapp, profile_image, tipo, plano_id, data_vencimento, active, bio
         FROM users 
         WHERE id = $1 OR (username = 'admin' AND $1 = 2)
         LIMIT 1
@@ -155,6 +155,7 @@ export class DatabaseStorage implements IStorage {
         password: data.password,
         isAdmin: Boolean(data.is_admin),
         telefone: data.telefone || null,
+        whatsapp: data.whatsapp || null,
         profileImage: data.profile_image || null,
         bio: data.bio || null,
         createdAt: new Date(data.created_at),
@@ -179,7 +180,7 @@ export class DatabaseStorage implements IStorage {
       
       // Usar PostgreSQL direto (mesma fonte que getUser)
       const result = await pool.query(`
-        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+        SELECT id, username, email, password, is_admin, created_at, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active
         FROM users 
         WHERE username = $1
         LIMIT 1
@@ -205,7 +206,9 @@ export class DatabaseStorage implements IStorage {
         password: data.password,
         isAdmin: Boolean(data.is_admin),
         telefone: data.telefone || null,
+        whatsapp: data.whatsapp || null,
         profileImage: data.profile_image || null,
+        bio: data.bio || null,
         createdAt: new Date(data.created_at),
         tipo: data.tipo || 'free',
         plano_id: data.plano_id || null,
@@ -228,7 +231,7 @@ export class DatabaseStorage implements IStorage {
       
       // Usar PostgreSQL direto (mesma fonte que getUser)
       const result = await pool.query(`
-        SELECT id, username, email, password, is_admin, created_at, telefone, profile_image, tipo, plano_id, data_vencimento, active
+        SELECT id, username, email, password, is_admin, created_at, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active
         FROM users 
         WHERE email = $1
         LIMIT 1
@@ -254,7 +257,9 @@ export class DatabaseStorage implements IStorage {
         password: data.password,
         isAdmin: Boolean(data.is_admin),
         telefone: data.telefone || null,
+        whatsapp: data.whatsapp || null,
         profileImage: data.profile_image || null,
+        bio: data.bio || null,
         createdAt: new Date(data.created_at),
         tipo: data.tipo || 'free',
         plano_id: data.plano_id || null,
@@ -277,15 +282,16 @@ export class DatabaseStorage implements IStorage {
       
       // Usar PostgreSQL direto - mesmo método que funciona no getUser
       const result = await pool.query(`
-        INSERT INTO users (username, email, password, is_admin, telefone, profile_image, bio, tipo, plano_id, data_vencimento, active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING id, username, email, password, is_admin, created_at, telefone, profile_image, bio, tipo, plano_id, data_vencimento, active
+        INSERT INTO users (username, email, password, is_admin, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING id, username, email, password, is_admin, created_at, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active
       `, [
         insertUser.username,
         insertUser.email,
         insertUser.password,
         insertUser.isAdmin || false,
         null, // telefone
+        insertUser.whatsapp || null, // whatsapp
         null, // profile_image
         null, // bio
         'free', // tipo
@@ -309,6 +315,7 @@ export class DatabaseStorage implements IStorage {
         password: userData.password,
         isAdmin: userData.is_admin || false,
         telefone: userData.telefone || null,
+        whatsapp: userData.whatsapp || null,
         profileImage: userData.profile_image || null,
         bio: userData.bio || null,
         createdAt: new Date(userData.created_at),
@@ -374,7 +381,7 @@ export class DatabaseStorage implements IStorage {
         UPDATE users 
         SET profile_image = $1
         WHERE id = $2
-        RETURNING id, username, email, is_admin, created_at, telefone, profile_image, bio, tipo, plano_id, data_vencimento, active
+        RETURNING id, username, email, is_admin, created_at, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active
       `, [imageUrl, id]);
 
       if (!result.rows || result.rows.length === 0) {
@@ -389,6 +396,7 @@ export class DatabaseStorage implements IStorage {
         password: '', // Não retornar senha
         isAdmin: userData.is_admin || false,
         telefone: userData.telefone || null,
+        whatsapp: userData.whatsapp || null,
         profileImage: userData.profile_image || null,
         bio: userData.bio || null,
         createdAt: new Date(userData.created_at),

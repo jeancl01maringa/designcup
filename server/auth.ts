@@ -147,7 +147,7 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { email, password, username } = req.body;
+      const { email, password, username, whatsapp } = req.body;
       
       if (!email || !password || !username) {
         return res.status(400).json({ message: "Todos os campos são obrigatórios" });
@@ -162,6 +162,7 @@ export function setupAuth(app: Express) {
         username,
         email,
         password: await hashPassword(password),
+        whatsapp: whatsapp || null,
         isAdmin: false, // Por padrão, novos usuários não são administradores
       });
 

@@ -20,6 +20,7 @@ const registerSchema = z.object({
   username: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  whatsapp: z.string().min(10, "WhatsApp deve ter pelo menos 10 dígitos").optional().or(z.literal("")),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -51,6 +52,7 @@ export default function RegisterPage() {
       username: "",
       email: "",
       password: "",
+      whatsapp: "",
     },
   });
 
@@ -123,6 +125,39 @@ export default function RegisterPage() {
                       placeholder="exemplo@email.com"
                       type="email"
                       {...field}
+                      className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div>
+            <FormField
+              control={form.control}
+              name="whatsapp"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 font-medium">WhatsApp</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="(99) 99999-9999"
+                      type="tel"
+                      {...field}
+                      onChange={(e) => {
+                        // Formatação básica do telefone
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length >= 11) {
+                          value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+                        } else if (value.length >= 7) {
+                          value = value.replace(/^(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
+                        } else if (value.length >= 3) {
+                          value = value.replace(/^(\d{2})(\d+)/, '($1) $2');
+                        }
+                        field.onChange(value);
+                      }}
                       className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
                     />
                   </FormControl>

@@ -42,19 +42,19 @@ export default function AuthPage() {
         {logoData?.imageUrl ? (
           <img
             src={logoData.imageUrl}
-            alt="Estetfix"
+            alt="Estetflix"
             className="h-16"
           />
         ) : logoData?.dataUrl ? (
           <img
             src={logoData.dataUrl}
-            alt="Estetfix"
+            alt="Estetflix"
             className="h-16"
           />
         ) : (
           <div className="flex items-center justify-center">
             <div className="bg-gradient-to-r from-[#F84930] to-[#F8A441] text-white px-6 py-3 rounded-lg">
-              <span className="text-2xl font-bold">🤍 Estetfix</span>
+              <span className="text-2xl font-bold">Estetflix</span>
             </div>
           </div>
         )}

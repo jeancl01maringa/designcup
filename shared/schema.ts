@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   telefone: text("telefone"),
+  whatsapp: text("whatsapp"),
   profileImage: text("profile_image"),
   bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -38,6 +39,7 @@ export const insertUserSchema = createInsertSchema(users)
     username: true,
     email: true,
     password: true,
+    whatsapp: true,
   })
   .extend({
     isAdmin: z.boolean().optional().default(false),

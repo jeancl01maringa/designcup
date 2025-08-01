@@ -26,6 +26,7 @@ export type RegisterData = {
   username: string;
   email: string;
   password: string;
+  whatsapp?: string;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
