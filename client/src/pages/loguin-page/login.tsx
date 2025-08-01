@@ -52,9 +52,7 @@ export default function LoginPage() {
         <button
           type="button"
           className="flex-1 py-3 text-center text-sm font-semibold rounded-lg bg-white text-gray-900 shadow-sm border border-gray-200"
-        >
-          Login
-        </button>
+        >Entrar</button>
         <Link 
           to="/loguin/cadastro"
           className="flex-1 py-3 text-center text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 transition-colors"
