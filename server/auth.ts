@@ -158,6 +158,12 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Email já cadastrado" });
       }
 
+      // Verificar se o nome de usuário já existe
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ message: "Nome de usuário já está em uso. Tente outro nome." });
+      }
+
       const user = await storage.createUser({
         username,
         email,
@@ -184,8 +190,19 @@ export function setupAuth(app: Express) {
         if (err) return next(err);
         res.status(201).json(user);
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no registro:", error);
+      
+      // Tratar erros específicos de constraint
+      if (error?.code === '23505') {
+        if (error.constraint === 'users_username_unique') {
+          return res.status(400).json({ message: "Nome de usuário já está em uso. Tente outro nome." });
+        }
+        if (error.constraint === 'users_email_unique') {
+          return res.status(400).json({ message: "Email já cadastrado" });
+        }
+      }
+      
       res.status(500).json({ message: "Erro ao registrar o usuário" });
     }
   });
