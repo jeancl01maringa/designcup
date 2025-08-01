@@ -37,6 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { usePixelUserActions } from "@/hooks/use-facebook-pixel";
+import { usePostActions } from "@/hooks/use-post-actions";
 
 // Componente para seção de artes relacionadas com layout responsivo
 function RelatedArtworksSection({ artworks }: { artworks: any[] }) {
