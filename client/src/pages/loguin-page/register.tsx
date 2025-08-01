@@ -101,12 +101,12 @@ export default function RegisterPage() {
   const { user, registerMutation } = useAuth();
   const [selectedCountryCode, setSelectedCountryCode] = useState('+55');
   
-  // Redirecionar se já estiver logado
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
+  // Temporariamente desabilitado para permitir acesso à página
+  // useEffect(() => {
+  //   if (user) {
+  //     navigate("/");
+  //   }
+  // }, [user, navigate]);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),

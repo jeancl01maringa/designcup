@@ -26,12 +26,12 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation } = useAuth();
   
-  // Redirecionar se já estiver logado
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
+  // Temporariamente desabilitado para permitir acesso à página
+  // useEffect(() => {
+  //   if (user) {
+  //     navigate("/");
+  //   }
+  // }, [user, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
