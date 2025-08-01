@@ -17,12 +17,7 @@ export default function LoguinPage() {
     },
   });
   
-  // Redireciona para login se estiver apenas em /loguin
-  useEffect(() => {
-    if (location === "/loguin") {
-      navigate("/loguin/login");
-    }
-  }, [location, navigate]);
+
 
   // Facebook Pixel tracking
   useEffect(() => {
