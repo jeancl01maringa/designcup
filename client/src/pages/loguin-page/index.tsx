@@ -30,7 +30,7 @@ export default function LoguinPage() {
   }, []);
   
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+    <div className="min-h-screen relative flex items-center justify-center bg-gray-50">
       {/* Fundo com mosaico de imagens */}
       <div 
         className="absolute inset-0 opacity-20"
@@ -41,8 +41,8 @@ export default function LoguinPage() {
         }}
       />
       
-      {/* Overlay escuro */}
-      <div className="absolute inset-0 bg-black/30" />
+      {/* Overlay suave */}
+      <div className="absolute inset-0 bg-white/20" />
       
       {/* Modal centralizado */}
       <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 border border-gray-200/50">
