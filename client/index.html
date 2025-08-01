@@ -27,8 +27,14 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
+    
     fbq('init', '502899885278920');
     fbq('track', 'PageView');
+    
+    // Para melhor compatibilidade com SPAs
+    window.fbq = window.fbq || function() {
+      (window.fbq.q = window.fbq.q || []).push(arguments);
+    };
     </script>
     <!-- End Meta Pixel Code -->
   </head>

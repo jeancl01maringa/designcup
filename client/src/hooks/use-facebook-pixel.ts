@@ -10,9 +10,13 @@ export function usePixelPageTracking() {
   const [location] = useLocation();
 
   useEffect(() => {
-    // Rastreia mudança de página
-    const pageName = location === '/' ? 'Home' : location.replace('/', '');
-    FacebookPixelService.trackPageView(pageName);
+    // Aguarda um pequeno delay para garantir que o DOM está carregado
+    const timer = setTimeout(() => {
+      const pageName = location === '/' ? 'Home' : location.replace('/', '');
+      FacebookPixelService.trackPageView(pageName);
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [location]);
 }
 

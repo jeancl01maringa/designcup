@@ -24,7 +24,18 @@ interface PixelEventData {
 export class FacebookPixelService {
   // Verifica se o pixel está carregado
   static isLoaded(): boolean {
-    return typeof window !== 'undefined' && window.fbq;
+    return typeof window !== 'undefined' && window.fbq && typeof window.fbq === 'function';
+  }
+
+  // Inicializa o pixel se ainda não estiver carregado
+  static init(): void {
+    if (typeof window === 'undefined') return;
+    
+    if (!window.fbq) {
+      window.fbq = function() {
+        (window.fbq.q = window.fbq.q || []).push(arguments);
+      };
+    }
   }
 
   // Evento: Visualização de conteúdo (arte/design)
@@ -148,15 +159,24 @@ export class FacebookPixelService {
 
   // Evento: Visualização de página personalizada
   static trackPageView(pageName: string, data?: PixelEventData) {
-    if (!this.isLoaded()) return;
-
-    if (data) {
-      window.fbq('track', 'PageView', data);
-    } else {
-      window.fbq('track', 'PageView');
+    // Inicializa o pixel se necessário
+    this.init();
+    
+    if (!this.isLoaded()) {
+      console.warn('Facebook Pixel não está carregado');
+      return;
     }
 
-    console.log('📊 Facebook Pixel: PageView tracked', { pageName, data });
+    try {
+      if (data) {
+        window.fbq('track', 'PageView', data);
+      } else {
+        window.fbq('track', 'PageView');
+      }
+      console.log('📊 Facebook Pixel: PageView tracked', { pageName, data });
+    } catch (error) {
+      console.error('Erro ao rastrear PageView:', error);
+    }
   }
 
   // Evento customizado para categoria
