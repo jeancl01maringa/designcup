@@ -64,7 +64,7 @@ export default function LoginPage() {
       </div>
       {/* Título da seção */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Entrar na sua conta</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre com sua conta</h2>
         <p className="text-sm text-gray-600">Entre com suas credenciais para acessar sua conta</p>
       </div>
       <Form {...form}>
