@@ -62,13 +62,11 @@ export default function LoginPage() {
           Cadastre-se
         </Link>
       </div>
-
       {/* Título da seção */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Login</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Entrar na sua conta</h2>
         <p className="text-sm text-gray-600">Entre com suas credenciais para acessar sua conta</p>
       </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
           <FormField
@@ -124,7 +122,6 @@ export default function LoginPage() {
           )}
         </form>
       </Form>
-
       {/* Link para esqueci a senha */}
       <div className="text-center">
         <a 
