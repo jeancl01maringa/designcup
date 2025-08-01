@@ -68,7 +68,9 @@ BREVO_API_KEY=sua_chave_api_brevo_aqui
 4. Configure a chave nas variáveis de ambiente do Replit
 
 ### Templates de Email
-Todos os emails utilizam templates HTML responsivos com:
+- **Template ID #1**: Usado para compras via Hotmart
+- **Template ID #2**: Usado para cadastros gratuitos na plataforma
+Todos os templates utilizam design responsivo com:
 - Design profissional com gradientes
 - Informações personalizadas
 - CTAs (Call-to-Action) apropriados
@@ -77,9 +79,9 @@ Todos os emails utilizam templates HTML responsivos com:
 ## Fluxos de Email Automatizados
 
 ### Fluxo de Novo Usuário (Registro Normal)
-1. Usuário se cadastra via `/auth`
+1. Usuário se cadastra via `/loguin/register`
 2. Sistema cria conta no banco de dados
-3. **Email de boas-vindas** enviado ao usuário
+3. **Email de boas-vindas** enviado usando Template ID #2 da Brevo
 4. **Contato adicionado** na lista ID 1 da Brevo
 5. **Notificação enviada** ao administrador
 
