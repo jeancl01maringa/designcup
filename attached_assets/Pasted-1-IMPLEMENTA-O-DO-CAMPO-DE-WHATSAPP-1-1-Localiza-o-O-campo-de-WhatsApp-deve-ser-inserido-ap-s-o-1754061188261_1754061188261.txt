@@ -1,0 +1,334 @@
+1. IMPLEMENTAÇÃO DO CAMPO DE WHATSAPP
+
+1.1 Localização
+
+O campo de WhatsApp deve ser inserido após o campo "Nome" e antes do campo "Email" no formulário de cadastro.
+
+1.2 Código HTML
+
+HTML
+
+
+<!-- Campo de WhatsApp para inserir no formulário de cadastro -->
+<label for="whatsapp">WhatsApp</label>
+<div class="whatsapp-container">
+  <select id="country-code" name="country-code" class="country-select">
+    <option value="+55">BR +55</option>
+    <option value="+1">US +1</option>
+    <option value="+54">AR +54</option>
+    <option value="+56">CL +56</option>
+    <option value="+57">CO +57</option>
+    <option value="+593">EC +593</option>
+    <option value="+51">PE +51</option>
+    <option value="+598">UY +598</option>
+    <option value="+58">VE +58</option>
+    <option value="+595">PY +595</option>
+    <option value="+591">BO +591</option>
+  </select>
+  <input 
+    type="tel" 
+    id="whatsapp" 
+    name="whatsapp" 
+    placeholder="(99) 99999-9999"
+    class="whatsapp-input"
+    maxlength="15"
+  >
+</div>
+
+
+1.3 Código CSS
+
+CSS
+
+
+/* Estilos para o campo de WhatsApp */
+.whatsapp-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.country-select {
+  background-color: #f8f4ff;
+  border: 2px solid #e0d4f7;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  color: #333;
+  width: 100px;
+  flex-shrink: 0;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.country-select:focus {
+  border-color: #9f7aea;
+  box-shadow: 0 0 0 3px rgba(159, 122, 234, 0.1);
+}
+
+.whatsapp-input {
+  background-color: #f8f4ff;
+  border: 2px solid #e0d4f7;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.whatsapp-input:focus {
+  border-color: #9f7aea;
+  box-shadow: 0 0 0 3px rgba(159, 122, 234, 0.1);
+}
+
+.whatsapp-input::placeholder {
+  color: #999;
+}
+
+/* Estilo para o label do WhatsApp */
+label[for="whatsapp"] {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 480px) {
+  .whatsapp-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .country-select {
+    width: 100%;
+  }
+}
+
+
+1.4 Código JavaScript
+
+JavaScript
+
+
+// JavaScript para funcionalidade do campo de WhatsApp
+document.addEventListener('DOMContentLoaded', function() {
+  const whatsappInput = document.getElementById('whatsapp');
+  const countrySelect = document.getElementById('country-code');
+  
+  // Máscaras por país
+  const masks = {
+    '+55': '(99) 99999-9999', // Brasil
+    '+1': '(999) 999-9999',   // EUA
+    '+54': '(99) 9999-9999',  // Argentina
+    '+56': '9 9999 9999',     // Chile
+    '+57': '(999) 999-9999',  // Colômbia
+    '+593': '99 999 9999',    // Equador
+    '+51': '999 999 999',     // Peru
+    '+598': '99 999 999',     // Uruguai
+    '+58': '(999) 999-9999',  // Venezuela
+    '+595': '(999) 999-999',  // Paraguai
+    '+591': '9999-9999'       // Bolívia
+  };
+  
+  // Função para aplicar máscara
+  function applyMask(value, mask) {
+    let cleanValue = value.replace(/\D/g, '');
+    let maskedValue = '';
+    let maskIndex = 0;
+    
+    for (let i = 0; i < cleanValue.length && maskIndex < mask.length; i++) {
+      while (maskIndex < mask.length && mask[maskIndex] !== '9') {
+        maskedValue += mask[maskIndex];
+        maskIndex++;
+      }
+      
+      if (maskIndex < mask.length) {
+        maskedValue += cleanValue[i];
+        maskIndex++;
+      }
+    }
+    
+    return maskedValue;
+  }
+  
+  // Função para atualizar placeholder e máscara
+  function updateMask() {
+    const selectedCountry = countrySelect.value;
+    const mask = masks[selectedCountry] || '(99) 99999-9999';
+    whatsappInput.placeholder = mask;
+    
+    // Reaplica a máscara no valor atual
+    if (whatsappInput.value) {
+      whatsappInput.value = applyMask(whatsappInput.value, mask);
+    }
+  }
+  
+  // Event listeners
+  countrySelect.addEventListener('change', updateMask);
+  
+  whatsappInput.addEventListener('input', function(e) {
+    const selectedCountry = countrySelect.value;
+    const mask = masks[selectedCountry] || '(99) 99999-9999';
+    e.target.value = applyMask(e.target.value, mask);
+  });
+  
+  // Validação do WhatsApp
+  function validateWhatsApp() {
+    const value = whatsappInput.value.replace(/\D/g, '');
+    const selectedCountry = countrySelect.value;
+    
+    let minLength, maxLength;
+    
+    switch (selectedCountry) {
+      case '+55': // Brasil
+        minLength = 10;
+        maxLength = 11;
+        break;
+      case '+1': // EUA
+        minLength = 10;
+        maxLength = 10;
+        break;
+      default:
+        minLength = 8;
+        maxLength = 15;
+    }
+    
+    if (value.length < minLength || value.length > maxLength) {
+      whatsappInput.setCustomValidity('Número de WhatsApp inválido para o país selecionado');
+      return false;
+    } else {
+      whatsappInput.setCustomValidity('');
+      return true;
+    }
+  }
+  
+  // Validação em tempo real
+  whatsappInput.addEventListener('blur', validateWhatsApp);
+  
+  // Inicializar com máscara do Brasil
+  updateMask();
+});
+
+// Função para obter o valor limpo do WhatsApp (apenas números)
+function getCleanWhatsApp() {
+  const whatsappInput = document.getElementById('whatsapp');
+  const countrySelect = document.getElementById('country-code');
+  
+  if (whatsappInput && countrySelect) {
+    const cleanNumber = whatsappInput.value.replace(/\D/g, '');
+    const countryCode = countrySelect.value;
+    return countryCode + cleanNumber;
+  }
+  
+  return '';
+}
+
+
+2. SUBSTITUIÇÃO DO LOGO "DESIGN PARA ESTÉTICA" POR "ESTETFLIX"
+
+2.1 Localizações que precisam ser alteradas:
+
+1.
+Título da página (tag <title> no <head>)
+
+2.
+Cabeçalho principal da página (lado esquerdo)
+
+3.
+Seção lateral direita (fundo laranja/marrom)
+
+4.
+Meta tags e outros metadados
+
+2.2 Opção 1: Substituição por Texto Estilizado
+
+HTML:
+
+HTML
+
+
+<!-- Substitua todas as ocorrências de "Design para Estética" por: -->
+<h1 class="logo-text">Estetflix</h1>
+
+<!-- Para a seção lateral, use: -->
+<h2 class="logo-text sidebar">Estetflix</h2>
+
+
+CSS:
+
+CSS
+
+
+/* CSS para estilizar o texto do logo */
+.logo-text {
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  font-size: 2.5rem;
+  color: #8B4513; /* Cor marrom que combina com o design */
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  margin: 0;
+  padding: 0;
+}
+
+/* Para a seção lateral */
+.logo-text.sidebar {
+  color: white;
+  font-size: 2rem;
+}
+
+
+2.3 Opção 2: Substituição por Imagem do Logo
+
+HTML:
+
+HTML
+
+
+<!-- Substitua o texto por: -->
+<img src="caminho/para/logo-estetflix.png" alt="Estetflix" class="logo-image">
+
+<!-- Para a seção lateral: -->
+<img src="caminho/para/logo-estetflix.png" alt="Estetflix" class="logo-image sidebar">
+
+
+CSS:
+
+CSS
+
+
+/* CSS para a imagem do logo */
+.logo-image {
+  max-height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Para a seção lateral */
+.logo-image.sidebar {
+  max-height: 80px;
+  filter: brightness(1.1); /* Deixa mais claro para contrastar com o fundo escuro */
+}
+
+
+2.4 Atualizações de Metadados
+
+Título da página:
+
+HTML
+
+
+<title>Estetflix - A melhor plataforma de Artes para Estética do Brasil</title>
+
+
+Meta description (se existir):
+
+HTML
+
+
+<meta name="description" content="Estetflix - Sua plataforma completa para criação e gerenciamento de artes para estética.">
+
+
