@@ -2710,6 +2710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             u.username, 
             u.email, 
             u.telefone,
+            u.whatsapp,
             u.is_admin as "isAdmin",
             u.created_at as "createdAt",
             COALESCE(u.tipo, 'free') as tipo,
