@@ -31,18 +31,8 @@ export default function LoguinPage() {
   
   return (
     <div className="min-h-screen relative flex items-center justify-center bg-gray-50">
-      {/* Fundo com mosaico de imagens */}
-      <div 
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><pattern id="aesthetic-grid" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="%23F84930" opacity="0.1"/><circle cx="50" cy="50" r="30" fill="%23F8A441" opacity="0.2"/></pattern></defs><rect width="400" height="400" fill="url(%23aesthetic-grid)"/></svg>')`,
-          backgroundSize: '200px 200px',
-          backgroundRepeat: 'repeat'
-        }}
-      />
-      
-      {/* Overlay suave */}
-      <div className="absolute inset-0 bg-white/20" />
+      {/* Gradiente sutil de fundo */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 to-amber-50/30" />
       
       {/* Modal centralizado */}
       <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 border border-gray-200/50">
