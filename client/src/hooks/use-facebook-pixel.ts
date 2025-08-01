@@ -67,11 +67,22 @@ export function usePixelUserActions() {
     FacebookPixelService.trackInitiateCheckout(planData);
   };
 
+  const trackViewContent = (data: {
+    postId: string;
+    title: string;
+    category: string;
+    format: string;
+    isPremium: boolean;
+  }) => {
+    FacebookPixelService.trackViewContent(data);
+  };
+
   return {
     trackSearch,
     trackLike,
     trackSave,
-    trackPremiumClick
+    trackPremiumClick,
+    trackViewContent
   };
 }
 
