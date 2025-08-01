@@ -12,6 +12,7 @@ import More from "@/pages/More";
 import ArtworkDetail from "@/pages/ArtworkDetail";
 import ArtDetailPage from "@/pages/ArtDetailPage";
 import AuthPage from "@/pages/auth-page";
+import LoguinPage from "@/pages/loguin-page";
 import ImageUploadDemo from "@/pages/ImageUploadDemo";
 import SocialSharingDemo from "@/pages/SocialSharingDemo";
 import Header from "@/components/layout/Header";
@@ -78,6 +79,9 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/auth/login" component={AuthPage} />
       <Route path="/auth/register" component={AuthPage} />
+      <Route path="/loguin" component={LoguinPage} />
+      <Route path="/loguin/login" component={LoguinPage} />
+      <Route path="/loguin/register" component={LoguinPage} />
       <Route path="/planos" component={PlansPage} />
       <Route path="/ferramentas" component={ToolsPage} />
       <Route path="/cursos">
