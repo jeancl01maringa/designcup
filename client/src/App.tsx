@@ -79,9 +79,8 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/auth/login" component={AuthPage} />
       <Route path="/auth/register" component={AuthPage} />
+      <Route path="/loguin/cadastro" component={LoguinPage} />
       <Route path="/loguin" component={LoguinPage} />
-      <Route path="/loguin/login" component={LoguinPage} />
-      <Route path="/loguin/register" component={LoguinPage} />
       <Route path="/planos" component={PlansPage} />
       <Route path="/ferramentas" component={ToolsPage} />
       <Route path="/cursos">
