@@ -56,7 +56,7 @@ export default function LoginPage() {
           Login
         </button>
         <Link 
-          to="/loguin/register"
+          to="/loguin/cadastro"
           className="flex-1 py-3 text-center text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 transition-colors"
         >
           Cadastre-se

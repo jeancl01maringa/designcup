@@ -47,7 +47,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
     try {
       await logoutMutation.mutateAsync();
       onClose();
-      navigate('/auth');
+      navigate('/loguin');
       toast({
         title: 'Logout realizado',
         description: 'Você saiu da sua conta com sucesso.',

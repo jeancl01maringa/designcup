@@ -135,7 +135,7 @@ export default function RegisterPage() {
       {/* Abas Login/Cadastro */}
       <div className="flex bg-gray-100 rounded-xl p-1">
         <Link 
-          to="/loguin/login"
+          to="/loguin"
           className="flex-1 py-3 text-center text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 transition-colors"
         >
           Login

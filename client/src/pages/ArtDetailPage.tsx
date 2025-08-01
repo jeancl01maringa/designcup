@@ -1169,7 +1169,7 @@ export default function ArtDetailPage() {
                 /* Botão azul para artes gratuitas quando não logado */
                 <>
                   <Button 
-                    onClick={() => setLocation('/auth')}
+                    onClick={() => setLocation('/loguin')}
                     className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

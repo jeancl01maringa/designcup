@@ -160,15 +160,7 @@ const UserMenu = () => {
           variant="outline" 
           size="sm"
           className="flex items-center gap-1.5 border-[#191c2c] text-[#191c2c] hover:bg-[#191c2c] hover:text-white bg-transparent transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
-          onClick={() => {
-            navigate("/auth");
-            // Ativar a tab de registro
-            setTimeout(() => {
-              document.querySelector('[value="register"]')?.dispatchEvent(
-                new MouseEvent('click', { bubbles: true })
-              );
-            }, 100);
-          }}
+          onClick={() => navigate("/loguin/cadastro")}
         >
           <UserPlus className="h-3.5 w-3.5" />
           <span>Cadastre-se</span>
@@ -177,7 +169,7 @@ const UserMenu = () => {
           variant="default" 
           size="sm" 
           className="flex items-center gap-1.5 bg-[#191c2c] hover:bg-[#14182a] text-white shadow-sm transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
-          onClick={() => navigate("/auth")}
+          onClick={() => navigate("/loguin")}
         >
           <LogIn className="h-3.5 w-3.5" />
           <span>Entrar</span>
@@ -278,7 +270,7 @@ const MobileUserMenu = () => {
           variant="default" 
           size="lg" 
           className="flex items-center gap-2 bg-[#191c2c] hover:bg-[#14182a] text-white px-4 py-2 text-sm rounded-full min-h-[44px]"
-          onClick={() => navigate("/auth")}
+          onClick={() => navigate("/loguin")}
         >
           <LogIn className="h-5 w-5" />
           <span>Entrar</span>

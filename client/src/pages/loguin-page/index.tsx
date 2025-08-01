@@ -63,11 +63,8 @@ export default function LoguinPage() {
         </div>
         
         <Switch>
-          <Route path="/loguin/login" component={LoginPage} />
-          <Route path="/loguin/register" component={RegisterPage} />
-          <Route path="/loguin">
-            <Redirect to="/loguin/login" />
-          </Route>
+          <Route path="/loguin/cadastro" component={RegisterPage} />
+          <Route path="/loguin" component={LoginPage} />
         </Switch>
       </div>
     </div>
