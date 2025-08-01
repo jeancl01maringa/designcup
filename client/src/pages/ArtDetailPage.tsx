@@ -1122,7 +1122,7 @@ export default function ArtDetailPage() {
                   {/* Linha de ações */}
                   <div className="flex items-center justify-center gap-3">
                     <Button 
-                      onClick={() => setLocation('/auth')}
+                      onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
                       className="border-gray-300 text-gray-700 flex items-center gap-1.5"
@@ -1132,7 +1132,7 @@ export default function ArtDetailPage() {
                     </Button>
                     
                     <Button 
-                      onClick={() => setLocation('/auth')}
+                      onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
                       className="border-gray-300 text-gray-700 flex items-center gap-1.5"
@@ -1183,7 +1183,7 @@ export default function ArtDetailPage() {
                   {/* Linha de ações */}
                   <div className="flex items-center justify-center gap-3">
                     <Button 
-                      onClick={() => setLocation('/auth')}
+                      onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
                       className="border-gray-300 text-gray-700 flex items-center gap-1.5"
@@ -1193,7 +1193,7 @@ export default function ArtDetailPage() {
                     </Button>
                     
                     <Button 
-                      onClick={() => setLocation('/auth')}
+                      onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
                       className="border-gray-300 text-gray-700 flex items-center gap-1.5"
@@ -1394,7 +1394,7 @@ export default function ArtDetailPage() {
               {!user && !authorLoading && author && (
                 <Button
                   size="sm"
-                  onClick={() => setLocation('/auth')}
+                  onClick={() => setLocation('/loguin')}
                   className="bg-blue-600 hover:bg-blue-700 text-white border-0"
                 >
                   Seguir
