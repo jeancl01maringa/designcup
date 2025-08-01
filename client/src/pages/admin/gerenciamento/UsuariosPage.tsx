@@ -23,6 +23,7 @@ interface Usuario {
   username: string;
   email: string;
   telefone?: string | null;
+  whatsapp?: string | null;
   isAdmin: boolean;
   createdAt: string;
   tipo: 'free' | 'premium';
@@ -242,7 +243,7 @@ export default function UsuariosPage() {
     setEditFormData({
       username: usuario.username,
       email: usuario.email,
-      telefone: usuario.telefone || "",
+      telefone: usuario.whatsapp || "",
       isAdmin: usuario.isAdmin,
       tipo: usuario.tipo,
       plano_id: usuario.plano_id || "",
@@ -548,11 +549,11 @@ export default function UsuariosPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="telefone">Telefone (WhatsApp)</Label>
+              <Label htmlFor="telefone">WhatsApp</Label>
               <Input 
                 id="telefone"
                 type="tel"
-                placeholder="(99) 99999-9999"
+                placeholder="+55 (44) 99999-9999"
                 value={editFormData.telefone}
                 onChange={(e) => setEditFormData({ ...editFormData, telefone: e.target.value })}
               />

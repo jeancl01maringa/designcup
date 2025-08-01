@@ -2822,9 +2822,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (telefone !== undefined) {
         if (telefone === "") {
-          setClauses.push(`telefone = NULL`);
+          setClauses.push(`whatsapp = NULL`);
         } else {
-          setClauses.push(`telefone = $${paramIndex}`);
+          setClauses.push(`whatsapp = $${paramIndex}`);
           queryParams.push(telefone);
           paramIndex++;
         }
