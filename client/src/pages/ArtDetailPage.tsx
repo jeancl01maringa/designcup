@@ -36,7 +36,7 @@ import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
-import { usePostActions } from "@/hooks/use-post-actions";
+import { usePixelUserActions } from "@/hooks/use-facebook-pixel";
 
 // Componente para seção de artes relacionadas com layout responsivo
 function RelatedArtworksSection({ artworks }: { artworks: any[] }) {
@@ -93,6 +93,7 @@ export default function ArtDetailPage() {
   const { slug, id } = params;
   const { user, isLoading: isLoadingAuth } = useAuth();
   const queryClient = useQueryClient();
+  const { trackViewContent } = usePixelUserActions();
   
   // Determinar o ID do post baseado na rota
   let postId: number;
@@ -313,6 +314,18 @@ export default function ArtDetailPage() {
   useEffect(() => {
     setCurrentFormatIndex(0);
   }, [postId]);
+
+  // Track ViewContent event no Facebook Pixel quando post carrega
+  useEffect(() => {
+    if (post && post.id) {
+      trackViewContent({
+        content_name: post.title,
+        content_type: 'product',
+        content_ids: [post.id.toString()],
+        content_category: post.categoria || post.category_name || 'Arte'
+      });
+    }
+  }, [post, trackViewContent]);
 
   // Formatar objetos para exibição
   const formatLabel = (format: string | null | undefined) => {

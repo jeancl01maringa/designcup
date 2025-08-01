@@ -2,6 +2,7 @@ import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { usePixelPageTracking } from "@/hooks/use-facebook-pixel";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Categories from "@/pages/Categories";
@@ -191,6 +192,9 @@ function App() {
   const isAuthPage = location.startsWith("/auth");
   const isAdminPage = location.startsWith("/admin");
   const showHeaderFooter = !isAuthPage && !isAdminPage;
+  
+  // Facebook Pixel - tracking automático de páginas
+  usePixelPageTracking();
   
   // Mostrar barra de pesquisa móvel apenas na home e na página "todas as artes"
   const showMobileSearchBar = showHeaderFooter && (location === "/" || location === "/todas-artes");

@@ -269,6 +269,24 @@ router.post('/', async (req, res) => {
         
         console.log(`✅ Nova assinatura criada para usuário ${userId} com plano Hotmart ${planName}`);
         
+        // Log dos dados para Facebook Pixel Conversions API (futura implementação)
+        console.log('📊 Facebook Pixel Purchase Event Data:', {
+          event_name: 'Purchase',
+          event_time: Math.floor(Date.now() / 1000),
+          user_data: {
+            email: email,
+            phone: telefone,
+            first_name: name
+          },
+          custom_data: {
+            content_name: planName,
+            content_type: 'product',
+            content_ids: [transactionId],
+            value: planPrice,
+            currency: planCurrency
+          }
+        });
+        
         // Enviar email de confirmação de compra
         try {
           await BrevoService.enviarEmailTemplate(email, name, 1, { 

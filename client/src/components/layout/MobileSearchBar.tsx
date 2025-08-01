@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Search, ChevronDown } from "lucide-react";
+import { usePixelUserActions } from "@/hooks/use-facebook-pixel";
 
 export function MobileSearchBar() {
   const [location, navigate] = useLocation();
@@ -11,6 +12,7 @@ export function MobileSearchBar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
   const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
+  const { trackSearch } = usePixelUserActions();
 
   const formats = [
     { id: "all", name: "Formatos" },
@@ -32,6 +34,10 @@ export function MobileSearchBar() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      // Track search event no Facebook Pixel
+      const category = selectedFormat !== "all" ? getFormatName(selectedFormat) : undefined;
+      trackSearch(searchQuery.trim(), category);
+      
       // Verificar se o termo de busca é um número (possível ID)
       const isNumeric = /^\d+$/.test(searchQuery.trim());
       if (isNumeric) {
