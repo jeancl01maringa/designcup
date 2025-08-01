@@ -298,7 +298,7 @@ export default function RegisterPage() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 text-white font-semibold bg-[#171a2b] hover:bg-[#0f1220] transition-all duration-200 rounded-lg shadow-lg"
+            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg shadow-lg"
             disabled={registerMutation.isPending}
           >
             {registerMutation.isPending ? "Criando conta..." : "Cadastrar"}
