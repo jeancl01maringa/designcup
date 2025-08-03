@@ -205,7 +205,7 @@ export default function PlansPage() {
 
   const getButtonLink = (plan: Plan) => {
     if (plan.urlHotmart) return plan.urlHotmart;
-    if (plan.isGratuito) return "/register";
+    if (plan.isGratuito) return "/loguin/cadastro";
     return "#";
   };
 
