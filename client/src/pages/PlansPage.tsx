@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ interface Plan {
 export default function PlansPage() {
   const [isAnnual, setIsAnnual] = useState(false);
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   // Scroll para o topo quando a página carrega
   useEffect(() => {
@@ -209,6 +210,14 @@ export default function PlansPage() {
     return "#";
   };
 
+  const handlePlanClick = (plan: Plan) => {
+    if (plan.urlHotmart) {
+      window.open(plan.urlHotmart, '_blank');
+    } else if (plan.isGratuito) {
+      navigate('/loguin/cadastro');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -381,19 +390,18 @@ export default function PlansPage() {
                         </Button>
                       </a>
                     ) : (
-                      <Link href={getButtonLink(plan)} className="w-full">
-                        <Button 
-                          className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
-                            plan.isPrincipal
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
-                              : plan.isGratuito
-                              ? 'bg-gray-500 hover:bg-gray-600 text-white'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
-                          }`}
-                        >
-                          {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
-                        </Button>
-                      </Link>
+                      <Button 
+                        onClick={() => handlePlanClick(plan)}
+                        className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
+                          plan.isPrincipal
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+                            : plan.isGratuito
+                            ? 'bg-gray-500 hover:bg-gray-600 text-white'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                      >
+                        {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
+                      </Button>
                     )}
                   </CardFooter>
                 </Card>
