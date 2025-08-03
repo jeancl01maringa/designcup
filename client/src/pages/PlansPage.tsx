@@ -211,9 +211,12 @@ export default function PlansPage() {
   };
 
   const handlePlanClick = (plan: Plan) => {
+    console.log('Clique no plano:', plan.name, 'isGratuito:', plan.isGratuito);
     if (plan.urlHotmart) {
+      console.log('Abrindo URL Hotmart:', plan.urlHotmart);
       window.open(plan.urlHotmart, '_blank');
     } else if (plan.isGratuito) {
+      console.log('Navegando para cadastro gratuito');
       navigate('/loguin/cadastro');
     }
   };
