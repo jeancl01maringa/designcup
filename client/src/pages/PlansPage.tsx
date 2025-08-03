@@ -375,7 +375,6 @@ export default function PlansPage() {
           </div>
         </div>
       </div>
-
       {/* Seção de garantias e benefícios adicionais */}
       <div className="bg-gray-50 py-10">
         <div className="container-global max-w-6xl">
@@ -389,7 +388,7 @@ export default function PlansPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
                 <Crown className="h-8 w-8" />
               </div>
-              <h4 className="text-xl font-semibold mb-2">+500 Templates Premium</h4>
+              <h4 className="text-xl font-semibold mb-2">+300 Templates Premium</h4>
               <p className="text-gray-600">Acesso completo à nossa biblioteca com centenas de templates profissionais.</p>
             </div>
             
