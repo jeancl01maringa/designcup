@@ -230,7 +230,7 @@ export default function PlansPage() {
           {/* Plans Grid */}
           <div className="flex justify-center w-full">
             {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl lg:justify-items-center">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="relative flex flex-col h-full">
                   <CardHeader className="text-center pb-4">
@@ -272,7 +272,7 @@ export default function PlansPage() {
               <p className="text-gray-600">Nenhum plano disponível no momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl lg:justify-items-center">
               {sortedPlans.map((plan) => (
                 <Card key={plan.id} className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
                   plan.isPrincipal 
