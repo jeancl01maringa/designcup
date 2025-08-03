@@ -31,7 +31,6 @@ interface Plan {
 }
 
 export default function PlansPage() {
-  const [isAnnual, setIsAnnual] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -65,32 +64,21 @@ export default function PlansPage() {
     // Filtrar planos ativos
     const activePlans = plans.filter((plan: Plan) => plan.active !== false);
     
-    // Filtrar por período selecionado
-    const filteredPlans = activePlans.filter((plan: Plan) => {
-      // Sempre mostrar plano gratuito
-      if (plan.isGratuito) return true;
-      
-      const periodo = plan.periodo?.toLowerCase();
-      
-      if (isAnnual) {
-        // No modo anual, mostrar planos anuais e vitalício
-        return periodo === 'anual' || periodo === 'vitalicio';
-      } else {
-        // No modo mensal, mostrar planos mensais e trimestral
-        return periodo === 'mensal' || periodo === 'trimestral';
-      }
-    });
-
-    // Ordenar planos
-    return filteredPlans.sort((a: Plan, b: Plan) => {
+    // Ordenar: gratuito primeiro, depois mensal, depois anual
+    return activePlans.sort((a: Plan, b: Plan) => {
       if (a.isGratuito && !b.isGratuito) return -1;
       if (!a.isGratuito && b.isGratuito) return 1;
-      if (a.isGratuito && b.isGratuito) return 0;
-      const priceA = parsePrice(a.valor || '0');
-      const priceB = parsePrice(b.valor || '0');
-      return priceA - priceB;
+      
+      const periodoA = a.periodo?.toLowerCase();
+      const periodoB = b.periodo?.toLowerCase();
+      
+      // Ordem: mensal -> anual -> outros
+      const orderA = periodoA === 'mensal' ? 1 : periodoA === 'anual' ? 2 : 3;
+      const orderB = periodoB === 'mensal' ? 1 : periodoB === 'anual' ? 2 : 3;
+      
+      return orderA - orderB;
     });
-  }, [plans, isAnnual]);
+  }, [plans]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -235,41 +223,13 @@ export default function PlansPage() {
             Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
-          <p className="text-lg mb-4 text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg mb-8 text-gray-600 max-w-3xl mx-auto">
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
-          
-          {/* Seletor de Período */}
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1 mb-12">
-            <button
-              onClick={() => setIsAnnual(false)}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                !isAnnual
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Mensal
-            </button>
-            <button
-              onClick={() => setIsAnnual(true)}
-              className={`relative px-6 py-2 rounded-md text-sm font-medium transition-all ml-1 ${
-                isAnnual
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Anual
-              <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 py-0.5">
-                -25%
-              </Badge>
-            </button>
-          </div>
-
 
           {/* Plans Grid */}
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto justify-items-center">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="relative flex flex-col h-full">
                   <CardHeader className="text-center pb-4">
@@ -311,7 +271,7 @@ export default function PlansPage() {
               <p className="text-gray-600">Nenhum plano disponível no momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto justify-items-center">
               {sortedPlans.map((plan) => (
                 <Card key={plan.id} className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
                   plan.isPrincipal 
