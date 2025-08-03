@@ -223,7 +223,7 @@ export default function PlansPage() {
             Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
-          <p className="text-lg mb-8 text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg mb-16 text-gray-600 max-w-3xl mx-auto">
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
 
