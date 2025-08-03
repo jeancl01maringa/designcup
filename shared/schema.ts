@@ -8,7 +8,7 @@ export const userTipoEnum = pgEnum('user_tipo', ['free', 'premium']);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  username: text("username").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),

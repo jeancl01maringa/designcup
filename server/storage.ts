@@ -35,7 +35,7 @@ function slugify(text: string): string {
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserProfile(id: number, data: { username: string; email: string }): Promise<User>;
@@ -174,56 +174,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    try {
-      console.log("DATABASE getUserByUsername - Buscando usuário com username:", username);
-      
-      // Usar PostgreSQL direto (mesma fonte que getUser)
-      const result = await pool.query(`
-        SELECT id, username, email, password, is_admin, created_at, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active
-        FROM users 
-        WHERE username = $1
-        LIMIT 1
-      `, [username]);
-
-      if (!result.rows || result.rows.length === 0) {
-        console.log(`DATABASE getUserByUsername - Nenhum usuário encontrado com username ${username} no PostgreSQL`);
-        return undefined;
-      }
-
-      const data = result.rows[0];
-      
-      // Log para depuração
-      console.log("DATABASE getUserByUsername - Dados brutos do usuário:", JSON.stringify(data));
-      
-      console.log("DATABASE getUserByUsername - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin);
-      
-      // Converter os dados para o formato do User
-      const user: User = {
-        id: data.id,
-        username: data.username,
-        email: data.email,
-        password: data.password,
-        isAdmin: Boolean(data.is_admin),
-        telefone: data.telefone || null,
-        whatsapp: data.whatsapp || null,
-        profileImage: data.profile_image || null,
-        bio: data.bio || null,
-        createdAt: new Date(data.created_at),
-        tipo: data.tipo || 'free',
-        plano_id: data.plano_id || null,
-        data_vencimento: data.data_vencimento ? new Date(data.data_vencimento) : null,
-        active: Boolean(data.active)
-      };
-
-      console.log("DATABASE getUserByUsername - isAdmin convertido:", user.isAdmin);
-      
-      return user;
-    } catch (error) {
-      console.error("DATABASE getUserByUsername - Exceção:", error);
-      return undefined;
-    }
-  }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
