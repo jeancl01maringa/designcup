@@ -99,12 +99,7 @@ function OptimizedMediaViewer({
       <video 
         src={src}
         className={className}
-        style={{ 
-          ...style,
-          objectFit: 'contain', // Manter proporção dos vídeos
-          width: '100%',
-          height: 'auto'
-        }}
+        style={style}
         autoPlay
         loop
         muted
@@ -134,12 +129,7 @@ function OptimizedMediaViewer({
       src={src}
       alt={alt}
       className={className}
-      style={{ 
-        ...style,
-        objectFit: 'contain', // Manter proporção das imagens
-        width: '100%',
-        height: 'auto'
-      }}
+      style={style}
       loading="eager"
       fetchPriority="high"
       onLoad={onLoad}
