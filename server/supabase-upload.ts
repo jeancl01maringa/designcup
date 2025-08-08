@@ -187,18 +187,18 @@ export async function uploadFileToSupabase(
 
     // Determinar o tipo de processamento baseado no MIME type
     if (isVideoOrGif(mimeType)) {
-      // Para GIFs, manter formato original (Supabase não suporta WebM)
+      // Para GIFs, sempre manter formato original no bucket 'images'
       if (mimeType === 'image/gif') {
         console.log(`Mantendo GIF original: ${originalName} (${mimeType})`);
         processedBuffer = buffer;
         contentType = 'image/gif';
         fileExtension = '.gif';
       } else {
-        // Para MP4, converter para WebM (formato mais leve para web)
-        console.log(`Detectado MP4: ${originalName} (${mimeType}) - convertendo para WebM`);
-        processedBuffer = await convertToWebM(buffer, originalName);
-        contentType = 'video/webm';
-        fileExtension = '.webm';
+        // Para MP4, salvar formato original no bucket 'images' (Supabase é mais flexível com bucket 'images')
+        console.log(`Detectado MP4: ${originalName} (${mimeType}) - mantendo formato original`);
+        processedBuffer = buffer;
+        contentType = mimeType; // Manter video/mp4
+        fileExtension = '.mp4';
       }
     } else if (isImage(mimeType)) {
       // Converter imagem para WebP
@@ -216,53 +216,53 @@ export async function uploadFileToSupabase(
 
     const finalPath = `${fileName}_${timestamp}${fileExtension}`;
     
-    // Escolher bucket correto baseado no tipo de conteúdo
-    const targetBucket = (contentType === 'video/webm' || contentType === 'video/mp4') ? 'videos' : bucket;
+    // CORREÇÃO: Sempre usar bucket 'images' para compatibilidade 
+    // O bucket 'images' do Supabase suporta tanto imagens quanto vídeos MP4/GIF
+    const targetBucket = bucket; // Usar sempre o bucket passado como parâmetro
     
-    console.log(`Fazendo upload para Supabase: ${targetBucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
+    console.log(`Fazendo upload para Supabase: ${targetBucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB), contentType: ${contentType}`);
 
-    // Upload para o Supabase com upsert
+    // Assegurar que o bucket existe e tem configurações corretas
+    await ensureBucket(targetBucket);
+
+    // Upload para o Supabase com upsert e configurações mais flexíveis
     const { data, error } = await supabase.storage
       .from(targetBucket)
       .upload(finalPath, processedBuffer, { 
         contentType, 
-        upsert: true 
+        upsert: true,
+        duplex: 'half' // Para compatibilidade com vídeos
       });
 
     if (error) {
       console.error('Erro no upload Supabase:', error);
       
-      // Se é erro de MIME type com WebM, salvar como GIF original
-      if (error.message.includes('mime type video/webm is not supported') || 
-          error.message.includes('invalid_mime_type')) {
-        console.log('Fallback: Salvando arquivo original ao invés do WebM convertido');
+      // Se é erro de MIME type, tentar upload sem especificar contentType
+      if (error.message.includes('mime type') || error.message.includes('not supported')) {
+        console.log('Fallback: Tentando upload sem contentType específico');
         
-        // Upload do arquivo original
-        const originalPath = `${fileName}_${timestamp}${path.extname(originalName)}`;
-        const fallbackBucket = mimeType.startsWith('video/') ? 'videos' : bucket;
-        
+        // Upload sem especificar contentType (deixar Supabase detectar automaticamente)
         const { data: fallbackData, error: fallbackError } = await supabase.storage
-          .from(fallbackBucket)
-          .upload(originalPath, buffer, { 
-            contentType: mimeType, 
-            upsert: true 
+          .from(bucket) // Sempre usar bucket original
+          .upload(finalPath, processedBuffer, { 
+            upsert: true // Sem contentType explícito
           });
         
         if (fallbackError) {
           console.error('Erro no fallback upload:', fallbackError);
-          return { url: null, error: `Upload falhou: ${error.message}` };
+          return { url: null, error: `Upload falhou após fallback: ${fallbackError.message}` };
         }
         
-        const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${fallbackBucket}/${originalPath}?t=${timestamp}`;
-        console.log(`Fallback bem-sucedido (arquivo original): ${fallbackUrl}`);
+        const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
+        console.log(`Fallback bem-sucedido (sem contentType): ${fallbackUrl}`);
         return { url: fallbackUrl, error: null };
       }
       
       return { url: null, error: error.message };
     }
 
-    // Obter URL pública com timestamp para cache-busting
-    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${targetBucket}/${finalPath}?t=${timestamp}`;
+    // Obter URL pública com timestamp para cache-busting  
+    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
 
     console.log(`Upload bem-sucedido: ${publicUrl}`);
     return { url: publicUrl, error: null };
@@ -394,25 +394,37 @@ export async function ensureBucket(bucketName: string): Promise<boolean> {
     // Verificar se o bucket existe
     const { data: bucket, error: getBucketError } = await supabase.storage.getBucket(bucketName);
     
-    if (getBucketError) {
-      // Tentar criar o bucket
-      console.log(`Criando bucket ${bucketName}...`);
+    if (getBucketError && getBucketError.message.includes('not found')) {
+      // Tentar criar o bucket com configurações mais permissivas
+      console.log(`Criando bucket ${bucketName} com suporte completo a mídia...`);
       const { error: createError } = await supabase.storage.createBucket(bucketName, {
         public: true,
-        allowedMimeTypes: ['image/*', 'video/*'], // Suportar imagens e vídeos
-        fileSizeLimit: 52428800 // 50MB para suportar vídeos
+        allowedMimeTypes: ['image/*', 'video/*', 'application/*'], // Mais permissivo
+        fileSizeLimit: 104857600 // 100MB para suportar vídeos maiores
       });
       
       if (createError) {
         console.error(`Erro ao criar bucket ${bucketName}:`, createError);
         return false;
       }
-    } else if (!bucket.public) {
-      // Tornar o bucket público se não for
-      console.log(`Tornando bucket ${bucketName} público...`);
-      await supabase.storage.updateBucket(bucketName, { public: true });
+      
+      console.log(`Bucket ${bucketName} criado com sucesso!`);
+    } else if (bucket && !bucket.public) {
+      // Tornar o bucket público e atualizar configurações
+      console.log(`Atualizando bucket ${bucketName} para suportar vídeos...`);
+      const { error: updateError } = await supabase.storage.updateBucket(bucketName, { 
+        public: true,
+        allowedMimeTypes: ['image/*', 'video/*', 'application/*'],
+        fileSizeLimit: 104857600
+      });
+      
+      if (updateError) {
+        console.warn(`Aviso ao atualizar bucket ${bucketName}:`, updateError);
+        // Continuar mesmo com aviso, pois pode já estar configurado
+      }
     }
     
+    console.log(`Bucket ${bucketName} está pronto para uso`);
     return true;
   } catch (error) {
     console.error(`Erro ao verificar/criar bucket ${bucketName}:`, error);
