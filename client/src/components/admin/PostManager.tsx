@@ -7,6 +7,7 @@ import { PostForm } from "./PostForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
+import { MediaDisplay } from "@/components/MediaDisplay";
 
 import {
   Card,
@@ -605,23 +606,14 @@ export function PostManager() {
                       <div className="flex items-center mt-1">
                         <div className="h-9 w-9 rounded bg-muted flex items-center justify-center mr-2 overflow-hidden" style={{ aspectRatio: '1/1' }}>
                           {post.imageUrl ? (
-                            post.imageUrl.includes('.webm') || post.imageUrl.includes('.mp4') || post.imageUrl.includes('/videos/') ? (
-                              <video
-                                src={post.imageUrl}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <ImageWithFallback 
-                                src={post.imageUrl} 
-                                alt={post.title} 
-                                className="h-full w-full object-cover"
-                                fallbackClassName="h-4 w-4 opacity-30"
-                              />
-                            )
+                            <MediaDisplay 
+                              src={post.imageUrl}
+                              autoPlay={true}
+                              loop={true}
+                              muted={true}
+                              controls={false}
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 opacity-30">
                               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
