@@ -564,8 +564,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
       const categoryName = selectedCategory?.name || 'geral';
       
-      // Upload usando a nova implementação com organização por categoria e conversão WebP
-      const uploadResult = await uploadFileToSupabase(file, "images", customPath, categoryName);
+      // Determinar o bucket correto baseado no tipo de arquivo
+      const isVideo = file.type === 'video/webm' || file.type === 'video/mp4';
+      const bucketName = isVideo ? "videos" : "images";
+      
+      // Upload usando a nova implementação com bucket correto
+      const uploadResult = await uploadFileToSupabase(file, bucketName, customPath, categoryName);
       
       // Verificar se a URL retornada é válida
       if (uploadResult.url && uploadResult.url.startsWith('http')) {

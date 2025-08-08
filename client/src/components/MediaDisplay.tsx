@@ -26,16 +26,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
   // Detectar se é vídeo baseado na URL
   const isVideo = src.includes('.mp4') || src.includes('.webm') || src.includes('/videos/') || src.includes('video');
   
-  // Debug para identificar problemas de detecção
-  useEffect(() => {
-    console.log('MediaDisplay DEBUG:', {
-      src,
-      isVideo,
-      hasVideoExtension: src.includes('.mp4') || src.includes('.webm'),
-      hasVideoPath: src.includes('/videos/'),
-      hasVideoKeyword: src.includes('video')
-    });
-  }, [src]);
+
   
   useEffect(() => {
     if (isVideo && videoRef.current && autoPlay) {
