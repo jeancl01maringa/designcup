@@ -1394,7 +1394,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                               type="file"
                               id={`file-${format}`}
                               className="hidden"
-                              accept="image/*,video/mp4,video/webm,video/quicktime"
+                              accept="image/*"
                               onChange={(e) => handleFileChange(e, format)}
                             />
                             <Button 
