@@ -995,11 +995,10 @@ export default function ArtDetailPage() {
                 const skeleton = element.parentElement?.querySelector('.animate-pulse');
                 if (skeleton) skeleton.remove();
               }}
-              className="w-full h-auto object-contain relative z-10"
+              className="w-full h-auto object-cover relative z-10"
               style={{
                 aspectRatio: 'auto',
                 maxHeight: currentPost?.formato === 'stories' || currentPost?.formato === 'Stories' ? '80vh' : '70vh',
-                maxWidth: '100%',
               }}
             />
           </div>
