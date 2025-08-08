@@ -22,7 +22,13 @@ export function ImageWithFallback({
 
   // Handler para erro de carregamento
   const handleError = () => {
-    // Tenta ajustar a URL para corrigir problemas comuns
+    // Se for um arquivo de vídeo, não tenta carregar como imagem
+    if (src && (src.includes('.webm') || src.includes('.mp4') || src.includes('/videos/'))) {
+      setHasError(true);
+      return;
+    }
+    
+    // Tenta ajustar a URL para corrigir problemas comuns apenas para imagens
     if (!hasError && src) {
       console.log(`Imagem falhou ao carregar: ${src}`);
       
@@ -77,6 +83,11 @@ export function ImageWithFallback({
 
   // Se não há src, mostrar o fallback
   if (!src) {
+    return renderFallback();
+  }
+
+  // Se for um arquivo de vídeo, mostrar fallback imediatamente sem tentar carregar como imagem
+  if (src.includes('.webm') || src.includes('.mp4') || src.includes('/videos/')) {
     return renderFallback();
   }
   

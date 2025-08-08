@@ -705,23 +705,23 @@ export function PostManager() {
                                     formatFiles: {
                                       Feed: {
                                         imageFile: null,
-                                        imagePreview: groupFormats.find(f => f.formato === 'Feed')?.imageUrl || null,
-                                        links: groupFormats.find(f => f.formato === 'Feed')?.links || []
+                                        imagePreview: groupFormats.find((f: any) => f.formato === 'Feed')?.imageUrl || null,
+                                        links: groupFormats.find((f: any) => f.formato === 'Feed')?.links || []
                                       },
                                       Stories: {
                                         imageFile: null,
-                                        imagePreview: groupFormats.find(f => f.formato === 'Stories')?.imageUrl || null,
-                                        links: groupFormats.find(f => f.formato === 'Stories')?.links || []
+                                        imagePreview: groupFormats.find((f: any) => f.formato === 'Stories')?.imageUrl || null,
+                                        links: groupFormats.find((f: any) => f.formato === 'Stories')?.links || []
                                       },
                                       Cartaz: {
                                         imageFile: null,
-                                        imagePreview: groupFormats.find(f => f.formato === 'Cartaz')?.imageUrl || null,
-                                        links: groupFormats.find(f => f.formato === 'Cartaz')?.links || []
+                                        imagePreview: groupFormats.find((f: any) => f.formato === 'Cartaz')?.imageUrl || null,
+                                        links: groupFormats.find((f: any) => f.formato === 'Cartaz')?.links || []
                                       },
                                       Banner: {
                                         imageFile: null,
-                                        imagePreview: groupFormats.find(f => f.formato === 'Banner')?.imageUrl || null,
-                                        links: groupFormats.find(f => f.formato === 'Banner')?.links || []
+                                        imagePreview: groupFormats.find((f: any) => f.formato === 'Banner')?.imageUrl || null,
+                                        links: groupFormats.find((f: any) => f.formato === 'Banner')?.links || []
                                       }
                                     },
                                     uniqueCode: combinedPost.uniqueCode,
