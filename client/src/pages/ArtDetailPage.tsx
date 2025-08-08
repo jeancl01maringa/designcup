@@ -38,6 +38,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { usePixelUserActions } from "@/hooks/use-facebook-pixel";
 import { usePostActions } from "@/hooks/use-post-actions";
+import MediaDisplay from "@/components/MediaDisplay";
 
 // Componente para seção de artes relacionadas com layout responsivo
 function RelatedArtworksSection({ artworks }: { artworks: any[] }) {
@@ -863,18 +864,12 @@ export default function ArtDetailPage() {
             </div>
           )}
 
-          {/* Imagem principal otimizada com cache */}
+          {/* Imagem/vídeo principal otimizada com cache */}
           <div className="overflow-hidden rounded-lg shadow-md">
-            <img 
+            <MediaDisplay
               src={selectedFormat?.previewUrl || currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg"}
               alt={selectedFormat?.name || currentPost?.title || post?.title}
               className="w-full h-auto object-cover"
-              loading="lazy"
-              onError={(e) => {
-                console.error('Erro ao carregar imagem:', selectedFormat?.previewUrl);
-                const target = e.target as HTMLImageElement;
-                target.src = "/placeholder.jpg";
-              }}
             />
           </div>
         </div>
@@ -997,7 +992,7 @@ export default function ArtDetailPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
-                      <img 
+                      <MediaDisplay
                         src={post.imageUrl || post.image_url} 
                         alt={post.title} 
                         className="w-full h-full object-cover"

@@ -183,6 +183,7 @@ export async function uploadFileToSupabase(
     let processedBuffer: Buffer;
     let contentType: string;
     let fileExtension: string;
+    let finalBucket = bucket; // Bucket pode mudar baseado no tipo
     const timestamp = Date.now();
 
     // Determinar o tipo de processamento baseado no MIME type
@@ -194,11 +195,12 @@ export async function uploadFileToSupabase(
         contentType = 'image/gif';
         fileExtension = '.gif';
       } else {
-        // Para MP4, converter para WebM (formato mais leve para web)
-        console.log(`Detectado MP4: ${originalName} (${mimeType}) - convertendo para WebM`);
-        processedBuffer = await convertToWebM(buffer, originalName);
-        contentType = 'video/mp4'; // Manter como MP4 para compatibilidade com Supabase
+        // Para MP4, manter formato original - usar bucket específico
+        console.log(`Detectado MP4: ${originalName} (${mimeType}) - usando bucket videos`);
+        processedBuffer = buffer;
+        contentType = 'video/mp4';
         fileExtension = '.mp4';
+        finalBucket = 'videos'; // Usar bucket específico para vídeos
       }
     } else if (isImage(mimeType)) {
       // Converter imagem para WebP
@@ -216,13 +218,13 @@ export async function uploadFileToSupabase(
 
     const finalPath = `${fileName}_${timestamp}${fileExtension}`;
     
-    console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
+    console.log(`Fazendo upload para Supabase: ${finalBucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
 
     // Upload para o Supabase com upsert - usar sempre client normal
     const uploadClient = supabase;
     
     const { data, error } = await uploadClient.storage
-      .from(bucket)
+      .from(finalBucket)
       .upload(finalPath, processedBuffer, { 
         contentType, 
         upsert: true 
@@ -259,7 +261,7 @@ export async function uploadFileToSupabase(
     }
 
     // Obter URL pública com timestamp para cache-busting
-    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
+    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${finalBucket}/${finalPath}?t=${timestamp}`;
 
     console.log(`Upload bem-sucedido: ${publicUrl}`);
     return { url: publicUrl, error: null };

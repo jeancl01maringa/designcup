@@ -1255,12 +1255,22 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                         >
                           {formData.formatFiles[format]?.imagePreview ? (
                             <div className="relative w-full h-full">
-                              <ImageWithFallback 
-                                src={formData.formatFiles[format]?.imagePreview}
-                                alt="Preview"
-                                className="object-contain max-h-full max-w-full"
-                                fallbackClassName="h-12 w-12 text-gray-300"
-                              />
+                              {formData.formatFiles[format]?.imageFile?.type === 'video/mp4' ? (
+                                <video
+                                  src={formData.formatFiles[format]?.imagePreview}
+                                  autoPlay
+                                  loop
+                                  muted
+                                  className="object-contain max-h-full max-w-full"
+                                />
+                              ) : (
+                                <ImageWithFallback 
+                                  src={formData.formatFiles[format]?.imagePreview}
+                                  alt="Preview"
+                                  className="object-contain max-h-full max-w-full"
+                                  fallbackClassName="h-12 w-12 text-gray-300"
+                                />
+                              )}
                               <Button
                                 type="button"
                                 variant="destructive"
@@ -1274,12 +1284,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                           ) : (
                             <>
                               <p className="text-sm mb-4">Clique para enviar</p>
-                              <p className="text-xs text-muted-foreground mb-4">Recomendado: JPG, PNG</p>
+                              <p className="text-xs text-muted-foreground mb-4">Suportado: JPG, PNG, GIF, MP4</p>
                               <input 
                                 type="file"
                                 id={`file-${format}`}
                                 className="hidden"
-                                accept="image/*"
+                                accept="image/*,video/mp4,.gif,.mp4"
                                 onChange={(e) => handleFileChange(e, format)}
                               />
                               <Button 
