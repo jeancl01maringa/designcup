@@ -187,11 +187,26 @@ export async function uploadFileToSupabase(
 
     // Determinar o tipo de processamento baseado no MIME type
     if (isVideoOrGif(mimeType)) {
-      // Converter vídeo/GIF para WebM
-      console.log(`Detectado vídeo/GIF: ${originalName} (${mimeType})`);
-      processedBuffer = await convertToWebM(buffer, originalName);
-      contentType = 'video/webm';
-      fileExtension = '.webm';
+      // Para GIFs, manter formato original (Supabase não suporta WebM)
+      if (mimeType === 'image/gif') {
+        console.log(`Mantendo GIF original: ${originalName} (${mimeType})`);
+        processedBuffer = buffer;
+        contentType = 'image/gif';
+        fileExtension = '.gif';
+      } else {
+        // Para MP4, tentar converter para WebM, mas com fallback
+        console.log(`Detectado MP4: ${originalName} (${mimeType})`);
+        try {
+          processedBuffer = await convertToWebM(buffer, originalName);
+          contentType = 'video/webm';
+          fileExtension = '.webm';
+        } catch (conversionError) {
+          console.log(`Fallback: Mantendo MP4 original devido a erro na conversão`);
+          processedBuffer = buffer;
+          contentType = 'video/mp4';
+          fileExtension = '.mp4';
+        }
+      }
     } else if (isImage(mimeType)) {
       // Converter imagem para WebP
       console.log(`Detectado imagem: ${originalName} (${mimeType})`);
@@ -210,19 +225,8 @@ export async function uploadFileToSupabase(
     
     console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
 
-    // Upload para o Supabase com upsert
-    // Para arquivos WebM, usar service role para bypass RLS policies
-    const uploadClient = contentType === 'video/webm' ? 
-      createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!, // Service Role bypassa RLS
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      ) : supabase;
+    // Upload para o Supabase com upsert - usar sempre client normal
+    const uploadClient = supabase;
     
     const { data, error } = await uploadClient.storage
       .from(bucket)
@@ -233,6 +237,31 @@ export async function uploadFileToSupabase(
 
     if (error) {
       console.error('Erro no upload Supabase:', error);
+      
+      // Se é erro de MIME type com WebM, salvar como GIF original
+      if (error.message.includes('mime type video/webm is not supported') || 
+          error.message.includes('invalid_mime_type')) {
+        console.log('Fallback: Salvando arquivo original ao invés do WebM convertido');
+        
+        // Upload do arquivo original
+        const originalPath = `${fileName}_${timestamp}${path.extname(originalName)}`;
+        const { data: fallbackData, error: fallbackError } = await supabase.storage
+          .from(bucket)
+          .upload(originalPath, buffer, { 
+            contentType: mimeType, 
+            upsert: true 
+          });
+        
+        if (fallbackError) {
+          console.error('Erro no fallback upload:', fallbackError);
+          return { url: null, error: `Upload falhou: ${error.message}` };
+        }
+        
+        const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${originalPath}?t=${timestamp}`;
+        console.log(`Fallback bem-sucedido (arquivo original): ${fallbackUrl}`);
+        return { url: fallbackUrl, error: null };
+      }
+      
       return { url: null, error: error.message };
     }
 

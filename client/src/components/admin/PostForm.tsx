@@ -194,11 +194,21 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
       }));
       
       // Toast de carregamento baseado no tipo de arquivo
-      const isVideoOrGif = file.type === 'video/mp4' || file.type === 'image/gif';
-      toast({
-        title: isVideoOrGif ? "Convertendo para WebM..." : "Convertendo para WebP...",
-        description: isVideoOrGif ? "Aguarde enquanto otimizamos seu vídeo para preview rápido." : "Aguarde enquanto otimizamos sua imagem.",
-      });
+      const isMP4 = file.type === 'video/mp4';
+      const isGIF = file.type === 'image/gif';
+      
+      let title = "Convertendo para WebP...";
+      let description = "Aguarde enquanto otimizamos sua imagem.";
+      
+      if (isMP4) {
+        title = "Processando vídeo MP4...";
+        description = "Aguarde enquanto preparamos seu vídeo.";
+      } else if (isGIF) {
+        title = "Processando GIF...";
+        description = "Aguarde enquanto preparamos seu GIF animado.";
+      }
+      
+      toast({ title, description });
       
       // Criar caminho personalizado para o arquivo no Supabase
       const customPath = `posts/${formData.uniqueCode}/${format}_${file.name}`;
@@ -226,12 +236,21 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
           }
         }));
         
-        const isVideoOrGif = file.type === 'video/mp4' || file.type === 'image/gif';
-        toast({
-          title: isVideoOrGif ? "Vídeo carregado!" : "Imagem carregada!",
-          description: isVideoOrGif ? "Conversão WebM concluída com sucesso." : "Conversão WebP concluída com sucesso.",
-          variant: "default",
-        });
+        const isMP4 = file.type === 'video/mp4';
+        const isGIF = file.type === 'image/gif';
+        
+        let title = "Imagem carregada!";
+        let description = "Conversão WebP concluída com sucesso.";
+        
+        if (isMP4) {
+          title = "Vídeo carregado!";
+          description = "Processamento concluído com sucesso.";
+        } else if (isGIF) {
+          title = "GIF carregado!";
+          description = "Upload concluído com sucesso.";
+        }
+        
+        toast({ title, description, variant: "default" });
         
         // Registrar o sucesso no console para debug
         console.log(`Imagem ${format} carregada com sucesso:`, uploadResult.url);
