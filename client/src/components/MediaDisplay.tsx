@@ -20,7 +20,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
   controls = false
 }) => {
   // Detectar se é vídeo baseado na URL
-  const isVideo = src.includes('.mp4') || src.includes('/videos/') || src.includes('video');
+  const isVideo = src.includes('.mp4') || src.includes('.webm') || src.includes('/videos/') || src.includes('video');
   
   if (isVideo) {
     return (

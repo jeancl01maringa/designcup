@@ -1388,13 +1388,13 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                             <Image className="h-10 w-10 text-muted-foreground mb-2" />
                             <p className="text-sm text-muted-foreground mb-4">
                               Clique para enviar <br />
-                              <span className="text-xs">Suportado: JPG, PNG, GIF, MP4</span>
+                              <span className="text-xs">Suportado: JPG, PNG, GIF, MP4, WebM</span>
                             </p>
                             <input
                               type="file"
                               id={`file-${format}`}
                               className="hidden"
-                              accept="image/*,video/mp4,.gif,.mp4"
+                              accept="image/*,video/mp4,video/webm,.gif,.mp4,.webm"
                               onChange={(e) => handleFileChange(e, format)}
                             />
                             <Button 

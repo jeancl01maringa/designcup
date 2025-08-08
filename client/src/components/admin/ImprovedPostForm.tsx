@@ -1255,7 +1255,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                         >
                           {formData.formatFiles[format]?.imagePreview ? (
                             <div className="relative w-full h-full">
-                              {formData.formatFiles[format]?.imageFile?.type === 'video/mp4' ? (
+                              {(formData.formatFiles[format]?.imageFile?.type === 'video/mp4' || formData.formatFiles[format]?.imageFile?.type === 'video/webm') ? (
                                 <video
                                   src={formData.formatFiles[format]?.imagePreview}
                                   autoPlay
@@ -1284,12 +1284,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                           ) : (
                             <>
                               <p className="text-sm mb-4">Clique para enviar</p>
-                              <p className="text-xs text-muted-foreground mb-4">Suportado: JPG, PNG, GIF, MP4</p>
+                              <p className="text-xs text-muted-foreground mb-4">Suportado: JPG, PNG, GIF, MP4, WebM</p>
                               <input 
                                 type="file"
                                 id={`file-${format}`}
                                 className="hidden"
-                                accept="image/*,video/mp4,.gif,.mp4"
+                                accept="image/*,video/mp4,video/webm,.gif,.mp4,.webm"
                                 onChange={(e) => handleFileChange(e, format)}
                               />
                               <Button 
