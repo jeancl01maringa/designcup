@@ -7,7 +7,7 @@ import { PostForm } from "./PostForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
-import { MediaDisplay } from "@/components/MediaDisplay";
+import MediaDisplay from "@/components/MediaDisplay";
 
 import {
   Card,
