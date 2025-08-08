@@ -194,12 +194,19 @@ export async function uploadFileToSupabase(
         contentType = 'image/gif';
         fileExtension = '.gif';
       } else {
-        // CORREÇÃO: Para MP4, salvar como GIF no Supabase (workaround para limitação de MIME types)
-        // O Supabase só aceita image/* no bucket 'images', então vamos "mascarar" como GIF
-        console.log(`Detectado MP4: ${originalName} (${mimeType}) - salvando como .gif para compatibilidade`);
-        processedBuffer = buffer; // Manter buffer original (conteúdo MP4)
-        contentType = 'image/gif'; // Mascarar como GIF para passar na validação
-        fileExtension = '.gif'; // Extensão .gif (mas conteúdo é MP4)
+        // Para MP4, converter para WebM e salvar como .gif (workaround)
+        console.log(`Detectado MP4: ${originalName} (${mimeType}) - convertendo para WebM`);
+        try {
+          processedBuffer = await convertVideoToWebM(buffer);
+          contentType = 'image/gif'; // Mascarar como GIF para passar na validação do Supabase
+          fileExtension = '.webm'; // Usar extensão .webm para identificação correta
+          console.log(`MP4 convertido para WebM: ${(processedBuffer.length / 1024).toFixed(1)}KB`);
+        } catch (conversionError) {
+          console.warn('Erro na conversão MP4→WebM, salvando original:', conversionError);
+          processedBuffer = buffer; // Fallback para buffer original
+          contentType = 'image/gif';
+          fileExtension = '.mp4'; // Manter extensão original
+        }
       }
     } else if (isImage(mimeType)) {
       // Converter imagem para WebP
@@ -406,6 +413,56 @@ export async function uploadLogoToSupabase(
       error: error instanceof Error ? error.message : 'Erro desconhecido no upload do logo' 
     };
   }
+}
+
+/**
+ * Converte vídeo MP4 para WebM usando FFmpeg
+ */
+async function convertVideoToWebM(buffer: Buffer): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const tempInputPath = path.join(os.tmpdir(), `input_${Date.now()}.mp4`);
+    const tempOutputPath = path.join(os.tmpdir(), `output_${Date.now()}.webm`);
+    
+    // Escrever buffer para arquivo temporário
+    writeFile(tempInputPath, buffer)
+      .then(() => {
+        // Converter usando FFmpeg
+        ffmpeg(tempInputPath)
+          .videoCodec('libvpx-vp9')
+          .audioCodec('libvorbis')
+          .videoBitrate('1000k')
+          .size('1280x720')
+          .autopad()
+          .format('webm')
+          .on('end', async () => {
+            try {
+              // Ler arquivo convertido
+              const { readFile } = await import('fs/promises');
+              const webmBuffer = await readFile(tempOutputPath);
+              
+              // Limpar arquivos temporários
+              await Promise.all([
+                unlink(tempInputPath).catch(() => {}),
+                unlink(tempOutputPath).catch(() => {})
+              ]);
+              
+              resolve(webmBuffer);
+            } catch (error) {
+              reject(error);
+            }
+          })
+          .on('error', async (error) => {
+            // Limpar arquivos temporários em caso de erro
+            await Promise.all([
+              unlink(tempInputPath).catch(() => {}),
+              unlink(tempOutputPath).catch(() => {})
+            ]);
+            reject(error);
+          })
+          .save(tempOutputPath);
+      })
+      .catch(reject);
+  });
 }
 
 /**

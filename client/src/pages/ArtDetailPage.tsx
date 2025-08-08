@@ -57,15 +57,16 @@ function OptimizedMediaViewer({
   
   React.useEffect(() => {
     // Detectar tipo de mídia pela URL com lógica inteligente
-    if (src.includes('.gif')) {
-      // Verificar se é um GIF real ou MP4 mascarado
-      // Arquivos com nomes como "video_upload" ou "mp4" são provavelmente vídeos
-      if (src.includes('mp4') || src.includes('video') || src.includes('_upload_')) {
-        setMediaType('video'); // MP4 mascarado como GIF
+    if (src.includes('.webm')) {
+      setMediaType('video'); // WebM é sempre vídeo
+    } else if (src.includes('.gif')) {
+      // Verificar se é um GIF real ou MP4/WebM mascarado
+      if (src.includes('mp4') || src.includes('video') || src.includes('_upload_') || src.includes('webm')) {
+        setMediaType('video'); // MP4/WebM mascarado como GIF
       } else {
         setMediaType('gif'); // GIF verdadeiro
       }
-    } else if (src.includes('.webm') || src.includes('.mp4')) {
+    } else if (src.includes('.mp4')) {
       setMediaType('video');
     } else if (src.includes('.webp') || src.includes('.jpg') || src.includes('.png')) {
       setMediaType('image');
