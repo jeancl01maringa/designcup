@@ -162,10 +162,10 @@ function isVideoOrGif(mimeType: string): boolean {
 }
 
 /**
- * Detecta se o arquivo é imagem (exceto GIF)
+ * Detecta se o arquivo é imagem (exceto GIF e vídeos)
  */
 function isImage(mimeType: string): boolean {
-  return mimeType.startsWith('image/') && mimeType !== 'image/gif';
+  return mimeType.startsWith('image/') && mimeType !== 'image/gif' && !mimeType.includes('webm');
 }
 
 /**
@@ -187,8 +187,15 @@ export async function uploadFileToSupabase(
     const timestamp = Date.now();
 
     // Determinar o tipo de processamento baseado no MIME type
-    if (isVideoOrGif(mimeType)) {
-      // Para GIFs, manter formato original (Supabase não suporta WebM)
+    if (mimeType === 'video/webm') {
+      // Para WebM: upload direto sem conversão
+      console.log(`Detectado WebM: ${originalName} (${mimeType}) - upload direto`);
+      processedBuffer = buffer;
+      contentType = 'video/webm';
+      fileExtension = '.webm';
+      finalBucket = 'videos'; // Usar bucket específico para vídeos
+    } else if (isVideoOrGif(mimeType)) {
+      // Para GIFs, manter formato original
       if (mimeType === 'image/gif') {
         console.log(`Mantendo GIF original: ${originalName} (${mimeType})`);
         processedBuffer = buffer;

@@ -89,7 +89,12 @@ export async function uploadFileToSupabase(
     let finalPath = path;
     
     // Handle different file types appropriately
-    if (file.type === 'video/mp4' || file.type === 'image/gif') {
+    if (file.type === 'video/webm') {
+      // For WebM files, send directly to backend without conversion
+      console.log(`Detectado arquivo WebM: ${file.name} (${file.type}) - upload direto`);
+      processedFile = file; // Send original WebM file without any processing
+      finalPath = sanitizeFileName(path);
+    } else if (file.type === 'video/mp4' || file.type === 'image/gif') {
       // For MP4 and GIF files, let backend handle conversion to WebM
       console.log(`Detectado arquivo para conversão WebM: ${file.name} (${file.type})`);
       processedFile = file; // Send original file to backend for conversion
@@ -114,6 +119,11 @@ export async function uploadFileToSupabase(
     } else {
       // For other file types, use as-is
       finalPath = sanitizeFileName(path);
+    }
+
+    // Use videos bucket for video files
+    if (file.type === 'video/webm' || file.type === 'video/mp4') {
+      bucket = 'videos';
     }
 
     // Organize by category in uploads folder
