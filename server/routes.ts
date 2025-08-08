@@ -54,13 +54,13 @@ const upload = multer({
         cb(new Error('Tipo de arquivo não permitido para imagem de capa. Use apenas JPG, PNG, GIF ou WebP.'));
       }
     } else {
-      // Para outros uploads (artes, etc), manter apenas imagens
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      // Para outros uploads (artes, etc), incluir vídeos MP4 e WebM
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
         console.error('❌ Tipo não permitido:', file.mimetype);
-        cb(new Error('Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF ou WebP.'));
+        cb(new Error('Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF, WebP, MP4 ou WebM.'));
       }
     }
   },
