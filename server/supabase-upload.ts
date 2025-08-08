@@ -104,10 +104,10 @@ async function convertToWebM(buffer: Buffer, originalName: string): Promise<Buff
       
       command
         .output(outputPath)
-        .on('start', (commandLine) => {
+        .on('start', (commandLine: any) => {
           console.log(`FFmpeg iniciado: ${commandLine}`);
         })
-        .on('progress', (progress) => {
+        .on('progress', (progress: any) => {
           if (progress.percent) {
             console.log(`Progresso: ${Math.round(progress.percent)}%`);
           }
@@ -116,7 +116,7 @@ async function convertToWebM(buffer: Buffer, originalName: string): Promise<Buff
           console.log(`Conversão WebM concluída: ${originalName}`);
           resolve();
         })
-        .on('error', (error, stdout, stderr) => {
+        .on('error', (error: any, stdout: any, stderr: any) => {
           console.error(`Erro na conversão WebM de ${originalName}:`, {
             error: error.message,
             stdout: stdout,

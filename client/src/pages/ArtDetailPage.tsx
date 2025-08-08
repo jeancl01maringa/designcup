@@ -39,6 +39,102 @@ import { apiRequest } from "@/lib/queryClient";
 import { usePixelUserActions } from "@/hooks/use-facebook-pixel";
 import { usePostActions } from "@/hooks/use-post-actions";
 
+// Componente otimizado para diferentes tipos de mídia
+function OptimizedMediaViewer({ 
+  src, 
+  alt, 
+  className, 
+  style, 
+  onLoad 
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onLoad?: (e: React.SyntheticEvent) => void;
+}) {
+  const [mediaType, setMediaType] = React.useState<'image' | 'gif' | 'video' | 'unknown'>('unknown');
+  
+  React.useEffect(() => {
+    // Detectar tipo de mídia pela URL
+    if (src.includes('.gif')) {
+      setMediaType('gif');
+    } else if (src.includes('.webm') || src.includes('.mp4')) {
+      setMediaType('video');
+    } else if (src.includes('.webp') || src.includes('.jpg') || src.includes('.png')) {
+      setMediaType('image');
+    } else {
+      setMediaType('image'); // Default para imagem
+    }
+  }, [src]);
+  
+  if (mediaType === 'gif') {
+    return (
+      <img 
+        src={src}
+        alt={alt}
+        className={className}
+        style={style}
+        loading="eager" // GIFs carregam imediatamente para melhor UX
+        fetchPriority="high"
+        onLoad={onLoad}
+        onError={(e) => {
+          console.error('Erro ao carregar GIF:', src);
+          const target = e.target as HTMLImageElement;
+          target.src = "/placeholder.jpg";
+        }}
+      />
+    );
+  }
+  
+  if (mediaType === 'video') {
+    return (
+      <video 
+        src={src}
+        className={className}
+        style={style}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata" // Carrega apenas metadados primeiro
+        onLoadedData={onLoad}
+        onError={(e) => {
+          console.error('Erro ao carregar vídeo:', src);
+          // Fallback para imagem
+          const parent = e.currentTarget.parentElement;
+          if (parent) {
+            const fallbackImg = document.createElement('img');
+            fallbackImg.src = "/placeholder.jpg";
+            fallbackImg.alt = alt;
+            fallbackImg.className = className || '';
+            Object.assign(fallbackImg.style, style);
+            parent.replaceChild(fallbackImg, e.currentTarget);
+          }
+        }}
+      />
+    );
+  }
+  
+  // Default: imagem normal
+  return (
+    <img 
+      src={src}
+      alt={alt}
+      className={className}
+      style={style}
+      loading="eager"
+      fetchPriority="high"
+      onLoad={onLoad}
+      onError={(e) => {
+        console.error('Erro ao carregar imagem:', src);
+        const target = e.target as HTMLImageElement;
+        target.src = "/placeholder.jpg";
+      }}
+    />
+  );
+}
+
 // Componente para seção de artes relacionadas com layout responsivo
 function RelatedArtworksSection({ artworks }: { artworks: any[] }) {
   const [columns, setColumns] = useState(4);
@@ -215,7 +311,7 @@ export default function ArtDetailPage() {
     refetchOnMount: false
   });
 
-  // Buscar posts relacionados do mesmo grupo (variações de formato)
+  // Buscar posts relacionados do mesmo grupo (variações de formato) com lazy loading
   const { data: relatedPosts = [] } = useQuery({
     queryKey: ['/api/admin/posts/related', post?.groupId],
     queryFn: async () => {
@@ -229,12 +325,13 @@ export default function ArtDetailPage() {
       }
       
       const posts = await response.json();
-      // Retornar todos os posts do grupo (incluindo o atual)
       return posts;
     },
     enabled: !!post?.groupId,
-    staleTime: 5 * 60 * 1000, // 5 minutos em cache
-    refetchOnWindowFocus: false
+    staleTime: 10 * 60 * 1000, // 10 minutos em cache (mais tempo)
+    gcTime: 15 * 60 * 1000, // 15 minutos no cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
 
   // Buscar dados do autor do post
@@ -826,8 +923,8 @@ export default function ArtDetailPage() {
         Voltar
       </Button>
       
-      {/* Layout principal em duas colunas - proporção 50/50 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Layout principal otimizado para mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
         {/* Coluna da esquerda - Imagem da arte */}
         <div className="relative">
           {/* Label do formato */}
@@ -863,28 +960,39 @@ export default function ArtDetailPage() {
             </div>
           )}
 
-          {/* Imagem principal otimizada com cache */}
-          <div className="overflow-hidden rounded-lg shadow-md">
-            <img 
+          {/* Mídia principal otimizada (imagem/GIF/vídeo) */}
+          <div className="overflow-hidden rounded-lg shadow-md relative">
+            {/* Loading skeleton inteligente */}
+            <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+              <Image className="w-12 h-12 text-gray-400" />
+              <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+                Carregando...
+              </div>
+            </div>
+            
+            <OptimizedMediaViewer
               src={selectedFormat?.previewUrl || currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg"}
               alt={selectedFormat?.name || currentPost?.title || post?.title}
-              className="w-full h-auto object-cover"
-              loading="lazy"
-              onError={(e) => {
-                console.error('Erro ao carregar imagem:', selectedFormat?.previewUrl);
-                const target = e.target as HTMLImageElement;
-                target.src = "/placeholder.jpg";
+              onLoad={(e) => {
+                const element = e.target as HTMLElement;
+                const skeleton = element.parentElement?.querySelector('.animate-pulse');
+                if (skeleton) skeleton.remove();
+              }}
+              className="w-full h-auto object-cover relative z-10"
+              style={{
+                aspectRatio: 'auto',
+                maxHeight: '70vh',
               }}
             />
           </div>
         </div>
         
-        {/* Coluna da direita - Informações */}
-        <div className="space-y-6 border border-gray-100 rounded-lg p-6 bg-white shadow-sm">
+        {/* Coluna da direita - Informações - Layout móvel otimizado */}
+        <div className="space-y-4 lg:space-y-6 border border-gray-100 rounded-lg p-4 lg:p-6 bg-white shadow-sm">
           {/* Título e selo premium */}
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold text-gray-900">
+            <div className="flex items-start gap-3">
+              <h1 className="text-base lg:text-lg font-bold text-gray-900 leading-tight">
                 {post.title}
               </h1>
               {isPremium && (
@@ -996,11 +1104,18 @@ export default function ArtDetailPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0">
+                    <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 flex-shrink-0 relative">
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
                       <img 
                         src={post.imageUrl || post.image_url} 
                         alt={post.title} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover relative z-10"
+                        loading="lazy"
+                        onLoad={(e) => {
+                          const img = e.target as HTMLImageElement;
+                          const skeleton = img.parentElement?.querySelector('.animate-pulse');
+                          if (skeleton) skeleton.remove();
+                        }}
                       />
                     </div>
                     <div>
