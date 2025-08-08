@@ -536,13 +536,17 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       }));
       
       // Toast de carregamento baseado no tipo de arquivo
+      const isWebM = file.type === 'video/webm';
       const isMP4 = file.type === 'video/mp4';
       const isGIF = file.type === 'image/gif';
       
       let title = "Convertendo para WebP...";
       let description = "Aguarde enquanto otimizamos sua imagem.";
       
-      if (isMP4) {
+      if (isWebM) {
+        title = "Carregando vídeo WebM...";
+        description = "Aguarde enquanto enviamos seu vídeo.";
+      } else if (isMP4) {
         title = "Processando vídeo MP4...";
         description = "Aguarde enquanto preparamos seu vídeo.";
       } else if (isGIF) {
@@ -576,12 +580,16 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
         }));
         
         const isMP4 = file.type === 'video/mp4';
+        const isWebM = file.type === 'video/webm';
         const isGIF = file.type === 'image/gif';
         
         let title = "Imagem carregada!";
         let description = "Conversão WebP concluída com sucesso.";
         
-        if (isMP4) {
+        if (isWebM) {
+          title = "Vídeo WebM carregado!";
+          description = "Upload concluído com sucesso.";
+        } else if (isMP4) {
           title = "Vídeo carregado!";
           description = "Processamento concluído com sucesso.";
         } else if (isGIF) {
