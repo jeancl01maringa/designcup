@@ -866,11 +866,23 @@ export default function ArtDetailPage() {
 
           {/* Imagem/vídeo principal otimizada com cache */}
           <div className="overflow-hidden rounded-lg shadow-md">
-            <MediaDisplay
-              src={selectedFormat?.previewUrl || currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg"}
-              alt={selectedFormat?.name || currentPost?.title || post?.title}
-              className="w-full h-auto object-cover"
-            />
+            {(() => {
+              const imageUrl = selectedFormat?.previewUrl || currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg";
+              console.log('ART DETAIL PAGE - Media src:', imageUrl);
+              console.log('ART DETAIL PAGE - Post data:', {
+                postId: post?.id,
+                postImageUrl: post?.imageUrl,
+                currentPostImageUrl: currentPost?.imageUrl,
+                selectedFormatUrl: selectedFormat?.previewUrl
+              });
+              return (
+                <MediaDisplay
+                  src={imageUrl}
+                  alt={selectedFormat?.name || currentPost?.title || post?.title}
+                  className="w-full h-auto object-cover"
+                />
+              );
+            })()}
           </div>
         </div>
         
