@@ -11,6 +11,7 @@ import { usePostActions } from "@/hooks/use-post-actions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import MediaDisplay from "@/components/MediaDisplay";
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -131,12 +132,10 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               <ImageIcon className="w-12 h-12 text-gray-400" />
             </div>
           ) : (
-            <img 
-              src={imageSrc} 
+            <MediaDisplay
+              src={imageSrc}
               alt={artwork.title}
               className="w-full h-auto object-cover display-block"
-              loading="lazy"
-              onError={handleImageError}
             />
           )}
           

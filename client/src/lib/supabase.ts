@@ -104,15 +104,15 @@ export async function uploadFileToSupabase(
     } else if (file.type.startsWith('image/')) {
       // Compress and convert to WebP for other images
       try {
-        console.log(`Compressing and converting ${file.name} to WebP...`);
+        console.log(`Comprimindo e convertendo ${file.name} para WebP...`);
         processedFile = await compressAndConvertToWebP(file);
-        console.log(`Compression successful: ${processedFile.name}`);
+        console.log(`Compressão bem-sucedida: ${processedFile.name}`);
         
         // Update path to use WebP extension and sanitized name
         const sanitizedName = sanitizeFileName(file.name.replace(/\.[^/.]+$/, ''));
         finalPath = `${sanitizedName}_${Date.now()}.webp`;
       } catch (compressionError) {
-        console.warn('Failed to compress/convert to WebP, using original file:', compressionError);
+        console.warn('Falha na compressão/conversão para WebP, usando arquivo original:', compressionError);
         // Sanitize original filename
         finalPath = sanitizeFileName(path);
       }
