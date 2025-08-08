@@ -26,6 +26,7 @@ import { uploadFileToSupabase } from "@/lib/supabase";
 import { Post, Category, Tag as TagType } from "@shared/schema";
 import { nanoid, cn } from "@/lib/utils";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
+import MediaDisplay from "@/components/MediaDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Card, 
@@ -1489,11 +1490,14 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                         }}
                       >
                         {formData.formatFiles[format]?.imagePreview ? (
-                          <ImageWithFallback 
+                          <MediaDisplay 
                             src={formData.formatFiles[format]?.imagePreview}
                             alt={`Preview de ${format}`}
                             className="object-contain max-h-full max-w-full"
-                            fallbackClassName="h-12 w-12 text-gray-300"
+                            autoPlay={true}
+                            loop={true}
+                            muted={true}
+                            controls={false}
                           />
                         ) : (
                           <FileImage className="h-12 w-12 text-gray-300" />
