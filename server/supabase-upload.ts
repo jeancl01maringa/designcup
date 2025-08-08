@@ -64,30 +64,64 @@ async function convertToWebM(buffer: Buffer, originalName: string): Promise<Buff
     // Escrever arquivo temporário
     await writeFile(inputPath, buffer);
     
-    // Converter usando FFmpeg com otimização para preview rápido
+    // Converter usando FFmpeg com configurações mais robustas
     await new Promise<void>((resolve, reject) => {
-      ffmpeg(inputPath)
-        .videoCodec('libvpx') // VP8 (mais compatível que VP9)
-        .audioCodec('libvorbis') // Vorbis (alternativa ao Opus se não disponível)
-        .size('1280x720') // Tamanho otimizado para preview
-        .videoBitrate('800k') // Bitrate baixo para tamanho menor
-        .audioBitrate('64k')  // Audio comprimido
-        .fps(24)              // FPS reduzido para menor tamanho
-        .outputOptions([
-          '-deadline realtime', // Processamento rápido
-          '-cpu-used 8',       // Velocidade máxima de encoding
-          '-threads 4',        // Multithreading
-          '-qmin 10',          // Qualidade mínima
-          '-qmax 42',          // Qualidade máxima
-          '-crf 32'            // Quality setting (32 = qualidade leve para preview)
-        ])
+      const command = ffmpeg(inputPath);
+      
+      // Detectar se é GIF ou MP4 para ajustar configurações
+      const isGif = originalName.toLowerCase().includes('.gif');
+      
+      if (isGif) {
+        // Para GIFs: configuração mais simples sem áudio
+        command
+          .videoCodec('libvpx')
+          .noAudio() // GIFs não têm áudio
+          .size('?x480') // Manter aspecto original, max altura 480
+          .fps(12) // FPS mais baixo para GIFs
+          .videoBitrate('300k')
+          .outputOptions([
+            '-f webm',
+            '-pix_fmt yuv420p',
+            '-auto-alt-ref 0', // Importante para GIFs
+            '-lag-in-frames 0',
+            '-error-resilient 1'
+          ]);
+      } else {
+        // Para MP4s: configuração mais robusta
+        command
+          .videoCodec('libvpx')
+          .audioCodec('libvorbis')
+          .size('?x720') // Manter aspecto, max altura 720
+          .fps(20)
+          .videoBitrate('500k')
+          .audioBitrate('96k')
+          .outputOptions([
+            '-f webm',
+            '-pix_fmt yuv420p',
+            '-error-resilient 1'
+          ]);
+      }
+      
+      command
         .output(outputPath)
+        .on('start', (commandLine) => {
+          console.log(`FFmpeg iniciado: ${commandLine}`);
+        })
+        .on('progress', (progress) => {
+          if (progress.percent) {
+            console.log(`Progresso: ${Math.round(progress.percent)}%`);
+          }
+        })
         .on('end', () => {
           console.log(`Conversão WebM concluída: ${originalName}`);
           resolve();
         })
-        .on('error', (error) => {
-          console.error(`Erro na conversão WebM de ${originalName}:`, error);
+        .on('error', (error, stdout, stderr) => {
+          console.error(`Erro na conversão WebM de ${originalName}:`, {
+            error: error.message,
+            stdout: stdout,
+            stderr: stderr
+          });
           reject(error);
         })
         .run();
@@ -177,7 +211,20 @@ export async function uploadFileToSupabase(
     console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
 
     // Upload para o Supabase com upsert
-    const { data, error } = await supabase.storage
+    // Para arquivos WebM, usar service role para bypass RLS policies
+    const uploadClient = contentType === 'video/webm' ? 
+      createClient(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!, // Service Role bypassa RLS
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }
+      ) : supabase;
+    
+    const { data, error } = await uploadClient.storage
       .from(bucket)
       .upload(finalPath, processedBuffer, { 
         contentType, 
