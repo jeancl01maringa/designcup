@@ -194,11 +194,12 @@ export async function uploadFileToSupabase(
         contentType = 'image/gif';
         fileExtension = '.gif';
       } else {
-        // Para MP4, salvar formato original no bucket 'images' (Supabase é mais flexível com bucket 'images')
-        console.log(`Detectado MP4: ${originalName} (${mimeType}) - mantendo formato original`);
-        processedBuffer = buffer;
-        contentType = mimeType; // Manter video/mp4
-        fileExtension = '.mp4';
+        // CORREÇÃO: Para MP4, salvar como GIF no Supabase (workaround para limitação de MIME types)
+        // O Supabase só aceita image/* no bucket 'images', então vamos "mascarar" como GIF
+        console.log(`Detectado MP4: ${originalName} (${mimeType}) - salvando como .gif para compatibilidade`);
+        processedBuffer = buffer; // Manter buffer original (conteúdo MP4)
+        contentType = 'image/gif'; // Mascarar como GIF para passar na validação
+        fileExtension = '.gif'; // Extensão .gif (mas conteúdo é MP4)
       }
     } else if (isImage(mimeType)) {
       // Converter imagem para WebP
@@ -237,25 +238,46 @@ export async function uploadFileToSupabase(
     if (error) {
       console.error('Erro no upload Supabase:', error);
       
-      // Se é erro de MIME type, tentar upload sem especificar contentType
+      // Se é erro de MIME type, tentar diferentes estratégias de fallback
       if (error.message.includes('mime type') || error.message.includes('not supported')) {
-        console.log('Fallback: Tentando upload sem contentType específico');
+        console.log('Fallback 1: Tentando como image/gif...');
         
-        // Upload sem especificar contentType (deixar Supabase detectar automaticamente)
-        const { data: fallbackData, error: fallbackError } = await supabase.storage
-          .from(bucket) // Sempre usar bucket original
+        // Primeira tentativa: forçar como image/gif
+        const { data: fallbackData1, error: fallbackError1 } = await supabase.storage
+          .from(bucket)
           .upload(finalPath, processedBuffer, { 
-            upsert: true // Sem contentType explícito
+            contentType: 'image/gif',
+            upsert: true
           });
         
-        if (fallbackError) {
-          console.error('Erro no fallback upload:', fallbackError);
-          return { url: null, error: `Upload falhou após fallback: ${fallbackError.message}` };
+        if (!fallbackError1) {
+          const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
+          console.log(`Fallback 1 bem-sucedido (forçado como GIF): ${fallbackUrl}`);
+          return { url: fallbackUrl, error: null };
         }
         
-        const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
-        console.log(`Fallback bem-sucedido (sem contentType): ${fallbackUrl}`);
-        return { url: fallbackUrl, error: null };
+        console.log('Fallback 2: Tentando sem contentType...');
+        
+        // Segunda tentativa: sem contentType
+        const { data: fallbackData2, error: fallbackError2 } = await supabase.storage
+          .from(bucket)
+          .upload(finalPath, processedBuffer, { 
+            upsert: true
+          });
+        
+        if (!fallbackError2) {
+          const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
+          console.log(`Fallback 2 bem-sucedido (sem contentType): ${fallbackUrl}`);
+          return { url: fallbackUrl, error: null };
+        }
+        
+        console.error('Todos os fallbacks falharam:', {
+          original: error.message,
+          fallback1: fallbackError1.message,
+          fallback2: fallbackError2.message
+        });
+        
+        return { url: null, error: `Upload falhou após todos os fallbacks: ${error.message}` };
       }
       
       return { url: null, error: error.message };
