@@ -1274,12 +1274,12 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                           ) : (
                             <>
                               <p className="text-sm mb-4">Clique para enviar</p>
-                              <p className="text-xs text-muted-foreground mb-4">Recomendado: JPG, PNG</p>
+                              <p className="text-xs text-muted-foreground mb-4">Recomendado: JPG, PNG, GIF, MP4</p>
                               <input 
                                 type="file"
                                 id={`file-${format}`}
                                 className="hidden"
-                                accept="image/*"
+                                accept="image/*,video/mp4,video/webm,video/quicktime"
                                 onChange={(e) => handleFileChange(e, format)}
                               />
                               <Button 

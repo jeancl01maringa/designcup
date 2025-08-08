@@ -657,7 +657,7 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                                 type="file"
                                 id={`file-${format}`}
                                 className="hidden"
-                                accept="image/*"
+                                accept="image/*,video/mp4,video/webm,video/quicktime"
                                 onChange={(e) => handleFileChange(e, format)}
                               />
                               <Button 
