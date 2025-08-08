@@ -2252,6 +2252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const approvedPostsQuery = `SELECT COUNT(*) as count FROM posts WHERE status = 'aprovado'`;
       const categoriesQuery = `SELECT COUNT(*) as count FROM categories`;
       const usersQuery = `SELECT COUNT(*) as count FROM users`;
+      const subscribersQuery = `SELECT COUNT(*) as count FROM users WHERE tipo = 'premium'`;
       const recentPostsQuery = `
         SELECT id, title, status, created_at 
         FROM posts 
@@ -2264,12 +2265,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvedPostsResult,
         categoriesResult,
         usersResult,
+        subscribersResult,
         recentPostsResult
       ] = await Promise.all([
         pool.query(postsCountQuery),
         pool.query(approvedPostsQuery),
         pool.query(categoriesQuery),
         pool.query(usersQuery),
+        pool.query(subscribersQuery),
         pool.query(recentPostsQuery)
       ]);
       
@@ -2277,6 +2280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const approvedPostsCount = parseInt(approvedPostsResult.rows[0]?.count || 0);
       const categoriesCount = parseInt(categoriesResult.rows[0]?.count || 0);
       const usersCount = parseInt(usersResult.rows[0]?.count || 0);
+      const subscribersCount = parseInt(subscribersResult.rows[0]?.count || 0);
       const recentPosts = recentPostsResult.rows.map(post => ({
         id: post.id,
         title: post.title,
@@ -2284,7 +2288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: post.created_at
       }));
       
-      console.log(`Estatísticas: ${postsCount} posts, ${approvedPostsCount} aprovados, ${categoriesCount} categorias, ${usersCount} usuários`);
+      console.log(`Estatísticas: ${postsCount} posts, ${approvedPostsCount} aprovados, ${categoriesCount} categorias, ${usersCount} usuários, ${subscribersCount} assinantes`);
       
       // Retornar estatísticas reais
       res.json({
@@ -2292,6 +2296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvedPostsCount,
         categoriesCount,
         usersCount,
+        subscribersCount,
         artworksCount: postsCount, // Posts são as artes na plataforma
         recentPosts,
         lastUpdate: new Date()

@@ -14,6 +14,7 @@ interface DashboardStats {
   approvedPostsCount: number;
   categoriesCount: number;
   usersCount: number;
+  subscribersCount: number;
   artworksCount: number;
   recentPosts: {
     id: number;
@@ -43,11 +44,11 @@ export default function Dashboard() {
       color: "bg-blue-100 text-blue-700"
     },
     {
-      title: "Postagens",
-      value: stats?.postsCount || 0,
-      icon: <FileText className="h-4 w-4" />,
-      description: "Total de postagens",
-      color: "bg-indigo-100 text-indigo-700"
+      title: "Assinantes",
+      value: stats?.subscribersCount || 0,
+      icon: <CheckCircle2 className="h-4 w-4" />,
+      description: "Usuários com plano premium",
+      color: "bg-green-100 text-green-700"
     },
     {
       title: "Artes",
