@@ -197,8 +197,8 @@ export async function uploadFileToSupabase(
         // Para MP4, converter para WebM (formato mais leve para web)
         console.log(`Detectado MP4: ${originalName} (${mimeType}) - convertendo para WebM`);
         processedBuffer = await convertToWebM(buffer, originalName);
-        contentType = 'video/mp4'; // Manter como MP4 para compatibilidade com Supabase
-        fileExtension = '.mp4';
+        contentType = 'video/webm';
+        fileExtension = '.webm';
       }
     } else if (isImage(mimeType)) {
       // Converter imagem para WebP
@@ -216,13 +216,14 @@ export async function uploadFileToSupabase(
 
     const finalPath = `${fileName}_${timestamp}${fileExtension}`;
     
-    console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
-
-    // Upload para o Supabase com upsert - usar sempre client normal
-    const uploadClient = supabase;
+    // Escolher bucket correto baseado no tipo de conteúdo
+    const targetBucket = (contentType === 'video/webm' || contentType === 'video/mp4') ? 'videos' : bucket;
     
-    const { data, error } = await uploadClient.storage
-      .from(bucket)
+    console.log(`Fazendo upload para Supabase: ${targetBucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
+
+    // Upload para o Supabase com upsert
+    const { data, error } = await supabase.storage
+      .from(targetBucket)
       .upload(finalPath, processedBuffer, { 
         contentType, 
         upsert: true 
@@ -238,8 +239,10 @@ export async function uploadFileToSupabase(
         
         // Upload do arquivo original
         const originalPath = `${fileName}_${timestamp}${path.extname(originalName)}`;
+        const fallbackBucket = mimeType.startsWith('video/') ? 'videos' : bucket;
+        
         const { data: fallbackData, error: fallbackError } = await supabase.storage
-          .from(bucket)
+          .from(fallbackBucket)
           .upload(originalPath, buffer, { 
             contentType: mimeType, 
             upsert: true 
@@ -250,7 +253,7 @@ export async function uploadFileToSupabase(
           return { url: null, error: `Upload falhou: ${error.message}` };
         }
         
-        const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${originalPath}?t=${timestamp}`;
+        const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${fallbackBucket}/${originalPath}?t=${timestamp}`;
         console.log(`Fallback bem-sucedido (arquivo original): ${fallbackUrl}`);
         return { url: fallbackUrl, error: null };
       }
@@ -259,7 +262,7 @@ export async function uploadFileToSupabase(
     }
 
     // Obter URL pública com timestamp para cache-busting
-    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
+    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${targetBucket}/${finalPath}?t=${timestamp}`;
 
     console.log(`Upload bem-sucedido: ${publicUrl}`);
     return { url: publicUrl, error: null };
