@@ -8,6 +8,7 @@ interface MediaDisplayProps {
   loop?: boolean;
   muted?: boolean;
   controls?: boolean;
+  onError?: () => void;
 }
 
 const MediaDisplay: React.FC<MediaDisplayProps> = ({
@@ -17,14 +18,26 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
   autoPlay = true,
   loop = true,
   muted = true,
-  controls = false
+  controls = false,
+  onError
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Detectar se é vídeo baseado na URL
-  const isVideo = src.includes('.mp4') || src.includes('.webm') || src.includes('/videos/') || src.includes('video');
+  // Detectar se é vídeo baseado na URL - versão mais robusta
+  const isVideo = React.useMemo(() => {
+    if (!src) return false;
+    
+    // Extrair a parte da URL antes dos query parameters
+    const urlWithoutParams = src.split('?')[0];
+    
+    return urlWithoutParams.includes('.mp4') || 
+           urlWithoutParams.includes('.webm') || 
+           urlWithoutParams.includes('.gif') ||
+           src.includes('/videos/') || 
+           src.includes('video');
+  }, [src]);
   
   // Debug apenas para vídeos
   if (isVideo) {
@@ -79,11 +92,11 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
           controls={controls}
           className={className}
           playsInline
-          webkit-playsinline="true"
+          webkit-playsinline
           preload="auto"
           poster=""
           disablePictureInPicture
-          crossOrigin="anonymous"
+
           style={{ 
             display: isLoading ? 'none' : 'block',
             objectFit: 'cover',
@@ -98,6 +111,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
             console.error('Video error:', e, src);
             setHasError(true);
             setIsLoading(false);
+            onError?.();
           }}
         />
       </div>
@@ -126,6 +140,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
       onError={(e) => {
         console.error('Image error:', e, src);
         setHasError(true);
+        onError?.();
       }}
     />
   );

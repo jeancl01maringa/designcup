@@ -44,7 +44,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   });
 
   const handleImageError = () => {
-    console.log(`Imagem falhou ao carregar: ${imageSrc}`);
+    console.log(`Mídia falhou ao carregar: ${imageSrc}`);
     
     // First, try the correct path in Supabase Storage: images/uploads/
     if (imageSrc.includes('supabase.co') && !imageSrc.includes('uploads/') && !imageError) {
@@ -136,6 +136,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               src={imageSrc}
               alt={artwork.title}
               className="w-full h-auto object-cover display-block"
+              onError={handleImageError}
             />
           )}
           
