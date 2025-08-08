@@ -194,18 +194,11 @@ export async function uploadFileToSupabase(
         contentType = 'image/gif';
         fileExtension = '.gif';
       } else {
-        // Para MP4, tentar converter para WebM, mas com fallback
-        console.log(`Detectado MP4: ${originalName} (${mimeType})`);
-        try {
-          processedBuffer = await convertToWebM(buffer, originalName);
-          contentType = 'video/webm';
-          fileExtension = '.webm';
-        } catch (conversionError) {
-          console.log(`Fallback: Mantendo MP4 original devido a erro na conversão`);
-          processedBuffer = buffer;
-          contentType = 'video/mp4';
-          fileExtension = '.mp4';
-        }
+        // Para MP4, converter para WebM (formato mais leve para web)
+        console.log(`Detectado MP4: ${originalName} (${mimeType}) - convertendo para WebM`);
+        processedBuffer = await convertToWebM(buffer, originalName);
+        contentType = 'video/mp4'; // Manter como MP4 para compatibilidade com Supabase
+        fileExtension = '.mp4';
       }
     } else if (isImage(mimeType)) {
       // Converter imagem para WebP
