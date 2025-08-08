@@ -26,6 +26,11 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
   // Detectar se é vídeo baseado na URL
   const isVideo = src.includes('.mp4') || src.includes('.webm') || src.includes('/videos/') || src.includes('video');
   
+  // Debug temporário para thumbnails
+  if (className.includes('h-9') || className.includes('h-full')) {
+    console.log('THUMBNAIL DEBUG:', { src, isVideo, className });
+  }
+  
 
   
   useEffect(() => {
