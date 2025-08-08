@@ -23,7 +23,7 @@ The application uses a modern full-stack architecture.
 - **Frontend**: React 18 + TypeScript with Vite. Uses React Router for SPA navigation. Implements custom hooks for authentication and post actions.
 - **Backend**: Express.js with TypeScript, providing a RESTful API for authentication, CRUD operations on posts, categories, users, and file uploads.
 - **Authentication**: Session-based authentication with password hashing using `scrypt`.
-- **File Upload**: Robust system with image compression and support for multiple formats.
+- **File Upload**: Advanced system with automatic format conversion - images (PNG/JPG) to WebP for optimization, and videos/GIFs (MP4/GIF) to WebM for fast web previews using FFmpeg with VP8 codec and optimized settings for lightweight streaming.
 - **Data Flow**: Login via email/password, content navigation, admin interface for content upload (image compression, Supabase storage, PostgreSQL post creation), and Hotmart webhook for premium subscription management.
 - **Data Models**: Comprehensive management for Users (free/premium, subscription data), Posts (multiple formats, `group_id`, premium fields), Categories (hierarchical, post count), and Subscriptions (integrated with Hotmart).
 - **Search Functionality**: Enhanced post filtering in the admin panel and public search components, supporting search by title/ID, category, format, license type, and visibility.

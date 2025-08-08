@@ -193,10 +193,11 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         }
       }));
       
-      // Toast de carregamento
+      // Toast de carregamento baseado no tipo de arquivo
+      const isVideoOrGif = file.type === 'video/mp4' || file.type === 'image/gif';
       toast({
-        title: "Convertendo para WebP...",
-        description: "Aguarde enquanto otimizamos sua imagem.",
+        title: isVideoOrGif ? "Convertendo para WebM..." : "Convertendo para WebP...",
+        description: isVideoOrGif ? "Aguarde enquanto otimizamos seu vídeo para preview rápido." : "Aguarde enquanto otimizamos sua imagem.",
       });
       
       // Criar caminho personalizado para o arquivo no Supabase
@@ -225,9 +226,10 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
           }
         }));
         
+        const isVideoOrGif = file.type === 'video/mp4' || file.type === 'image/gif';
         toast({
-          title: "Imagem carregada!",
-          description: "Conversão WebP concluída com sucesso.",
+          title: isVideoOrGif ? "Vídeo carregado!" : "Imagem carregada!",
+          description: isVideoOrGif ? "Conversão WebM concluída com sucesso." : "Conversão WebP concluída com sucesso.",
           variant: "default",
         });
         

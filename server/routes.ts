@@ -4776,7 +4776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload route for Supabase Storage
+  // Upload route for Supabase Storage with video/GIF to WebM conversion
   app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
@@ -4788,12 +4788,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Bucket e caminho são obrigatórios' });
       }
 
+      console.log(`Upload iniciado: ${req.file.originalname} (${req.file.mimetype}) - ${(req.file.size / 1024).toFixed(1)}KB`);
+
       // Upload usando o cliente administrativo do Supabase (bypassa RLS)
-      const { uploadImageToSupabase } = await import('./supabase-upload');
+      const { uploadFileToSupabase } = await import('./supabase-upload');
       
-      const result = await uploadImageToSupabase(
+      const result = await uploadFileToSupabase(
         req.file.buffer,
         req.file.originalname,
+        req.file.mimetype, // Passar MIME type para detecção automática
         bucket,
         path
       );
@@ -4802,6 +4805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: result.error });
       }
 
+      console.log(`Upload concluído: ${result.url}`);
       res.json({ url: result.url });
     } catch (error: any) {
       console.error('Upload error:', error);

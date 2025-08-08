@@ -4,6 +4,14 @@
 
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegPath from '@ffmpeg-installer/ffmpeg';
+import { writeFile, unlink } from 'fs/promises';
+import path from 'path';
+import os from 'os';
+
+// Configure FFmpeg path
+ffmpeg.setFfmpegPath(ffmpegPath.path);
 
 // Configuração do Supabase
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/"/g, '');
@@ -43,29 +51,136 @@ async function compressAndConvertToWebP(buffer: Buffer, originalName: string): P
 }
 
 /**
- * Faz upload de imagem para o Supabase Storage
+ * Converte vídeo/GIF para WebM usando FFmpeg
  */
-export async function uploadImageToSupabase(
+async function convertToWebM(buffer: Buffer, originalName: string): Promise<Buffer> {
+  const tempDir = os.tmpdir();
+  const inputPath = path.join(tempDir, `input_${Date.now()}_${originalName}`);
+  const outputPath = path.join(tempDir, `output_${Date.now()}.webm`);
+
+  try {
+    console.log(`Convertendo ${originalName} para WebM...`);
+    
+    // Escrever arquivo temporário
+    await writeFile(inputPath, buffer);
+    
+    // Converter usando FFmpeg com otimização para preview rápido
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(inputPath)
+        .videoCodec('libvpx') // VP8 (mais compatível que VP9)
+        .audioCodec('libvorbis') // Vorbis (alternativa ao Opus se não disponível)
+        .size('1280x720') // Tamanho otimizado para preview
+        .videoBitrate('800k') // Bitrate baixo para tamanho menor
+        .audioBitrate('64k')  // Audio comprimido
+        .fps(24)              // FPS reduzido para menor tamanho
+        .outputOptions([
+          '-deadline realtime', // Processamento rápido
+          '-cpu-used 8',       // Velocidade máxima de encoding
+          '-threads 4',        // Multithreading
+          '-qmin 10',          // Qualidade mínima
+          '-qmax 42',          // Qualidade máxima
+          '-crf 32'            // Quality setting (32 = qualidade leve para preview)
+        ])
+        .output(outputPath)
+        .on('end', () => {
+          console.log(`Conversão WebM concluída: ${originalName}`);
+          resolve();
+        })
+        .on('error', (error) => {
+          console.error(`Erro na conversão WebM de ${originalName}:`, error);
+          reject(error);
+        })
+        .run();
+    });
+
+    // Ler arquivo convertido
+    const { readFile } = await import('fs/promises');
+    const convertedBuffer = await readFile(outputPath);
+    
+    console.log(`Conversão WebM bem-sucedida: ${originalName} -> ${(convertedBuffer.length / 1024).toFixed(1)}KB`);
+    
+    // Limpeza dos arquivos temporários
+    await Promise.all([
+      unlink(inputPath).catch(() => {}),
+      unlink(outputPath).catch(() => {})
+    ]);
+    
+    return convertedBuffer;
+    
+  } catch (error) {
+    console.error(`Erro na conversão WebM de ${originalName}:`, error);
+    
+    // Limpeza em caso de erro
+    await Promise.all([
+      unlink(inputPath).catch(() => {}),
+      unlink(outputPath).catch(() => {})
+    ]);
+    
+    throw error;
+  }
+}
+
+/**
+ * Detecta se o arquivo é vídeo ou GIF baseado no MIME type
+ */
+function isVideoOrGif(mimeType: string): boolean {
+  return mimeType === 'video/mp4' || mimeType === 'image/gif';
+}
+
+/**
+ * Detecta se o arquivo é imagem (exceto GIF)
+ */
+function isImage(mimeType: string): boolean {
+  return mimeType.startsWith('image/') && mimeType !== 'image/gif';
+}
+
+/**
+ * Faz upload de arquivo (imagem, vídeo ou GIF) para o Supabase Storage
+ * Imagens são convertidas para WebP, vídeos/GIFs são convertidos para WebM
+ */
+export async function uploadFileToSupabase(
   buffer: Buffer,
   originalName: string,
+  mimeType: string,
   bucket: string,
   fileName: string
 ): Promise<{ url: string | null; error: string | null }> {
   try {
-    // Converter para WebP com Sharp
-    const webpBuffer = await sharp(buffer).webp({ quality: 85 }).toBuffer();
-
-    // Gerar timestamp único para evitar cache
+    let processedBuffer: Buffer;
+    let contentType: string;
+    let fileExtension: string;
     const timestamp = Date.now();
-    const finalPath = `${fileName}_${timestamp}.webp`;
+
+    // Determinar o tipo de processamento baseado no MIME type
+    if (isVideoOrGif(mimeType)) {
+      // Converter vídeo/GIF para WebM
+      console.log(`Detectado vídeo/GIF: ${originalName} (${mimeType})`);
+      processedBuffer = await convertToWebM(buffer, originalName);
+      contentType = 'video/webm';
+      fileExtension = '.webm';
+    } else if (isImage(mimeType)) {
+      // Converter imagem para WebP
+      console.log(`Detectado imagem: ${originalName} (${mimeType})`);
+      processedBuffer = await compressAndConvertToWebP(buffer, originalName);
+      contentType = 'image/webp';
+      fileExtension = '.webp';
+    } else {
+      // Manter formato original para outros tipos
+      console.log(`Mantendo formato original: ${originalName} (${mimeType})`);
+      processedBuffer = buffer;
+      contentType = mimeType;
+      fileExtension = path.extname(originalName);
+    }
+
+    const finalPath = `${fileName}_${timestamp}${fileExtension}`;
     
-    console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(webpBuffer.length / 1024).toFixed(1)}KB)`);
+    console.log(`Fazendo upload para Supabase: ${bucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
 
     // Upload para o Supabase com upsert
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(finalPath, webpBuffer, { 
-        contentType: 'image/webp', 
+      .upload(finalPath, processedBuffer, { 
+        contentType, 
         upsert: true 
       });
 
@@ -87,6 +202,20 @@ export async function uploadImageToSupabase(
       error: error instanceof Error ? error.message : 'Erro desconhecido no upload' 
     };
   }
+}
+
+/**
+ * Mantém compatibilidade com a função anterior para upload apenas de imagens
+ * @deprecated Use uploadFileToSupabase instead
+ */
+export async function uploadImageToSupabase(
+  buffer: Buffer,
+  originalName: string,
+  bucket: string,
+  fileName: string
+): Promise<{ url: string | null; error: string | null }> {
+  // Assumir que é imagem se não temos MIME type
+  return uploadFileToSupabase(buffer, originalName, 'image/jpeg', bucket, fileName);
 }
 
 /**
@@ -198,8 +327,8 @@ export async function ensureBucket(bucketName: string): Promise<boolean> {
       console.log(`Criando bucket ${bucketName}...`);
       const { error: createError } = await supabase.storage.createBucket(bucketName, {
         public: true,
-        allowedMimeTypes: ['image/*'],
-        fileSizeLimit: 5242880 // 5MB
+        allowedMimeTypes: ['image/*', 'video/*'], // Suportar imagens e vídeos
+        fileSizeLimit: 52428800 // 50MB para suportar vídeos
       });
       
       if (createError) {

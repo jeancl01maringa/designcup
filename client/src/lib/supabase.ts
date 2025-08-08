@@ -88,8 +88,16 @@ export async function uploadFileToSupabase(
     let processedFile = file;
     let finalPath = path;
     
-    // Compress and convert to WebP if it's an image
-    if (file.type.startsWith('image/')) {
+    // Handle different file types appropriately
+    if (file.type === 'video/mp4' || file.type === 'image/gif') {
+      // For MP4 and GIF files, let backend handle conversion to WebM
+      console.log(`Detectado arquivo para conversão WebM: ${file.name} (${file.type})`);
+      processedFile = file; // Send original file to backend for conversion
+      
+      // Backend will convert and change extension, so we keep original name for now
+      finalPath = sanitizeFileName(path);
+    } else if (file.type.startsWith('image/')) {
+      // Compress and convert to WebP for other images
       try {
         console.log(`Compressing and converting ${file.name} to WebP...`);
         processedFile = await compressAndConvertToWebP(file);
@@ -103,6 +111,9 @@ export async function uploadFileToSupabase(
         // Sanitize original filename
         finalPath = sanitizeFileName(path);
       }
+    } else {
+      // For other file types, use as-is
+      finalPath = sanitizeFileName(path);
     }
 
     // Organize by category in uploads folder
