@@ -99,7 +99,12 @@ function OptimizedMediaViewer({
       <video 
         src={src}
         className={className}
-        style={style}
+        style={{ 
+          ...style,
+          objectFit: 'contain', // Manter proporção dos vídeos
+          width: '100%',
+          height: 'auto'
+        }}
         autoPlay
         loop
         muted
@@ -123,13 +128,18 @@ function OptimizedMediaViewer({
     );
   }
   
-  // Default: imagem normal
+  // Default: imagem normal  
   return (
     <img 
       src={src}
       alt={alt}
       className={className}
-      style={style}
+      style={{ 
+        ...style,
+        objectFit: 'contain', // Manter proporção das imagens
+        width: '100%',
+        height: 'auto'
+      }}
       loading="eager"
       fetchPriority="high"
       onLoad={onLoad}
@@ -985,10 +995,11 @@ export default function ArtDetailPage() {
                 const skeleton = element.parentElement?.querySelector('.animate-pulse');
                 if (skeleton) skeleton.remove();
               }}
-              className="w-full h-auto object-cover relative z-10"
+              className="w-full h-auto object-contain relative z-10"
               style={{
                 aspectRatio: 'auto',
-                maxHeight: '70vh',
+                maxHeight: currentPost?.formato === 'stories' || currentPost?.formato === 'Stories' ? '80vh' : '70vh',
+                maxWidth: '100%',
               }}
             />
           </div>
