@@ -25,16 +25,22 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
   const [hasError, setHasError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  // Detectar se é vídeo baseado na URL - versão mais robusta
+  // Detectar se é vídeo baseado na URL - corrigido para GIF
   const isVideo = React.useMemo(() => {
     if (!src) return false;
     
     // Extrair a parte da URL antes dos query parameters
     const urlWithoutParams = src.split('?')[0];
     
+    // GIF deve ser tratado como imagem se estiver no bucket images
+    // Apenas arquivos no bucket videos são tratados como vídeo
+    if (urlWithoutParams.includes('.gif') && src.includes('/images/')) {
+      return false; // GIF no bucket images = imagem
+    }
+    
     return urlWithoutParams.includes('.mp4') || 
            urlWithoutParams.includes('.webm') || 
-           urlWithoutParams.includes('.gif') ||
+           (urlWithoutParams.includes('.gif') && src.includes('/videos/')) ||
            src.includes('/videos/') || 
            src.includes('video');
   }, [src]);
