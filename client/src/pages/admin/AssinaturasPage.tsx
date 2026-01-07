@@ -92,7 +92,7 @@ export default function AssinaturasPage() {
   };
 
   const copyWebhookUrl = () => {
-    const webhookUrl = "https://92d39422-2239-4944-8f4e-4a5218744647-00-1vox6zp4kwkke.picard.replit.dev/webhook/hotmart";
+    const webhookUrl = "https://estetflix.com.br/webhook/hotmart";
     navigator.clipboard.writeText(webhookUrl);
     toast({
       title: "URL copiada!",
@@ -312,7 +312,7 @@ export default function AssinaturasPage() {
                 <div className="mt-1 flex items-center gap-2">
                   <div className="flex-1 p-3 bg-gray-50 rounded-md border">
                     <code className="text-sm font-mono break-all">
-                      https://92d39422-2239-4944-8f4e-4a5218744647-00-1vox6zp4kwkke.picard.replit.dev/webhook/hotmart
+                      https://estetflix.com.br/webhook/hotmart
                     </code>
                   </div>
                   <Button variant="outline" size="sm" onClick={copyWebhookUrl}>
