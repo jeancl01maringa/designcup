@@ -131,8 +131,8 @@ export default function Categories() {
 
   return (
     <div className="min-h-screen bg-muted">
-      {/* Hero Section - Exactly matching Home Page */}
-      <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] py-8 md:py-12">
+      {/* Hero Section */}
+      <section className="bg-background py-8 md:py-12 border-b border-border">
         <div className="container-global flex flex-col items-center text-center">
 
           {/* Main Heading - Same fonts and styling as home */}
@@ -140,8 +140,8 @@ export default function Categories() {
             Categorias
           </h1>
 
-          {/* Description - Same styling as home */}
-          <p className="text-[#4B4B4B] text-sm md:text-base mb-4 md:mb-6 max-w-2xl font-sans font-light">
+          {/* Description */}
+          <p className="text-muted-foreground text-sm md:text-base mb-4 md:mb-6 max-w-2xl font-sans font-light">
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
 
@@ -150,18 +150,18 @@ export default function Categories() {
               <input
                 type="text"
                 placeholder="Busque por artes ou ID..."
-                className="flex-1 border-none py-2 px-1 sm:p-3 text-sm text-[#333] outline-none placeholder:text-gray-400 min-w-0"
+                className="flex-1 bg-transparent border-none py-2 px-1 sm:p-3 text-sm text-foreground outline-none placeholder:text-muted-foreground min-w-0"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
 
-              <div className="w-px h-6 bg-[#e0e0e0] mx-2.5"></div>
+              <div className="w-px h-6 bg-border mx-2.5"></div>
 
               <div className="relative flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
-                  className="bg-none border-none text-xs sm:text-sm text-[#333] cursor-pointer mr-1 sm:mr-2.5 flex items-center gap-1"
+                  className="bg-transparent border-none text-xs sm:text-sm text-foreground cursor-pointer mr-1 sm:mr-2.5 flex items-center gap-1 hover:text-primary transition-colors"
                   onClick={() => setShowFormatDropdown(!showFormatDropdown)}
                 >
                   <span className="truncate">Formatos</span>
@@ -177,10 +177,10 @@ export default function Categories() {
                         <button
                           key={format.id}
                           type="button"
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-muted
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150
                             ${format.name === selectedFormat
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-muted-foreground'}`}
+                              ? 'bg-accent text-accent-foreground font-medium border-l-2 border-primary'
+                              : 'text-foreground hover:bg-accent'}`}
                           onClick={() => selectFormat(format.name)}
                         >
                           <span>{format.name}</span>
@@ -194,7 +194,7 @@ export default function Categories() {
               <button
                 type="button"
                 onClick={handleSearch}
-                className="bg-[#151922] text-white border-none py-2.5 px-3.5 rounded-lg cursor-pointer"
+                className="bg-primary hover:opacity-90 text-white border-none py-2.5 px-3.5 rounded-lg cursor-pointer transition-opacity"
               >
                 <Search className="h-4 w-4" />
               </button>
