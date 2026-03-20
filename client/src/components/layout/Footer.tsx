@@ -45,7 +45,7 @@ const FooterMainSection = () => {
           </p>
           <div className="flex items-center text-foreground mt-3">
             <Mail className="h-4 w-4 mr-2 text-[#a15e38]" />
-            <span className="text-sm">contato@designparaestetica.com.br</span>
+            <span className="text-sm">contato@designcup.com.br</span>
           </div>
         </div>
       </div>
@@ -89,7 +89,7 @@ const FooterBottom = () => {
     <div className="border-t border-border mt-10 pt-6">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-muted-foreground text-sm">
-          © 2025 Design para Estética. Todos os direitos reservados.
+          © 2026 DesignCup. Todos os direitos reservados.
         </p>
 
         <div className="flex items-center space-x-4">

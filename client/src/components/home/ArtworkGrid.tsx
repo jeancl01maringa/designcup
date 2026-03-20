@@ -42,6 +42,10 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     queryKey: ["/api/posts/visible"],
   });
 
+  const { data: categories } = useQuery<any[]>({
+    queryKey: ["/api/categories"],
+  });
+
   const columns = useResponsiveColumns();
 
   // Filtrar posts e organizar em colunas usando useMemo
@@ -56,19 +60,14 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     if (category && category !== "todos") {
       filtered = filtered.filter((post) => {
         if (!post.categoryId) return false;
-        const categoryMap: { [key: number]: string } = {
-          2: "depilacao",
-          3: "facial",
-          4: "botox",
-          5: "salao-de-beleza",
-          6: "corporal",
-          7: "massagem",
-          10: "hof",
-          11: "labial",
-          12: "laser",
-          13: "sobrancelhas"
-        };
-        return categoryMap[post.categoryId] === category;
+        if (categories) {
+          const cat = categories.find((c: any) => c.id === post.categoryId);
+          if (cat) {
+            // Match against slug or id
+            return cat.slug === category || String(cat.id) === String(category);
+          }
+        }
+        return false;
       });
     }
 
@@ -157,9 +156,10 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     }
 
     return { filteredPosts: filtered, columnArrays };
-  }, [posts, category, searchTerm, columns, sortOrder]);
+  }, [posts, categories, category, searchTerm, columns, sortOrder]);
 
-  if (isLoading) {
+  // Optionally waiting for categories if we're filtering by a specific category
+  if (isLoading || (category && category !== "todos" && !categories)) {
     return (
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {Array.from({ length: columns }).map((_, colIndex) => (

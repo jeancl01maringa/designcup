@@ -101,7 +101,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho com fundo escuro e layout alinhado à esquerda */}
-        <div className="bg-gray-800 pt-4 pb-3 px-4 md:pt-6 md:pb-4 md:px-6">
+        <div className="bg-muted border-b border-border pt-4 pb-3 px-4 md:pt-6 md:pb-4 md:px-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden flex-shrink-0">
               <img
@@ -147,7 +147,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/perfil')}
             >
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                 <User className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
@@ -162,8 +162,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/assinatura')}
             >
-              <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                <CreditCard className="w-5 h-5 text-purple-500" />
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-foreground">Assinatura</p>
@@ -177,8 +177,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/edicoes-recentes')}
             >
-              <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-indigo-500" />
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <Clock className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-foreground">Edições recentes</p>
@@ -197,8 +197,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/curtidas')}
             >
-              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-red-500" />
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <Heart className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-foreground">Curtidas</p>
@@ -212,8 +212,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/salvos')}
             >
-              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
-                <Bookmark className="w-5 h-5 text-amber-500" />
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <Bookmark className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-foreground">Salvos</p>
@@ -227,8 +227,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/seguindo')}
             >
-              <div className="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center">
-                <Users className="w-5 h-5 text-sky-500" />
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-foreground">Seguindo</p>
@@ -239,7 +239,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         </ul>
 
         {/* Divisor */}
-        <div className="h-px bg-gray-200 mx-4"></div>
+        <div className="h-px bg-border mx-4"></div>
 
         {/* Suporte e Logout */}
         <ul className="py-1">
@@ -252,11 +252,11 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
                 onClick={onClose}
               >
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5 text-green-500" />
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-sm md:text-base text-green-600">Suporte por WhatsApp</p>
+                  <p className="font-semibold text-sm md:text-base text-primary">Suporte por WhatsApp</p>
                   <p className="text-xs md:text-sm text-muted-foreground">Dúvidas e perguntas</p>
                 </div>
               </a>
@@ -268,7 +268,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={handleLogout}
             >
-              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                 <LogOut className="w-5 h-5 text-red-500" />
               </div>
               <div className="text-left">
