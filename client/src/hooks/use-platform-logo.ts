@@ -1,28 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-
-interface LogoData {
-  dataUrl: string;
-  filename: string;
-  mimeType: string;
-}
+import { getQueryFn } from "@/lib/queryClient";
 
 export function usePlatformLogo() {
-  const { data: logoData, isLoading, error } = useQuery<LogoData>({
-    queryKey: ["/api/logo"],
-    queryFn: async () => {
-      const response = await fetch('/api/logo');
-      if (!response.ok) {
-        throw new Error('Logo não encontrado');
-      }
-      return response.json();
-    },
-    retry: false,
-    refetchOnWindowFocus: false,
+  const { data: logoSetting, isLoading, error } = useQuery({
+    queryKey: ["/api/settings/logo_url"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
+  const logoUrl = (logoSetting as any)?.value || null;
+
   return {
-    logoUrl: logoData?.dataUrl || null,
-    hasCustomLogo: !!logoData?.dataUrl,
+    logoUrl,
+    hasCustomLogo: !!logoUrl,
     isLoading,
     error
   };
