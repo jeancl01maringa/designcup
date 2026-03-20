@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation, Link } from "wouter";
 import { 
@@ -40,7 +40,7 @@ import { usePixelUserActions } from "@/hooks/use-facebook-pixel";
 import { usePostActions } from "@/hooks/use-post-actions";
 import MediaDisplay from "@/components/MediaDisplay";
 
-// Componente para seÃ§Ã£o de artes relacionadas com layout responsivo
+// Componente para seção de artes relacionadas com layout responsivo
 function RelatedArtworksSection({ artworks }: { artworks: any[] }) {
   const [columns, setColumns] = useState(4);
 
@@ -103,39 +103,39 @@ export default function ArtDetailPage() {
     // Rota /preview/:id - usar ID diretamente
     postId = parseInt(id, 10);
   } else if (slug) {
-    // Verificar se o slug comeÃ§a com um nÃºmero (formato "10-xxxxx")
+    // Verificar se o slug começa com um número (formato "10-xxxxx")
     const slugParts = slug.split('-');
     const firstPart = slugParts[0];
     const potentialId = parseInt(firstPart, 10);
     
     if (!isNaN(potentialId) && potentialId > 0) {
-      // Slug formato padrÃ£o com ID no inÃ­cio
+      // Slug formato padrão com ID no início
       postId = potentialId;
     } else {
-      // Slug Ã© um uniqueCode - buscar pelo uniqueCode
-      postId = 0; // Usaremos uma lÃ³gica diferente para buscar por uniqueCode
+      // Slug é um uniqueCode - buscar pelo uniqueCode
+      postId = 0; // Usaremos uma lógica diferente para buscar por uniqueCode
     }
   } else {
     postId = 0;
   }
   
-  console.log('ParÃ¢metros recebidos:', { slug, id });
+  console.log('Parâmetros recebidos:', { slug, id });
   console.log('ID do post determinado:', postId);
   
-  // Estado para controlar a exibiÃ§Ã£o do tooltip no botÃ£o
+  // Estado para controlar a exibição do tooltip no botão
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
-  // Hook para aÃ§Ãµes de curtir e salvar
+  // Hook para ações de curtir e salvar
   const postActions = usePostActions(postId);
   
-  // Estado para controlar qual formato estÃ¡ sendo exibido
+  // Estado para controlar qual formato está sendo exibido
   const [currentFormatIndex, setCurrentFormatIndex] = useState(0);
   const [formatsExpanded, setFormatsExpanded] = useState(false);
   
-  // Estado para controlar qual formato estÃ¡ selecionado
+  // Estado para controlar qual formato está selecionado
   const [selectedFormat, setSelectedFormat] = useState<{
     id: number;
     name: string;
@@ -147,32 +147,32 @@ export default function ArtDetailPage() {
 
 
   
-  // Garantir que a pÃ¡gina sempre inicie no topo
+  // Garantir que a página sempre inicie no topo
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [postId]); // Rola para o topo quando o postId muda
   
-  // Verifica se o usuÃ¡rio Ã© premium baseado no tipo/plano
+  // Verifica se o usuário é premium baseado no tipo/plano
   const isUserPremium = user?.tipo === 'premium' || 
                      (user?.plano_id !== undefined && user?.plano_id !== null && 
                       typeof user?.plano_id === 'number' && user?.plano_id !== 1);
 
-  // Mutation para rastrear ediÃ§Ãµes recentes
+  // Mutation para rastrear edições recentes
   const addRecentEditMutation = useMutation({
     mutationFn: async (postId: number) => {
       const response = await apiRequest('POST', `/api/user/recent-edits/${postId}`);
       return response.json();
     },
     onSuccess: () => {
-      // Invalidar cache das ediÃ§Ãµes recentes
+      // Invalidar cache das edições recentes
       queryClient.invalidateQueries({ queryKey: ['/api/user/recent-edits'] });
     },
     onError: (error) => {
-      console.error('Erro ao adicionar ediÃ§Ã£o recente:', error);
+      console.error('Erro ao adicionar edição recente:', error);
     }
   });
   
-  // Buscar os dados da arte usando a API admin existente (mais confiÃ¡vel)
+  // Buscar os dados da arte usando a API admin existente (mais confiável)
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['/api/admin/posts', postId, slug],
     queryFn: async () => {
@@ -182,7 +182,7 @@ export default function ArtDetailPage() {
         
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error('Arte nÃ£o encontrada');
+            throw new Error('Arte não encontrada');
           }
           throw new Error('Erro ao buscar arte');
         }
@@ -200,12 +200,12 @@ export default function ArtDetailPage() {
         const post = posts.find((p: any) => p.uniqueCode === slug);
         
         if (!post) {
-          throw new Error('Arte nÃ£o encontrada');
+          throw new Error('Arte não encontrada');
         }
         
         return post;
       } else {
-        throw new Error('ParÃ¢metros invÃ¡lidos');
+        throw new Error('Parâmetros inválidos');
       }
     },
     retry: 1,
@@ -216,7 +216,7 @@ export default function ArtDetailPage() {
     refetchOnMount: false
   });
 
-  // Buscar posts relacionados do mesmo grupo (variaÃ§Ãµes de formato)
+  // Buscar posts relacionados do mesmo grupo (variações de formato)
   const { data: relatedPosts = [] } = useQuery({
     queryKey: ['/api/admin/posts/related', post?.groupId],
     queryFn: async () => {
@@ -270,7 +270,7 @@ export default function ArtDetailPage() {
     retry: 2
   });
 
-  // Calcular posts disponÃ­veis do grupo
+  // Calcular posts disponíveis do grupo
   const availablePosts = relatedPosts.length > 0 ? relatedPosts : [post].filter(Boolean);
   const currentPost = availablePosts[currentFormatIndex] || post;
   
@@ -290,14 +290,14 @@ export default function ArtDetailPage() {
           formato: p.formato,
           imageUrl: p.imageUrl
         })));
-        console.log('POSTS DISPONÃVEIS PARA NAVEGAÃ‡ÃƒO:', availablePosts.length);
+        console.log('POSTS DISPONÍVEIS PARA NAVEGAÇÃO:', availablePosts.length);
       } else {
         console.log('NENHUM POST RELACIONADO ENCONTRADO');
       }
     }
   }, [post, relatedPosts, availablePosts]);
 
-  // Debug da navegaÃ§Ã£o entre formatos
+  // Debug da navegação entre formatos
   React.useEffect(() => {
     if (currentPost && post) {
       console.log('FORMATO ATIVO MUDOU:', {
@@ -329,9 +329,9 @@ export default function ArtDetailPage() {
     }
   }, [post, trackViewContent]);
 
-  // Formatar objetos para exibiÃ§Ã£o
+  // Formatar objetos para exibição
   const formatLabel = (format: string | null | undefined) => {
-    if (!format) return 'FEED'; // Valor padrÃ£o se nÃ£o houver formato
+    if (!format) return 'FEED'; // Valor padrão se não houver formato
 
     const formatMap: Record<string, string> = {
       'feed': 'FEED',
@@ -344,26 +344,26 @@ export default function ArtDetailPage() {
     return formatMap[format.toLowerCase()] || format.toUpperCase();
   };
   
-  // Obter dimensÃµes do formato
+  // Obter dimensões do formato
   const getFormatDimensions = (format: string | null | undefined): string => {
-    if (!format) return '1080Ã—1080px â€¢ Quadrado'; // Valor padrÃ£o se nÃ£o houver formato
+    if (!format) return '1080×1080px • Quadrado'; // Valor padrão se não houver formato
     
     const dimensionsMap: Record<string, string> = {
-      'feed': '1080Ã—1080px â€¢ Quadrado',
-      'stories': '1080Ã—1920px â€¢ Vertical',
-      'reels': '1080Ã—1920px â€¢ Vertical',
-      'carousel': '1080Ã—1080px â€¢ Quadrado',
-      'post': '1080Ã—1350px â€¢ Retrato'
+      'feed': '1080×1080px • Quadrado',
+      'stories': '1080×1920px • Vertical',
+      'reels': '1080×1920px • Vertical',
+      'carousel': '1080×1080px • Quadrado',
+      'post': '1080×1350px • Retrato'
     };
     
-    return dimensionsMap[format.toLowerCase()] || '1080Ã—1080px';
+    return dimensionsMap[format.toLowerCase()] || '1080×1080px';
   };
 
-  // Criar array de formatos disponÃ­veis com base nos posts relacionados
+  // Criar array de formatos disponíveis com base nos posts relacionados
   const availableFormats = React.useMemo(() => {
     if (!post) return [];
 
-    // ComeÃ§ar com o post atual
+    // Começar com o post atual
     const formats = [{
       id: post.id,
       name: formatLabel(post.formato),
@@ -397,7 +397,7 @@ export default function ArtDetailPage() {
   // Inicializar selectedFormat com o formato atual do post
   useEffect(() => {
     if (post && availableFormats.length > 0) {
-      // Encontrar o formato atual ou usar o primeiro disponÃ­vel
+      // Encontrar o formato atual ou usar o primeiro disponível
       const currentFormat = availableFormats.find(f => f.isCurrent) || availableFormats[0];
       setSelectedFormat(currentFormat);
     }
@@ -436,7 +436,7 @@ export default function ArtDetailPage() {
     staleTime: 30 * 1000, // 30 segundos
   });
 
-  // Buscar nÃºmero real de curtidas do post
+  // Buscar número real de curtidas do post
   const { data: likesData } = useQuery({
     queryKey: ['/api/posts', postId, 'likes'],
     queryFn: async () => {
@@ -460,7 +460,7 @@ export default function ArtDetailPage() {
     }
   }, [followStatus]);
   
-  // PrÃ©-carregar e cachear dados de todos os formatos do grupo
+  // Pré-carregar e cachear dados de todos os formatos do grupo
   const allGroupPosts = React.useMemo(() => {
     if (!post) return [];
     
@@ -517,7 +517,7 @@ export default function ArtDetailPage() {
             return formatData.formats;
           }
           
-          // Verificar se temos opÃ§Ãµes de formatos
+          // Verificar se temos opções de formatos
           if (formatData.options && Array.isArray(formatData.options)) {
             return formatData.options.map((opt: { format?: string }) => opt.format || 'FEED');
           }
@@ -537,7 +537,7 @@ export default function ArtDetailPage() {
       }
     }
     
-    // Valor padrÃ£o se nada for encontrado
+    // Valor padrão se nada for encontrado
     return ['FEED'];
   }, [post]);
   
@@ -561,7 +561,7 @@ export default function ArtDetailPage() {
     categoryName?: string;
   }
   
-  // Buscar artes relacionadas baseado em categoria e similaridade de tÃ­tulo
+  // Buscar artes relacionadas baseado em categoria e similaridade de título
   const { data: relatedArtworks, isLoading: isLoadingRelated } = useQuery<RelatedFormat[]>({
     queryKey: ['/api/posts', postId, 'related'],
     queryFn: async () => {
@@ -580,15 +580,15 @@ export default function ArtDetailPage() {
     retry: false
   });
   
-  // Determinar se Ã© premium (verificar todos os possÃ­veis campos)
+  // Determinar se é premium (verificar todos os possíveis campos)
   const isPremium = post?.licenseType === 'premium' || post?.is_pro || post?.isPro;
   
-  // Handlers para aÃ§Ãµes - usando o hook centralizado
+  // Handlers para ações - usando o hook centralizado
   
   const handleFollow = async () => {
     if (!user || !author || followLoading) return;
     
-    // NÃ£o permitir seguir a si mesmo
+    // Não permitir seguir a si mesmo
     if (user.id === author.id) return;
     
     setFollowLoading(true);
@@ -624,8 +624,8 @@ export default function ArtDetailPage() {
   const handleShare = () => {
     // Implementar compartilhamento
     navigator.share?.({
-      title: post?.title || 'Arte para EstÃ©tica',
-      text: post?.description || 'Confira esta arte para seus conteÃºdos de estÃ©tica',
+      title: post?.title || 'Arte para Estética',
+      text: post?.description || 'Confira esta arte para seus conteúdos de estética',
       url: window.location.href
     }).catch(err => console.error('Erro ao compartilhar:', err));
   };
@@ -633,7 +633,7 @@ export default function ArtDetailPage() {
   // Extrair o Link do Canva dos dados do post
   const getCanvaUrl = (): string => {
     try {
-      // 1. Primeiro verificar se hÃ¡ um formato selecionado com link do Canva
+      // 1. Primeiro verificar se há um formato selecionado com link do Canva
       if (selectedFormat?.linkCanva) {
         console.log("Usando link do Canva do formato selecionado:", selectedFormat.linkCanva);
         return selectedFormat.linkCanva;
@@ -665,14 +665,14 @@ export default function ArtDetailPage() {
         console.log("FormatData encontrado:", formatDataString);
         
         try {
-          // Se jÃ¡ Ã© um objeto, usar diretamente
+          // Se já é um objeto, usar diretamente
           const formatData = typeof formatDataString === 'string' 
             ? JSON.parse(formatDataString) 
             : formatDataString;
           
           console.log("FormatData parseado:", formatData);
           
-          // Se Ã© um array de formatos (estrutura normal)
+          // Se é um array de formatos (estrutura normal)
           if (Array.isArray(formatData) && formatData.length > 0) {
             console.log("Procurando em array de formatos, total:", formatData.length);
             
@@ -695,14 +695,14 @@ export default function ArtDetailPage() {
               }
             }
             
-            // Se nÃ£o encontrou links, verificar se tem canvaUrl direto no formato
+            // Se não encontrou links, verificar se tem canvaUrl direto no formato
             if (firstFormat && firstFormat.canvaUrl) {
               console.log("CanvaUrl direto no formato:", firstFormat.canvaUrl);
               return firstFormat.canvaUrl;
             }
           }
           
-          // Se nÃ£o Ã© array, verificar se Ã© objeto com canvaUrl direto
+          // Se não é array, verificar se é objeto com canvaUrl direto
           if (formatData && typeof formatData === 'object' && !Array.isArray(formatData)) {
             if (formatData.canvaUrl) {
               console.log("CanvaUrl direto no formatData:", formatData.canvaUrl);
@@ -715,10 +715,10 @@ export default function ArtDetailPage() {
         }
       }
       
-      // Log quando nenhuma URL Ã© encontrada
-      console.warn("Nenhuma URL do Canva encontrada, usando valor padrÃ£o");
+      // Log quando nenhuma URL é encontrada
+      console.warn("Nenhuma URL do Canva encontrada, usando valor padrão");
       
-      // Valor padrÃ£o se nÃ£o encontrar nada
+      // Valor padrão se não encontrar nada
       return 'https://www.canva.com/design/new';
     } catch (err) {
       console.error('Erro ao extrair URL do Canva:', err);
@@ -726,23 +726,23 @@ export default function ArtDetailPage() {
     }
   };
   
-  // Determinar se o usuÃ¡rio pode editar esta arte
+  // Determinar se o usuário pode editar esta arte
   const canEditArt = (): boolean => {
-    // Se nÃ£o estÃ¡ logado, nÃ£o pode editar
+    // Se não está logado, não pode editar
     if (!user) return false;
     
-    // Se a arte Ã© gratuita, qualquer usuÃ¡rio logado pode editar
+    // Se a arte é gratuita, qualquer usuário logado pode editar
     if (!isPremium) return true;
     
-    // Se a arte Ã© premium, apenas usuÃ¡rios premium podem editar
+    // Se a arte é premium, apenas usuários premium podem editar
     return isUserPremium === true;
   };
   
   const handleEditCanva = () => {
-    // Se nÃ£o pode editar, nÃ£o faz nada (o botÃ£o jÃ¡ deve estar desabilitado ou ser apenas visual)
+    // Se não pode editar, não faz nada (o botão já deve estar desabilitado ou ser apenas visual)
     if (!canEditArt()) return;
     
-    // Rastrear a ediÃ§Ã£o se o usuÃ¡rio estiver logado e o post existir
+    // Rastrear a edição se o usuário estiver logado e o post existir
     if (user && post?.id) {
       addRecentEditMutation.mutate(post.id);
     }
@@ -803,10 +803,10 @@ export default function ArtDetailPage() {
           Voltar
         </Button>
         
-        <div className="text-center p-12 bg-card rounded-lg shadow-sm">
-          <h2 className="text-2xl font-bold text-red-500 mb-4">Arte nÃ£o encontrada</h2>
+        <div className="text-center p-12 bg-card border-border rounded-lg shadow-sm">
+          <h2 className="text-2xl font-bold text-red-500 mb-4">Arte não encontrada</h2>
           <p className="text-muted-foreground mb-4">
-            NÃ£o foi possÃ­vel encontrar a arte solicitada. Ela pode ter sido removida ou o link estÃ¡ incorreto.
+            Não foi possível encontrar a arte solicitada. Ela pode ter sido removida ou o link está incorreto.
           </p>
           <Button onClick={() => setLocation('/')}>
             Voltar para a galeria
@@ -827,7 +827,7 @@ export default function ArtDetailPage() {
         Voltar
       </Button>
       
-      {/* Layout principal em duas colunas - proporÃ§Ã£o 50/50 */}
+      {/* Layout principal em duas colunas - proporção 50/50 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Coluna da esquerda - Imagem da arte */}
         <div className="relative">
@@ -851,12 +851,12 @@ export default function ArtDetailPage() {
                   key={`format-nav-${formatPost.id}-${index}`}
                   onClick={() => {
                     console.log(`Navegando para formato ${index}:`, formatPost.formato, formatPost.imageUrl);
-                    // Navegar para a pÃ¡gina especÃ­fica do formato
+                    // Navegar para a página específica do formato
                     const formatSlug = `${formatPost.id}-${post.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
                     setLocation(`/arte/${formatSlug}`);
                   }}
                   className={`w-3 h-3 rounded-full transition-all duration-200 hover:scale-110 ${
-                    index === currentFormatIndex ? 'bg-card shadow-lg' : 'bg-card/60 hover:bg-card/80'
+                    index === currentFormatIndex ? 'bg-card border-border shadow-lg' : 'bg-card border-border/60 hover:bg-card border-border/80'
                   }`}
                   title={formatPost?.formato || `Formato ${index + 1}`}
                 />
@@ -864,7 +864,7 @@ export default function ArtDetailPage() {
             </div>
           )}
 
-          {/* Imagem/vÃ­deo principal otimizada com cache */}
+          {/* Imagem/vídeo principal otimizada com cache */}
           <div className="overflow-hidden rounded-lg shadow-md">
             {(() => {
               const imageUrl = selectedFormat?.previewUrl || currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg";
@@ -886,9 +886,9 @@ export default function ArtDetailPage() {
           </div>
         </div>
         
-        {/* Coluna da direita - InformaÃ§Ãµes */}
-        <div className="space-y-6 border border-border rounded-lg p-6 bg-card shadow-sm">
-          {/* TÃ­tulo e selo premium */}
+        {/* Coluna da direita - Informações */}
+        <div className="space-y-6 border border-border rounded-lg p-6 bg-card border-border shadow-sm">
+          {/* Título e selo premium */}
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-lg font-bold text-foreground">
@@ -904,13 +904,13 @@ export default function ArtDetailPage() {
           </div>
           
           {/* Checklist de vantagens */}
-          <div className="bg-secondary p-4 rounded-lg">
+          <div className="bg-muted p-4 rounded-lg">
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
                   <Check size={12} className="text-green-600" />
                 </div>
-                <span className="text-muted-foreground text-sm">EditÃ¡vel no Canva gratuito</span>
+                <span className="text-muted-foreground text-sm">Editável no Canva gratuito</span>
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
@@ -922,7 +922,7 @@ export default function ArtDetailPage() {
                 <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
                   <Check size={12} className="text-green-600" />
                 </div>
-                <span className="text-muted-foreground text-sm">NÃ£o precisa atribuir o autor</span>
+                <span className="text-muted-foreground text-sm">Não precisa atribuir o autor</span>
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
@@ -933,19 +933,19 @@ export default function ArtDetailPage() {
             </ul>
           </div>
           
-          {/* EspecificaÃ§Ãµes do arquivo */}
-          <div className="bg-secondary rounded-lg p-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">EspecificaÃ§Ãµes do Arquivo</h3>
+          {/* Especificações do arquivo */}
+          <div className="bg-muted rounded-lg p-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Especificações do Arquivo</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-card"></div>
+                <div className="w-3.5 h-3.5 border border-border rounded-full bg-card border-border"></div>
                 <div className="flex flex-col">
                   <span className="text-muted-foreground text-xs">Formato:</span>
                   <span className="text-sm">{selectedFormat?.name || formatLabel(currentPost?.formato || 'Feed')}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 border border-gray-300 rounded-full bg-card"></div>
+                <div className="w-3.5 h-3.5 border border-border rounded-full bg-card border-border"></div>
                 <div className="flex flex-col">
                   <span className="text-muted-foreground text-xs">Tipo:</span>
                   <span className="text-sm">Canva</span>
@@ -968,23 +968,23 @@ export default function ArtDetailPage() {
                   </svg>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">NÃºmero de identificaÃ§Ã£o:</span>
+                  <span className="text-muted-foreground text-xs">Número de identificação:</span>
                   <span className="text-sm">#{post.id}</span>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Formatos disponÃ­veis - Layout consistente */}
-          <div className="bg-secondary rounded-lg p-4">
+          {/* Formatos disponíveis - Layout consistente */}
+          <div className="bg-muted rounded-lg p-4">
             <div 
-              className={`flex items-center justify-between mb-3 ${allGroupPosts.length > 1 ? 'cursor-pointer hover:bg-gray-100 -m-2 p-2 rounded' : ''}`}
+              className={`flex items-center justify-between mb-3 ${allGroupPosts.length > 1 ? 'cursor-pointer hover:bg-muted -m-2 p-2 rounded' : ''}`}
               onClick={() => allGroupPosts.length > 1 && setFormatsExpanded(!formatsExpanded)}
             >
-              <h3 className="text-sm font-medium text-muted-foreground">Formatos disponÃ­veis</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">Formatos disponíveis</h3>
               <div className="flex items-center gap-2">
                 {allGroupPosts.length > 1 && (
-                  <span className="text-xs text-blue-600 font-medium">{allGroupPosts.length} opÃ§Ãµes</span>
+                  <span className="text-xs text-blue-600 font-medium">{allGroupPosts.length} opções</span>
                 )}
                 {allGroupPosts.length > 1 && (
                   <ChevronDown 
@@ -996,9 +996,9 @@ export default function ArtDetailPage() {
             </div>
             
             <div className="space-y-2">
-              {/* Post atual sempre visÃ­vel */}
+              {/* Post atual sempre visível */}
               <div 
-                className={`border border-border rounded-lg p-3 bg-card ${allGroupPosts.length > 1 ? 'cursor-pointer hover:border-blue-300 hover:shadow-sm' : ''} transition-all`}
+                className={`border border-border rounded-lg p-3 bg-card border-border ${allGroupPosts.length > 1 ? 'cursor-pointer hover:border-blue-300 hover:shadow-sm' : ''} transition-all`}
                 onClick={() => allGroupPosts.length > 1 && setFormatsExpanded(!formatsExpanded)}
               >
                 <div className="flex items-center justify-between">
@@ -1014,7 +1014,7 @@ export default function ArtDetailPage() {
                       <div className="text-sm font-medium text-foreground flex items-center gap-2">
                         {formatLabel(post?.formato || 'FEED')}
                         {post?.isPro && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:text-amber-300/80">
                             Premium
                           </span>
                         )}
@@ -1039,7 +1039,7 @@ export default function ArtDetailPage() {
                 </div>
               </div>
 
-              {/* Outras variaÃ§Ãµes de formato - sÃ³ aparecem quando expandido */}
+              {/* Outras variações de formato - só aparecem quando expandido */}
               <div className={`overflow-hidden transition-all duration-300 space-y-2 ${
                 formatsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
               }`}>
@@ -1072,16 +1072,16 @@ export default function ArtDetailPage() {
                   </div>
                 )}
                 
-                {/* Depois mostra os outros formatos disponÃ­veis */}
+                {/* Depois mostra os outros formatos disponíveis */}
                 {availableFormats
                   .filter(format => !format.isCurrent && (!selectedFormat || selectedFormat.id !== format.id))
                   .map((format, index: number) => (
                     <div 
                       key={`format-option-${format.id}-${index}`}
-                      className="border border-border rounded-lg p-3 bg-card cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
+                      className="border border-border rounded-lg p-3 bg-card border-border cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all"
                       onClick={() => {
-                        console.log('Navegando para a pÃ¡gina do formato:', format);
-                        // Navegar para a pÃ¡gina especÃ­fica do formato usando seu ID Ãºnico
+                        console.log('Navegando para a página do formato:', format);
+                        // Navegar para a página específica do formato usando seu ID único
                         const formatSlug = `${format.id}-${post.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
                         setLocation(`/arte/${formatSlug}`);
                       }}
@@ -1110,29 +1110,29 @@ export default function ArtDetailPage() {
             </div>
           </div>
           
-          {/* BotÃ£o principal de aÃ§Ã£o */}
+          {/* Botão principal de ação */}
           {!user ? (
-            // BotÃ£o desabilitado para usuÃ¡rios nÃ£o logados
+            // Botão desabilitado para usuários não logados
             <div className="space-y-3">
               {isPremium ? (
                 <>
-                  {/* BotÃ£o amarelo para artes premium quando nÃ£o logado */}
+                  {/* Botão amarelo para artes premium quando não logado */}
                   <Button 
                     onClick={() => setLocation('/planos')}
-                    className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                    className="w-full bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
                   >
                     <Crown size={16} className="text-white" />
                     <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
                     <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
                   </Button>
                   
-                  {/* Linha de aÃ§Ãµes */}
+                  {/* Linha de ações */}
                   <div className="flex items-center justify-center gap-3">
                     <Button 
                       onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
-                      className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                      className="border-border text-muted-foreground flex items-center gap-1.5"
                     >
                       <Heart size={16} />
                       <span>Favoritar</span>
@@ -1142,7 +1142,7 @@ export default function ArtDetailPage() {
                       onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
-                      className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                      className="border-border text-muted-foreground flex items-center gap-1.5"
                     >
                       <Bookmark size={16} />
                       <span>Salvar</span>
@@ -1152,7 +1152,7 @@ export default function ArtDetailPage() {
                       onClick={handleShare}
                       variant="outline"
                       size="sm"
-                      className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                      className="border-border text-muted-foreground flex items-center gap-1.5"
                     >
                       <Share2 size={16} />
                       <span>Compartilhar</span>
@@ -1160,20 +1160,20 @@ export default function ArtDetailPage() {
                   </div>
                   
                   {/* Aviso premium */}
-                  <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3">
                     <div className="flex items-start gap-2">
                       <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
-                        <p className="font-medium text-amber-800">Acesso Premium NecessÃ¡rio</p>
-                        <p className="text-amber-700 mt-1">
-                          Este produto estÃ¡ disponÃ­vel exclusivamente para os membros premium. FaÃ§a upgrade para uma conta Premium para ter acesso a todo o conteÃºdo premium.
+                        <p className="font-medium text-amber-800 dark:text-amber-400">Acesso Premium Necessário</p>
+                        <p className="text-amber-700 dark:text-amber-300/80 mt-1">
+                          Este produto está disponível exclusivamente para os membros premium. Faça upgrade para uma conta Premium para ter acesso a todo o conteúdo premium.
                         </p>
                       </div>
                     </div>
                   </div>
                 </>
               ) : (
-                /* BotÃ£o azul para artes gratuitas quando nÃ£o logado */
+                /* Botão azul para artes gratuitas quando não logado */
                 <>
                   <Button 
                     onClick={() => setLocation('/loguin')}
@@ -1184,16 +1184,16 @@ export default function ArtDetailPage() {
                       <polyline points="15 3 21 3 21 9" />
                       <line x1="10" y1="14" x2="21" y2="3" />
                     </svg>
-                    <span className="font-medium text-sm">FAÃ‡A LOGIN PARA EDITAR</span>
+                    <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
                   </Button>
                   
-                  {/* Linha de aÃ§Ãµes */}
+                  {/* Linha de ações */}
                   <div className="flex items-center justify-center gap-3">
                     <Button 
                       onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
-                      className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                      className="border-border text-muted-foreground flex items-center gap-1.5"
                     >
                       <Heart size={16} />
                       <span>Favoritar</span>
@@ -1203,7 +1203,7 @@ export default function ArtDetailPage() {
                       onClick={() => setLocation('/loguin')}
                       variant="outline"
                       size="sm"
-                      className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                      className="border-border text-muted-foreground flex items-center gap-1.5"
                     >
                       <Bookmark size={16} />
                       <span>Salvar</span>
@@ -1213,7 +1213,7 @@ export default function ArtDetailPage() {
                       onClick={handleShare}
                       variant="outline"
                       size="sm"
-                      className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                      className="border-border text-muted-foreground flex items-center gap-1.5"
                     >
                       <Share2 size={16} />
                       <span>Compartilhar</span>
@@ -1223,7 +1223,7 @@ export default function ArtDetailPage() {
               )}
             </div>
           ) : isPremium && !isUserPremium ? (
-            // Arte premium para usuÃ¡rios gratuitos - botÃ£o amarelo que redireciona para planos
+            // Arte premium para usuários gratuitos - botão amarelo que redireciona para planos
             <div className="space-y-3">
               <Button 
                 onClick={() => setLocation('/planos')}
@@ -1234,14 +1234,14 @@ export default function ArtDetailPage() {
                 <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
               </Button>
               
-              {/* Linha de aÃ§Ãµes */}
+              {/* Linha de ações */}
               <div className="flex items-center justify-center gap-3">
                 <Button 
                   onClick={postActions.handleLike}
                   variant="outline"
                   size="sm"
                   disabled={postActions.isLiking}
-                  className={`border-gray-300 flex items-center gap-1.5 ${
+                  className={`border-border flex items-center gap-1.5 ${
                     postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-muted-foreground"
                   }`}
                 >
@@ -1254,7 +1254,7 @@ export default function ArtDetailPage() {
                   variant="outline"
                   size="sm"
                   disabled={postActions.isSaving}
-                  className={`border-gray-300 flex items-center gap-1.5 ${
+                  className={`border-border flex items-center gap-1.5 ${
                     postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-muted-foreground"
                   }`}
                 >
@@ -1266,7 +1266,7 @@ export default function ArtDetailPage() {
                   onClick={handleShare}
                   variant="outline"
                   size="sm"
-                  className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                  className="border-border text-muted-foreground flex items-center gap-1.5"
                 >
                   <Share2 size={16} />
                   <span>Compartilhar</span>
@@ -1274,20 +1274,20 @@ export default function ArtDetailPage() {
               </div>
               
               {/* Aviso premium */}
-              <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3">
                 <div className="flex items-start gap-2">
                   <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium text-amber-800">Acesso Premium NecessÃ¡rio</p>
-                    <p className="text-amber-700 mt-1">
-                      Este produto estÃ¡ disponÃ­vel exclusivamente para os membros premium. FaÃ§a upgrade para uma conta Premium para ter acesso a todo o conteÃºdo premium.
+                    <p className="font-medium text-amber-800 dark:text-amber-400">Acesso Premium Necessário</p>
+                    <p className="text-amber-700 dark:text-amber-300/80 mt-1">
+                      Este produto está disponível exclusivamente para os membros premium. Faça upgrade para uma conta Premium para ter acesso a todo o conteúdo premium.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            // BotÃ£o normal para usuÃ¡rios com permissÃ£o (premium ou arte gratuita)
+            // Botão normal para usuários com permissão (premium ou arte gratuita)
             <div className="space-y-3">
               <Button 
                 onClick={handleEditCanva} 
@@ -1301,14 +1301,14 @@ export default function ArtDetailPage() {
                 <span className="font-medium text-sm">EDITAR NO CANVA</span>
               </Button>
               
-              {/* Linha de aÃ§Ãµes */}
+              {/* Linha de ações */}
               <div className="flex items-center justify-center gap-3">
                 <Button 
                   onClick={postActions.handleLike}
                   variant="outline"
                   size="sm"
                   disabled={postActions.isLiking}
-                  className={`border-gray-300 flex items-center gap-1.5 ${
+                  className={`border-border flex items-center gap-1.5 ${
                     postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-muted-foreground"
                   }`}
                 >
@@ -1321,7 +1321,7 @@ export default function ArtDetailPage() {
                   variant="outline"
                   size="sm"
                   disabled={postActions.isSaving}
-                  className={`border-gray-300 flex items-center gap-1.5 ${
+                  className={`border-border flex items-center gap-1.5 ${
                     postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-muted-foreground"
                   }`}
                 >
@@ -1333,7 +1333,7 @@ export default function ArtDetailPage() {
                   onClick={handleShare}
                   variant="outline"
                   size="sm"
-                  className="border-gray-300 text-muted-foreground flex items-center gap-1.5"
+                  className="border-border text-muted-foreground flex items-center gap-1.5"
                 >
                   <Share2 size={16} />
                   <span>Compartilhar</span>
@@ -1342,7 +1342,7 @@ export default function ArtDetailPage() {
             </div>
           )}
           
-          {/* InformaÃ§Ãµes do criador */}
+          {/* Informações do criador */}
           <div className="border-t pt-4 mt-2">
             <div className="flex items-center justify-between">
               {authorLoading ? (
@@ -1373,7 +1373,7 @@ export default function ArtDetailPage() {
                   </Avatar>
                   <div>
                     <p className="font-medium hover:text-blue-600 transition-colors">
-                      {author?.username || 'Design para EstÃ©tica'}
+                      {author?.username || 'Design para Estética'}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}
@@ -1382,14 +1382,14 @@ export default function ArtDetailPage() {
                 </div>
               )}
               
-              {/* BotÃ£o de seguir ao lado do nome do autor */}
+              {/* Botão de seguir ao lado do nome do autor */}
               {!authorLoading && author && user && user.id !== author.id && (
                 <Button
                   size="sm"
                   onClick={handleFollow}
                   disabled={followLoading}
                   className={isFollowing 
-                    ? "bg-gray-100 hover:bg-gray-200 text-muted-foreground border border-gray-300" 
+                    ? "bg-muted hover:bg-gray-200 text-muted-foreground border border-border" 
                     : "bg-blue-600 hover:bg-blue-700 text-white border-0"
                   }
                 >
@@ -1397,7 +1397,7 @@ export default function ArtDetailPage() {
                 </Button>
               )}
               
-              {/* BotÃ£o "Seguir" para demonstraÃ§Ã£o quando nÃ£o logado */}
+              {/* Botão "Seguir" para demonstração quando não logado */}
               {!user && !authorLoading && author && (
                 <Button
                   size="sm"
@@ -1412,7 +1412,7 @@ export default function ArtDetailPage() {
         </div>
       </div>
       
-      {/* SeÃ§Ã£o de artes relacionadas - Layout responsivo igual ao feed */}
+      {/* Seção de artes relacionadas - Layout responsivo igual ao feed */}
       {relatedArtworks && relatedArtworks.length > 0 && (
         <RelatedArtworksSection artworks={relatedArtworks} />
       )}

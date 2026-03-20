@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,8 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const loginSchema = z.object({
-  email: z.string().email("E-mail invÃ¡lido").min(1, "E-mail Ã© obrigatÃ³rio"),
-  password: z.string().min(1, "Senha Ã© obrigatÃ³ria"),
+  email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
+  password: z.string().min(1, "Senha é obrigatória"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -37,7 +37,7 @@ export default function LoginPage() {
     },
   });
 
-  // Redirecionar se jÃ¡ estiver logado
+  // Redirecionar se já estiver logado
   useEffect(() => {
     if (user) {
       navigate("/");
@@ -58,33 +58,33 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-6">
-      {/* Texto de cabeÃ§alho */}
+      {/* Texto de cabeçalho */}
       <div className="text-center">
-        <p className="text-gray-600 text-sm">
+        <p className="text-muted-foreground text-sm">
           Acesse sua conta ou crie uma nova para continuar
         </p>
       </div>
 
       {/* Abas Login/Cadastro */}
-      <div className="flex bg-gray-100 rounded-lg p-1">
+      <div className="flex bg-muted rounded-lg p-1">
         <button
           type="button"
-          className="flex-1 py-2 text-center text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm"
+          className="flex-1 py-2 text-center text-sm font-medium rounded-md bg-card border-border text-foreground shadow-sm"
         >
           Login
         </button>
         <Link
           to="/auth/register"
-          className="flex-1 py-2 text-center text-sm font-medium rounded-md text-gray-500 hover:text-gray-900"
+          className="flex-1 py-2 text-center text-sm font-medium rounded-md text-muted-foreground hover:text-foreground"
         >
           Cadastre-se
         </Link>
       </div>
 
-      {/* TÃ­tulo da seÃ§Ã£o */}
+      {/* Título da seção */}
       <div className="text-left">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Login</h2>
-        <p className="text-sm text-gray-600">Entre com suas credenciais para acessar sua conta</p>
+        <h2 className="text-xl font-semibold text-foreground mb-2">Login</h2>
+        <p className="text-sm text-muted-foreground">Entre com suas credenciais para acessar sua conta</p>
       </div>
 
       <Form {...form}>
@@ -95,13 +95,13 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
+                  <FormLabel className="text-muted-foreground font-medium">Email</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="exemplo@email.com"
                       type="email"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-12 border-border focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -116,13 +116,13 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Senha</FormLabel>
+                  <FormLabel className="text-muted-foreground font-medium">Senha</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="••••••••"
                       type="password"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-12 border-border focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />

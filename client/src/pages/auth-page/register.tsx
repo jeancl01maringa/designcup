@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,29 +18,29 @@ import { Button } from "@/components/ui/button";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  email: z.string().email("E-mail invÃ¡lido").min(1, "E-mail Ã© obrigatÃ³rio"),
+  email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  whatsapp: z.string().min(10, "WhatsApp deve ter pelo menos 10 dÃ­gitos").optional().or(z.literal("")),
+  whatsapp: z.string().min(10, "WhatsApp deve ter pelo menos 10 dígitos").optional().or(z.literal("")),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-// MÃ¡scaras por paÃ­s
+// Máscaras por país
 const COUNTRY_MASKS = {
   '+55': '(99) 99999-9999', // Brasil
   '+1': '(999) 999-9999',   // EUA
   '+54': '(99) 9999-9999',  // Argentina
   '+56': '9 9999 9999',     // Chile
-  '+57': '(999) 999-9999',  // ColÃ´mbia
+  '+57': '(999) 999-9999',  // Colômbia
   '+593': '99 999 9999',    // Equador
   '+51': '999 999 999',     // Peru
   '+598': '99 999 999',     // Uruguai
   '+58': '(999) 999-9999',  // Venezuela
   '+595': '(999) 999-999',  // Paraguai
-  '+591': '9999-9999'       // BolÃ­via
+  '+591': '9999-9999'       // Bolívia
 };
 
-// FunÃ§Ã£o para aplicar mÃ¡scara
+// Função para aplicar máscara
 function applyMask(value: string, mask: string): string {
   const cleanValue = value.replace(/\D/g, '');
   let maskedValue = '';
@@ -61,7 +61,7 @@ function applyMask(value: string, mask: string): string {
   return maskedValue;
 }
 
-// FunÃ§Ã£o para validar WhatsApp por paÃ­s
+// Função para validar WhatsApp por país
 function validateWhatsAppByCountry(phoneNumber: string, countryCode: string): boolean {
   const cleanNumber = phoneNumber.replace(/\D/g, '');
 
@@ -74,7 +74,7 @@ function validateWhatsAppByCountry(phoneNumber: string, countryCode: string): bo
       return cleanNumber.length >= 8 && cleanNumber.length <= 10;
     case '+56': // Chile
       return cleanNumber.length === 8 || cleanNumber.length === 9;
-    case '+57': // ColÃ´mbia
+    case '+57': // Colômbia
       return cleanNumber.length === 10;
     case '+593': // Equador
       return cleanNumber.length === 8 || cleanNumber.length === 9;
@@ -86,7 +86,7 @@ function validateWhatsAppByCountry(phoneNumber: string, countryCode: string): bo
       return cleanNumber.length === 10;
     case '+595': // Paraguai
       return cleanNumber.length === 9;
-    case '+591': // BolÃ­via
+    case '+591': // Bolívia
       return cleanNumber.length === 8;
     default:
       return cleanNumber.length >= 8 && cleanNumber.length <= 15;
@@ -108,7 +108,7 @@ export default function RegisterPage() {
     },
   });
 
-  // Redirecionar se jÃ¡ estiver logado
+  // Redirecionar se já estiver logado
   useEffect(() => {
     if (user) {
       navigate("/");
@@ -126,7 +126,7 @@ export default function RegisterPage() {
   });
 
   const onSubmit = (values: RegisterFormValues) => {
-    // Combinar cÃ³digo do paÃ­s com o nÃºmero do WhatsApp
+    // Combinar código do país com o número do WhatsApp
     const cleanWhatsApp = values.whatsapp ? values.whatsapp.replace(/\D/g, '') : '';
     const fullWhatsApp = cleanWhatsApp ? `${selectedCountryCode}${cleanWhatsApp}` : '';
 
@@ -138,33 +138,33 @@ export default function RegisterPage() {
 
   return (
     <div className="space-y-6">
-      {/* Texto de cabeÃ§alho */}
+      {/* Texto de cabeçalho */}
       <div className="text-center">
-        <p className="text-gray-600 text-sm">
+        <p className="text-muted-foreground text-sm">
           Acesse sua conta ou crie uma nova para continuar
         </p>
       </div>
 
       {/* Abas Login/Cadastro */}
-      <div className="flex bg-gray-100 rounded-lg p-1">
+      <div className="flex bg-muted rounded-lg p-1">
         <Link
           to="/auth/login"
-          className="flex-1 py-2 text-center text-sm font-medium rounded-md text-gray-500 hover:text-gray-900"
+          className="flex-1 py-2 text-center text-sm font-medium rounded-md text-muted-foreground hover:text-foreground"
         >
           Login
         </Link>
         <button
           type="button"
-          className="flex-1 py-2 text-center text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm"
+          className="flex-1 py-2 text-center text-sm font-medium rounded-md bg-card border-border text-foreground shadow-sm"
         >
           Cadastre-se
         </button>
       </div>
 
-      {/* TÃ­tulo da seÃ§Ã£o */}
+      {/* Título da seção */}
       <div className="text-left">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Cadastre-se</h2>
-        <p className="text-sm text-gray-600">Crie sua conta para comeÃ§ar a usar nossa plataforma</p>
+        <h2 className="text-xl font-semibold text-foreground mb-2">Cadastre-se</h2>
+        <p className="text-sm text-muted-foreground">Crie sua conta para começar a usar nossa plataforma</p>
       </div>
 
       <Form {...form}>
@@ -175,12 +175,12 @@ export default function RegisterPage() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Nome completo</FormLabel>
+                  <FormLabel className="text-muted-foreground font-medium">Nome completo</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Seu nome completo"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-12 border-border focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -195,13 +195,13 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
+                  <FormLabel className="text-muted-foreground font-medium">Email</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="exemplo@email.com"
                       type="email"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-12 border-border focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -216,15 +216,15 @@ export default function RegisterPage() {
               name="whatsapp"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">WhatsApp</FormLabel>
+                  <FormLabel className="text-muted-foreground font-medium">WhatsApp</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
                       <select
-                        className="h-12 bg-white border border-gray-300 rounded-lg px-3 text-sm text-gray-700 w-28 flex-shrink-0 outline-none transition-colors focus:border-[#F84930] focus:ring-2 focus:ring-[#F84930]/20"
+                        className="h-12 bg-card border-border border border-border rounded-lg px-3 text-sm text-muted-foreground w-28 flex-shrink-0 outline-none transition-colors focus:border-[#F84930] focus:ring-2 focus:ring-[#F84930]/20"
                         value={selectedCountryCode}
                         onChange={(e) => {
                           setSelectedCountryCode(e.target.value);
-                          // Reaplica a mÃ¡scara quando o paÃ­s muda
+                          // Reaplica a máscara quando o país muda
                           if (field.value) {
                             const newMask = COUNTRY_MASKS[e.target.value as keyof typeof COUNTRY_MASKS] || COUNTRY_MASKS['+55'];
                             field.onChange(applyMask(field.value, newMask));
@@ -256,18 +256,18 @@ export default function RegisterPage() {
                           field.onChange(maskedValue);
                         }}
                         onBlur={() => {
-                          // ValidaÃ§Ã£o quando o campo perde o foco
+                          // Validação quando o campo perde o foco
                           const isValid = validateWhatsAppByCountry(field.value || '', selectedCountryCode);
                           if (field.value && !isValid) {
                             form.setError('whatsapp', {
                               type: 'manual',
-                              message: `NÃºmero de WhatsApp invÃ¡lido para ${selectedCountryCode === '+55' ? 'Brasil' : 'o paÃ­s selecionado'}`
+                              message: `Número de WhatsApp inválido para ${selectedCountryCode === '+55' ? 'Brasil' : 'o país selecionado'}`
                             });
                           } else {
                             form.clearErrors('whatsapp');
                           }
                         }}
-                        className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930] flex-1"
+                        className="h-12 border-border focus:border-[#F84930] focus:ring-[#F84930] flex-1"
                       />
                     </div>
                   </FormControl>
@@ -283,13 +283,13 @@ export default function RegisterPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Senha</FormLabel>
+                  <FormLabel className="text-muted-foreground font-medium">Senha</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="••••••••"
                       type="password"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-12 border-border focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />

@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const loginSchema = z.object({
-  email: z.string().email("E-mail invÃ¡lido").min(1, "E-mail Ã© obrigatÃ³rio"),
-  password: z.string().min(1, "Senha Ã© obrigatÃ³ria"),
+  email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
+  password: z.string().min(1, "Senha é obrigatória"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -26,7 +26,7 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation } = useAuth();
 
-  // Redirecionar para home apÃ³s login bem-sucedido
+  // Redirecionar para home após login bem-sucedido
   useEffect(() => {
     if (loginMutation.isSuccess && user) {
       navigate("/");
@@ -48,22 +48,22 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       {/* Abas Login/Cadastro */}
-      <div className="flex bg-gray-100 rounded-xl p-1">
+      <div className="flex bg-muted rounded-xl p-1">
         <button
           type="button"
-          className="flex-1 py-3 text-center text-sm font-semibold rounded-lg bg-white text-gray-900 shadow-sm border border-gray-200"
+          className="flex-1 py-3 text-center text-sm font-semibold rounded-lg bg-card border-border text-foreground shadow-sm border border-border"
         >Entrar</button>
         <Link
           to="/loguin/cadastro"
-          className="flex-1 py-3 text-center text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 transition-colors"
+          className="flex-1 py-3 text-center text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground transition-colors"
         >
           Cadastre-se
         </Link>
       </div>
-      {/* TÃ­tulo da seÃ§Ã£o */}
+      {/* Título da seção */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre com sua conta</h2>
-        <p className="text-sm text-gray-600">Entre com suas credenciais para acessar sua conta</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Entre com sua conta</h2>
+        <p className="text-sm text-muted-foreground">Entre com suas credenciais para acessar sua conta</p>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -72,13 +72,13 @@ export default function LoginPage() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
+                <FormLabel className="text-muted-foreground font-medium">Email</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="exemplo@email.com"
                     type="email"
                     {...field}
-                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -91,13 +91,13 @@ export default function LoginPage() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Senha</FormLabel>
+                <FormLabel className="text-muted-foreground font-medium">Senha</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="••••••••"
                     type="password"
                     {...field}
-                    className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -124,7 +124,7 @@ export default function LoginPage() {
       <div className="text-center">
         <a
           href="#"
-          className="text-sm text-gray-500 hover:text-primary transition-colors"
+          className="text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           Esqueceu sua senha?
         </a>
