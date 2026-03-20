@@ -48,26 +48,26 @@ function applyMask(value: string, mask: string): string {
   const cleanValue = value.replace(/\D/g, '');
   let maskedValue = '';
   let maskIndex = 0;
-  
+
   for (let i = 0; i < cleanValue.length && maskIndex < mask.length; i++) {
     while (maskIndex < mask.length && mask[maskIndex] !== '9') {
       maskedValue += mask[maskIndex];
       maskIndex++;
     }
-    
+
     if (maskIndex < mask.length) {
       maskedValue += cleanValue[i];
       maskIndex++;
     }
   }
-  
+
   return maskedValue;
 }
 
 // Função para validar WhatsApp por país
 function validateWhatsAppByCountry(phoneNumber: string, countryCode: string): boolean {
   const cleanNumber = phoneNumber.replace(/\D/g, '');
-  
+
   switch (countryCode) {
     case '+55': // Brasil
       return cleanNumber.length >= 10 && cleanNumber.length <= 11;
@@ -100,7 +100,7 @@ export default function RegisterPage() {
   const [, navigate] = useLocation();
   const { user, registerMutation } = useAuth();
   const [selectedCountryCode, setSelectedCountryCode] = useState('+55');
-  
+
   // Redirecionar para home após cadastro bem-sucedido
   useEffect(() => {
     if (registerMutation.isSuccess && user) {
@@ -123,7 +123,7 @@ export default function RegisterPage() {
     // Combinar código do país com o número do WhatsApp
     const cleanWhatsApp = values.whatsapp ? values.whatsapp.replace(/\D/g, '') : '';
     const fullWhatsApp = cleanWhatsApp ? `${selectedCountryCode}${cleanWhatsApp}` : '';
-    
+
     registerMutation.mutate({
       ...values,
       whatsapp: fullWhatsApp
@@ -134,7 +134,7 @@ export default function RegisterPage() {
     <div className="space-y-6">
       {/* Abas Login/Cadastro */}
       <div className="flex bg-gray-100 rounded-xl p-1">
-        <Link 
+        <Link
           to="/loguin"
           className="flex-1 py-3 text-center text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 transition-colors"
         >
@@ -192,7 +192,7 @@ export default function RegisterPage() {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="whatsapp"
@@ -201,7 +201,7 @@ export default function RegisterPage() {
                 <FormLabel className="text-gray-700 font-medium">WhatsApp</FormLabel>
                 <FormControl>
                   <div className="flex gap-2">
-                    <select 
+                    <select
                       className="h-12 bg-white border border-gray-300 rounded-lg px-3 text-sm text-gray-700 w-28 flex-shrink-0 outline-none transition-colors focus:border-[#171a2b] focus:ring-2 focus:ring-[#171a2b]/20"
                       value={selectedCountryCode}
                       onChange={(e) => {
@@ -296,9 +296,9 @@ export default function RegisterPage() {
             )}
           />
 
-          <Button 
-            type="submit" 
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg shadow-lg"
+          <Button
+            type="submit"
+            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-primary to-blue-500 hover:opacity-90 transition-all duration-200 rounded-lg shadow-lg"
             disabled={registerMutation.isPending}
           >
             {registerMutation.isPending ? "Criando conta..." : "Cadastrar"}

@@ -6,7 +6,7 @@ import RegisterPage from "./register";
 
 export default function LoguinPage() {
   const [location, navigate] = useLocation();
-  
+
   // Buscar logo oficial configurado
   const { data: logoData } = useQuery({
     queryKey: ['/api/logo'],
@@ -16,7 +16,7 @@ export default function LoguinPage() {
       return res.json();
     },
   });
-  
+
 
 
   // Facebook Pixel tracking
@@ -28,12 +28,12 @@ export default function LoguinPage() {
       console.log('📊 Facebook Pixel: PageView tracked', { pageName: 'loguin' });
     }
   }, []);
-  
+
   return (
     <div className="min-h-screen relative flex items-center justify-center bg-gray-50">
       {/* Gradiente sutil de fundo */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 to-amber-50/30" />
-      
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50" />
+
       {/* Modal centralizado */}
       <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 border border-gray-200/50">
         {/* Logo no topo do modal */}
@@ -41,19 +41,19 @@ export default function LoguinPage() {
           {logoData?.imageUrl ? (
             <img
               src={logoData.imageUrl}
-              alt="Estetflix"
+              alt="DesignCup"
               className="h-12 mx-auto mb-4"
             />
           ) : logoData?.dataUrl ? (
             <img
               src={logoData.dataUrl}
-              alt="Estetflix"
+              alt="DesignCup"
               className="h-12 mx-auto mb-4"
             />
           ) : (
             <div className="flex items-center justify-center mb-4">
-              <div className="bg-gradient-to-r from-[#F84930] to-[#F8A441] text-white px-4 py-2 rounded-lg">
-                <span className="text-xl font-bold">🤍 Estetflix</span>
+              <div className="bg-gradient-to-r from-[#0066FF] to-[#3B82F6] text-white px-4 py-2 rounded-lg">
+                <span className="text-xl font-bold">DesignCup</span>
               </div>
             </div>
           )}
@@ -61,7 +61,7 @@ export default function LoguinPage() {
             Acesse sua conta ou crie uma nova para continuar
           </p>
         </div>
-        
+
         <Switch>
           <Route path="/loguin/cadastro" component={RegisterPage} />
           <Route path="/loguin" component={LoginPage} />

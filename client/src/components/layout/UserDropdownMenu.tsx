@@ -1,5 +1,5 @@
 import React from 'react';
-import { 
+import {
   User,
   LogOut,
   CreditCard,
@@ -71,16 +71,16 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
     if (planLoading) {
       return 'Carregando...';
     }
-    
+
     if (userPlan) {
       return userPlan.planName;
     }
-    
+
     // Verificar primeiro se o usuário é premium nos dados já carregados
     if (user?.tipo === 'premium') {
       return 'Premium';
     }
-    
+
     return 'Plano Gratuito';
   };
 
@@ -92,11 +92,11 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex justify-end items-start pt-16"
       onClick={handleOverlayClick}
     >
-      <div 
+      <div
         className="mr-2 w-[260px] md:w-[280px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-80px)] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -104,8 +104,8 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         <div className="bg-gray-800 pt-4 pb-3 px-4 md:pt-6 md:pb-4 md:px-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden flex-shrink-0">
-              <img 
-                src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=1D1D1D&color=fff`} 
+              <img
+                src={user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=1D1D1D&color=fff`}
                 alt={user.username}
                 className="w-full h-full object-cover"
               />
@@ -115,20 +115,20 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               <p className="text-gray-300 text-xs md:text-sm truncate mb-3">{user.email}</p>
             </div>
           </div>
-          
+
           {/* Botão de upgrade para usuários gratuitos */}
           {user?.tipo !== 'premium' && (!userPlan || userPlan.planName === 'Plano Gratuito') && (
             <div className="mt-4">
               <button
                 onClick={() => handleClick('/planos')}
-                className="bg-gradient-to-r from-[#F84830] to-[#F8A441] hover:from-[#E03E28] hover:to-[#E89538] text-white font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center justify-center gap-2 text-xs md:text-sm w-full border-0 shadow-sm"
+                className="bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center justify-center gap-2 text-xs md:text-sm w-full border-0 shadow-sm"
               >
                 <Crown className="w-4 h-4 text-white" />
                 Assinar Premium
               </button>
             </div>
           )}
-          
+
           {/* Para usuários premium */}
           {(user?.tipo === 'premium' || (userPlan && userPlan.planName !== 'Plano Gratuito')) && (
             <div className="bg-amber-50 text-amber-700 py-2 px-4 rounded-md border border-amber-200/50 mt-3">
@@ -143,12 +143,12 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         {/* Lista de opções */}
         <ul className="py-1">
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <button 
+            <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/perfil')}
             >
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                <User className="w-5 h-5 text-blue-500" />
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-gray-800">Minha conta</p>
@@ -158,7 +158,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           </li>
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <button 
+            <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/assinatura')}
             >
@@ -173,7 +173,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           </li>
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <button 
+            <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/edicoes-recentes')}
             >
@@ -193,7 +193,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           </li>
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <button 
+            <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/curtidas')}
             >
@@ -208,7 +208,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           </li>
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <button 
+            <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/salvos')}
             >
@@ -223,7 +223,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           </li>
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <button 
+            <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/seguindo')}
             >
@@ -245,9 +245,9 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         <ul className="py-1">
           {whatsappUrl && (
             <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-              <a 
+              <a
                 href={`${whatsappUrl}?text=Olá, preciso de ajuda!`}
-                target="_blank" 
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
                 onClick={onClose}
@@ -264,7 +264,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           )}
 
           <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
-            <button 
+            <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={handleLogout}
             >

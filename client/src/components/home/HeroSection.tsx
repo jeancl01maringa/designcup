@@ -49,28 +49,27 @@ export default function HeroSection() {
     }
   };
   return (
-    <section className="bg-gradient-to-b from-[#FFF8F1] to-[#FFFEFB] pt-16 sm:pt-20 pb-8 md:pb-12">
+    <section className="bg-background pt-16 sm:pt-20 pb-8 md:pb-12">
       <div className="container-global flex flex-col items-center text-center">
         {/* Badges - Always side by side */}
         <div className="flex flex-row justify-center gap-2 sm:gap-4 md:gap-6 mb-4 sm:mb-6 px-4">
-          <div className="bg-white/70 backdrop-blur-sm rounded-full py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 flex items-center justify-center shadow-sm border border-white/20 text-center">
-            <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 fill-yellow-500 mr-1 sm:mr-1.5 flex-shrink-0" />
-            <span className="text-xs font-medium text-[#1D1D1D] whitespace-nowrap">Artes Premium e Exclusivas</span>
+          <div className="bg-background/70 dark:bg-card/70 backdrop-blur-sm rounded-full py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 flex items-center justify-center shadow-sm border border-border text-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Canva_icon_2021.svg" alt="Canva" className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+            <span className="text-[14px] font-medium text-foreground whitespace-nowrap">Templates Canva</span>
           </div>
         </div>
-        
+
         {/* Main Heading - Fixed line breaks */}
-        <h1 className="font-light text-[#393B40] leading-tight mb-4 sm:mb-6 font-montserrat px-4 sm:px-0">
-          <span className="block text-[22px] md:text-[44px]">A Melhor plataforma de Artes</span>
-          <span className="block text-[22px] md:text-[44px] font-bold bg-gradient-to-r from-[#F84930] to-[#F8A441] bg-clip-text text-transparent">para Estética do Brasil</span>
+        <h1 className="font-normal text-foreground leading-tight mb-4 sm:mb-6 font-sans px-4 sm:px-0">
+          <span className="block text-[24px] md:text-[46px]">Conheça a DesignCup,</span>
+          <span className="block text-[24px] md:text-[46px] bg-gradient-to-r from-[#E3CF8D] to-[#FFFFFF] bg-clip-text text-transparent">plataforma de artes profissionais</span>
         </h1>
-        
+
         {/* Description - Reduced font sizes */}
-        <p className="text-[#4B4B4B] text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-3xl font-sans font-light leading-relaxed px-4 sm:px-0">
-          <span className="text-[#393B40] font-semibold">Artes 100% editáveis</span> para sua <span className="text-[#393B40] font-semibold">clínica de estética,</span> criadas para facilitar<br className="hidden sm:block" /> 
-          sua rotina com <span className="text-[#393B40] font-semibold">qualidade profissional.</span>
+        <p className="text-muted-foreground text-[16px] md:text-[18px] mb-6 sm:mb-8 max-w-3xl font-sans font-light leading-relaxed px-4 sm:px-0">
+          <span className="text-foreground font-semibold">Artes 100% editáveis</span> para <span className="text-foreground font-semibold">lojas de camisas de futebol.</span>
         </p>
-        
+
         {/* Search Bar with Format Dropdown - Hidden on mobile */}
         <div className="hidden md:block w-full max-w-2xl mt-8">
           <form onSubmit={handleSearch} className="relative flex items-center">
@@ -79,23 +78,23 @@ export default function HeroSection() {
               placeholder="Busque por artes, categorias, temas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-4 px-6 pr-40 rounded-xl border border-gray-200 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#AA5E2F]/40 focus:border-[#AA5E2F] transition-all font-sans text-base placeholder:text-gray-400"
+              className="w-full py-4 px-6 pr-40 rounded-xl border border-border bg-background/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all font-sans text-base placeholder:text-muted-foreground text-foreground"
             />
-            
+
             {/* Format Dropdown - Positioned to the right */}
-            <div className="absolute right-16 top-1/2 -translate-y-1/2 border-l border-gray-200 pl-4">
+            <div className="absolute right-16 top-1/2 -translate-y-1/2 border-l border-border pl-4">
               <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-                  className="flex items-center justify-between text-sm font-medium px-3 py-2 min-w-[110px] text-gray-700 bg-transparent hover:bg-gray-50 rounded-md transition-colors duration-150 focus:outline-none"
+                  className="flex items-center justify-between text-sm font-medium px-3 py-2 min-w-[110px] text-foreground bg-transparent hover:bg-accent rounded-md transition-colors duration-150 focus:outline-none"
                 >
                   <span>{getFormatName(selectedFormat)}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
+                  <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
                 </button>
-                
+
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]" style={{ zIndex: 9999 }}>
+                  <div className="absolute right-0 mt-2 w-44 bg-popover border border-border rounded-lg shadow-xl z-[9999]" style={{ zIndex: 9999 }}>
                     <div className="py-2">
                       {formats.map(format => (
                         <button
@@ -103,9 +102,9 @@ export default function HeroSection() {
                           type="button"
                           onClick={() => selectFormat(format.id)}
                           className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
-                            ${format.id === selectedFormat 
-                              ? 'bg-gray-100 text-gray-900 font-medium border-l-2 border-gray-400' 
-                              : 'text-gray-700 hover:bg-gray-100'}`}
+                            ${format.id === selectedFormat
+                              ? 'bg-accent text-accent-foreground font-medium border-l-2 border-primary'
+                              : 'text-foreground hover:bg-accent'}`}
                         >
                           <div className="w-5 h-5 flex items-center justify-center">
                             {format.id === 'feed' && (
@@ -142,10 +141,10 @@ export default function HeroSection() {
                 )}
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-[#191c2c] hover:bg-[#14182a] shadow-lg transition-all duration-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-4 rounded-xl bg-primary hover:opacity-90 shadow-lg transition-all duration-200 border-0"
             >
               <Search className="h-5 w-5 text-white" />
             </Button>

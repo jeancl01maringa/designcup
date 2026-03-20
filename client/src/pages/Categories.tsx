@@ -68,7 +68,7 @@ export default function Categories() {
           // Buscar o post pela API para verificar se existe
           const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
           const results = await response.json();
-          
+
           if (results && results.length > 0) {
             // Se encontrou o post, navegar para ele
             navigate(`/preview/${searchQuery.trim()}`);
@@ -134,17 +134,17 @@ export default function Categories() {
       {/* Hero Section - Exactly matching Home Page */}
       <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] py-8 md:py-12">
         <div className="container-global flex flex-col items-center text-center">
-          
+
           {/* Main Heading - Same fonts and styling as home */}
-          <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-[#1D1D1D] leading-tight mb-4 md:mb-6 font-montserrat">
+          <h1 className="text-xl md:text-3xl lg:text-4xl font-normal text-foreground leading-tight mb-4 md:mb-6 font-sans">
             Categorias
           </h1>
-          
+
           {/* Description - Same styling as home */}
           <p className="text-[#4B4B4B] text-sm md:text-base mb-4 md:mb-6 max-w-2xl font-sans font-light">
             Encontre artes organizadas por categoria para facilitar sua navegação e personalização.
           </p>
-          
+
           <div className="w-full max-w-[480px] mx-auto px-3 sm:px-6">
             <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-3 sm:pl-[15px] pr-2 sm:pr-[6px]">
               <input
@@ -155,9 +155,9 @@ export default function Categories() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
-              
+
               <div className="w-px h-6 bg-[#e0e0e0] mx-2.5"></div>
-              
+
               <div className="relative flex-shrink-0" ref={dropdownRef}>
                 <button
                   type="button"
@@ -169,7 +169,7 @@ export default function Categories() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                
+
                 {showFormatDropdown && (
                   <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-[9999] shadow-lg">
                     <div className="py-2">
@@ -178,8 +178,8 @@ export default function Categories() {
                           key={format.id}
                           type="button"
                           className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50
-                            ${format.name === selectedFormat 
-                              ? 'bg-blue-50 text-blue-700 font-medium' 
+                            ${format.name === selectedFormat
+                              ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-700'}`}
                           onClick={() => selectFormat(format.name)}
                         >
@@ -190,7 +190,7 @@ export default function Categories() {
                   </div>
                 )}
               </div>
-              
+
               <button
                 type="button"
                 onClick={handleSearch}
@@ -221,8 +221,8 @@ export default function Categories() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredCategories.map((category) => (
                 <div key={category.id} className="w-full">
-                  <Link 
-                    href={`/categorias/${category.slug || category.id}`} 
+                  <Link
+                    href={`/categorias/${category.slug || category.id}`}
                     className="block group cursor-pointer"
                   >
                     {/* Grid 2x2 de imagens com overlay */}
@@ -235,8 +235,8 @@ export default function Categories() {
                             <div key={index} className="relative overflow-hidden">
                               {post ? (
                                 <>
-                                  <img 
-                                    src={post.image} 
+                                  <img
+                                    src={post.image}
                                     alt={post.title}
                                     className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300"
                                     loading="lazy"
@@ -251,7 +251,7 @@ export default function Categories() {
                           );
                         })}
                       </div>
-                      
+
                       {/* Overlay com informações da categoria */}
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center text-white p-4">

@@ -3,12 +3,12 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Home, 
-  FileText, 
-  Settings, 
-  LogOut, 
-  Menu, 
+import {
+  Home,
+  FileText,
+  Settings,
+  LogOut,
+  Menu,
   ChevronLeft,
   Users,
   FolderOpen,
@@ -29,11 +29,14 @@ import {
   CreditCard,
   BookOpen,
   Play,
-  Wrench
+  Wrench,
+  Sun,
+  Moon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@shared/schema";
 import { usePlatformLogo } from "@/hooks/use-platform-logo";
+import { useTheme } from "@/components/theme-provider";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -46,6 +49,11 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [, setLocation] = useLocation();
   const { logoUrl, hasCustomLogo } = usePlatformLogo();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   // Itens do menu da sidebar com seus respectivos ícones e caminhos
   const menuItems = [
@@ -200,8 +208,8 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
   };
 
   const toggleSubmenu = (menuId: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(menuId) 
+    setExpandedMenus(prev =>
+      prev.includes(menuId)
         ? prev.filter(id => id !== menuId)
         : [...prev, menuId]
     );
@@ -209,8 +217,8 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
 
   // Função para encontrar qual dropdown contém a página atual
   const findParentMenu = (path: string) => {
-    return menuItems.find(item => 
-      item.hasSubmenu && 
+    return menuItems.find(item =>
+      item.hasSubmenu &&
       item.subItems?.some(subItem => subItem.path === path)
     )?.id;
   };
@@ -227,18 +235,18 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
     <>
       {/* Overlay para dispositivos móveis */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
           onClick={onToggle}
         />
       )}
-      
+
       {/* Sidebar */}
-      <aside 
+      <aside
         className={cn(
           "fixed z-50 flex flex-col h-full bg-background border-r transition-all duration-300 ease-in-out",
-          isOpen 
-            ? "w-60 left-0" 
+          isOpen
+            ? "w-60 left-0"
             : "w-0 -left-full md:left-0 md:w-16"
         )}
       >
@@ -252,9 +260,9 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                   {isOpen ? (
                     <div className="flex items-center gap-2">
                       {hasCustomLogo ? (
-                        <img 
-                          src={logoUrl} 
-                          alt="Logo da Plataforma" 
+                        <img
+                          src={logoUrl}
+                          alt="Logo da Plataforma"
                           className="h-6 w-auto max-w-[120px] object-contain"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
@@ -268,9 +276,9 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                     </div>
                   ) : (
                     hasCustomLogo ? (
-                      <img 
-                        src={logoUrl} 
-                        alt="Logo" 
+                      <img
+                        src={logoUrl}
+                        alt="Logo"
                         className="h-6 w-6 object-contain"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -285,26 +293,26 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                 </div>
               </Link>
             </div>
-            
+
             {/* Botão para recolher a sidebar */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onToggle}
               className="h-6 w-6"
             >
               {isOpen ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
-          
+
           {/* Perfil do usuário */}
           <div className={cn(
             "flex items-center gap-3 p-4 border-b",
             !isOpen && "justify-center"
           )}>
             <Avatar className="h-10 w-10">
-              <AvatarImage 
-                src={userData?.profileImage || ""} 
+              <AvatarImage
+                src={userData?.profileImage || ""}
                 alt={userData?.username || "Admin"}
                 className="object-cover"
               />
@@ -312,7 +320,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                 {userData?.username?.slice(0, 2)?.toUpperCase() || "AD"}
               </AvatarFallback>
             </Avatar>
-            
+
             {isOpen && (
               <div className="overflow-hidden">
                 <p className="text-sm font-medium truncate">
@@ -324,7 +332,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
               </div>
             )}
           </div>
-          
+
           {/* Links de navegação */}
           <nav className="flex-1 overflow-y-auto py-4 px-2">
             <ul className="space-y-1">
@@ -352,14 +360,14 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                         {isOpen && (
                           <>
                             <span className="flex-1 text-left">{item.label}</span>
-                            {expandedMenus.includes(item.id) ? 
-                              <ChevronDown className="h-4 w-4" /> : 
+                            {expandedMenus.includes(item.id) ?
+                              <ChevronDown className="h-4 w-4" /> :
                               <ChevronRight className="h-4 w-4" />
                             }
                           </>
                         )}
                       </Button>
-                      
+
                       {/* Submenu items */}
                       {isOpen && expandedMenus.includes(item.id) && item.subItems && (
                         <div className="ml-4 mt-1 space-y-1">
@@ -413,7 +421,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                       </Button>
                     </Link>
                   )}
-                  
+
                   {item.separator && (
                     <div>
                       {isOpen && <Separator className="my-4" />}
@@ -424,11 +432,21 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
               ))}
             </ul>
           </nav>
-          
+
           {/* Rodapé da sidebar */}
-          <div className="p-4 mt-auto">
+          <div className="p-4 mt-auto flex flex-col items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleTheme}
+              className={cn("w-full flex items-center justify-start gap-2", !isOpen && "justify-center p-2 min-w-[32px]")}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isOpen && <span>{theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>}
+            </Button>
+
             {isOpen && (
-              <div className="text-xs text-center text-muted-foreground">
+              <div className="text-xs text-center text-muted-foreground w-full">
                 <p>Design para Estética</p>
                 <p className="mt-1">v1.0.0</p>
               </div>

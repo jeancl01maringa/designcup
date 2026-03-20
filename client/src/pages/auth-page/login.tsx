@@ -26,7 +26,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation } = useAuth();
-  
+
   // Buscar logo oficial configurado
   const { data: logoData } = useQuery({
     queryKey: ['/api/logo'],
@@ -36,7 +36,7 @@ export default function LoginPage() {
       return res.json();
     },
   });
-  
+
   // Redirecionar se já estiver logado
   useEffect(() => {
     if (user) {
@@ -73,7 +73,7 @@ export default function LoginPage() {
         >
           Login
         </button>
-        <Link 
+        <Link
           to="/auth/register"
           className="flex-1 py-2 text-center text-sm font-medium rounded-md text-gray-500 hover:text-gray-900"
         >
@@ -101,7 +101,7 @@ export default function LoginPage() {
                       placeholder="exemplo@email.com"
                       type="email"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
+                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -122,7 +122,7 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       type="password"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
+                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -131,9 +131,9 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg"
+          <Button
+            type="submit"
+            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-primary to-blue-500 hover:opacity-90 transition-all duration-200 rounded-lg"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? (

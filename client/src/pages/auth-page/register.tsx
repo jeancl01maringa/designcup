@@ -45,26 +45,26 @@ function applyMask(value: string, mask: string): string {
   const cleanValue = value.replace(/\D/g, '');
   let maskedValue = '';
   let maskIndex = 0;
-  
+
   for (let i = 0; i < cleanValue.length && maskIndex < mask.length; i++) {
     while (maskIndex < mask.length && mask[maskIndex] !== '9') {
       maskedValue += mask[maskIndex];
       maskIndex++;
     }
-    
+
     if (maskIndex < mask.length) {
       maskedValue += cleanValue[i];
       maskIndex++;
     }
   }
-  
+
   return maskedValue;
 }
 
 // Função para validar WhatsApp por país
 function validateWhatsAppByCountry(phoneNumber: string, countryCode: string): boolean {
   const cleanNumber = phoneNumber.replace(/\D/g, '');
-  
+
   switch (countryCode) {
     case '+55': // Brasil
       return cleanNumber.length >= 10 && cleanNumber.length <= 11;
@@ -97,7 +97,7 @@ export default function RegisterPage() {
   const [, navigate] = useLocation();
   const { user, registerMutation } = useAuth();
   const [selectedCountryCode, setSelectedCountryCode] = useState('+55');
-  
+
   // Buscar logo oficial configurado
   const { data: logoData } = useQuery({
     queryKey: ['/api/logo'],
@@ -107,7 +107,7 @@ export default function RegisterPage() {
       return res.json();
     },
   });
-  
+
   // Redirecionar se já estiver logado
   useEffect(() => {
     if (user) {
@@ -129,7 +129,7 @@ export default function RegisterPage() {
     // Combinar código do país com o número do WhatsApp
     const cleanWhatsApp = values.whatsapp ? values.whatsapp.replace(/\D/g, '') : '';
     const fullWhatsApp = cleanWhatsApp ? `${selectedCountryCode}${cleanWhatsApp}` : '';
-    
+
     registerMutation.mutate({
       ...values,
       whatsapp: fullWhatsApp
@@ -147,7 +147,7 @@ export default function RegisterPage() {
 
       {/* Abas Login/Cadastro */}
       <div className="flex bg-gray-100 rounded-lg p-1">
-        <Link 
+        <Link
           to="/auth/login"
           className="flex-1 py-2 text-center text-sm font-medium rounded-md text-gray-500 hover:text-gray-900"
         >
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                     <Input
                       placeholder="Seu nome completo"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
+                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -188,7 +188,7 @@ export default function RegisterPage() {
               )}
             />
           </div>
-          
+
           <div>
             <FormField
               control={form.control}
@@ -201,7 +201,7 @@ export default function RegisterPage() {
                       placeholder="exemplo@email.com"
                       type="email"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
+                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -219,7 +219,7 @@ export default function RegisterPage() {
                   <FormLabel className="text-gray-700 font-medium">WhatsApp</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
-                      <select 
+                      <select
                         className="h-12 bg-white border border-gray-300 rounded-lg px-3 text-sm text-gray-700 w-28 flex-shrink-0 outline-none transition-colors focus:border-[#F84930] focus:ring-2 focus:ring-[#F84930]/20"
                         value={selectedCountryCode}
                         onChange={(e) => {
@@ -257,7 +257,7 @@ export default function RegisterPage() {
                         }}
                         onBlur={() => {
                           // Validação quando o campo perde o foco
-                          const isValid = validateWhatsAppByCountry(field.value, selectedCountryCode);
+                          const isValid = validateWhatsAppByCountry(field.value || '', selectedCountryCode);
                           if (field.value && !isValid) {
                             form.setError('whatsapp', {
                               type: 'manual',
@@ -289,7 +289,7 @@ export default function RegisterPage() {
                       placeholder="••••••••"
                       type="password"
                       {...field}
-                      className="h-12 border-gray-300 focus:border-[#F84930] focus:ring-[#F84930]"
+                      className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -298,9 +298,9 @@ export default function RegisterPage() {
             />
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg"
+          <Button
+            type="submit"
+            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-primary to-blue-500 hover:opacity-90 transition-all duration-200 rounded-lg"
             disabled={registerMutation.isPending}
           >
             {registerMutation.isPending ? (

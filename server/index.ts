@@ -46,31 +46,37 @@ app.use((req, res, next) => {
 (async () => {
   // Initialize database with sample data
   try {
-    // Check if storage has seedDatabase method (DatabaseStorage)
-    if ('seedDatabase' in storage) {
-      log('Initializing database with sample data...');
-      await (storage as any).seedDatabase();
-      log('Database initialized successfully');
-    }
-    
-    // Verificar e criar tabelas de tags
-    log('Verificando e criando tabelas de tags...');
-    await ensureTagTablesExist();
+    const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
 
-    // Verificar e adicionar campos do Hotmart na tabela subscriptions
-    log('Verificando campos do Hotmart na tabela subscriptions...');
-    await ensureHotmartFieldsExist();
-    
+    if (isOfflineMode) {
+      log('Running in offline mode (dummy credentials detected). Skipping database initialization.');
+    } else {
+      // Check if storage has seedDatabase method (DatabaseStorage)
+      if ('seedDatabase' in storage) {
+        log('Initializing database with sample data...');
+        await (storage as any).seedDatabase();
+        log('Database initialized successfully');
+      }
+
+      // Verificar e criar tabelas de tags
+      log('Verificando e criando tabelas de tags...');
+      await ensureTagTablesExist();
+
+      // Verificar e adicionar campos do Hotmart na tabela subscriptions
+      log('Verificando campos do Hotmart na tabela subscriptions...');
+      await ensureHotmartFieldsExist();
+    }
+
     // Migração desabilitada temporariamente para evitar travamento
     // log('Configurando tabelas no Supabase...');
     // await setupSupabaseTables();
-    
+
     // log('Migrando dados para o Supabase...');
     // await migrateLocalDataToSupabase(db);
   } catch (error) {
     log(`Error initializing database: ${error}`);
   }
-  
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -97,7 +103,6 @@ app.use((req, res, next) => {
   server.listen({
     port,
     host: "0.0.0.0",
-    reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
   });

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,12 +7,15 @@
 /* Classe para esconder a barra de rolagem mas permitir rolagem */
 @layer utilities {
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE e Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE e Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari e Opera */
+    display: none;
+    /* Chrome, Safari e Opera */
   }
 }
 
@@ -63,26 +66,53 @@
 
 @layer base {
   :root {
-    --primary: 23 56% 43%;
+    --primary: 47 27% 54%;
+    /* #AA9C6A */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --muted: 35 100% 97%;
+    --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --border: 25 50% 90%;
+    --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 25 60% 96%;
+    --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --accent: 25 70% 96%;
+    --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --ring: 23 56% 43%;
+    --ring: 47 27% 54%;
     --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    /* #121212 */
+    --foreground: 0 0% 81.2%;
+    /* #CFCFCF */
+    --card: 0 0% 11%;
+    /* #1C1C1C */
+    --card-foreground: 0 0% 81.2%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 81.2%;
+    --primary: 47 27% 54%;
+    /* #AA9C6A */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 11%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 11%;
+    --input: 0 0% 11%;
+    --ring: 47 27% 54%;
   }
 
   * {
@@ -91,11 +121,18 @@
 
   body {
     font-family: 'Inter', sans-serif;
-    @apply antialiased bg-background text-[#1D1D1D];
+    font-weight: 400;
+    @apply antialiased bg-background text-foreground;
   }
-  
-  h1, h2, h3 {
-    font-family: 'Montserrat', sans-serif;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
   }
 }
 
@@ -103,33 +140,34 @@
   .hover-card {
     @apply transition-all duration-200 ease-in-out cursor-pointer;
   }
-  
+
   .hover-card:hover {
-    @apply transform scale-[1.03] shadow-[0_8px_20px_rgba(0,0,0,0.1)];
+    @apply transform scale-[1.03] shadow-[0_8px_20px_rgba(0, 0, 0, 0.1)];
   }
 
   .bg-secondary-light {
-    @apply bg-[#FFF4E9];
+    @apply bg-secondary;
   }
-  
+
   .text-primary-brown {
-    @apply text-[#AA5E2F];
+    @apply text-primary;
   }
-  
+
   .text-dark {
-    @apply text-[#1D1D1D];
+    @apply text-foreground;
   }
-  
+
   .btn-primary {
-    @apply bg-[#AA5E2F] text-white rounded-full px-4 py-2 hover:bg-[#95512A] transition-colors shadow-sm;
+    @apply bg-primary text-primary-foreground rounded-full px-4 py-2 hover:bg-primary/90 transition-colors shadow-sm;
   }
-  
+
   .category-badge {
     @apply text-xs font-medium px-3 py-1 rounded-full shadow-sm;
   }
 }
 
 @layer components {
+
   /* Estilos para o grid de imagens */
   .image-card {
     position: relative;
@@ -158,8 +196,10 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    z-index: 10 !important; /* Z-index moderado apenas dentro do card */
-    pointer-events: none !important; /* Evitar que bloqueie cliques */
+    z-index: 10 !important;
+    /* Z-index moderado apenas dentro do card */
+    pointer-events: none !important;
+    /* Evitar que bloqueie cliques */
   }
 
   .hover-actions {

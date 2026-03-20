@@ -47,9 +47,9 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
   // Filtrar posts e organizar em colunas usando useMemo
   const { filteredPosts, columnArrays } = useMemo(() => {
     const allPosts = posts || [];
-    
-    let filtered = allPosts.filter(post => 
-      post.status === 'aprovado' && 
+
+    let filtered = allPosts.filter(post =>
+      post.status === 'aprovado' &&
       post.isVisible !== false
     );
 
@@ -58,14 +58,14 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
         if (!post.categoryId) return false;
         const categoryMap: { [key: number]: string } = {
           2: "depilacao",
-          3: "facial", 
+          3: "facial",
           4: "botox",
           5: "salao-de-beleza",
           6: "corporal",
           7: "massagem",
           10: "hof",
           11: "labial",
-          12: "laser", 
+          12: "laser",
           13: "sobrancelhas"
         };
         return categoryMap[post.categoryId] === category;
@@ -81,7 +81,7 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
 
     // Evitar duplicatas: manter apenas um post por group_id, priorizando formato Cartaz
     const groupedPosts = new Map<string, Post[]>();
-    
+
     // Agrupar posts por group_id primeiro
     for (const post of filtered) {
       const groupId = (post as any).group_id || `single_${post.id}`;
@@ -90,14 +90,14 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
       }
       groupedPosts.get(groupId)!.push(post);
     }
-    
+
     // Para cada grupo, selecionar apenas um post (preferindo Cartaz)
     const uniquePosts: Post[] = [];
     Array.from(groupedPosts.values()).forEach((groupPosts) => {
       // Priorizar Cartaz, depois Stories, depois outros formatos
       const cartazPost = groupPosts.find((p: any) => p.formato === 'Cartaz');
       const storiesPost = groupPosts.find((p: any) => p.formato === 'Stories');
-      
+
       if (cartazPost) {
         uniquePosts.push(cartazPost);
       } else if (storiesPost) {
@@ -107,17 +107,17 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
         uniquePosts.push(groupPosts[0]);
       }
     });
-    
+
     // Aplicar ordenação baseada no filtro selecionado
     let shuffledPosts: Post[] = [];
-    
+
     if (sortOrder === "Em alta") {
       // Feed padrão: Randomizar mas priorizando posts mais recentes
       // Primeiro ordenar por data (mais recentes primeiro)
-      const sortedByDate = [...uniquePosts].sort((a, b) => 
+      const sortedByDate = [...uniquePosts].sort((a, b) =>
         new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
       );
-      
+
       // Depois embaralhar para dar efeito randomizado mas mantendo tendência recente
       shuffledPosts = [...sortedByDate].sort(() => Math.random() - 0.5);
     } else {
@@ -127,7 +127,7 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
 
     // Definir quantidade de posts baseado no número de colunas
     let postsToShow: Post[] = [];
-    
+
     if (columns === 2) {
       // Mobile: força exatamente 12 posts (6 por coluna) para garantir equilíbrio
       postsToShow = shuffledPosts.slice(0, 12);
@@ -141,16 +141,16 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
       // Desktop grande: exatamente 20 posts (4 por coluna)
       postsToShow = shuffledPosts.slice(0, 20);
     }
-    
+
     // Distribuir posts garantindo equilíbrio absoluto
     const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
-    
+
     // Distribuir post por post, coluna por coluna
     for (let i = 0; i < postsToShow.length; i++) {
       const columnIndex = i % columns;
       columnArrays[columnIndex].push(postsToShow[i]);
     }
-    
+
     // Debug final - confirmar distribuição
     if (columns === 2) {
       console.log(`FINAL CHECK: Total=${postsToShow.length}, Col1=${columnArrays[0].length}, Col2=${columnArrays[1].length}`);
@@ -180,11 +180,11 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
   if (error) {
     return (
       <div className="text-center py-12">
-        <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Erro ao carregar posts
         </h3>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Tente recarregar a página ou entre em contato com o suporte.
         </p>
       </div>
@@ -194,11 +194,11 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
   if (!posts || posts.length === 0) {
     return (
       <div className="text-center py-12">
-        <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Nenhum post encontrado
         </h3>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Não há posts disponíveis no momento.
         </p>
       </div>
@@ -234,11 +234,11 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
 
       {filteredPosts.length === 0 && (
         <div className="text-center py-12">
-          <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             Nenhum resultado encontrado
           </h3>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Tente ajustar os filtros ou termo de busca.
           </p>
         </div>
@@ -247,9 +247,9 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
       {/* Botão Ver todas as artes */}
       {filteredPosts.length > 0 && (
         <div className="flex justify-center mt-16">
-          <a 
+          <a
             href="/todas-artes"
-            className="inline-flex items-center px-6 py-3 bg-[#191c2c] hover:bg-[#14182a] text-white font-medium rounded-full transition-colors duration-200"
+            className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-full transition-colors duration-200"
           >
             Ver todas as artes
             <ArrowRight className="w-4 h-4 ml-2" />

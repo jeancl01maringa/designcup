@@ -1,4 +1,4 @@
-import { 
+import {
   users, type User, type InsertUser,
   artworks, type Artwork, type InsertArtwork,
   favorites, type Favorite, type InsertFavorite,
@@ -16,6 +16,21 @@ import { db, pool } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
 import { supabase } from "./supabase-client";
 import { normalizePremiumFields, ensurePremiumFields, isPostPremium } from "./utils/post-premium-handler";
+import * as fs from 'fs';
+import * as path from 'path';
+
+function getLocalDb() {
+  const dbPath = path.resolve(process.cwd(), '.local_db.json');
+  if (!fs.existsSync(dbPath)) {
+    fs.writeFileSync(dbPath, JSON.stringify({ categories: [], posts: [], artworks: [] }));
+  }
+  return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+}
+
+function saveLocalDb(data: any) {
+  const dbPath = path.resolve(process.cwd(), '.local_db.json');
+  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
 
 // Função utilitária para gerar slugs a partir de um nome
 function slugify(text: string): string {
@@ -40,30 +55,30 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUserProfile(id: number, data: { username: string; email: string }): Promise<User>;
   updateUserProfileImage(id: number, imageUrl: string): Promise<User>;
-  
+
   // Artwork methods
   getArtworks(): Promise<Artwork[]>;
   getArtworkById(id: number): Promise<Artwork | undefined>;
   searchArtworks(query: string): Promise<Artwork[]>;
   getArtworksByCategory(category: string): Promise<Artwork[]>;
   createArtwork(artwork: InsertArtwork): Promise<Artwork>;
-  
+
   // Favorite methods
   getFavoritesByUserId(userId: number): Promise<Artwork[]>;
   addFavorite(favorite: InsertFavorite): Promise<Favorite>;
   removeFavorite(userId: number, artworkId: number): Promise<void>;
-  
+
   // UserArtwork methods
   getUserArtworksByUserId(userId: number): Promise<Artwork[]>;
   addUserArtwork(userArtwork: InsertUserArtwork): Promise<UserArtwork>;
-  
+
   // Category methods (for admin panel)
   getCategories(): Promise<Category[]>;
   getCategoryById(id: number): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category>;
   deleteCategory(id: number): Promise<{ success: boolean; postsUpdated: number }>;
-  
+
   // Post methods (for admin panel)
   getPosts(filters?: {
     searchTerm?: string;
@@ -84,15 +99,15 @@ export interface IStorage {
   deletePost(id: number): Promise<void>;
   updatePostStatus(ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado'): Promise<void>;
   getVisiblePosts(): Promise<Post[]>;
-  
+
   // Plan methods (for admin panel)
-  getPlans(showInactive?: boolean): Promise<Plan[]>; 
+  getPlans(showInactive?: boolean): Promise<Plan[]>;
   getPlanById(id: number): Promise<Plan | undefined>;
   createPlan(plan: InsertPlan): Promise<Plan>;
   updatePlan(id: number, plan: Partial<InsertPlan>): Promise<Plan>;
   deletePlan(id: number): Promise<void>;
   togglePlanStatus(id: number, isActive: boolean): Promise<Plan>;
-  
+
   // Tag methods (for SEO management)
   getTags(): Promise<Tag[]>;
   getTagById(id: number): Promise<Tag | undefined>;
@@ -101,7 +116,7 @@ export interface IStorage {
   updateTag(id: number, tag: Partial<InsertTag>): Promise<Tag>;
   deleteTag(id: number): Promise<void>;
   toggleTagStatus(id: number, isActive: boolean): Promise<Tag>;
-  
+
   // Popup methods (for marketing campaigns)
   getPopups(): Promise<Popup[]>;
   getActivePopups(): Promise<Popup[]>;
@@ -110,14 +125,14 @@ export interface IStorage {
   updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup>;
   deletePopup(id: number): Promise<void>;
   togglePopupStatus(id: number, isActive: boolean): Promise<Popup>;
-  
+
   // Settings methods
   getSetting(key: string): Promise<Setting | undefined>;
   getSettings(): Promise<Setting[]>;
   setSetting(key: string, value: string, description?: string): Promise<Setting>;
   updateSetting(key: string, value: string): Promise<Setting>;
   deleteSetting(key: string): Promise<void>;
-  
+
   // Author methods
   getAllAuthors(): Promise<any[]>;
 }
@@ -126,7 +141,7 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     try {
       console.log("DATABASE getUser - Buscando usuário com ID:", id);
-      
+
       // Tentar primeiro no PostgreSQL direto (onde estão os dados reais)
       const result = await pool.query(`
         SELECT id, username, email, password, is_admin, created_at, telefone, whatsapp, profile_image, tipo, plano_id, data_vencimento, active, bio
@@ -141,12 +156,12 @@ export class DatabaseStorage implements IStorage {
       }
 
       const data = result.rows[0];
-      
+
       // Log para depuração
       console.log("DATABASE getUser - Dados brutos do usuário:", JSON.stringify(data));
-      
+
       console.log("DATABASE getUser - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin);
-      
+
       // Converter os dados para o formato do User
       const user: User = {
         id: data.id,
@@ -166,7 +181,7 @@ export class DatabaseStorage implements IStorage {
       };
 
       console.log("DATABASE getUser - isAdmin convertido:", user.isAdmin);
-      
+
       return user;
     } catch (error) {
       console.error("DATABASE getUser - Exceção:", error);
@@ -178,7 +193,7 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
       console.log("DATABASE getUserByEmail - Buscando usuário com email:", email);
-      
+
       // Usar PostgreSQL direto (mesma fonte que getUser)
       const result = await pool.query(`
         SELECT id, username, email, password, is_admin, created_at, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active
@@ -193,12 +208,12 @@ export class DatabaseStorage implements IStorage {
       }
 
       const data = result.rows[0];
-      
+
       // Log para depuração
       console.log("DATABASE getUserByEmail - Dados brutos do usuário:", JSON.stringify(data));
-      
+
       console.log("DATABASE getUserByEmail - is_admin raw value:", data.is_admin, "tipo:", typeof data.is_admin);
-      
+
       // Converter os dados para o formato do User
       const user: User = {
         id: data.id,
@@ -218,7 +233,7 @@ export class DatabaseStorage implements IStorage {
       };
 
       console.log("DATABASE getUserByEmail - isAdmin convertido:", user.isAdmin);
-      
+
       return user;
     } catch (error) {
       console.error("DATABASE getUserByEmail - Exceção:", error);
@@ -229,7 +244,7 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
       console.log("DATABASE createUser - Criando usuário:", insertUser.username, insertUser.email);
-      
+
       // Usar PostgreSQL direto - mesmo método que funciona no getUser
       const result = await pool.query(`
         INSERT INTO users (username, email, password, is_admin, telefone, whatsapp, profile_image, bio, tipo, plano_id, data_vencimento, active)
@@ -256,7 +271,7 @@ export class DatabaseStorage implements IStorage {
 
       const userData = result.rows[0];
       console.log("DATABASE createUser - Usuário criado com ID:", userData.id);
-      
+
       // Mapear para o formato esperado pela aplicação usando o mesmo padrão do getUser
       const user: User = {
         id: userData.id,
@@ -274,7 +289,7 @@ export class DatabaseStorage implements IStorage {
         data_vencimento: userData.data_vencimento ? new Date(userData.data_vencimento) : null,
         active: userData.active || true
       };
-      
+
       return user;
     } catch (error) {
       console.error("DATABASE createUser - Erro ao criar usuário:", error);
@@ -285,7 +300,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserProfile(id: number, data: { username: string; email: string }): Promise<User> {
     try {
       console.log(`DATABASE updateUserProfile - Atualizando perfil do usuário ID: ${id}`);
-      
+
       // Usar a mesma conexão que funciona na autenticação
       const result = await pool.query(`
         UPDATE users 
@@ -325,7 +340,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserProfileImage(id: number, imageUrl: string): Promise<User> {
     try {
       console.log(`DATABASE updateUserProfileImage - Atualizando foto do usuário ID: ${id}`);
-      
+
       // Usar a mesma conexão que funciona na autenticação
       const result = await pool.query(`
         UPDATE users 
@@ -363,26 +378,26 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async getArtworks(): Promise<Artwork[]> {
     try {
       console.log("DATABASE getArtworks - Buscando todas as artes");
-      
+
       const { data, error } = await supabase
         .from('artworks')
         .select('*')
         .order('created_at', { ascending: false });
-        
+
       if (error) {
         console.error("DATABASE getArtworks - Erro ao buscar artes:", error.message);
         return [];
       }
-      
+
       if (!data || data.length === 0) {
         console.log("DATABASE getArtworks - Nenhuma arte encontrada");
         return [];
       }
-      
+
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const result = data.map(item => ({
         id: item.id,
@@ -394,7 +409,7 @@ export class DatabaseStorage implements IStorage {
         category: item.category,
         createdAt: new Date(item.created_at)
       }));
-      
+
       console.log(`DATABASE getArtworks - Encontradas ${result.length} artes`);
       return result;
     } catch (error) {
@@ -402,27 +417,27 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getArtworkById(id: number): Promise<Artwork | undefined> {
     try {
       console.log("DATABASE getArtworkById - Buscando arte com ID:", id);
-      
+
       const { data, error } = await supabase
         .from('artworks')
         .select('*')
         .eq('id', id)
         .single();
-        
+
       if (error) {
         console.error("DATABASE getArtworkById - Erro ao buscar arte:", error.message);
         return undefined;
       }
-      
+
       if (!data) {
         console.log(`DATABASE getArtworkById - Nenhuma arte encontrada com ID ${id}`);
         return undefined;
       }
-      
+
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const artwork: Artwork = {
         id: data.id,
@@ -434,7 +449,7 @@ export class DatabaseStorage implements IStorage {
         category: data.category,
         createdAt: new Date(data.created_at)
       };
-      
+
       console.log(`DATABASE getArtworkById - Arte encontrada: ${artwork.title}`);
       return artwork;
     } catch (error) {
@@ -442,12 +457,12 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
-  
+
   async searchArtworks(query: string): Promise<Artwork[]> {
     try {
       console.log("DATABASE searchArtworks - Buscando posts com query:", query);
       const lowerQuery = query.toLowerCase();
-      
+
       // Primeiro tentar buscar via PostgreSQL direto para ter mais flexibilidade
       try {
         // Buscar por ID exato primeiro (como texto)
@@ -458,9 +473,9 @@ export class DatabaseStorage implements IStorage {
           ORDER BY created_at DESC
           LIMIT 1
         `;
-        
+
         const idResult = await pool.query(searchQuery, [query]);
-        
+
         if (idResult.rows.length > 0) {
           console.log(`DATABASE searchArtworks - Post encontrado por ID: ${query}`);
           const post = idResult.rows[0];
@@ -475,7 +490,7 @@ export class DatabaseStorage implements IStorage {
             createdAt: new Date(post.created_at)
           }];
         }
-        
+
         // Se não encontrou por ID, buscar por texto
         searchQuery = `
           SELECT id, title, description, image_url, formato as format, is_pro, category_id, created_at
@@ -486,9 +501,9 @@ export class DatabaseStorage implements IStorage {
           ORDER BY created_at DESC
           LIMIT 20
         `;
-        
+
         const textResult = await pool.query(searchQuery, [`%${lowerQuery}%`]);
-        
+
         if (textResult.rows.length > 0) {
           console.log(`DATABASE searchArtworks - ${textResult.rows.length} posts encontrados por texto`);
           return textResult.rows.map(post => ({
@@ -502,10 +517,10 @@ export class DatabaseStorage implements IStorage {
             createdAt: new Date(post.created_at)
           }));
         }
-        
+
       } catch (pgError) {
         console.error("DATABASE searchArtworks - Erro PostgreSQL:", pgError);
-        
+
         // Fallback para Supabase se PostgreSQL falhar
         const { data, error } = await supabase
           .from('posts')
@@ -513,12 +528,12 @@ export class DatabaseStorage implements IStorage {
           .or(`title.ilike.%${lowerQuery}%,description.ilike.%${lowerQuery}%,id.eq.${query}`)
           .order('created_at', { ascending: false })
           .limit(20);
-          
+
         if (error) {
           console.error("DATABASE searchArtworks - Erro Supabase:", error.message);
           return [];
         }
-        
+
         if (data && data.length > 0) {
           console.log(`DATABASE searchArtworks - ${data.length} posts encontrados via Supabase`);
           return data.map(post => ({
@@ -533,7 +548,7 @@ export class DatabaseStorage implements IStorage {
           }));
         }
       }
-      
+
       console.log(`DATABASE searchArtworks - Nenhum post encontrado com a query "${query}"`);
       return [];
     } catch (error) {
@@ -541,27 +556,27 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getArtworksByCategory(category: string): Promise<Artwork[]> {
     try {
       console.log("DATABASE getArtworksByCategory - Buscando artes da categoria:", category);
-      
+
       const { data, error } = await supabase
         .from('artworks')
         .select('*')
         .eq('category', category)
         .order('created_at', { ascending: false });
-        
+
       if (error) {
         console.error("DATABASE getArtworksByCategory - Erro ao buscar artes:", error.message);
         return [];
       }
-      
+
       if (!data || data.length === 0) {
         console.log(`DATABASE getArtworksByCategory - Nenhuma arte encontrada na categoria "${category}"`);
         return [];
       }
-      
+
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const result = data.map(item => ({
         id: item.id,
@@ -573,7 +588,7 @@ export class DatabaseStorage implements IStorage {
         category: item.category,
         createdAt: new Date(item.created_at)
       }));
-      
+
       console.log(`DATABASE getArtworksByCategory - Encontradas ${result.length} artes na categoria "${category}"`);
       return result;
     } catch (error) {
@@ -581,11 +596,11 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async createArtwork(insertArtwork: InsertArtwork): Promise<Artwork> {
     try {
       console.log("DATABASE createArtwork - Recebendo dados:", JSON.stringify(insertArtwork));
-      
+
       // Mapear campos para formato do Supabase (snake_case)
       const dbArtwork = {
         title: insertArtwork.title,
@@ -595,23 +610,23 @@ export class DatabaseStorage implements IStorage {
         is_pro: insertArtwork.isPro,
         category: insertArtwork.category
       };
-      
+
       console.log("DATABASE createArtwork - Enviando para o banco:", JSON.stringify(dbArtwork));
-      
+
       // Usar a API do Supabase para criar a artwork
       const { data, error } = await supabase
         .from('artworks')
         .insert(dbArtwork)
         .select()
         .single();
-      
+
       if (error) {
         console.error("DATABASE createArtwork - Erro ao criar artwork:", error.message);
         throw new Error(`Erro ao criar artwork: ${error.message}`);
       }
-      
+
       console.log("DATABASE createArtwork - Resultado do banco:", JSON.stringify(data));
-      
+
       // Mapear para o formato esperado pela aplicação
       const artwork: Artwork = {
         id: data.id,
@@ -623,18 +638,18 @@ export class DatabaseStorage implements IStorage {
         category: data.category,
         createdAt: new Date(data.created_at)
       };
-      
+
       return artwork;
     } catch (error) {
       console.error("DATABASE createArtwork - Exceção:", error);
       throw error;
     }
   }
-  
+
   async getFavoritesByUserId(userId: number): Promise<Artwork[]> {
     try {
       console.log("DATABASE getFavoritesByUserId - Buscando favoritos do usuário:", userId);
-      
+
       // Usando o Supabase com uma query com join para buscar os favoritos
       const { data, error } = await supabase
         .from('favorites')
@@ -652,17 +667,17 @@ export class DatabaseStorage implements IStorage {
           )
         `)
         .eq('userId', userId);
-        
+
       if (error) {
         console.error("DATABASE getFavoritesByUserId - Erro ao buscar favoritos:", error.message);
         return [];
       }
-      
+
       if (!data || data.length === 0) {
         console.log(`DATABASE getFavoritesByUserId - Nenhum favorito encontrado para o usuário ${userId}`);
         return [];
       }
-      
+
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const result = data
         .filter(item => item.artworks) // Filtrar apenas os itens que têm artworks
@@ -676,7 +691,7 @@ export class DatabaseStorage implements IStorage {
           category: item.artworks.category,
           createdAt: new Date(item.artworks.created_at)
         }));
-      
+
       console.log(`DATABASE getFavoritesByUserId - Encontrados ${result.length} favoritos para o usuário ${userId}`);
       return result;
     } catch (error) {
@@ -684,31 +699,31 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async addFavorite(favorite: InsertFavorite): Promise<Favorite> {
     try {
       console.log("DATABASE addFavorite - Adicionando favorito:", JSON.stringify(favorite));
-      
+
       // Converter para o formato do Supabase (snake_case)
       const dbFavorite = {
         user_id: favorite.userId,
         artwork_id: favorite.artworkId
       };
-      
+
       // Usar a API do Supabase para inserir o favorito
       const { data, error } = await supabase
         .from('favorites')
         .insert(dbFavorite)
         .select()
         .single();
-      
+
       if (error) {
         console.error("DATABASE addFavorite - Erro ao adicionar favorito:", error.message);
         throw new Error(`Erro ao adicionar favorito: ${error.message}`);
       }
-      
+
       console.log("DATABASE addFavorite - Favorito adicionado com sucesso:", JSON.stringify(data));
-      
+
       // Mapear para o formato esperado pela aplicação
       const result: Favorite = {
         id: data.id,
@@ -716,41 +731,41 @@ export class DatabaseStorage implements IStorage {
         artworkId: data.artwork_id,
         createdAt: new Date(data.created_at)
       };
-      
+
       return result;
     } catch (error) {
       console.error("DATABASE addFavorite - Exceção:", error);
       throw error;
     }
   }
-  
+
   async removeFavorite(userId: number, artworkId: number): Promise<void> {
     try {
       console.log(`DATABASE removeFavorite - Removendo favorito do usuário ${userId}, artwork ${artworkId}`);
-      
+
       // Usar a API do Supabase para remover o favorito
       const { error } = await supabase
         .from('favorites')
         .delete()
         .eq('user_id', userId)
         .eq('artwork_id', artworkId);
-      
+
       if (error) {
         console.error("DATABASE removeFavorite - Erro ao remover favorito:", error.message);
         throw new Error(`Erro ao remover favorito: ${error.message}`);
       }
-      
+
       console.log(`DATABASE removeFavorite - Favorito removido com sucesso`);
     } catch (error) {
       console.error("DATABASE removeFavorite - Exceção:", error);
       throw error;
     }
   }
-  
+
   async getUserArtworksByUserId(userId: number): Promise<Artwork[]> {
     try {
       console.log("DATABASE getUserArtworksByUserId - Buscando artes do usuário:", userId);
-      
+
       // Usando o Supabase com uma query com join para buscar as artes do usuário
       const { data, error } = await supabase
         .from('user_artworks')
@@ -769,17 +784,17 @@ export class DatabaseStorage implements IStorage {
         `)
         .eq('userId', userId)
         .order('usedAt', { ascending: false });
-        
+
       if (error) {
         console.error("DATABASE getUserArtworksByUserId - Erro ao buscar artes do usuário:", error.message);
         return [];
       }
-      
+
       if (!data || data.length === 0) {
         console.log(`DATABASE getUserArtworksByUserId - Nenhuma arte encontrada para o usuário ${userId}`);
         return [];
       }
-      
+
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const result = data
         .filter(item => item.artworks) // Filtrar apenas os itens que têm artworks
@@ -793,7 +808,7 @@ export class DatabaseStorage implements IStorage {
           category: item.artworks.category,
           createdAt: new Date(item.artworks.created_at)
         }));
-      
+
       console.log(`DATABASE getUserArtworksByUserId - Encontradas ${result.length} artes para o usuário ${userId}`);
       return result;
     } catch (error) {
@@ -801,11 +816,11 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async addUserArtwork(userArtwork: InsertUserArtwork): Promise<UserArtwork> {
     try {
       console.log("DATABASE addUserArtwork - Adicionando arte para o usuário:", JSON.stringify(userArtwork));
-      
+
       // Verificar se a entrada já existe
       const { data: existingEntry, error: checkError } = await supabase
         .from('user_artworks')
@@ -813,14 +828,14 @@ export class DatabaseStorage implements IStorage {
         .eq('userId', userArtwork.userId)
         .eq('artworkId', userArtwork.artworkId)
         .maybeSingle();
-      
+
       if (checkError) {
         console.error("DATABASE addUserArtwork - Erro ao verificar arte existente:", checkError.message);
         throw new Error(`Erro ao verificar arte existente: ${checkError.message}`);
       }
-      
+
       let data;
-      
+
       if (existingEntry) {
         // Atualizar a entrada existente com a nova data de uso
         const { data: updatedData, error: updateError } = await supabase
@@ -829,12 +844,12 @@ export class DatabaseStorage implements IStorage {
           .eq('id', existingEntry.id)
           .select()
           .single();
-        
+
         if (updateError) {
           console.error("DATABASE addUserArtwork - Erro ao atualizar arte existente:", updateError.message);
           throw new Error(`Erro ao atualizar arte existente: ${updateError.message}`);
         }
-        
+
         data = updatedData;
         console.log("DATABASE addUserArtwork - Arte existente atualizada:", JSON.stringify(data));
       } else {
@@ -844,22 +859,22 @@ export class DatabaseStorage implements IStorage {
           artwork_id: userArtwork.artworkId,
           used_at: new Date()
         };
-        
+
         const { data: newData, error: insertError } = await supabase
           .from('user_artworks')
           .insert(dbUserArtwork)
           .select()
           .single();
-        
+
         if (insertError) {
           console.error("DATABASE addUserArtwork - Erro ao adicionar nova arte:", insertError.message);
           throw new Error(`Erro ao adicionar nova arte: ${insertError.message}`);
         }
-        
+
         data = newData;
         console.log("DATABASE addUserArtwork - Nova arte adicionada:", JSON.stringify(data));
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       const result: UserArtwork = {
         id: data.id,
@@ -867,39 +882,45 @@ export class DatabaseStorage implements IStorage {
         artworkId: data.artwork_id,
         usedAt: new Date(data.used_at)
       };
-      
+
       return result;
     } catch (error) {
       console.error("DATABASE addUserArtwork - Exceção:", error);
       throw error;
     }
   }
-  
+
   // Category methods (for admin panel)
   async getCategories(): Promise<Category[]> {
     try {
       console.log("DATABASE getCategories - Buscando todas as categorias");
-      
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        const db = getLocalDb();
+        return db.categories.map((c: any) => ({ ...c, createdAt: new Date(c.createdAt) }));
+      }
+
       // Usar PostgreSQL direto para evitar problemas de cache
       const query = `
         SELECT id, name, description, slug, image_url, is_active, created_at
         FROM categories
         ORDER BY name
       `;
-      
+
       const result = await pool.query(query);
-      
+
       if (!result.rows || result.rows.length === 0) {
         console.log("DATABASE getCategories - Nenhuma categoria encontrada");
         return [];
       }
-      
+
       // Mapear os dados para o formato esperado pela aplicação
       const categories: Category[] = result.rows.map(item => {
         // Converter is_active para boolean explicitamente (pode vir como 't' do PostgreSQL)
         const isActive = item.is_active === true || item.is_active === 't';
         console.log(`Categoria ${item.id} (${item.name}): is_active = ${item.is_active}, isActive = ${isActive}`);
-        
+
         return {
           id: item.id,
           name: item.name,
@@ -910,7 +931,7 @@ export class DatabaseStorage implements IStorage {
           createdAt: new Date(item.created_at)
         };
       });
-      
+
       console.log(`DATABASE getCategories - Encontradas ${categories.length} categorias`);
       return categories;
     } catch (error) {
@@ -922,24 +943,32 @@ export class DatabaseStorage implements IStorage {
   async getActiveCategories(): Promise<Category[]> {
     try {
       console.log("DATABASE getActiveCategories - Buscando apenas categorias ativas");
-      
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        const db = getLocalDb();
+        return db.categories
+          .filter((c: any) => c.isActive !== false)
+          .map((c: any) => ({ ...c, createdAt: new Date(c.createdAt) }));
+      }
+
       // Usar a API do Supabase para buscar apenas categorias ativas
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .eq('is_active', true)
         .order('name');
-      
+
       if (error) {
         console.error("DATABASE getActiveCategories - Erro ao buscar categorias ativas:", error.message);
         return [];
       }
-      
+
       if (!data || data.length === 0) {
         console.log("DATABASE getActiveCategories - Nenhuma categoria ativa encontrada");
         return [];
       }
-      
+
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const categories: Category[] = data.map(item => {
         return {
@@ -952,7 +981,7 @@ export class DatabaseStorage implements IStorage {
           createdAt: new Date(item.created_at)
         };
       });
-      
+
       console.log(`DATABASE getActiveCategories - Encontradas ${categories.length} categorias ativas`);
       return categories;
     } catch (error) {
@@ -960,33 +989,41 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getCategoryById(id: number): Promise<Category | undefined> {
     try {
       console.log("DATABASE getCategoryById - Buscando categoria com ID:", id);
-      
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        const db = getLocalDb();
+        const cat = db.categories.find((c: any) => c.id === id);
+        if (cat) return { ...cat, createdAt: new Date(cat.createdAt) };
+        return undefined;
+      }
+
       // Usar a API do Supabase para buscar a categoria pelo ID
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .eq('id', id)
         .single();
-      
+
       if (error) {
         console.error("DATABASE getCategoryById - Erro ao buscar categoria:", error.message);
         return undefined;
       }
-      
+
       if (!data) {
         console.log(`DATABASE getCategoryById - Categoria com ID ${id} não encontrada`);
         return undefined;
       }
-      
+
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       // Converter is_active para boolean explicitamente
       const isActive = data.is_active === true || data.is_active === 't';
       console.log(`Categoria ${data.id} (${data.name}): is_active = ${data.is_active}, isActive = ${isActive}`);
-      
+
       const category: Category = {
         id: data.id,
         name: data.name,
@@ -996,7 +1033,7 @@ export class DatabaseStorage implements IStorage {
         isActive: isActive,
         createdAt: new Date(data.created_at)
       };
-      
+
       console.log(`DATABASE getCategoryById - Categoria encontrada: ${category.name}`);
       return category;
     } catch (error) {
@@ -1004,21 +1041,40 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
-  
+
   async createCategory(category: InsertCategory): Promise<Category> {
     try {
       console.log("DATABASE createCategory - Criando categoria:", JSON.stringify(category));
-      
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log("Modo offline detectado: salvando mock local na .local_db.json");
+        const db = getLocalDb();
+        const maxId = db.categories.length > 0 ? Math.max(...db.categories.map((c: any) => c.id)) : 0;
+        const newCat = {
+          id: maxId + 1,
+          name: category.name,
+          description: category.description || "",
+          slug: category.slug || slugify(category.name),
+          imageUrl: category.imageUrl || null,
+          isActive: category.isActive !== undefined ? category.isActive : true,
+          createdAt: new Date()
+        };
+        db.categories.push(newCat);
+        saveLocalDb(db);
+        return newCat;
+      }
+
       // Usar PostgreSQL direto para criar a categoria
       const slug = category.slug || slugify(category.name);
       const isActive = category.isActive !== undefined ? category.isActive : true;
-      
+
       const query = `
         INSERT INTO categories (name, slug, description, image_url, is_active, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING id, name, slug, description, image_url, is_active, created_at
       `;
-      
+
       const values = [
         category.name,
         slug,
@@ -1026,14 +1082,14 @@ export class DatabaseStorage implements IStorage {
         category.imageUrl || null,
         isActive
       ];
-      
+
       const result = await pool.query(query, values);
       const data = result.rows[0];
-      
+
       if (!data) {
         throw new Error('Falha ao criar categoria');
       }
-      
+
       const categoryResult: Category = {
         id: data.id,
         name: data.name,
@@ -1043,7 +1099,7 @@ export class DatabaseStorage implements IStorage {
         isActive: data.is_active,
         createdAt: new Date(data.created_at)
       };
-      
+
       console.log(`DATABASE createCategory - Categoria criada com sucesso: ${categoryResult.name}`);
       return categoryResult;
     } catch (error) {
@@ -1051,16 +1107,27 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category> {
     try {
       console.log("DATABASE updateCategory - Atualizando categoria:", id, JSON.stringify(category));
-      
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        const db = getLocalDb();
+        const idx = db.categories.findIndex((c: any) => c.id === id);
+        if (idx === -1) throw new Error("Categoria não encontrada localmente");
+
+        db.categories[idx] = { ...db.categories[idx], ...category };
+        saveLocalDb(db);
+        return { ...db.categories[idx], createdAt: new Date(db.categories[idx].createdAt) };
+      }
+
       // Usar PostgreSQL direto para evitar problemas de cache do Supabase
       const setParts: string[] = [];
       const values: any[] = [];
       let paramIndex = 1;
-      
+
       if (category.name !== undefined) {
         setParts.push(`name = $${paramIndex++}`);
         values.push(category.name);
@@ -1081,34 +1148,34 @@ export class DatabaseStorage implements IStorage {
         setParts.push(`is_active = $${paramIndex++}`);
         values.push(category.isActive);
       }
-      
+
       if (setParts.length === 0) {
         throw new Error('Nenhum campo fornecido para atualização');
       }
-      
+
       values.push(id); // ID vai por último
-      
+
       const query = `
         UPDATE categories 
         SET ${setParts.join(', ')} 
         WHERE id = $${paramIndex}
         RETURNING *
       `;
-      
+
       console.log("DATABASE updateCategory - Query SQL:", query);
       console.log("DATABASE updateCategory - Valores:", values);
-      
+
       const result = await pool.query(query, values);
-      
+
       if (!result.rows || result.rows.length === 0) {
         throw new Error(`Categoria com ID ${id} não encontrada`);
       }
-      
+
       const data = result.rows[0];
-      
+
       // Mapear para o formato esperado pela aplicação
       const isActive = data.is_active === true || data.is_active === 't';
-      
+
       const updatedCategory: Category = {
         id: data.id,
         name: data.name,
@@ -1118,7 +1185,7 @@ export class DatabaseStorage implements IStorage {
         isActive: isActive,
         createdAt: new Date(data.created_at)
       };
-      
+
       console.log(`DATABASE updateCategory - Categoria atualizada com sucesso: ${updatedCategory.name}`);
       return updatedCategory;
     } catch (error) {
@@ -1126,27 +1193,36 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async deleteCategory(id: number): Promise<{ success: boolean; postsUpdated: number }> {
     try {
       console.log("DATABASE deleteCategory - Excluindo categoria com ID:", id);
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        const db = getLocalDb();
+        db.categories = db.categories.filter((c: any) => c.id !== id);
+        saveLocalDb(db);
+        return { success: true, postsUpdated: 0 };
+      }
+
       let postsUpdated = 0;
-      
+
       // Verificar se existem posts usando esta categoria no PostgreSQL direto
       try {
         console.log(`DATABASE deleteCategory - Verificando posts relacionados à categoria ${id} via PostgreSQL direto`);
-        
+
         const checkResult = await pool.query(
           'SELECT COUNT(*) FROM posts WHERE category_id = $1',
           [id]
         );
-        
+
         postsUpdated = parseInt(checkResult.rows[0].count);
         console.log(`DATABASE deleteCategory - Encontrados ${postsUpdated} posts associados à categoria ${id}`);
-        
+
         if (postsUpdated > 0) {
           console.log(`DATABASE deleteCategory - Atualizando ${postsUpdated} posts para category_id = NULL`);
-          
+
           // Atualizar todos os posts relacionados, definindo category_id como NULL
           try {
             // Via PostgreSQL direto (mais confiável)
@@ -1155,14 +1231,14 @@ export class DatabaseStorage implements IStorage {
               [id]
             );
             console.log(`DATABASE deleteCategory - Posts atualizados com sucesso via PostgreSQL direto`);
-            
+
             // Sincronizar com Supabase
             try {
               const { error: updateError } = await supabase
                 .from('posts')
                 .update({ category_id: null })
                 .eq('category_id', id);
-                
+
               if (updateError) {
                 console.warn(`DATABASE deleteCategory - Erro ao atualizar posts via Supabase: ${updateError.message}`);
               } else {
@@ -1181,31 +1257,31 @@ export class DatabaseStorage implements IStorage {
         if (checkError.message && checkError.message.includes('Erro ao atualizar os posts')) {
           throw checkError;
         }
-        
+
         // Caso contrário, é um erro na consulta de verificação
         console.warn("DATABASE deleteCategory - Erro ao verificar posts relacionados via PostgreSQL:", checkError);
-        
+
         // Tentar verificar via Supabase como plano B
         try {
           const { data: postsWithCategory, error: supabaseCheckError } = await supabase
             .from('posts')
             .select('id')
             .eq('category_id', id);
-            
+
           if (!supabaseCheckError && postsWithCategory && postsWithCategory.length > 0) {
             postsUpdated = postsWithCategory.length;
             console.log(`DATABASE deleteCategory - Atualizando ${postsUpdated} posts via Supabase`);
-            
+
             const { error: updateError } = await supabase
               .from('posts')
               .update({ category_id: null })
               .eq('category_id', id);
-              
+
             if (updateError) {
               console.error(`DATABASE deleteCategory - Erro ao atualizar posts via Supabase: ${updateError.message}`);
               throw new Error(`Erro ao atualizar os posts relacionados: ${updateError.message}`);
             }
-            
+
             console.log(`DATABASE deleteCategory - Posts atualizados com sucesso via Supabase`);
           }
         } catch (supabaseError) {
@@ -1213,13 +1289,13 @@ export class DatabaseStorage implements IStorage {
           // Se os dois métodos de verificação/atualização falharem, prosseguir com cautela
         }
       }
-      
+
       // Com os posts já atualizados, agora podemos excluir a categoria
       try {
         console.log("DATABASE deleteCategory - Tentando excluir via PostgreSQL direto");
         await pool.query('DELETE FROM categories WHERE id = $1', [id]);
         console.log("DATABASE deleteCategory - Categoria excluída com sucesso via PostgreSQL direto");
-        
+
         // Se foi bem-sucedido com PostgreSQL, sincronizar com Supabase
         try {
           await supabase
@@ -1231,7 +1307,7 @@ export class DatabaseStorage implements IStorage {
           // Não falhar se a sincronização com Supabase falhar
           console.warn("DATABASE deleteCategory - Não foi possível sincronizar exclusão com Supabase:", syncError);
         }
-        
+
         return { success: true, postsUpdated };
       } catch (pgError: any) {
         // Mesmo com os posts atualizados para null, ainda pode haver restrição
@@ -1239,20 +1315,20 @@ export class DatabaseStorage implements IStorage {
           console.error("DATABASE deleteCategory - Erro de restrição de chave estrangeira no PostgreSQL:", pgError.message);
           throw new Error(`Não foi possível excluir a categoria devido a restrições de chave estrangeira.`);
         }
-        
+
         console.error("DATABASE deleteCategory - Erro ao excluir via PostgreSQL:", pgError);
-        
+
         // Se falhar com PostgreSQL, tentar com Supabase como último recurso
         const { error } = await supabase
           .from('categories')
           .delete()
           .eq('id', id);
-        
+
         if (error) {
           console.error("DATABASE deleteCategory - Também falhou ao excluir via Supabase:", error.message);
           throw new Error(`Erro ao excluir categoria: ${error.message}`);
         }
-        
+
         console.log(`DATABASE deleteCategory - Categoria excluída com sucesso via Supabase`);
         return { success: true, postsUpdated };
       }
@@ -1261,7 +1337,7 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   // Post methods (for admin panel)
   async getPosts(filters?: {
     searchTerm?: string;
@@ -1277,16 +1353,21 @@ export class DatabaseStorage implements IStorage {
   }): Promise<Post[]> {
     try {
       console.log("DATABASE getPosts - Buscando posts com filtros:", JSON.stringify(filters || {}));
-      
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        return getLocalDb().posts;
+      }
+
       // Definir variável para armazenar posts
       let postsData: any[] = [];
-      
+
       // Usar PostgreSQL direto para melhor performance
       try {
         let whereConditions = [];
         let queryParams = [];
         let paramIndex = 1;
-        
+
         // Aplicar filtros se existirem
         if (filters) {
           if (filters.searchTerm) {
@@ -1302,44 +1383,44 @@ export class DatabaseStorage implements IStorage {
               paramIndex++;
             }
           }
-          
+
           if (filters.categoryId) {
             whereConditions.push(`category_id = $${paramIndex}`);
             queryParams.push(filters.categoryId);
             paramIndex++;
           }
-          
+
           if (filters.status) {
             whereConditions.push(`status = $${paramIndex}`);
             queryParams.push(filters.status);
             paramIndex++;
           }
-          
+
           if (filters.formatId) {
             whereConditions.push(`formato = $${paramIndex}`);
             queryParams.push(filters.formatId);
             paramIndex++;
           }
-          
+
           if (filters.licenseType) {
             whereConditions.push(`license_type = $${paramIndex}`);
             queryParams.push(filters.licenseType);
             paramIndex++;
           }
-          
+
           if (filters.isVisible !== undefined) {
             whereConditions.push(`is_visible = $${paramIndex}`);
             queryParams.push(filters.isVisible);
             paramIndex++;
           }
-          
+
           if (filters.month && filters.year) {
             whereConditions.push(`EXTRACT(MONTH FROM created_at) = $${paramIndex} AND EXTRACT(YEAR FROM created_at) = $${paramIndex + 1}`);
             queryParams.push(filters.month, filters.year);
             paramIndex += 2;
           }
         }
-        
+
         // Construir query SQL otimizada
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
         const pgQuery = `
@@ -1347,29 +1428,29 @@ export class DatabaseStorage implements IStorage {
           ${whereClause}
           ORDER BY created_at DESC
         `;
-        
+
         console.log("DATABASE getPosts - Query PostgreSQL otimizada:", pgQuery);
         console.log("DATABASE getPosts - Parâmetros:", queryParams);
-        
+
         const result = await pool.query(pgQuery, queryParams);
         postsData = result.rows;
-        
+
         console.log(`DATABASE getPosts - Encontrados ${postsData.length} posts via PostgreSQL otimizado`);
       } catch (pgError) {
         console.error("DATABASE getPosts - Erro PostgreSQL:", pgError);
         throw pgError;
       }
-      
+
       // Se não encontrou via Supabase, tentar com PostgreSQL direto
       if (postsData.length === 0) {
         try {
           console.log("DATABASE getPosts - Tentando buscar via PostgreSQL direto");
-          
+
           // Construir consulta SQL base
           let sql = `SELECT * FROM posts`;
           const sqlParams: any[] = [];
           const conditions: string[] = [];
-          
+
           // Aplicar filtros para PostgreSQL
           if (filters) {
             // Filtro de texto para pesquisa
@@ -1384,37 +1465,37 @@ export class DatabaseStorage implements IStorage {
                 sqlParams.push(searchTerm);
               }
             }
-            
+
             // Filtro de categoria
             if (filters.categoryId) {
               conditions.push(`category_id = $${sqlParams.length + 1}`);
               sqlParams.push(filters.categoryId);
             }
-            
+
             // Filtro de status
             if (filters.status) {
               conditions.push(`status = $${sqlParams.length + 1}`);
               sqlParams.push(filters.status);
             }
-            
+
             // Filtro de formato
             if (filters.formatId) {
               conditions.push(`formato = $${sqlParams.length + 1}`);
               sqlParams.push(filters.formatId);
             }
-            
+
             // Filtro de tipo de licença
             if (filters.licenseType) {
               conditions.push(`license_type = $${sqlParams.length + 1}`);
               sqlParams.push(filters.licenseType);
             }
-            
+
             // Filtro de visibilidade
             if (filters.isVisible !== undefined) {
               conditions.push(`is_visible = $${sqlParams.length + 1}`);
               sqlParams.push(filters.isVisible);
             }
-            
+
             // Filtro de data
             if (filters.month && filters.year) {
               const startDate = new Date(filters.year, filters.month - 1, 1);
@@ -1426,18 +1507,18 @@ export class DatabaseStorage implements IStorage {
               sqlParams.push(filters.startDate, filters.endDate);
             }
           }
-          
+
           // Adicionar as condições à consulta SQL se houver alguma
           if (conditions.length > 0) {
             sql += ` WHERE ${conditions.join(' AND ')}`;
           }
-          
+
           // Adicionar ordenação
           sql += ` ORDER BY created_at DESC`;
-          
+
           // Executar a consulta
           const result = await pool.query(sql, sqlParams);
-          
+
           if (result.rows && result.rows.length > 0) {
             postsData = result.rows;
             console.log(`DATABASE getPosts - Encontrados ${result.rows.length} posts via PostgreSQL direto`);
@@ -1446,13 +1527,13 @@ export class DatabaseStorage implements IStorage {
           console.error("DATABASE getPosts - Erro ao buscar via PostgreSQL:", pgError);
         }
       }
-      
+
       // Se não encontrou posts por nenhum método
       if (postsData.length === 0) {
         console.log("DATABASE getPosts - Nenhum post encontrado com os filtros especificados");
         return [];
       }
-      
+
       // Mapear os dados para o formato esperado pela aplicação
       // e normalizar os campos premium
       const result = postsData.map(post => {
@@ -1481,11 +1562,11 @@ export class DatabaseStorage implements IStorage {
           formatData: post.format_data || null,
           isVisible: post.is_visible !== false // se for null ou undefined, assume true
         };
-        
+
         // Normalizar campos premium
         return ensurePremiumFields(rawPost);
       });
-      
+
       console.log(`DATABASE getPosts - Normalizados ${result.length} posts`);
       return result;
     } catch (error) {
@@ -1493,27 +1574,27 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getPostById(id: number): Promise<Post | undefined> {
     try {
       console.log("DATABASE getPostById - Buscando post com ID:", id);
-      
+
       // Usar PostgreSQL direto como fonte primária para garantir consistência
       let post: any;
       try {
         console.log("DATABASE getPostById - Buscando via PostgreSQL direto (fonte primária)");
-        
+
         const result = await pool.query(`
           SELECT * FROM posts WHERE id = $1 LIMIT 1
         `, [id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           post = result.rows[0];
           console.log("DATABASE getPostById - Post encontrado via PostgreSQL direto");
         }
       } catch (pgError) {
         console.error("DATABASE getPostById - Erro ao buscar via PostgreSQL:", pgError);
-        
+
         // Fallback para Supabase apenas se PostgreSQL falhar
         try {
           console.log("DATABASE getPostById - Fallback para Supabase");
@@ -1522,7 +1603,7 @@ export class DatabaseStorage implements IStorage {
             .select('*')
             .eq('id', id)
             .single();
-            
+
           if (error) {
             console.warn("DATABASE getPostById - Erro ao buscar post via Supabase:", error.message);
           } else if (data) {
@@ -1533,19 +1614,19 @@ export class DatabaseStorage implements IStorage {
           console.warn("DATABASE getPostById - Exceção ao acessar Supabase:", supabaseError);
         }
       }
-      
+
       // Se não encontrou por nenhum método
       if (!post) {
         console.log(`DATABASE getPostById - Post com ID ${id} não encontrado`);
         return undefined;
       }
-      
+
       // Limpar URL da imagem removendo parâmetros problemáticos
       let cleanImageUrl = post.image_url;
       if (cleanImageUrl && cleanImageUrl.includes('?download=')) {
         cleanImageUrl = cleanImageUrl.split('?download=')[0];
       }
-      
+
       // Limpar dados de formato se existirem
       let cleanFormatData = post.format_data;
       if (cleanFormatData && typeof cleanFormatData === 'string') {
@@ -1590,10 +1671,10 @@ export class DatabaseStorage implements IStorage {
         formatData: cleanFormatData || null,
         isVisible: post.is_visible !== false // se for null ou undefined, assume true
       };
-      
+
       // Normalizar os campos premium do post (garante consistência)
       const result = ensurePremiumFields(rawPost);
-      
+
       console.log(`DATABASE getPostById - Post normalizado: ${result.title}, Premium: ${isPostPremium(result)}`);
       return result;
     } catch (error) {
@@ -1601,19 +1682,19 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
-  
+
   async getPostsByGroupId(groupId: string): Promise<Post[]> {
     try {
       console.log("DATABASE getPostsByGroupId - Buscando posts do grupo:", groupId);
-      
+
       if (!groupId) {
         console.warn("DATABASE getPostsByGroupId - ID do grupo não fornecido");
         return [];
       }
-      
+
       // Definir variável para armazenar posts
       let postsData: any[] = [];
-      
+
       // Tentar via Supabase primeiro
       try {
         // Usar select('*') em vez de selecionar campos específicos
@@ -1622,7 +1703,7 @@ export class DatabaseStorage implements IStorage {
           .select('*')
           .eq('group_id', groupId)
           .order('id', { ascending: true });
-          
+
         if (error) {
           console.warn("DATABASE getPostsByGroupId - Erro ao buscar posts via Supabase:", error.message);
           // Não retornar ainda, vamos tentar com PostgreSQL direto
@@ -1633,16 +1714,16 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseError) {
         console.warn("DATABASE getPostsByGroupId - Exceção ao acessar Supabase:", supabaseError);
       }
-      
+
       // Sempre usar PostgreSQL direto porque o Supabase não tem group_id
       try {
         console.log("DATABASE getPostsByGroupId - Tentando buscar via PostgreSQL direto");
-        
+
         // Conexão direta com PostgreSQL
         const result = await pool.query(`
           SELECT * FROM posts WHERE group_id = $1 ORDER BY id ASC
         `, [groupId]);
-        
+
         if (result.rows && result.rows.length > 0) {
           postsData = result.rows;
           console.log(`DATABASE getPostsByGroupId - Encontrados ${result.rows.length} posts via PostgreSQL direto`);
@@ -1650,13 +1731,13 @@ export class DatabaseStorage implements IStorage {
       } catch (pgError) {
         console.error("DATABASE getPostsByGroupId - Erro ao buscar via PostgreSQL:", pgError);
       }
-      
+
       // Se não encontrou posts por nenhum método
       if (postsData.length === 0) {
         console.log(`DATABASE getPostsByGroupId - Nenhum post encontrado no grupo ${groupId}`);
         return [];
       }
-      
+
       // Mapear os dados para o formato esperado pela aplicação
       // e aplicar o utilitário para normalizar os campos premium
       const result = postsData.map(post => {
@@ -1686,11 +1767,11 @@ export class DatabaseStorage implements IStorage {
           formatData: post.format_data || null,
           isVisible: post.is_visible !== false // se for null ou undefined, assume true
         };
-        
+
         // Normalizar campos premium
         return ensurePremiumFields(rawPost);
       });
-      
+
       console.log(`DATABASE getPostsByGroupId - Normalizados ${result.length} posts do grupo ${groupId}`);
       return result;
     } catch (error) {
@@ -1698,17 +1779,37 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async createPost(post: InsertPost, authorUser?: any): Promise<Post> {
     try {
       console.log("DATABASE createPost - Criando novo post:", JSON.stringify(post));
-      
+
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log("Modo offline detectado: salvando post mock local na .local_db.json");
+        const db = getLocalDb();
+        const maxId = db.posts.length > 0 ? Math.max(...db.posts.map((p: any) => p.id)) : 0;
+        const newPost: any = {
+          id: maxId + 1,
+          ...post,
+          createdAt: new Date(),
+          publishedAt: new Date(),
+          isVisible: post.isVisible !== false,
+          uniqueCode: post.uniqueCode || `mock-${Math.random().toString(36).substring(2, 8)}`,
+          status: post.status || 'aprovado',
+          authorName: authorUser?.username || 'Admin Local'
+        };
+        db.posts.push(newPost);
+        saveLocalDb(db);
+        return ensurePremiumFields(newPost) as Post;
+      }
+
       // Verificar se a categoria existe no PostgreSQL direto
       if (post.categoryId) {
         console.log(`DATABASE createPost - Verificando se a categoria com ID ${post.categoryId} existe no PostgreSQL`);
         try {
           const checkResult = await pool.query('SELECT id, name FROM categories WHERE id = $1', [post.categoryId]);
-          
+
           if (checkResult.rows.length === 0) {
             console.warn(`DATABASE createPost - Categoria com ID ${post.categoryId} não encontrada no PostgreSQL`);
             console.log("DATABASE createPost - Usando categoria padrão (ID 6 - Corporal)");
@@ -1722,7 +1823,7 @@ export class DatabaseStorage implements IStorage {
           post.categoryId = 6; // Usar a categoria Corporal com ID 6 que sabemos que existe
         }
       }
-      
+
       // Mapear do formato da aplicação para o formato do PostgreSQL
       const dbPost: any = {
         title: post.title,
@@ -1733,7 +1834,7 @@ export class DatabaseStorage implements IStorage {
         status: post.status || 'rascunho',
         published_at: post.publishedAt ? post.publishedAt.toISOString() : null
       };
-      
+
       // Adicionar informações do autor se fornecidas
       if (authorUser) {
         dbPost.user_id = authorUser.id;
@@ -1749,7 +1850,7 @@ export class DatabaseStorage implements IStorage {
             SELECT username, profile_image, COALESCE(tipo, 'free') as tipo 
             FROM users WHERE id = $1
           `, [post.userId]);
-          
+
           if (authorResult.rows.length > 0) {
             const author = authorResult.rows[0];
             dbPost.author_name = author.username;
@@ -1761,7 +1862,7 @@ export class DatabaseStorage implements IStorage {
           console.warn("DATABASE createPost - Erro ao buscar dados do autor:", authorError);
         }
       }
-      
+
       // Adicionar os novos campos para suporte a múltiplos formatos
       if (post.formato) dbPost.formato = post.formato;
       if (post.groupId) dbPost.group_id = post.groupId;
@@ -1769,7 +1870,7 @@ export class DatabaseStorage implements IStorage {
       if (post.canvaUrl) dbPost.canva_url = post.canvaUrl;
       if (post.formatoData) dbPost.formato_data = post.formatoData;
       if (post.formatData) dbPost.format_data = post.formatData;
-      
+
       // Definir licenseType e isPro (garantir consistência)
       if (post.licenseType) {
         dbPost.license_type = post.licenseType;
@@ -1778,39 +1879,39 @@ export class DatabaseStorage implements IStorage {
         dbPost.is_pro = post.isPro;
         dbPost.license_type = post.isPro ? 'premium' : 'free';
       }
-      
+
       // Visibilidade no feed
       if (post.isVisible !== undefined) {
         dbPost.is_visible = post.isVisible;
       }
-      
+
       // Campos de array
       if (post.tags && Array.isArray(post.tags)) {
         dbPost.tags = post.tags;
       }
-      
+
       if (post.formats && Array.isArray(post.formats)) {
         dbPost.formats = post.formats;
       }
-      
+
       console.log("DATABASE createPost - Dados completos a serem enviados:", dbPost);
-      
+
       // Tentar criar o post no Supabase primeiro
       try {
         console.log("DATABASE createPost - Tentando criar post via Supabase");
-        
+
         const { data: supabaseData, error: supabaseError } = await supabase
           .from('posts')
           .insert(dbPost)
           .select()
           .single();
-          
+
         if (supabaseError) {
           console.warn("DATABASE createPost - Erro ao criar post via Supabase:", supabaseError.message);
           // Se falhar com Supabase, tentamos com PostgreSQL direto
         } else if (supabaseData) {
           console.log(`DATABASE createPost - Post criado com ID: ${supabaseData.id} via Supabase`);
-          
+
           // Mapear para o formato esperado pela aplicação
           const postResult: Post = {
             id: supabaseData.id,
@@ -1840,7 +1941,7 @@ export class DatabaseStorage implements IStorage {
             authorProfileImage: supabaseData.author_profile_image,
             authorType: supabaseData.author_type
           };
-          
+
           // Aplicar normalização para campos premium
           const normalizedPost = ensurePremiumFields(postResult);
           return normalizedPost;
@@ -1848,33 +1949,33 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseCreateError) {
         console.error("DATABASE createPost - Exceção ao criar post via Supabase:", supabaseCreateError);
       }
-      
+
       // Se chegarmos aqui, Supabase falhou ou retornou erro. Tentar com PostgreSQL direto
       console.log("DATABASE createPost - Usando PostgreSQL diretamente para criação de post");
-      
+
       // Construir consulta SQL para inserção
       const fields = Object.keys(dbPost);
       const values = Object.values(dbPost);
       const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ');
-      
+
       const sql = `
         INSERT INTO posts (${fields.join(', ')})
         VALUES (${placeholders})
         RETURNING *
       `;
-      
+
       console.log("DATABASE createPost - Executando SQL:", sql);
       console.log("DATABASE createPost - Campos:", fields);
-      
+
       try {
         const result = await pool.query(sql, values);
-        
+
         if (result.rows.length === 0) {
           throw new Error('Erro ao criar post via PostgreSQL: nenhum dado retornado');
         }
-        
+
         const data = result.rows[0];
-        
+
         // Mapear para o formato esperado pela aplicação
         const postResult: Post = {
           id: data.id,
@@ -1902,9 +2003,9 @@ export class DatabaseStorage implements IStorage {
           authorProfileImage: data.author_profile_image,
           authorType: data.author_type
         };
-        
+
         console.log(`DATABASE createPost - Post criado com ID: ${postResult.id} via PostgreSQL direto`);
-        
+
         // Tentar sincronizar com Supabase imediatamente
         try {
           const supabaseData = {
@@ -1933,7 +2034,7 @@ export class DatabaseStorage implements IStorage {
         } catch (syncError) {
           console.log(`DATABASE createPost - Aviso: Sincronização com Supabase falhou:`, syncError);
         }
-        
+
         return postResult;
       } catch (pgError) {
         console.error("DATABASE createPost - Erro PostgreSQL:", pgError);
@@ -1944,17 +2045,17 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async updatePost(id: number, post: Partial<InsertPost>): Promise<Post> {
     try {
       console.log(`DATABASE updatePost - Atualizando post com ID ${id}:`, JSON.stringify(post));
-      
+
       // REMOVIDO: Verificação de categoria forçada que mudava sempre para ID 6
       // Simplesmente usar a categoria enviada pelo frontend
-      
+
       // Mapear do formato da aplicação para o formato do PostgreSQL
       const dbPost: any = {};
-      
+
       if (post.title !== undefined) dbPost.title = post.title;
       if (post.description !== undefined) dbPost.description = post.description;
       if (post.imageUrl !== undefined) {
@@ -1978,7 +2079,7 @@ export class DatabaseStorage implements IStorage {
       if (post.uniqueCode !== undefined) dbPost.unique_code = post.uniqueCode;
       if (post.categoryId !== undefined) dbPost.category_id = post.categoryId;
       if (post.status !== undefined) dbPost.status = post.status;
-      
+
       // Campos para suporte a múltiplos formatos
       if (post.formato !== undefined) dbPost.formato = post.formato;
       if (post.formatData !== undefined) {
@@ -1992,21 +2093,21 @@ export class DatabaseStorage implements IStorage {
         dbPost.formato_data = post.formatoData;
         console.log(`DATABASE updatePost - Atualizando formatoData: ${post.formatoData}`);
       }
-      
+
       // Campos de array
       if (post.tags && Array.isArray(post.tags)) {
         dbPost.tags = post.tags;
       }
-      
+
       if (post.formats && Array.isArray(post.formats)) {
         dbPost.formats = post.formats;
       }
-      
+
       // Verificar se há campos de licença e atualizar todos que forem necessários
       if (post.licenseType !== undefined) {
         // Armazenar o licenseType como string (premium ou free)
         dbPost.license_type = post.licenseType;
-        
+
         // O campo is_pro é usado para indicar conteúdo premium
         if (post.isPro !== undefined) {
           // Se foi explicitamente fornecido, usar o valor diretamente
@@ -2015,23 +2116,23 @@ export class DatabaseStorage implements IStorage {
           // Caso contrário, considerar premium se licenseType for 'premium'
           dbPost.is_pro = post.licenseType === 'premium';
         }
-        
+
         console.log(`DATABASE updatePost - Atualizando licença: license_type=${dbPost.license_type}, is_pro=${dbPost.is_pro}`);
       } else if (post.isPro !== undefined) {
         // Se apenas isPro foi fornecido, atualizar apenas esse campo
         dbPost.is_pro = post.isPro;
         console.log(`DATABASE updatePost - Atualizando apenas is_pro=${dbPost.is_pro}`);
       }
-      
+
       // Visibilidade no feed
       if (post.isVisible !== undefined) {
         dbPost.is_visible = post.isVisible;
         console.log(`DATABASE updatePost - Atualizando is_visible=${dbPost.is_visible}`);
       }
-      
+
       // Tentar primeiro atualizar via Supabase
       console.log("DATABASE updatePost - Tentando atualizar post via Supabase primeiro");
-      
+
       // Tentar atualizar via Supabase
       try {
         const { data: supabaseData, error: supabaseError } = await supabase
@@ -2040,13 +2141,13 @@ export class DatabaseStorage implements IStorage {
           .eq('id', id)
           .select()
           .single();
-          
+
         if (supabaseError) {
           console.warn("DATABASE updatePost - Erro ao atualizar via Supabase:", supabaseError.message);
           // Se falhar, tentamos com PostgreSQL direto
         } else if (supabaseData) {
           console.log(`DATABASE updatePost - Post atualizado com sucesso via Supabase`);
-          
+
           // Mapear para o formato esperado pela aplicação
           const postResult: Post = {
             id: supabaseData.id,
@@ -2075,73 +2176,73 @@ export class DatabaseStorage implements IStorage {
             authorProfileImage: supabaseData.author_profile_image,
             authorType: supabaseData.author_type
           };
-          
+
           // Aplicar normalização para campos premium
           const normalizedPost = ensurePremiumFields(postResult);
-          
+
           // Agora vamos tentar fazer o mesmo update no PostgreSQL direto como fallback
           // para garantir consistência, mas sem falhar se não encontrar
           try {
             // Construir consulta SQL para atualização
             const setClauses = Object.keys(dbPost).map((key, i) => `${key} = $${i + 1}`).join(', ');
             const values = [...Object.values(dbPost), id];
-            
+
             const sql = `
               UPDATE posts 
               SET ${setClauses} 
               WHERE id = $${values.length}
             `;
-            
+
             await pool.query(sql, values);
             console.log(`DATABASE updatePost - Post também atualizado no PostgreSQL direto como fallback`);
           } catch (pgFallbackError) {
             console.warn("DATABASE updatePost - Aviso: Falha ao sincronizar com PostgreSQL direto:", pgFallbackError);
             // Não falhar aqui, pois o update no Supabase já funcionou
           }
-          
+
           return normalizedPost;
         }
       } catch (supabaseUpdateError) {
         console.error("DATABASE updatePost - Exceção ao atualizar via Supabase:", supabaseUpdateError);
       }
-      
+
       // Se chegamos aqui, Supabase falhou ou retornou erro
       console.log("DATABASE updatePost - Tentando agora com PostgreSQL direto");
-      
+
       // Construir consulta SQL para atualização
       const setClauses = Object.keys(dbPost).map((key, i) => `${key} = $${i + 1}`).join(', ');
       const values = [...Object.values(dbPost), id];
-      
+
       const sql = `
         UPDATE posts 
         SET ${setClauses} 
         WHERE id = $${values.length}
         RETURNING *
       `;
-      
+
       console.log("DATABASE updatePost - Executando SQL:", sql);
       console.log("DATABASE updatePost - Campos para atualização:", Object.keys(dbPost));
-      
+
       try {
         const result = await pool.query(sql, values);
-        
+
         if (result.rows.length === 0) {
           // Se não encontrou no PostgreSQL direto, tente buscar do Supabase para ver se existe lá
           console.log(`DATABASE updatePost - Post com ID ${id} não encontrado no PostgreSQL, verificando no Supabase`);
-          
+
           const { data: existingPost, error: fetchError } = await supabase
             .from('posts')
             .select('*')
             .eq('id', id)
             .single();
-            
+
           if (fetchError || !existingPost) {
             throw new Error(`Post com ID ${id} não encontrado em nenhuma base de dados`);
           }
-          
+
           // Se encontrou no Supabase, sincronizar com PostgreSQL usando INSERT ON CONFLICT
           console.log(`DATABASE updatePost - Post com ID ${id} encontrado no Supabase, sincronizando com PostgreSQL`);
-          
+
           // Obter a estrutura correta da tabela posts no PostgreSQL primeiro
           try {
             const tableStructureQuery = `
@@ -2149,38 +2250,38 @@ export class DatabaseStorage implements IStorage {
               FROM information_schema.columns 
               WHERE table_name = 'posts'
             `;
-            
+
             const tableStructure = await pool.query(tableStructureQuery);
             const validColumns = tableStructure.rows.map(row => row.column_name);
-            
+
             console.log(`DATABASE updatePost - Colunas válidas na tabela posts do PostgreSQL:`, validColumns);
-            
+
             // Criar o post no PostgreSQL apenas com campos válidos
             const fullPost = {
               ...existingPost,
               ...dbPost
             };
-            
+
             // Converter campos para formato correto do PostgreSQL
             const pgPost: any = {};
-            
+
             // Mapeamento manual de campos conhecidos que possam diferir entre Supabase e PostgreSQL
-            const fieldMappings: {[key: string]: string} = {
+            const fieldMappings: { [key: string]: string } = {
               // Mapear quaisquer campos que tenham nomes diferentes
               // Exemplo: 'conteudo': 'content'
             };
-            
+
             for (const [key, value] of Object.entries(fullPost)) {
               // Transformar chaves em snake_case
               const pgKey = key.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
-              
+
               // Verificar se o campo existe na tabela do PostgreSQL
               if (validColumns.includes(pgKey) || validColumns.includes(fieldMappings[pgKey])) {
                 const finalKey = fieldMappings[pgKey] || pgKey;
                 pgPost[finalKey] = value;
               }
             }
-            
+
             // Garantir que os campos essenciais estejam presentes
             if (!pgPost.id) pgPost.id = id;
             if (!pgPost.title && existingPost.title) pgPost.title = existingPost.title;
@@ -2189,7 +2290,7 @@ export class DatabaseStorage implements IStorage {
             if (!pgPost.category_id && existingPost.category_id) pgPost.category_id = existingPost.category_id;
             if (!pgPost.status) pgPost.status = 'aprovado';
             if (!pgPost.created_at) pgPost.created_at = new Date().toISOString();
-            
+
             // Garantir que unique_code existe (campo obrigatório)
             if (!pgPost.unique_code) {
               if (existingPost.unique_code) {
@@ -2200,11 +2301,11 @@ export class DatabaseStorage implements IStorage {
                 console.log(`DATABASE updatePost - Gerando unique_code: ${pgPost.unique_code} para post ${id}`);
               }
             }
-            
+
             // Definir explicitamente os campos de licença premium
             pgPost.license_type = dbPost.license_type || (existingPost.is_pro ? 'premium' : 'free');
             pgPost.is_pro = dbPost.is_pro !== undefined ? dbPost.is_pro : !!existingPost.is_pro;
-            
+
             // Filtrar apenas os campos que existem na tabela
             const validPgPost: any = {};
             for (const [key, value] of Object.entries(pgPost)) {
@@ -2212,29 +2313,29 @@ export class DatabaseStorage implements IStorage {
                 validPgPost[key] = value;
               }
             }
-            
+
             // Construir consulta SQL para inserção com ON CONFLICT para evitar duplicatas
             const insertFields = Object.keys(validPgPost);
             const insertValues = Object.values(validPgPost);
             const insertPlaceholders = insertFields.map((_, i) => `$${i + 1}`).join(', ');
-            
+
             // Campos para atualização em caso de conflito (exceto id e unique_code)
             const updateFields = insertFields.filter(field => field !== 'id' && field !== 'unique_code');
             const updateClauses = updateFields.map(field => `${field} = EXCLUDED.${field}`).join(', ');
-            
+
             const insertSql = `
               INSERT INTO posts (${insertFields.join(', ')})
               VALUES (${insertPlaceholders})
               ON CONFLICT (unique_code) DO UPDATE SET ${updateClauses}
               RETURNING *
             `;
-            
+
             console.log(`DATABASE updatePost - Campos a inserir/atualizar no PostgreSQL:`, insertFields);
-            
+
             // Executar a inserção/atualização
             const insertResult = await pool.query(insertSql, insertValues);
             const data = insertResult.rows[0];
-            
+
             // Mapear para o formato esperado pela aplicação
             const postResult: Post = {
               id: data.id,
@@ -2258,12 +2359,12 @@ export class DatabaseStorage implements IStorage {
               tags: data.tags || [],
               formats: data.formats || []
             };
-            
+
             console.log(`DATABASE updatePost - Post sincronizado entre Supabase e PostgreSQL`);
             return postResult;
           } catch (schemaError) {
             console.error(`DATABASE updatePost - Erro ao obter estrutura da tabela:`, schemaError);
-            
+
             // Criar um post básico com apenas os campos essenciais
             const minimalPost = {
               id,
@@ -2276,22 +2377,22 @@ export class DatabaseStorage implements IStorage {
               license_type: dbPost.license_type || (existingPost.is_pro ? 'premium' : 'free'),
               is_pro: dbPost.is_pro !== undefined ? dbPost.is_pro : !!existingPost.is_pro
             };
-            
+
             // Construir consulta SQL para inserção simplificada
             const insertFieldsMin = Object.keys(minimalPost);
             const insertValuesMin = Object.values(minimalPost);
             const insertPlaceholdersMin = insertFieldsMin.map((_, i) => `$${i + 1}`).join(', ');
-            
+
             const insertSqlMin = `
               INSERT INTO posts (${insertFieldsMin.join(', ')})
               VALUES (${insertPlaceholdersMin})
               RETURNING *
             `;
-            
+
             // Executar a inserção simplificada
             const insertResult = await pool.query(insertSqlMin, insertValuesMin);
             const data = insertResult.rows[0];
-            
+
             // Mapear para o formato esperado pela aplicação
             const postResult: Post = {
               id: data.id,
@@ -2315,14 +2416,14 @@ export class DatabaseStorage implements IStorage {
               tags: data.tags || [],
               formats: data.formats || []
             };
-            
+
             console.log(`DATABASE updatePost - Post sincronizado com dados mínimos entre Supabase e PostgreSQL`);
             return postResult;
           }
         }
-        
+
         const data = result.rows[0];
-        
+
         // Mapear para o formato esperado pela aplicação
         const postResult: Post = {
           id: data.id,
@@ -2346,7 +2447,7 @@ export class DatabaseStorage implements IStorage {
           tags: data.tags || [],
           formats: data.formats || []
         };
-        
+
         console.log(`DATABASE updatePost - Post atualizado: ${postResult.title} via PostgreSQL direto`);
         return postResult;
       } catch (pgError) {
@@ -2358,20 +2459,20 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async deletePost(id: number): Promise<void> {
     try {
       console.log(`DATABASE deletePost - Excluindo post com ID: ${id}`);
-      
+
       // Tentar excluir primeiro do Supabase
       console.log("DATABASE deletePost - Tentando excluir do Supabase primeiro");
-      
+
       try {
         const { error: supabaseError } = await supabase
           .from('posts')
           .delete()
           .eq('id', id);
-          
+
         if (supabaseError) {
           console.warn("DATABASE deletePost - Erro ao excluir do Supabase:", supabaseError.message);
           // Se falhar, continuamos com PostgreSQL
@@ -2381,15 +2482,15 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseDeleteError) {
         console.error("DATABASE deletePost - Exceção ao excluir do Supabase:", supabaseDeleteError);
       }
-      
+
       // Excluir do PostgreSQL direto também (mesmo que Supabase tenha funcionado)
       console.log("DATABASE deletePost - Excluindo do PostgreSQL direto");
-      
+
       const sql = `DELETE FROM posts WHERE id = $1`;
-      
+
       try {
         const result = await pool.query(sql, [id]);
-        
+
         if (result.rowCount === 0) {
           console.log(`DATABASE deletePost - Post com ID ${id} não encontrado no PostgreSQL direto (provavelmente já foi excluído ou nunca existiu)`);
         } else {
@@ -2399,7 +2500,7 @@ export class DatabaseStorage implements IStorage {
         console.error("DATABASE deletePost - Erro ao excluir do PostgreSQL:", pgError);
         // Não falhar aqui se o Supabase já excluiu
       }
-      
+
       // Sucesso se chegamos até aqui (pelo menos uma das exclusões funcionou)
       console.log(`DATABASE deletePost - Post com ID ${id} excluído com sucesso`);
     } catch (error) {
@@ -2407,23 +2508,23 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async updatePostStatus(ids: number[], status: 'aprovado' | 'rascunho' | 'rejeitado'): Promise<void> {
     try {
       console.log(`DATABASE updatePostStatus - Atualizando status para ${status} nos posts:`, ids);
-      
+
       // Definir dados para atualização
       let updateData: any = { status };
-      
+
       // Se for para aprovar, definir a data de publicação
       if (status === 'aprovado') {
         updateData.published_at = new Date().toISOString();
       }
-      
+
       // Primeiro tentar atualizar via Supabase
       console.log("DATABASE updatePostStatus - Tentando atualizar status via Supabase");
       let successCount = 0;
-      
+
       try {
         // Atualizar posts individualmente (Supabase não suporta .in para update)
         for (const id of ids) {
@@ -2431,44 +2532,44 @@ export class DatabaseStorage implements IStorage {
             .from('posts')
             .update(updateData)
             .eq('id', id);
-            
+
           if (!error) {
             successCount++;
           }
         }
-        
+
         console.log(`DATABASE updatePostStatus - ${successCount} de ${ids.length} posts atualizados via Supabase`);
       } catch (supabaseError) {
         console.error("DATABASE updatePostStatus - Erro ao atualizar via Supabase:", supabaseError);
       }
-      
+
       // Também atualizar via PostgreSQL direto para garantir consistência
       console.log("DATABASE updatePostStatus - Usando PostgreSQL direto para atualização de status");
-      
+
       // Criar placeholder IDs para a consulta SQL
       const idPlaceholders = ids.map((_, i) => `$${i + 2}`).join(', ');
-      
+
       const sql = `
         UPDATE posts 
         SET status = $1${status === 'aprovado' ? ', published_at = $' + (ids.length + 2) : ''}
         WHERE id IN (${idPlaceholders})
       `;
-      
+
       // Montar array de parâmetros com status no início, seguido pelos IDs
       const params = [status, ...ids];
-      
+
       // Adicionar data de publicação se necessário
       if (status === 'aprovado') {
         params.push(updateData.published_at);
       }
-      
+
       try {
         const result = await pool.query(sql, params);
-        
+
         console.log(`DATABASE updatePostStatus - Status atualizado para ${status} em ${result.rowCount} posts via PostgreSQL direto`);
       } catch (pgError: any) {
         console.error("DATABASE updatePostStatus - Erro PostgreSQL:", pgError);
-        
+
         // Se Supabase atualizou pelo menos alguns posts, não falhar
         if (successCount > 0) {
           console.log(`DATABASE updatePostStatus - Continuando, pois ${successCount} posts foram atualizados via Supabase`);
@@ -2476,7 +2577,7 @@ export class DatabaseStorage implements IStorage {
           throw new Error(`Erro ao atualizar status dos posts: ${pgError.message}`);
         }
       }
-      
+
       console.log(`DATABASE updatePostStatus - Atualização de status concluída para ${ids.length} posts`);
     } catch (error) {
       console.error("DATABASE updatePostStatus - Exceção:", error);
@@ -2487,7 +2588,7 @@ export class DatabaseStorage implements IStorage {
   async getVisiblePosts(): Promise<Post[]> {
     try {
       console.log("DATABASE getVisiblePosts - Buscando TODOS os posts visíveis (múltiplos formatos)");
-      
+
       // Query para buscar TODOS os posts visíveis (não agrupados)
       const query = `
         SELECT 
@@ -2500,14 +2601,14 @@ export class DatabaseStorage implements IStorage {
         AND (is_visible IS NULL OR is_visible = true)
         ORDER BY created_at DESC
       `;
-      
+
       const result = await pool.query(query);
-      
+
       if (!result.rows || result.rows.length === 0) {
         console.log("DATABASE getVisiblePosts - Nenhum post visível encontrado");
         return [];
       }
-      
+
       // Mapear os dados para o formato esperado pela aplicação
       const posts: Post[] = result.rows.map(item => {
         const rawPost = {
@@ -2533,13 +2634,13 @@ export class DatabaseStorage implements IStorage {
           formatData: item.format_data || null,
           isVisible: item.is_visible !== false
         };
-        
+
         // Normalizar os campos premium
         return ensurePremiumFields(rawPost);
       });
-      
+
       console.log(`DATABASE getVisiblePosts - Encontrados ${posts.length} posts visíveis (TODOS os formatos)`);
-      
+
       // Log dos últimos 6 posts para debug
       const recentPosts = posts.slice(0, 6);
       recentPosts.forEach(post => {
@@ -2551,12 +2652,12 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   // Seed the database with sample artworks
   async seedDatabase() {
     // Check if artworks already exist
     const existingArtworks = await db.select().from(artworks);
-    
+
     if (existingArtworks.length === 0) {
       const sampleArtworks: InsertArtwork[] = [
         {
@@ -2632,7 +2733,7 @@ export class DatabaseStorage implements IStorage {
           category: "rejuvenescimento"
         }
       ];
-      
+
       // Insert sample artworks
       await db.insert(artworks).values(sampleArtworks);
 
@@ -2640,54 +2741,54 @@ export class DatabaseStorage implements IStorage {
       const adminUsername = "admin";
       const adminEmail = "jean.maringa@hotmail.com";
       const [existingAdmin] = await db.select().from(users).where(eq(users.username, adminUsername));
-      
+
       if (!existingAdmin) {
         // Import necessary modules for password hashing
         const { scrypt, randomBytes } = await import('crypto');
         const { promisify } = await import('util');
         const scryptAsync = promisify(scrypt);
-        
+
         // Hash the password
         const salt = randomBytes(16).toString("hex");
         const derivedKey = await scryptAsync("admin123", salt, 64) as Buffer;
         const hashedPassword = `${derivedKey.toString("hex")}.${salt}`;
-        
+
         // Create admin user
         await db.insert(users).values({
           username: adminUsername,
           email: adminEmail,
           password: hashedPassword,
-          is_admin: true
+          isAdmin: true
         });
-        
+
         console.log("Admin user created with username 'admin' and password 'admin123'");
       }
     }
   }
-  
+
   // Implementação dos métodos de gerenciamento de planos
   async getPlans(showInactive: boolean = false): Promise<Plan[]> {
     try {
       console.log("DATABASE getPlans - Buscando planos", showInactive ? "incluindo inativos" : "apenas ativos");
-      
+
       // Primeiro tentamos com Supabase
       try {
         let query = supabase.from('plans').select('*');
-        
+
         if (!showInactive) {
           query = query.eq('is_active', true);
         }
-        
+
         const { data, error } = await query.order('id');
-        
+
         if (error) {
           console.error("DATABASE getPlans - Erro ao buscar planos via Supabase:", error.message);
           throw new Error("Falha ao buscar planos via Supabase");
         }
-        
+
         if (data) {
           console.log(`DATABASE getPlans - Encontrados ${data.length} planos via Supabase`);
-          
+
           // Mapear os dados para o formato esperado
           return data.map((plan) => ({
             id: plan.id,
@@ -2709,26 +2810,26 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseError) {
         console.error("DATABASE getPlans - Exceção ao acessar Supabase:", supabaseError);
       }
-      
+
       // Se falhar com Supabase, tentamos diretamente com PostgreSQL
       console.log("DATABASE getPlans - Tentando buscar planos com PostgreSQL direto");
-      
+
       try {
         let query = `
           SELECT * FROM plans
         `;
-        
+
         if (!showInactive) {
           query += ` WHERE is_active = true`;
         }
-        
+
         query += ` ORDER BY id`;
-        
+
         const result = await pool.query(query);
-        
+
         if (result && result.rows) {
           console.log(`DATABASE getPlans - Encontrados ${result.rows.length} planos via PostgreSQL`);
-          
+
           // Mapear os dados para o formato esperado
           return result.rows.map((plan) => ({
             id: plan.id,
@@ -2750,7 +2851,7 @@ export class DatabaseStorage implements IStorage {
       } catch (pgError) {
         console.error("DATABASE getPlans - Erro ao buscar planos via PostgreSQL:", pgError);
       }
-      
+
       // Se chegou aqui, nenhum dos métodos funcionou
       console.warn("DATABASE getPlans - Nenhum plano encontrado ou erro em ambas as fontes de dados");
       return [];
@@ -2759,11 +2860,11 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getPlanById(id: number): Promise<Plan | undefined> {
     try {
       console.log("DATABASE getPlanById - Buscando plano com ID:", id);
-      
+
       // Primeiro tentamos com Supabase
       try {
         const { data, error } = await supabase
@@ -2771,15 +2872,15 @@ export class DatabaseStorage implements IStorage {
           .select('*')
           .eq('id', id)
           .maybeSingle();
-        
+
         if (error) {
           console.error("DATABASE getPlanById - Erro ao buscar plano via Supabase:", error.message);
           throw new Error("Falha ao buscar plano via Supabase");
         }
-        
+
         if (data) {
           console.log("DATABASE getPlanById - Plano encontrado via Supabase");
-          
+
           // Mapear os dados para o formato esperado
           return {
             id: data.id,
@@ -2801,22 +2902,22 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseError) {
         console.error("DATABASE getPlanById - Exceção ao acessar Supabase:", supabaseError);
       }
-      
+
       // Se falhar com Supabase, tentamos diretamente com PostgreSQL
       console.log("DATABASE getPlanById - Tentando buscar plano com PostgreSQL direto");
-      
+
       try {
         const query = `
           SELECT * FROM plans
           WHERE id = $1
         `;
-        
+
         const result = await pool.query(query, [id]);
-        
+
         if (result && result.rows && result.rows.length > 0) {
           console.log("DATABASE getPlanById - Plano encontrado via PostgreSQL");
           const plan = result.rows[0];
-          
+
           // Mapear os dados para o formato esperado
           return {
             id: plan.id,
@@ -2838,7 +2939,7 @@ export class DatabaseStorage implements IStorage {
       } catch (pgError) {
         console.error("DATABASE getPlanById - Erro ao buscar plano via PostgreSQL:", pgError);
       }
-      
+
       // Se chegou aqui, nenhum dos métodos funcionou
       console.warn(`DATABASE getPlanById - Plano com ID ${id} não encontrado ou erro em ambas as fontes de dados`);
       return undefined;
@@ -2847,11 +2948,11 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
-  
+
   async createPlan(insertPlan: InsertPlan): Promise<Plan> {
     try {
       console.log("DATABASE createPlan - Dados para inserção:", JSON.stringify(insertPlan));
-      
+
       // Mapear para o formato do banco
       const dbPlan = {
         name: insertPlan.name,
@@ -2867,7 +2968,7 @@ export class DatabaseStorage implements IStorage {
         beneficios: insertPlan.beneficios,
         itens_restritos: insertPlan.itensRestritos
       };
-      
+
       // Primeiro tentamos com Supabase
       try {
         const { data, error } = await supabase
@@ -2875,15 +2976,15 @@ export class DatabaseStorage implements IStorage {
           .insert(dbPlan)
           .select()
           .single();
-        
+
         if (error) {
           console.error("DATABASE createPlan - Erro ao inserir plano via Supabase:", error.message);
           throw new Error("Falha ao inserir plano via Supabase");
         }
-        
+
         if (data) {
           console.log("DATABASE createPlan - Plano criado via Supabase:", data.id);
-          
+
           // Mapear para o formato esperado pela aplicação
           return {
             id: data.id,
@@ -2905,10 +3006,10 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseError) {
         console.error("DATABASE createPlan - Exceção ao acessar Supabase:", supabaseError);
       }
-      
+
       // Se falhar com Supabase, tentamos diretamente com PostgreSQL
       console.log("DATABASE createPlan - Tentando inserir plano com PostgreSQL direto");
-      
+
       try {
         const query = `
           INSERT INTO plans (
@@ -2918,7 +3019,7 @@ export class DatabaseStorage implements IStorage {
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
           ) RETURNING *
         `;
-        
+
         const values = [
           dbPlan.name,
           dbPlan.periodo,
@@ -2933,13 +3034,13 @@ export class DatabaseStorage implements IStorage {
           dbPlan.beneficios,
           dbPlan.itens_restritos
         ];
-        
+
         const result = await pool.query(query, values);
-        
+
         if (result && result.rows && result.rows.length > 0) {
           console.log("DATABASE createPlan - Plano criado via PostgreSQL:", result.rows[0].id);
           const plan = result.rows[0];
-          
+
           // Mapear para o formato esperado pela aplicação
           return {
             id: plan.id,
@@ -2961,7 +3062,7 @@ export class DatabaseStorage implements IStorage {
       } catch (pgError) {
         console.error("DATABASE createPlan - Erro ao inserir plano via PostgreSQL:", pgError);
       }
-      
+
       // Se chegou aqui, nenhum dos métodos funcionou
       throw new Error("Falha ao criar plano: ambos os métodos de inserção falharam");
     } catch (error) {
@@ -2969,14 +3070,14 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async updatePlan(id: number, updatePlan: Partial<InsertPlan>): Promise<Plan> {
     try {
       console.log("DATABASE updatePlan - Atualizando plano #" + id + ":", JSON.stringify(updatePlan));
-      
+
       // Mapear para o formato do banco
       const dbPlan: Record<string, any> = {};
-      
+
       if (updatePlan.name !== undefined) dbPlan.name = updatePlan.name;
       if (updatePlan.periodo !== undefined) dbPlan.periodo = updatePlan.periodo;
       if (updatePlan.valor !== undefined) dbPlan.valor = updatePlan.valor;
@@ -2989,7 +3090,7 @@ export class DatabaseStorage implements IStorage {
       if (updatePlan.urlHotmart !== undefined) dbPlan.url_hotmart = updatePlan.urlHotmart;
       if (updatePlan.beneficios !== undefined) dbPlan.beneficios = updatePlan.beneficios;
       if (updatePlan.itensRestritos !== undefined) dbPlan.itens_restritos = updatePlan.itensRestritos;
-      
+
       // Se não há nada para atualizar, buscar o plano atual
       if (Object.keys(dbPlan).length === 0) {
         console.log("DATABASE updatePlan - Nenhum campo para atualizar, buscando plano atual");
@@ -2999,7 +3100,7 @@ export class DatabaseStorage implements IStorage {
         }
         return currentPlan;
       }
-      
+
       // Primeiro tentamos com Supabase
       try {
         const { data, error } = await supabase
@@ -3008,15 +3109,15 @@ export class DatabaseStorage implements IStorage {
           .eq('id', id)
           .select()
           .single();
-        
+
         if (error) {
           console.error("DATABASE updatePlan - Erro ao atualizar plano via Supabase:", error.message);
           throw new Error("Falha ao atualizar plano via Supabase");
         }
-        
+
         if (data) {
           console.log("DATABASE updatePlan - Plano atualizado via Supabase");
-          
+
           // Mapear para o formato esperado pela aplicação
           return {
             id: data.id,
@@ -3038,33 +3139,33 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseError) {
         console.error("DATABASE updatePlan - Exceção ao acessar Supabase:", supabaseError);
       }
-      
+
       // Se falhar com Supabase, tentamos diretamente com PostgreSQL
       console.log("DATABASE updatePlan - Tentando atualizar plano com PostgreSQL direto");
-      
+
       try {
         // Construir a query dinamicamente com base nos campos a serem atualizados
         const setClause = Object.keys(dbPlan)
           .map((key, index) => `${key} = $${index + 1}`)
           .join(', ');
-        
+
         const values = [...Object.values(dbPlan), id];
-        
+
         const query = `
           UPDATE plans 
           SET ${setClause} 
           WHERE id = $${values.length}
           RETURNING *
         `;
-        
+
         console.log("Executando query: ", query, values);
-        
+
         const result = await pool.query(query, values);
-        
+
         if (result && result.rows && result.rows.length > 0) {
           console.log("DATABASE updatePlan - Plano atualizado via PostgreSQL");
           const plan = result.rows[0];
-          
+
           // Mapear para o formato esperado pela aplicação
           return {
             id: plan.id,
@@ -3086,7 +3187,7 @@ export class DatabaseStorage implements IStorage {
       } catch (pgError) {
         console.error("DATABASE updatePlan - Erro ao atualizar plano via PostgreSQL:", pgError);
       }
-      
+
       // Se chegou aqui, nenhum dos métodos funcionou
       throw new Error(`Falha ao atualizar plano com ID ${id}: ambos os métodos falharam`);
     } catch (error) {
@@ -3094,46 +3195,46 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async deletePlan(id: number): Promise<void> {
     try {
       console.log("DATABASE deletePlan - Excluindo plano #" + id);
-      
+
       // Primeiro tentamos com Supabase
       try {
         const { error } = await supabase
           .from('plans')
           .delete()
           .eq('id', id);
-        
+
         if (error) {
           console.error("DATABASE deletePlan - Erro ao excluir plano via Supabase:", error.message);
           throw new Error("Falha ao excluir plano via Supabase");
         }
-        
+
         console.log("DATABASE deletePlan - Plano excluído com sucesso via Supabase");
         return;
       } catch (supabaseError) {
         console.error("DATABASE deletePlan - Exceção ao acessar Supabase:", supabaseError);
       }
-      
+
       // Se falhar com Supabase, tentamos diretamente com PostgreSQL
       console.log("DATABASE deletePlan - Tentando excluir plano com PostgreSQL direto");
-      
+
       try {
         const query = `
           DELETE FROM plans 
           WHERE id = $1
         `;
-        
+
         await pool.query(query, [id]);
-        
+
         console.log("DATABASE deletePlan - Plano excluído com sucesso via PostgreSQL");
         return;
       } catch (pgError) {
         console.error("DATABASE deletePlan - Erro ao excluir plano via PostgreSQL:", pgError);
       }
-      
+
       // Se chegou aqui, nenhum dos métodos funcionou
       throw new Error(`Falha ao excluir plano com ID ${id}: ambos os métodos falharam`);
     } catch (error) {
@@ -3141,11 +3242,11 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async togglePlanStatus(id: number, isActive: boolean): Promise<Plan> {
     try {
       console.log(`DATABASE togglePlanStatus - ${isActive ? 'Ativando' : 'Desativando'} plano #${id}`);
-      
+
       // Primeiro tentamos com Supabase
       try {
         const { data, error } = await supabase
@@ -3154,15 +3255,15 @@ export class DatabaseStorage implements IStorage {
           .eq('id', id)
           .select()
           .single();
-        
+
         if (error) {
           console.error("DATABASE togglePlanStatus - Erro ao atualizar status via Supabase:", error.message);
           throw new Error("Falha ao atualizar status via Supabase");
         }
-        
+
         if (data) {
           console.log("DATABASE togglePlanStatus - Status atualizado via Supabase");
-          
+
           // Mapear para o formato esperado pela aplicação
           return {
             id: data.id,
@@ -3184,10 +3285,10 @@ export class DatabaseStorage implements IStorage {
       } catch (supabaseError) {
         console.error("DATABASE togglePlanStatus - Exceção ao acessar Supabase:", supabaseError);
       }
-      
+
       // Se falhar com Supabase, tentamos diretamente com PostgreSQL
       console.log("DATABASE togglePlanStatus - Tentando atualizar status com PostgreSQL direto");
-      
+
       try {
         const query = `
           UPDATE plans 
@@ -3195,13 +3296,13 @@ export class DatabaseStorage implements IStorage {
           WHERE id = $2
           RETURNING *
         `;
-        
+
         const result = await pool.query(query, [isActive, id]);
-        
+
         if (result && result.rows && result.rows.length > 0) {
           console.log("DATABASE togglePlanStatus - Status atualizado via PostgreSQL");
           const plan = result.rows[0];
-          
+
           // Mapear para o formato esperado pela aplicação
           return {
             id: plan.id,
@@ -3223,7 +3324,7 @@ export class DatabaseStorage implements IStorage {
       } catch (pgError) {
         console.error("DATABASE togglePlanStatus - Erro ao atualizar status via PostgreSQL:", pgError);
       }
-      
+
       // Se chegou aqui, nenhum dos métodos funcionou
       throw new Error(`Falha ao atualizar status do plano com ID ${id}: ambos os métodos falharam`);
     } catch (error) {
@@ -3231,19 +3332,19 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   // Implementação dos métodos de gerenciamento de tags
-  
+
   async getTags(): Promise<Tag[]> {
     try {
       console.log("DATABASE getTags - Buscando todas as tags");
-      
+
       // Tentar primeiro com Supabase
       const { data, error } = await supabase
         .from('tags')
         .select('*')
         .order('name', { ascending: true });
-        
+
       if (error) {
         console.error("DATABASE getTags - Erro ao buscar tags via Supabase:", error.message);
         // Tentar com PostgreSQL direto se o Supabase falhar
@@ -3252,7 +3353,7 @@ export class DatabaseStorage implements IStorage {
           const result = await pool.query(
             'SELECT * FROM tags ORDER BY name ASC'
           );
-          
+
           return result.rows.map(tag => ({
             id: tag.id,
             name: tag.name,
@@ -3267,12 +3368,12 @@ export class DatabaseStorage implements IStorage {
           return [];
         }
       }
-      
+
       if (!data) {
         console.log("DATABASE getTags - Nenhuma tag encontrada");
         return [];
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       return data.map(tag => ({
         id: tag.id,
@@ -3288,18 +3389,18 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getTagById(id: number): Promise<Tag | undefined> {
     try {
       console.log(`DATABASE getTagById - Buscando tag com ID ${id}`);
-      
+
       // Tentar primeiro com Supabase
       const { data, error } = await supabase
         .from('tags')
         .select('*')
         .eq('id', id)
         .single();
-        
+
       if (error) {
         console.error("DATABASE getTagById - Erro ao buscar tag via Supabase:", error.message);
         // Tentar com PostgreSQL direto se o Supabase falhar
@@ -3309,11 +3410,11 @@ export class DatabaseStorage implements IStorage {
             'SELECT * FROM tags WHERE id = $1',
             [id]
           );
-          
+
           if (result.rows.length === 0) {
             return undefined;
           }
-          
+
           const tag = result.rows[0];
           return {
             id: tag.id,
@@ -3329,12 +3430,12 @@ export class DatabaseStorage implements IStorage {
           return undefined;
         }
       }
-      
+
       if (!data) {
         console.log(`DATABASE getTagById - Tag com ID ${id} não encontrada`);
         return undefined;
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -3350,18 +3451,18 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
-  
+
   async getTagBySlug(slug: string): Promise<Tag | undefined> {
     try {
       console.log(`DATABASE getTagBySlug - Buscando tag com slug "${slug}"`);
-      
+
       // Tentar primeiro com Supabase
       const { data, error } = await supabase
         .from('tags')
         .select('*')
         .eq('slug', slug)
         .single();
-        
+
       if (error) {
         console.error("DATABASE getTagBySlug - Erro ao buscar tag via Supabase:", error.message);
         // Tentar com PostgreSQL direto se o Supabase falhar
@@ -3371,11 +3472,11 @@ export class DatabaseStorage implements IStorage {
             'SELECT * FROM tags WHERE slug = $1',
             [slug]
           );
-          
+
           if (result.rows.length === 0) {
             return undefined;
           }
-          
+
           const tag = result.rows[0];
           return {
             id: tag.id,
@@ -3391,12 +3492,12 @@ export class DatabaseStorage implements IStorage {
           return undefined;
         }
       }
-      
+
       if (!data) {
         console.log(`DATABASE getTagBySlug - Tag com slug "${slug}" não encontrada`);
         return undefined;
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -3412,11 +3513,11 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
-  
+
   async createTag(tag: InsertTag): Promise<Tag> {
     try {
       console.log("DATABASE createTag - Criando nova tag:", tag);
-      
+
       // Mapear os campos para o formato do banco
       const dbTag = {
         name: tag.name,
@@ -3425,14 +3526,14 @@ export class DatabaseStorage implements IStorage {
         is_active: tag.isActive === undefined ? true : tag.isActive,
         count: 0
       };
-      
+
       // Tentar primeiro com Supabase
       const { data, error } = await supabase
         .from('tags')
         .insert(dbTag)
         .select()
         .single();
-        
+
       if (error) {
         console.error("DATABASE createTag - Erro ao criar tag via Supabase:", error.message);
         // Tentar com PostgreSQL direto se o Supabase falhar
@@ -3442,7 +3543,7 @@ export class DatabaseStorage implements IStorage {
             'INSERT INTO tags (name, slug, description, is_active, count) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [tag.name, tag.slug, tag.description, tag.isActive === undefined ? true : tag.isActive, 0]
           );
-          
+
           const newTag = result.rows[0];
           return {
             id: newTag.id,
@@ -3458,7 +3559,7 @@ export class DatabaseStorage implements IStorage {
           throw new Error(`Erro ao criar tag: ${error.message}`);
         }
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -3474,18 +3575,18 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async updateTag(id: number, tagUpdate: Partial<InsertTag>): Promise<Tag> {
     try {
       console.log(`DATABASE updateTag - Atualizando tag ${id}:`, tagUpdate);
-      
+
       // Mapear os campos para o formato do banco
       const dbTagUpdate: any = {};
       if (tagUpdate.name !== undefined) dbTagUpdate.name = tagUpdate.name;
       if (tagUpdate.slug !== undefined) dbTagUpdate.slug = tagUpdate.slug;
       if (tagUpdate.description !== undefined) dbTagUpdate.description = tagUpdate.description;
       if (tagUpdate.isActive !== undefined) dbTagUpdate.is_active = tagUpdate.isActive;
-      
+
       // Tentar primeiro com Supabase
       const { data, error } = await supabase
         .from('tags')
@@ -3493,24 +3594,24 @@ export class DatabaseStorage implements IStorage {
         .eq('id', id)
         .select()
         .single();
-        
+
       if (error) {
         console.error("DATABASE updateTag - Erro ao atualizar tag via Supabase:", error.message);
         // Tentar com PostgreSQL direto se o Supabase falhar
         try {
           console.log("DATABASE updateTag - Tentando via PostgreSQL após falha no Supabase");
-          
+
           // Construir a consulta SQL dinamicamente com base nos campos presentes
           const fields = Object.keys(dbTagUpdate);
-          
+
           if (fields.length === 0) {
             // Se não houver campos para atualizar, apenas retornar a tag atual
             const getResult = await pool.query('SELECT * FROM tags WHERE id = $1', [id]);
-            
+
             if (getResult.rows.length === 0) {
               throw new Error(`Tag com ID ${id} não encontrada`);
             }
-            
+
             const tag = getResult.rows[0];
             return {
               id: tag.id,
@@ -3522,17 +3623,17 @@ export class DatabaseStorage implements IStorage {
               createdAt: new Date(tag.created_at)
             };
           }
-          
+
           const placeholders = fields.map((field, index) => `${field} = $${index + 1}`);
           const values = fields.map(field => dbTagUpdate[field]);
-          
+
           const query = `UPDATE tags SET ${placeholders.join(', ')} WHERE id = $${fields.length + 1} RETURNING *`;
           const result = await pool.query(query, [...values, id]);
-          
+
           if (result.rows.length === 0) {
             throw new Error(`Tag com ID ${id} não encontrada`);
           }
-          
+
           const updatedTag = result.rows[0];
           return {
             id: updatedTag.id,
@@ -3548,7 +3649,7 @@ export class DatabaseStorage implements IStorage {
           throw new Error(`Erro ao atualizar tag: ${error.message}`);
         }
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -3564,17 +3665,17 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async deleteTag(id: number): Promise<void> {
     try {
       console.log(`DATABASE deleteTag - Excluindo tag ${id}`);
-      
+
       // Tentar primeiro com Supabase
       const { error } = await supabase
         .from('tags')
         .delete()
         .eq('id', id);
-        
+
       if (error) {
         console.error("DATABASE deleteTag - Erro ao excluir tag via Supabase:", error.message);
         // Tentar com PostgreSQL direto se o Supabase falhar
@@ -3591,11 +3692,11 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async toggleTagStatus(id: number, isActive: boolean): Promise<Tag> {
     try {
       console.log(`DATABASE toggleTagStatus - Alternando status da tag ${id} para ${isActive ? 'ativo' : 'inativo'}`);
-      
+
       // Usar método PATCH do Supabase
       const { data, error } = await supabase
         .from('tags')
@@ -3603,7 +3704,7 @@ export class DatabaseStorage implements IStorage {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) {
         console.error("DATABASE toggleTagStatus - Erro ao alternar status via Supabase:", error.message);
         // Se falhar no Supabase, tentar diretamente via PostgreSQL
@@ -3613,11 +3714,11 @@ export class DatabaseStorage implements IStorage {
             'UPDATE tags SET is_active = $1 WHERE id = $2 RETURNING *',
             [isActive, id]
           );
-          
+
           if (result.rows.length === 0) {
             throw new Error(`Tag com ID ${id} não encontrada`);
           }
-          
+
           const tagData = result.rows[0];
           return {
             id: tagData.id,
@@ -3633,7 +3734,7 @@ export class DatabaseStorage implements IStorage {
           throw new Error(`Erro ao alternar status da tag: ${error.message}`);
         }
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -3655,7 +3756,7 @@ export class DatabaseStorage implements IStorage {
   async getActivePopups(): Promise<Popup[]> {
     try {
       console.log("DATABASE getActivePopups - Buscando popups ativos");
-      
+
       // Tentar primeiro com PostgreSQL direto
       try {
         const result = await pool.query(`
@@ -3665,7 +3766,7 @@ export class DatabaseStorage implements IStorage {
           AND (end_date IS NULL OR end_date >= NOW())
           ORDER BY created_at DESC
         `);
-        
+
         return result.rows.map(popup => ({
           id: popup.id,
           title: popup.title,
@@ -3705,14 +3806,14 @@ export class DatabaseStorage implements IStorage {
   async getPopups(): Promise<Popup[]> {
     try {
       console.log("DATABASE getPopups - Buscando todos os popups");
-      
+
       // Usar PostgreSQL diretamente para melhor performance
       const result = await pool.query(
         'SELECT * FROM popups ORDER BY created_at DESC'
       );
-      
+
       console.log("DATABASE getPopups - Encontrados", result.rows.length, "popups");
-      
+
       return result.rows.map(popup => ({
         id: popup.id,
         title: popup.title,
@@ -3744,28 +3845,28 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getPopupById(id: number): Promise<Popup | undefined> {
     try {
       console.log(`DATABASE getPopupById - Buscando popup com ID ${id}`);
-      
+
       // Tentar primeiro com Supabase
       const { data, error } = await supabase
         .from('popups')
         .select('*')
         .eq('id', id)
         .single();
-        
+
       if (error) {
         console.error("DATABASE getPopupById - Erro ao buscar popup via Supabase:", error.message);
         return undefined;
       }
-      
+
       if (!data) {
         console.log(`DATABASE getPopupById - Popup com ID ${id} não encontrado`);
         return undefined;
       }
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -3798,11 +3899,11 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
-  
+
   async createPopup(popup: InsertPopup): Promise<Popup> {
     try {
       console.log("DATABASE createPopup - Criando popup:", JSON.stringify(popup));
-      
+
       // Usar PostgreSQL direto via pool do Neon
       const query = `
         INSERT INTO popups (
@@ -3813,7 +3914,7 @@ export class DatabaseStorage implements IStorage {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
         RETURNING *
       `;
-      
+
       const values = [
         popup.title,
         popup.content,
@@ -3837,16 +3938,16 @@ export class DatabaseStorage implements IStorage {
         popup.frequency || 'once_per_session',
         popup.isActive || false
       ];
-      
+
       const { rows } = await pool.query(query, values);
       const data = rows[0];
-      
+
       if (!data) {
         throw new Error("Falha ao criar popup no banco de dados");
       }
-      
+
       console.log("DATABASE createPopup - Popup criado via PostgreSQL:", data.id);
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -3879,16 +3980,16 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup> {
     try {
       console.log("DATABASE updatePopup - Atualizando popup #" + id + ":", JSON.stringify(popup));
-      
+
       // Construir query dinâmica para PostgreSQL
       const updates: string[] = [];
       const values: any[] = [];
       let paramIndex = 1;
-      
+
       if (popup.title !== undefined) {
         updates.push(`title = $${paramIndex++}`);
         values.push(popup.title);
@@ -3973,30 +4074,30 @@ export class DatabaseStorage implements IStorage {
         updates.push(`is_active = $${paramIndex++}`);
         values.push(popup.isActive);
       }
-      
+
       // Sempre atualizar o timestamp
       updates.push(`updated_at = $${paramIndex++}`);
       values.push(new Date().toISOString());
-      
+
       // Adicionar WHERE clause
       values.push(id);
-      
+
       const query = `
         UPDATE popups 
         SET ${updates.join(', ')}
         WHERE id = $${paramIndex}
         RETURNING *
       `;
-      
+
       const { rows } = await pool.query(query, values);
       const data = rows[0];
-      
+
       if (!data) {
         throw new Error("Popup não encontrado ou falha ao atualizar");
       }
-      
+
       console.log("DATABASE updatePopup - Popup atualizado via PostgreSQL:", data.id);
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -4029,45 +4130,45 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async deletePopup(id: number): Promise<void> {
     try {
       console.log("DATABASE deletePopup - Excluindo popup #" + id);
-      
+
       const query = 'DELETE FROM popups WHERE id = $1';
       const { rowCount } = await pool.query(query, [id]);
-      
+
       if (rowCount === 0) {
         throw new Error("Popup não encontrado");
       }
-      
+
       console.log("DATABASE deletePopup - Popup excluído com sucesso via PostgreSQL");
     } catch (error) {
       console.error("DATABASE deletePopup - Exceção geral:", error);
       throw error;
     }
   }
-  
+
   async togglePopupStatus(id: number, isActive: boolean): Promise<Popup> {
     try {
       console.log(`DATABASE togglePopupStatus - ${isActive ? 'Ativando' : 'Desativando'} popup #${id}`);
-      
+
       const query = `
         UPDATE popups 
         SET is_active = $1, updated_at = $2
         WHERE id = $3
         RETURNING *
       `;
-      
+
       const { rows } = await pool.query(query, [isActive, new Date().toISOString(), id]);
       const data = rows[0];
-      
+
       if (!data) {
         throw new Error("Popup não encontrado");
       }
-      
+
       console.log("DATABASE togglePopupStatus - Status atualizado via PostgreSQL:", data.id);
-      
+
       // Mapear para o formato esperado pela aplicação
       return {
         id: data.id,
@@ -4100,347 +4201,6 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-  async getPopupById(id: number): Promise<Popup | undefined> {
-    try {
-      console.log(`DATABASE getPopupById - Buscando popup com ID ${id}`);
-      
-      const result = await pool.query('SELECT * FROM popups WHERE id = $1', [id]);
-      
-      if (result.rows.length === 0) {
-        console.log("DATABASE getPopupById - Popup não encontrado");
-        return undefined;
-      }
-      
-      const popup = result.rows[0];
-      
-      return {
-        id: popup.id,
-        title: popup.title,
-        content: popup.content,
-        imageUrl: popup.image_url,
-        buttonText: popup.button_text,
-        buttonUrl: popup.button_url,
-        backgroundColor: popup.background_color,
-        textColor: popup.text_color,
-        buttonColor: popup.button_color,
-        buttonTextColor: popup.button_text_color,
-        borderRadius: popup.border_radius,
-        buttonWidth: popup.button_width,
-        animation: popup.animation,
-        position: popup.position,
-        size: popup.size,
-        delaySeconds: popup.delay_seconds,
-        targetPages: popup.target_pages,
-        targetUserTypes: popup.target_user_types,
-        startDate: popup.start_date ? new Date(popup.start_date) : null,
-        endDate: popup.end_date ? new Date(popup.end_date) : null,
-        frequency: popup.frequency,
-        isActive: popup.is_active,
-        createdAt: new Date(popup.created_at),
-        updatedAt: new Date(popup.updated_at)
-      };
-    } catch (error) {
-      console.error("DATABASE getPopupById - Exceção:", error);
-      return undefined;
-    }
-  }
-
-  async createPopup(popup: InsertPopup): Promise<Popup> {
-    try {
-      console.log("DATABASE createPopup - Criando novo popup:", JSON.stringify(popup));
-      
-      const query = `
-        INSERT INTO popups (
-          title, content, image_url, button_text, button_url,
-          background_color, text_color, button_color, button_text_color,
-          border_radius, button_width, animation, position, size,
-          delay_seconds, target_pages, target_user_types,
-          start_date, end_date, frequency, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
-        RETURNING *
-      `;
-      
-      const values = [
-        popup.title,
-        popup.content,
-        popup.imageUrl || '',
-        popup.buttonText || '',
-        popup.buttonUrl || '',
-        popup.backgroundColor || '#ffffff',
-        popup.textColor || '#000000',
-        popup.buttonColor || '#3b82f6',
-        popup.buttonTextColor || '#ffffff',
-        popup.borderRadius || 8,
-        popup.buttonWidth || 'auto',
-        popup.animation || 'fade',
-        popup.position || 'center',
-        popup.size || 'medium',
-        popup.delaySeconds || 0,
-        popup.targetPages || [],
-        popup.targetUserTypes || [],
-        popup.startDate || null,
-        popup.endDate || null,
-        popup.frequency || 'once_per_session',
-        popup.isActive || false
-      ];
-      
-      const { rows } = await pool.query(query, values);
-      const data = rows[0];
-      
-      if (!data) {
-        throw new Error("Falha ao criar popup no banco de dados");
-      }
-      
-      console.log("DATABASE createPopup - Popup criado via PostgreSQL:", data.id);
-      
-      return {
-        id: data.id,
-        title: data.title,
-        content: data.content,
-        imageUrl: data.image_url,
-        buttonText: data.button_text,
-        buttonUrl: data.button_url,
-        backgroundColor: data.background_color,
-        textColor: data.text_color,
-        buttonColor: data.button_color,
-        buttonTextColor: data.button_text_color,
-        borderRadius: data.border_radius,
-        buttonWidth: data.button_width,
-        animation: data.animation,
-        position: data.position,
-        size: data.size,
-        delaySeconds: data.delay_seconds,
-        targetPages: data.target_pages,
-        targetUserTypes: data.target_user_types,
-        startDate: data.start_date ? new Date(data.start_date) : null,
-        endDate: data.end_date ? new Date(data.end_date) : null,
-        frequency: data.frequency,
-        isActive: data.is_active,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
-      };
-    } catch (error) {
-      console.error("DATABASE createPopup - Exceção geral:", error);
-      throw error;
-    }
-  }
-  
-  async updatePopup(id: number, popup: Partial<InsertPopup>): Promise<Popup> {
-    try {
-      console.log("DATABASE updatePopup - Atualizando popup #" + id + ":", JSON.stringify(popup));
-      
-      const updates: string[] = [];
-      const values: any[] = [];
-      let paramIndex = 1;
-      
-      if (popup.title !== undefined) {
-        updates.push(`title = $${paramIndex++}`);
-        values.push(popup.title);
-      }
-      if (popup.content !== undefined) {
-        updates.push(`content = $${paramIndex++}`);
-        values.push(popup.content);
-      }
-      if (popup.imageUrl !== undefined) {
-        updates.push(`image_url = $${paramIndex++}`);
-        values.push(popup.imageUrl);
-      }
-      if (popup.buttonText !== undefined) {
-        updates.push(`button_text = $${paramIndex++}`);
-        values.push(popup.buttonText);
-      }
-      if (popup.buttonUrl !== undefined) {
-        updates.push(`button_url = $${paramIndex++}`);
-        values.push(popup.buttonUrl);
-      }
-      if (popup.backgroundColor !== undefined) {
-        updates.push(`background_color = $${paramIndex++}`);
-        values.push(popup.backgroundColor);
-      }
-      if (popup.textColor !== undefined) {
-        updates.push(`text_color = $${paramIndex++}`);
-        values.push(popup.textColor);
-      }
-      if (popup.buttonColor !== undefined) {
-        updates.push(`button_color = $${paramIndex++}`);
-        values.push(popup.buttonColor);
-      }
-      if (popup.buttonTextColor !== undefined) {
-        updates.push(`button_text_color = $${paramIndex++}`);
-        values.push(popup.buttonTextColor);
-      }
-      if (popup.borderRadius !== undefined) {
-        updates.push(`border_radius = $${paramIndex++}`);
-        values.push(popup.borderRadius);
-      }
-      if (popup.buttonWidth !== undefined) {
-        updates.push(`button_width = $${paramIndex++}`);
-        values.push(popup.buttonWidth);
-      }
-      if (popup.animation !== undefined) {
-        updates.push(`animation = $${paramIndex++}`);
-        values.push(popup.animation);
-      }
-      if (popup.position !== undefined) {
-        updates.push(`position = $${paramIndex++}`);
-        values.push(popup.position);
-      }
-      if (popup.size !== undefined) {
-        updates.push(`size = $${paramIndex++}`);
-        values.push(popup.size);
-      }
-      if (popup.delaySeconds !== undefined) {
-        updates.push(`delay_seconds = $${paramIndex++}`);
-        values.push(popup.delaySeconds);
-      }
-      if (popup.targetPages !== undefined) {
-        updates.push(`target_pages = $${paramIndex++}`);
-        values.push(popup.targetPages);
-      }
-      if (popup.targetUserTypes !== undefined) {
-        updates.push(`target_user_types = $${paramIndex++}`);
-        values.push(popup.targetUserTypes);
-      }
-      if (popup.startDate !== undefined) {
-        updates.push(`start_date = $${paramIndex++}`);
-        values.push(popup.startDate);
-      }
-      if (popup.endDate !== undefined) {
-        updates.push(`end_date = $${paramIndex++}`);
-        values.push(popup.endDate);
-      }
-      if (popup.frequency !== undefined) {
-        updates.push(`frequency = $${paramIndex++}`);
-        values.push(popup.frequency);
-      }
-      if (popup.isActive !== undefined) {
-        updates.push(`is_active = $${paramIndex++}`);
-        values.push(popup.isActive);
-      }
-      
-      updates.push(`updated_at = $${paramIndex++}`);
-      values.push(new Date().toISOString());
-      
-      values.push(id);
-      
-      const query = `
-        UPDATE popups 
-        SET ${updates.join(', ')}
-        WHERE id = $${paramIndex}
-        RETURNING *
-      `;
-      
-      const { rows } = await pool.query(query, values);
-      const data = rows[0];
-      
-      if (!data) {
-        throw new Error("Popup não encontrado ou falha ao atualizar");
-      }
-      
-      console.log("DATABASE updatePopup - Popup atualizado via PostgreSQL:", data.id);
-      
-      return {
-        id: data.id,
-        title: data.title,
-        content: data.content,
-        imageUrl: data.image_url,
-        buttonText: data.button_text,
-        buttonUrl: data.button_url,
-        backgroundColor: data.background_color,
-        textColor: data.text_color,
-        buttonColor: data.button_color,
-        buttonTextColor: data.button_text_color,
-        borderRadius: data.border_radius,
-        buttonWidth: data.button_width,
-        animation: data.animation,
-        position: data.position,
-        size: data.size,
-        delaySeconds: data.delay_seconds,
-        targetPages: data.target_pages,
-        targetUserTypes: data.target_user_types,
-        startDate: data.start_date ? new Date(data.start_date) : null,
-        endDate: data.end_date ? new Date(data.end_date) : null,
-        frequency: data.frequency,
-        isActive: data.is_active,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
-      };
-    } catch (error) {
-      console.error("DATABASE updatePopup - Exceção geral:", error);
-      throw error;
-    }
-  }
-  
-  async deletePopup(id: number): Promise<void> {
-    try {
-      console.log("DATABASE deletePopup - Excluindo popup #" + id);
-      
-      const query = 'DELETE FROM popups WHERE id = $1';
-      const { rowCount } = await pool.query(query, [id]);
-      
-      if (rowCount === 0) {
-        throw new Error("Popup não encontrado");
-      }
-      
-      console.log("DATABASE deletePopup - Popup excluído com sucesso via PostgreSQL");
-    } catch (error) {
-      console.error("DATABASE deletePopup - Exceção geral:", error);
-      throw error;
-    }
-  }
-  
-  async togglePopupStatus(id: number, isActive: boolean): Promise<Popup> {
-    try {
-      console.log(`DATABASE togglePopupStatus - ${isActive ? 'Ativando' : 'Desativando'} popup #${id}`);
-      
-      const query = `
-        UPDATE popups 
-        SET is_active = $1, updated_at = $2
-        WHERE id = $3
-        RETURNING *
-      `;
-      
-      const { rows } = await pool.query(query, [isActive, new Date().toISOString(), id]);
-      const data = rows[0];
-      
-      if (!data) {
-        throw new Error("Popup não encontrado");
-      }
-      
-      console.log("DATABASE togglePopupStatus - Status atualizado via PostgreSQL:", data.id);
-      
-      return {
-        id: data.id,
-        title: data.title,
-        content: data.content,
-        imageUrl: data.image_url,
-        buttonText: data.button_text,
-        buttonUrl: data.button_url,
-        backgroundColor: data.background_color,
-        textColor: data.text_color,
-        buttonColor: data.button_color,
-        buttonTextColor: data.button_text_color,
-        borderRadius: data.border_radius,
-        buttonWidth: data.button_width,
-        animation: data.animation,
-        position: data.position,
-        size: data.size,
-        delaySeconds: data.delay_seconds,
-        targetPages: data.target_pages,
-        targetUserTypes: data.target_user_types,
-        startDate: data.start_date ? new Date(data.start_date) : null,
-        endDate: data.end_date ? new Date(data.end_date) : null,
-        frequency: data.frequency,
-        isActive: data.is_active,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
-      };
-    } catch (error) {
-      console.error("DATABASE togglePopupStatus - Exceção geral:", error);
-      throw error;
-    }
-  }
-
   // Settings methods implementation
   async getSetting(key: string): Promise<Setting | undefined> {
     try {
@@ -4496,7 +4256,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Check if setting exists
       const existing = await this.getSetting(key);
-      
+
       if (existing) {
         // Update existing setting
         return await this.updateSetting(key, value);
@@ -4564,7 +4324,7 @@ export class DatabaseStorage implements IStorage {
   async getAllAuthors(): Promise<any[]> {
     try {
       console.log("DATABASE getAllAuthors - Buscando todos os autores (usuários admin)");
-      
+
       const query = `
         SELECT 
           u.id,
@@ -4581,9 +4341,9 @@ export class DatabaseStorage implements IStorage {
         GROUP BY u.id, u.username, u.email, u.profile_image, u.bio, u.created_at, u.active
         ORDER BY u.created_at DESC
       `;
-      
+
       const result = await pool.query(query);
-      
+
       const authors = result.rows.map(row => ({
         id: row.id,
         username: row.username,
@@ -4596,7 +4356,7 @@ export class DatabaseStorage implements IStorage {
         isDesigner: true, // Todos os admins são designers
         isAdmin: true
       }));
-      
+
       console.log(`DATABASE getAllAuthors - Encontrados ${authors.length} autores`);
       return authors;
     } catch (error) {
@@ -4612,7 +4372,7 @@ export const storage = new DatabaseStorage();
 export async function ensureHotmartFieldsExist() {
   try {
     console.log('Verificando a existência dos campos do Hotmart na tabela subscriptions...');
-    
+
     // Verificar se as colunas já existem
     const checkColumns = await pool.query(`
       SELECT column_name 
@@ -4635,13 +4395,13 @@ export async function ensureHotmartFieldsExist() {
     for (const column of columnsToAdd) {
       if (!existingColumns.includes(column.name)) {
         console.log(`Adicionando coluna ${column.name} na tabela subscriptions...`);
-        
+
         try {
           await pool.query(`
             ALTER TABLE subscriptions 
             ADD COLUMN ${column.name} ${column.type}
           `);
-          
+
           console.log(`Coluna ${column.name} adicionada com sucesso`);
         } catch (error: any) {
           if (error.code === '42701') {
@@ -4665,7 +4425,7 @@ export async function ensureHotmartFieldsExist() {
 export async function ensureTagTablesExist() {
   try {
     console.log("Verificando a existência das tabelas de tags...");
-    
+
     // Verificar se a tabela já existe
     try {
       const checkTableResult = await pool.query(`
@@ -4675,7 +4435,7 @@ export async function ensureTagTablesExist() {
           AND tablename = 'tags'
         );
       `);
-      
+
       if (checkTableResult.rows[0].exists) {
         console.log('Tabela tags já existe no banco de dados');
         return;
@@ -4684,9 +4444,9 @@ export async function ensureTagTablesExist() {
       console.error('Erro ao verificar se tabela tags existe:', checkError);
       // Continuar mesmo com erro na verificação
     }
-    
+
     console.log("Criando tabelas de tags...");
-    
+
     // Criar a tabela de tags e post_tags
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS public.tags (
@@ -4740,10 +4500,10 @@ export async function ensureTagTablesExist() {
         FOR EACH ROW
         EXECUTE FUNCTION update_tag_count();
     `;
-    
+
     await pool.query(createTableQuery);
     console.log("Tabelas de tags criadas com sucesso!");
-    
+
     // Inserir tags de exemplo
     const insertExampleTags = async () => {
       console.log("Inserindo tags de exemplo...");
@@ -4755,7 +4515,7 @@ export async function ensureTagTablesExist() {
         { name: 'Botox', slug: 'botox', description: 'Conteúdos sobre aplicação de botox', is_active: true },
         { name: 'Promoções', slug: 'promocoes', description: 'Promoções especiais', is_active: true }
       ];
-      
+
       const insertTagsQuery = `
         INSERT INTO public.tags (name, slug, description, is_active)
         VALUES ($1, $2, $3, $4)
@@ -4765,7 +4525,7 @@ export async function ensureTagTablesExist() {
             is_active = EXCLUDED.is_active
         RETURNING id, name, slug
       `;
-      
+
       for (const tag of exampleTags) {
         try {
           const result = await pool.query(insertTagsQuery, [
@@ -4774,7 +4534,7 @@ export async function ensureTagTablesExist() {
             tag.description,
             tag.is_active
           ]);
-          
+
           if (result.rows.length > 0) {
             console.log(`Tag inserida: ${result.rows[0].name} (${result.rows[0].slug})`);
           }
@@ -4783,10 +4543,10 @@ export async function ensureTagTablesExist() {
         }
       }
     };
-    
+
     await insertExampleTags();
     console.log("Processo de criação de tabelas de tags concluído!");
-    
+
   } catch (error) {
     console.error("Erro ao criar tabelas de tags:", error);
   }

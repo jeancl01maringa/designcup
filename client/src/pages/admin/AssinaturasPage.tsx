@@ -92,7 +92,7 @@ export default function AssinaturasPage() {
   };
 
   const copyWebhookUrl = () => {
-    const webhookUrl = "https://estetflix.com.br/webhook/hotmart";
+    const webhookUrl = "https://designcup.com.br/webhook/hotmart";
     navigator.clipboard.writeText(webhookUrl);
     toast({
       title: "URL copiada!",
@@ -106,9 +106,9 @@ export default function AssinaturasPage() {
         <title>Assinaturas Hotmart - Admin</title>
       </Helmet>
 
-      <PageHeader 
-        title="Assinaturas Hotmart" 
-        subtitle="Gerenciamento de assinaturas e integração Hotmart" 
+      <PageHeader
+        title="Assinaturas Hotmart"
+        subtitle="Gerenciamento de assinaturas e integração Hotmart"
       />
 
       <Tabs defaultValue="assinaturas" className="space-y-6">
@@ -247,9 +247,9 @@ export default function AssinaturasPage() {
                             </TableCell>
                             <TableCell>
                               <Badge className={getStatusColor(subscription.status)}>
-                                {subscription.status === 'active' ? 'Ativa' : 
-                                 subscription.status === 'canceled' ? 'Cancelada' : 
-                                 subscription.status}
+                                {subscription.status === 'active' ? 'Ativa' :
+                                  subscription.status === 'canceled' ? 'Cancelada' :
+                                    subscription.status}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -312,7 +312,7 @@ export default function AssinaturasPage() {
                 <div className="mt-1 flex items-center gap-2">
                   <div className="flex-1 p-3 bg-gray-50 rounded-md border">
                     <code className="text-sm font-mono break-all">
-                      https://estetflix.com.br/webhook/hotmart
+                      https://designcup.com.br/webhook/hotmart
                     </code>
                   </div>
                   <Button variant="outline" size="sm" onClick={copyWebhookUrl}>
@@ -363,7 +363,7 @@ export default function AssinaturasPage() {
                   <div>
                     <h4 className="font-medium text-blue-900">Status da Integração</h4>
                     <p className="text-sm text-blue-700 mt-1">
-                      O webhook está funcionando e testado. Configure a URL acima no painel da Hotmart 
+                      O webhook está funcionando e testado. Configure a URL acima no painel da Hotmart
                       para ativar a sincronização automática de assinaturas.
                     </p>
                   </div>

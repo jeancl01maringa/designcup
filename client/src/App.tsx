@@ -22,6 +22,7 @@ import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import PopupDisplay from "@/components/PopupDisplay";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Páginas públicas
 import PlansPage from "@/pages/PlansPage";
@@ -96,10 +97,10 @@ function Router() {
       <Route path="/todas-artes" component={TodasArtes} />
       <Route path="/demo/upload" component={ImageUploadDemo} />
       <Route path="/demo/sharing" component={SocialSharingDemo} />
-      
+
       {/* Rota pública de perfil */}
       <Route path="/autor/:id" component={PublicProfilePage} />
-      
+
       {/* Rotas de Conta do Usuário */}
       <Route path="/perfil">
         <ProtectedRoute path="/perfil" component={ProfilePage} requireAdmin={false} />
@@ -119,7 +120,7 @@ function Router() {
       <Route path="/assinatura">
         <ProtectedRoute path="/assinatura" component={AssinaturaPage} requireAdmin={false} />
       </Route>
-      
+
       {/* Rotas Administrativas */}
       <Route path="/admin/postagens">
         <ProtectedRoute path="/admin/postagens" component={PostagensPage} requireAdmin={true} />
@@ -181,7 +182,7 @@ function Router() {
       <Route path="/admin">
         {location === "/admin" && <ProtectedRoute path="/admin" component={AdminDashboard} requireAdmin={true} />}
       </Route>
-      
+
       {/* Rota 404 */}
       <Route component={NotFound} />
     </Switch>
@@ -195,30 +196,32 @@ function App() {
   const isAuthPage = location.startsWith("/auth");
   const isAdminPage = location.startsWith("/admin");
   const showHeaderFooter = !isAuthPage && !isAdminPage;
-  
+
   // Facebook Pixel - tracking automático de páginas
   usePixelPageTracking();
-  
+
   // Mostrar barra de pesquisa móvel apenas na home e na página "todas as artes"
   const showMobileSearchBar = showHeaderFooter && (location === "/" || location === "/todas-artes");
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Context.Provider value={value}>
-          <div className="flex flex-col min-h-screen">
-            {showHeaderFooter && <Header />}
-            {showMobileSearchBar && <MobileSearchBar />}
-            <main className="flex-grow">
-              <Router />
-            </main>
-            {showHeaderFooter && <Footer />}
-          </div>
-          <PopupDisplay />
-          <Toaster />
-        </Context.Provider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="designcup-theme">
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Context.Provider value={value}>
+            <div className="flex flex-col min-h-screen">
+              {showHeaderFooter && <Header />}
+              {showMobileSearchBar && <MobileSearchBar />}
+              <main className="flex-grow">
+                <Router />
+              </main>
+              {showHeaderFooter && <Footer />}
+            </div>
+            <PopupDisplay />
+            <Toaster />
+          </Context.Provider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

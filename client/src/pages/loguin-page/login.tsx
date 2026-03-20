@@ -25,7 +25,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation } = useAuth();
-  
+
   // Redirecionar para home após login bem-sucedido
   useEffect(() => {
     if (loginMutation.isSuccess && user) {
@@ -53,7 +53,7 @@ export default function LoginPage() {
           type="button"
           className="flex-1 py-3 text-center text-sm font-semibold rounded-lg bg-white text-gray-900 shadow-sm border border-gray-200"
         >Entrar</button>
-        <Link 
+        <Link
           to="/loguin/cadastro"
           className="flex-1 py-3 text-center text-sm font-medium rounded-lg text-gray-500 hover:text-gray-900 transition-colors"
         >
@@ -105,9 +105,9 @@ export default function LoginPage() {
             )}
           />
 
-          <Button 
-            type="submit" 
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-[#F84930] to-[#F8A441] hover:from-[#E63E29] hover:to-[#E6943A] transition-all duration-200 rounded-lg shadow-lg"
+          <Button
+            type="submit"
+            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-primary to-blue-500 hover:opacity-90 transition-all duration-200 rounded-lg shadow-lg"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? "Entrando..." : "Entrar"}
@@ -122,9 +122,9 @@ export default function LoginPage() {
       </Form>
       {/* Link para esqueci a senha */}
       <div className="text-center">
-        <a 
-          href="#" 
-          className="text-sm text-gray-500 hover:text-[#F84930] transition-colors"
+        <a
+          href="#"
+          className="text-sm text-gray-500 hover:text-primary transition-colors"
         >
           Esqueceu sua senha?
         </a>

@@ -23,21 +23,21 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     console.log('📁 Upload file:', file.fieldname, file.mimetype, file.originalname);
-    
+
     // Para materiais extras das aulas, permitir mais tipos de arquivo
     if (file.fieldname === 'extraMaterials' || file.fieldname.startsWith('extraMaterial_')) {
       const allowedTypes = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 
-        'application/pdf', 
-        'application/msword', 
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+        'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'application/vnd.ms-excel',
-        'text/plain', 
-        'application/zip', 
+        'text/plain',
+        'application/zip',
         'application/x-rar-compressed'
       ];
-      
+
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
@@ -69,10 +69,10 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar webhook do Hotmart PRIMEIRO (antes de outros middlewares)
   app.use('/webhook/hotmart', webhookHotmart);
-  
+
   // Set up authentication
   setupAuth(app);
-  
+
   // put application routes here
   // prefix all routes with /api
 
@@ -84,19 +84,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('Buscando todos os formatos de arquivo');
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log("OFFLINE MODE: Retornando formatos de arquivo do JSON local");
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        return res.json(localDb.fileFormats || []);
+      }
+
       try {
         // Tentar primeiro com Supabase
         const { data, error } = await supabase
           .from('file_formats')
           .select('*')
           .order('id', { ascending: true });
-          
+
         if (!error) {
           console.log(`Encontrados ${data?.length || 0} formatos de arquivo via Supabase`);
           return res.json(data || []);
         }
-        
+
         // Se falhar no Supabase, tentar diretamente com PostgreSQL
         console.log("Tentando buscar formatos com PostgreSQL direto");
         const result = await pool.query(`SELECT * FROM file_formats ORDER BY id ASC`);
@@ -104,14 +116,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(result.rows || []);
       } catch (dbError: any) {
         console.error("Erro ao buscar formatos de arquivo via PostgreSQL:", dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar formatos de arquivo',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching file formats:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar formatos de arquivo',
         error: error.message
       });
@@ -126,31 +138,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { name, type, icon, is_active } = req.body;
-      
+
       if (!name || !type) {
         return res.status(400).json({ message: 'Nome e tipo são obrigatórios' });
       }
-      
+
       console.log('Criando formato de arquivo:', { name, type, icon, is_active });
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log("OFFLINE MODE: Criando formato de arquivo no JSON local");
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        if (!localDb.fileFormats) localDb.fileFormats = [];
+
+        const newFormat = {
+          id: Date.now(),
+          name,
+          type,
+          icon: icon || null,
+          is_active: is_active !== false,
+          created_at: new Date().toISOString()
+        };
+
+        localDb.fileFormats.push(newFormat);
+        fs.writeFileSync(dbPath, JSON.stringify(localDb, null, 2));
+
+        return res.status(201).json(newFormat);
+      }
+
       try {
         // Tente inserir no Supabase primeiro
         const { data, error } = await supabase
           .from('file_formats')
-          .insert([{ 
-            name, 
-            type, 
-            icon: icon || null, 
+          .insert([{
+            name,
+            type,
+            icon: icon || null,
             is_active: is_active !== false,
             created_at: new Date().toISOString()
           }])
           .select();
-          
+
         if (!error && data && data.length > 0) {
           console.log("Formato de arquivo criado com sucesso via Supabase");
           return res.status(201).json(data[0]);
         }
-        
+
         // Se falhar no Supabase, tentar com PostgreSQL diretamente
         console.log("Tentando criar formato de arquivo via PostgreSQL direto");
         const result = await pool.query(`
@@ -158,33 +197,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           VALUES ($1, $2, $3, $4, $5) 
           RETURNING *
         `, [
-          name, 
-          type, 
-          icon || null, 
-          is_active !== false, 
+          name,
+          type,
+          icon || null,
+          is_active !== false,
           new Date()
         ]);
-        
+
         if (result.rows && result.rows.length > 0) {
           console.log("Formato de arquivo criado com sucesso via PostgreSQL");
           return res.status(201).json(result.rows[0]);
         } else {
-          return res.status(500).json({ 
-            message: 'Formato criado, mas nenhum dado retornado' 
+          return res.status(500).json({
+            message: 'Formato criado, mas nenhum dado retornado'
           });
         }
       } catch (dbError: any) {
         console.error("Erro ao criar formato de arquivo via PostgreSQL:", dbError);
-        return res.status(500).json({ 
-          message: 'Erro ao criar formato de arquivo', 
-          error: dbError.message 
+        return res.status(500).json({
+          message: 'Erro ao criar formato de arquivo',
+          error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error creating file format:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao criar formato de arquivo',
-        error: error.message 
+        error: error.message
       });
     }
   });
@@ -197,59 +236,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { name, type, icon, is_active } = req.body;
-      
+
       console.log(`Atualizando formato de arquivo #${id}:`, { name, type, icon, is_active });
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log(`OFFLINE MODE: Atualizando formato de arquivo #${id} no JSON local`);
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        if (!localDb.fileFormats) localDb.fileFormats = [];
+
+        const formatIndex = localDb.fileFormats.findIndex((f: any) => f.id === id);
+        if (formatIndex === -1) {
+          return res.status(404).json({ message: 'Formato não encontrado' });
+        }
+
+        if (name !== undefined) localDb.fileFormats[formatIndex].name = name;
+        if (type !== undefined) localDb.fileFormats[formatIndex].type = type;
+        if (icon !== undefined) localDb.fileFormats[formatIndex].icon = icon;
+        if (is_active !== undefined) localDb.fileFormats[formatIndex].is_active = is_active;
+
+        fs.writeFileSync(dbPath, JSON.stringify(localDb, null, 2));
+        return res.json(localDb.fileFormats[formatIndex]);
+      }
+
       // Usar diretamente o PostgreSQL para esta operação
       // Construir a query SQL de atualização
       let setClauses = [];
       const queryParams = [];
       let paramIndex = 1;
-      
+
       if (name !== undefined) {
         setClauses.push(`name = $${paramIndex}`);
         queryParams.push(name);
         paramIndex++;
       }
-      
+
       if (type !== undefined) {
         setClauses.push(`type = $${paramIndex}`);
         queryParams.push(type);
         paramIndex++;
       }
-      
+
       if (icon !== undefined) {
         setClauses.push(`icon = $${paramIndex}`);
         queryParams.push(icon);
         paramIndex++;
       }
-      
+
       if (is_active !== undefined) {
         setClauses.push(`is_active = $${paramIndex}`);
         queryParams.push(is_active);
         paramIndex++;
       }
-      
+
       // Se não houver cláusulas para atualizar, retornar erro
       if (setClauses.length === 0) {
         return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
       }
-      
+
       // Adicionar o parâmetro id ao final
       queryParams.push(id);
-      
+
       const updateQuery = `
         UPDATE file_formats 
         SET ${setClauses.join(', ')} 
         WHERE id = $${paramIndex}
         RETURNING *
       `;
-      
+
       console.log(`Executando query: ${updateQuery}`, queryParams);
-      
+
       try {
         const result = await pool.query(updateQuery, queryParams);
-        
+
         if (result.rows && result.rows.length > 0) {
           console.log(`Formato de arquivo #${id} atualizado com sucesso via PostgreSQL`);
           return res.json(result.rows[0]);
@@ -258,14 +323,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao atualizar formato de arquivo #${id} via PostgreSQL:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar formato de arquivo',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error updating file format:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar formato de arquivo',
         error: error.message
       });
@@ -279,14 +344,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       console.log(`Excluindo formato de arquivo #${id}`);
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log(`OFFLINE MODE: Excluindo formato de arquivo #${id} no JSON local`);
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        if (!localDb.fileFormats) localDb.fileFormats = [];
+
+        const formatIndex = localDb.fileFormats.findIndex((f: any) => f.id === id);
+        if (formatIndex === -1) {
+          return res.status(404).json({ message: 'Formato não encontrado' });
+        }
+
+        localDb.fileFormats.splice(formatIndex, 1);
+        fs.writeFileSync(dbPath, JSON.stringify(localDb, null, 2));
+        return res.status(200).json({ success: true });
+      }
+
       try {
         // Usar diretamente o PostgreSQL para operação de exclusão
         console.log(`Executando exclusão via PostgreSQL direto`);
         const result = await pool.query('DELETE FROM file_formats WHERE id = $1 RETURNING id', [id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           console.log(`Formato de arquivo #${id} excluído com sucesso via PostgreSQL`);
           return res.status(200).json({ success: true });
@@ -296,14 +383,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao excluir formato de arquivo #${id} via PostgreSQL:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao excluir formato de arquivo',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error deleting file format:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao excluir formato de arquivo',
         error: error.message
       });
@@ -318,19 +405,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('Buscando todos os formatos de post');
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log("OFFLINE MODE: Retornando formatos de post do JSON local");
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        return res.json(localDb.postFormats || []);
+      }
+
       try {
         // Tentar primeiro com Supabase
         const { data, error } = await supabase
           .from('post_formats')
           .select('*')
           .order('id', { ascending: true });
-          
+
         if (!error) {
           console.log(`Encontrados ${data?.length || 0} formatos de post via Supabase`);
           return res.json(data || []);
         }
-        
+
         // Se falhar no Supabase, tentar diretamente com PostgreSQL
         console.log("Tentando buscar formatos de post com PostgreSQL direto");
         const result = await pool.query(`SELECT * FROM post_formats ORDER BY id ASC`);
@@ -338,14 +437,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(result.rows || []);
       } catch (dbError: any) {
         console.error("Erro ao buscar formatos de post via PostgreSQL:", dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar formatos de post',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching post formats:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar formatos de post',
         error: error.message
       });
@@ -360,31 +459,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { name, size, orientation, is_active } = req.body;
-      
+
       if (!name || !size || !orientation) {
         return res.status(400).json({ message: 'Nome, tamanho e orientação são obrigatórios' });
       }
-      
+
       console.log('Criando formato de post:', { name, size, orientation, is_active });
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log("OFFLINE MODE: Criando formato de post no JSON local");
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        if (!localDb.postFormats) localDb.postFormats = [];
+
+        const newFormat = {
+          id: Date.now(),
+          name,
+          size,
+          orientation,
+          is_active: is_active !== false,
+          created_at: new Date().toISOString()
+        };
+
+        localDb.postFormats.push(newFormat);
+        fs.writeFileSync(dbPath, JSON.stringify(localDb, null, 2));
+
+        return res.status(201).json(newFormat);
+      }
+
       try {
         // Tente inserir no Supabase primeiro
         const { data, error } = await supabase
           .from('post_formats')
-          .insert([{ 
-            name, 
-            size, 
-            orientation, 
+          .insert([{
+            name,
+            size,
+            orientation,
             is_active: is_active !== false,
             created_at: new Date().toISOString()
           }])
           .select();
-          
+
         if (!error && data && data.length > 0) {
           console.log("Formato de post criado com sucesso via Supabase");
           return res.status(201).json(data[0]);
         }
-        
+
         // Se falhar no Supabase, tentar com PostgreSQL diretamente
         console.log("Tentando criar formato de post via PostgreSQL direto");
         const result = await pool.query(`
@@ -392,33 +518,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           VALUES ($1, $2, $3, $4, $5) 
           RETURNING *
         `, [
-          name, 
-          size, 
-          orientation, 
-          is_active !== false, 
+          name,
+          size,
+          orientation,
+          is_active !== false,
           new Date()
         ]);
-        
+
         if (result.rows && result.rows.length > 0) {
           console.log("Formato de post criado com sucesso via PostgreSQL");
           return res.status(201).json(result.rows[0]);
         } else {
-          return res.status(500).json({ 
-            message: 'Formato criado, mas nenhum dado retornado' 
+          return res.status(500).json({
+            message: 'Formato criado, mas nenhum dado retornado'
           });
         }
       } catch (dbError: any) {
         console.error("Erro ao criar formato de post via PostgreSQL:", dbError);
-        return res.status(500).json({ 
-          message: 'Erro ao criar formato de post', 
-          error: dbError.message 
+        return res.status(500).json({
+          message: 'Erro ao criar formato de post',
+          error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error creating post format:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao criar formato de post',
-        error: error.message 
+        error: error.message
       });
     }
   });
@@ -431,59 +557,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { name, size, orientation, is_active } = req.body;
-      
+
       console.log(`Atualizando formato de post #${id}:`, { name, size, orientation, is_active });
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log(`OFFLINE MODE: Atualizando formato de post #${id} no JSON local`);
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        if (!localDb.postFormats) localDb.postFormats = [];
+
+        const formatIndex = localDb.postFormats.findIndex((f: any) => f.id === id);
+        if (formatIndex === -1) {
+          return res.status(404).json({ message: 'Formato não encontrado' });
+        }
+
+        if (name !== undefined) localDb.postFormats[formatIndex].name = name;
+        if (size !== undefined) localDb.postFormats[formatIndex].size = size;
+        if (orientation !== undefined) localDb.postFormats[formatIndex].orientation = orientation;
+        if (is_active !== undefined) localDb.postFormats[formatIndex].is_active = is_active;
+
+        fs.writeFileSync(dbPath, JSON.stringify(localDb, null, 2));
+        return res.json(localDb.postFormats[formatIndex]);
+      }
+
       // Usar diretamente o PostgreSQL para esta operação
       // Construir a query SQL de atualização
       let setClauses = [];
       const queryParams = [];
       let paramIndex = 1;
-      
+
       if (name !== undefined) {
         setClauses.push(`name = $${paramIndex}`);
         queryParams.push(name);
         paramIndex++;
       }
-      
+
       if (size !== undefined) {
         setClauses.push(`size = $${paramIndex}`);
         queryParams.push(size);
         paramIndex++;
       }
-      
+
       if (orientation !== undefined) {
         setClauses.push(`orientation = $${paramIndex}`);
         queryParams.push(orientation);
         paramIndex++;
       }
-      
+
       if (is_active !== undefined) {
         setClauses.push(`is_active = $${paramIndex}`);
         queryParams.push(is_active);
         paramIndex++;
       }
-      
+
       // Se não houver cláusulas para atualizar, retornar erro
       if (setClauses.length === 0) {
         return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
       }
-      
+
       // Adicionar o parâmetro id ao final
       queryParams.push(id);
-      
+
       const updateQuery = `
         UPDATE post_formats 
         SET ${setClauses.join(', ')} 
         WHERE id = $${paramIndex}
         RETURNING *
       `;
-      
+
       console.log(`Executando query: ${updateQuery}`, queryParams);
-      
+
       try {
         const result = await pool.query(updateQuery, queryParams);
-        
+
         if (result.rows && result.rows.length > 0) {
           console.log(`Formato de post #${id} atualizado com sucesso via PostgreSQL`);
           return res.json(result.rows[0]);
@@ -492,14 +644,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao atualizar formato de post #${id} via PostgreSQL:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar formato de post',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error updating post format:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar formato de post',
         error: error.message
       });
@@ -513,14 +665,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       console.log(`Excluindo formato de post #${id}`);
-      
+
+      // Offline mode bypass
+      const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
+      if (isOfflineMode) {
+        console.log(`OFFLINE MODE: Excluindo formato de post #${id} no JSON local`);
+        let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
+        const dbPath = path.resolve(process.cwd(), '.local_db.json');
+        
+        if (fs.existsSync(dbPath)) {
+          localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
+        }
+        if (!localDb.postFormats) localDb.postFormats = [];
+
+        const formatIndex = localDb.postFormats.findIndex((f: any) => f.id === id);
+        if (formatIndex === -1) {
+          return res.status(404).json({ message: 'Formato não encontrado' });
+        }
+
+        localDb.postFormats.splice(formatIndex, 1);
+        fs.writeFileSync(dbPath, JSON.stringify(localDb, null, 2));
+        return res.status(200).json({ success: true });
+      }
+
       try {
         // Usar diretamente o PostgreSQL para operação de exclusão
         console.log(`Executando exclusão via PostgreSQL direto`);
         const result = await pool.query('DELETE FROM post_formats WHERE id = $1 RETURNING id', [id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           console.log(`Formato de post #${id} excluído com sucesso via PostgreSQL`);
           return res.status(200).json({ success: true });
@@ -530,20 +704,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao excluir formato de post #${id} via PostgreSQL:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao excluir formato de post',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error deleting post format:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao excluir formato de post',
         error: error.message
       });
     }
   });
-  
+
   // API endpoints para gerenciamento de tags (SEO)
   app.get('/api/admin/tags', async (req, res) => {
     try {
@@ -551,7 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       console.log('Buscando todas as tags');
       const tags = await storage.getTags();
       res.json(tags);
@@ -560,58 +734,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Erro ao buscar tags', error: error.message });
     }
   });
-  
+
   app.get('/api/admin/tags/:id', async (req, res) => {
     try {
       // Verificar autenticação de administrador
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: 'ID inválido' });
       }
-      
+
       console.log(`Buscando tag com ID ${id}`);
       const tag = await storage.getTagById(id);
-      
+
       if (!tag) {
         return res.status(404).json({ message: 'Tag não encontrada' });
       }
-      
+
       res.json(tag);
     } catch (error: any) {
       console.error(`Erro ao buscar tag:`, error);
       res.status(500).json({ message: 'Erro ao buscar tag', error: error.message });
     }
   });
-  
+
   app.post('/api/admin/tags', async (req, res) => {
     try {
       // Verificar autenticação de administrador
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       // Validar dados da tag
       const validationResult = insertTagSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          message: 'Dados inválidos', 
-          errors: validationResult.error.errors 
+        return res.status(400).json({
+          message: 'Dados inválidos',
+          errors: validationResult.error.errors
         });
       }
-      
+
       const tagData: InsertTag = validationResult.data;
       console.log('Criando nova tag:', tagData);
-      
+
       // Verificar se já existe uma tag com o mesmo slug
       const existingTag = await storage.getTagBySlug(tagData.slug);
       if (existingTag) {
         return res.status(400).json({ message: 'Já existe uma tag com este slug' });
       }
-      
+
       const newTag = await storage.createTag(tagData);
       res.status(201).json(newTag);
     } catch (error: any) {
@@ -619,25 +793,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Erro ao criar tag', error: error.message });
     }
   });
-  
+
   app.patch('/api/admin/tags/:id', async (req, res) => {
     try {
       // Verificar autenticação de administrador
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: 'ID inválido' });
       }
-      
+
       // Verificar se a tag existe
       const existingTag = await storage.getTagById(id);
       if (!existingTag) {
         return res.status(404).json({ message: 'Tag não encontrada' });
       }
-      
+
       // Se estiver atualizando o slug, verificar se já existe uma tag com esse slug
       if (req.body.slug && req.body.slug !== existingTag.slug) {
         const tagWithSlug = await storage.getTagBySlug(req.body.slug);
@@ -645,7 +819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: 'Já existe uma tag com este slug' });
         }
       }
-      
+
       console.log(`Atualizando tag ${id}:`, req.body);
       const updatedTag = await storage.updateTag(id, req.body);
       res.json(updatedTag);
@@ -654,30 +828,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Erro ao atualizar tag', error: error.message });
     }
   });
-  
+
   app.delete('/api/admin/tags/:id', async (req, res) => {
     try {
       // Verificar autenticação de administrador
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: 'ID inválido' });
       }
-      
+
       // Verificar se a tag existe
       const existingTag = await storage.getTagById(id);
       if (!existingTag) {
         return res.status(404).json({ message: 'Tag não encontrada' });
       }
-      
+
       // Verificar se a tag está sendo usada em posts
       if (existingTag.count && existingTag.count > 0) {
         console.warn(`Atenção: A tag ${id} está sendo usada em ${existingTag.count} post(s), mas será excluída mesmo assim`);
       }
-      
+
       console.log(`Excluindo tag ${id}`);
       await storage.deleteTag(id);
       res.status(200).json({ message: 'Tag excluída com sucesso' });
@@ -686,29 +860,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Erro ao excluir tag', error: error.message });
     }
   });
-  
+
   app.patch('/api/admin/tags/:id/toggle', async (req, res) => {
     try {
       // Verificar autenticação de administrador
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: 'ID inválido' });
       }
-      
+
       // Verificar se a tag existe
       const existingTag = await storage.getTagById(id);
       if (!existingTag) {
         return res.status(404).json({ message: 'Tag não encontrada' });
       }
-      
+
       // Alternar o status da tag (ativo/inativo)
       const newStatus = !existingTag.isActive;
       console.log(`Alternando status da tag ${id} para ${newStatus ? 'ativo' : 'inativo'}`);
-      
+
       const updatedTag = await storage.toggleTagStatus(id, newStatus);
       res.json(updatedTag);
     } catch (error: any) {
@@ -753,11 +927,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const artwork = await storage.getArtworkById(id);
-      
+
       if (!artwork) {
         return res.status(404).json({ message: 'Artwork not found' });
       }
-      
+
       res.json(artwork);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching artwork' });
@@ -787,35 +961,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/artworks', async (req, res) => {
     try {
       const parsedData = insertArtworkSchema.safeParse(req.body);
-      
+
       if (!parsedData.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid artwork data',
-          errors: parsedData.error.format() 
+          errors: parsedData.error.format()
         });
       }
-      
+
       const artwork = await storage.createArtwork(parsedData.data);
       res.status(201).json(artwork);
     } catch (error) {
       res.status(500).json({ message: 'Error creating artwork' });
     }
   });
-  
+
   // API endpoint for social sharing
   app.get('/api/share/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const artwork = await storage.getArtworkById(id);
-      
+
       if (!artwork) {
         return res.status(404).json({ message: 'Artwork not found' });
       }
-      
+
       // Optional custom parameters for sharing
       const customTitle = req.query.title as string;
       const customDescription = req.query.description as string;
-      
+
       // Create share data with either custom or original values
       const shareData = {
         id: artwork.id,
@@ -826,7 +1000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         format: artwork.format,
         isPro: artwork.isPro
       };
-      
+
       res.json(shareData);
     } catch (error) {
       res.status(500).json({ message: 'Error generating share data' });
@@ -882,11 +1056,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (result.rows && result.rows.length > 0) {
           const subscription = result.rows[0];
           console.log(`Assinatura ativa encontrada: ${subscription.hotmart_plan_name}`);
-          
+
           // Mapear o tipo de plano para o nome correto
           let planName = 'Premium';
           let valor = 'N/A';
-          
+
           if (subscription.plan_type === 'mensal' || subscription.hotmart_plan_name?.includes('Mensal')) {
             planName = 'Plano Mensal Premium';
             valor = 'R$ 29,90';
@@ -900,7 +1074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             planName = 'Plano Anual Premium';
             valor = 'R$ 197,00';
           }
-          
+
           return res.json({
             planName: planName,
             periodo: subscription.hotmart_plan_name?.includes('Anual') ? 'Anual' : 'Mensal',
@@ -913,7 +1087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } else {
           console.log(`Nenhuma assinatura ativa encontrada para usuário ${userId}, verificando plano_id`);
-          
+
           // Fallback: se não encontrou assinatura ativa mas é premium, buscar por plano_id como string
           const userPlanId = req.user.plano_id;
           if (userPlanId) {
@@ -958,12 +1132,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let targetUserId = parseInt(req.params.id);
-      
+
       // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
       if (targetUserId === 1) {
         targetUserId = 3;
       }
-      
+
       const currentUserId = req.user!.id;
 
       if (isNaN(targetUserId)) {
@@ -1013,7 +1187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 UNIQUE(follower_id, following_id)
               )
             `);
-            
+
             await pool.query(`
               INSERT INTO user_follows (follower_id, following_id, created_at)
               VALUES ($1, $2, NOW())
@@ -1039,12 +1213,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let targetUserId = parseInt(req.params.id);
-      
+
       // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
       if (targetUserId === 1) {
         targetUserId = 3;
       }
-      
+
       const currentUserId = req.user!.id;
 
       if (isNaN(targetUserId)) {
@@ -1083,10 +1257,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/category-stats', async (req, res) => {
     try {
       console.log("Buscando estatísticas das categorias...");
-      
+
       // Buscar todas as categorias
       const categories = await storage.getCategories();
-      
+
       // Para cada categoria, contar quantos posts ela tem
       const categoryStats = await Promise.all(
         categories.map(async (category) => {
@@ -1097,12 +1271,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               FROM posts 
               WHERE category_id = $1
             `;
-            
+
             const result = await pool.query(query, [category.id]);
             const postCount = parseInt(result.rows[0]?.post_count || 0);
-            
+
             console.log(`Categoria ${category.id} (${category.name}): ${postCount} posts`);
-            
+
             return {
               ...category,
               postCount
@@ -1116,7 +1290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         })
       );
-      
+
       console.log(`Estatísticas calculadas para ${categoryStats.length} categorias`);
       res.json(categoryStats);
     } catch (error) {
@@ -1129,15 +1303,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/categories/with-posts', async (req, res) => {
     try {
       console.log("Buscando categorias com posts para o feed público...");
-      
+
       // Buscar categorias usando o storage que acessa o Supabase corretamente
       const allCategories = await storage.getCategories();
       const activeCategoriesWithPosts = [];
-      
+
       // Para cada categoria ativa, verificar se tem posts
       for (const category of allCategories) {
         if (!category.isActive) continue;
-        
+
         // Contar posts desta categoria usando a mesma lógica do feed (agrupamento)
         const query = `
           WITH grouped_posts AS (
@@ -1151,10 +1325,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
           SELECT COUNT(*) as post_count FROM grouped_posts
         `;
-        
+
         const result = await pool.query(query, [category.id]);
         const postCount = parseInt(result.rows[0].post_count);
-        
+
         if (postCount > 0) {
           activeCategoriesWithPosts.push({
             id: category.id,
@@ -1167,13 +1341,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       // Ordenar por nome
       activeCategoriesWithPosts.sort((a, b) => a.name.localeCompare(b.name));
-      
-      console.log(`Encontradas ${activeCategoriesWithPosts.length} categorias com posts:`, 
+
+      console.log(`Encontradas ${activeCategoriesWithPosts.length} categorias com posts:`,
         activeCategoriesWithPosts.map(c => `${c.name} (${c.postCount} posts)`));
-      
+
       res.json(activeCategoriesWithPosts);
     } catch (error) {
       console.error('Error fetching categories with posts:', error);
@@ -1185,7 +1359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/categories/with-stats', async (req, res) => {
     try {
       console.log("Buscando todas as categorias com estatísticas...");
-      
+
       // Buscar todas as categorias ativas com contagem de posts
       const query = `
         SELECT 
@@ -1203,9 +1377,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         GROUP BY c.id, c.name, c.description, c.slug, c.image_url, c.is_active, c.created_at
         ORDER BY post_count DESC, c.name ASC
       `;
-      
+
       const categoriesResult = await pool.query(query);
-      
+
       // Para cada categoria, buscar os primeiros 4 posts para preview
       const categoriesWithStats = await Promise.all(
         categoriesResult.rows.map(async (category) => {
@@ -1223,7 +1397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ORDER BY p.created_at DESC
             LIMIT 4
           `;
-          
+
           const postsResult = await pool.query(postsQuery, [category.id]);
           const posts = postsResult.rows.map(row => ({
             id: row.id,
@@ -1231,7 +1405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             image: row.image,
             isPremium: !!row.isPremium
           }));
-          
+
           return {
             id: category.id,
             name: category.name,
@@ -1246,10 +1420,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         })
       );
-      
-      console.log(`Encontradas ${categoriesWithStats.length} categorias com estatísticas:`, 
+
+      console.log(`Encontradas ${categoriesWithStats.length} categorias com estatísticas:`,
         categoriesWithStats.map(c => `${c.name} (${c.postCount} posts)`));
-      
+
       res.json(categoriesWithStats);
     } catch (error) {
       console.error('Error fetching categories with stats:', error);
@@ -1261,17 +1435,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/posts/category/:id', async (req, res) => {
     try {
       const categoryId = parseInt(req.params.id);
-      
+
       if (isNaN(categoryId)) {
         return res.status(400).json({ message: 'Invalid category ID' });
       }
 
       console.log(`Buscando posts da categoria ${categoryId}...`);
-      
+
       // Check if this is a detailed request (all posts for category page)
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 4;
       const detailed = req.query.detailed === 'true';
-      
+
       let query;
       if (detailed) {
         // Full post data for category detail page
@@ -1312,11 +1486,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LIMIT $2
         `;
       }
-      
-      const result = detailed 
+
+      const result = detailed
         ? await pool.query(query, [categoryId])
         : await pool.query(query, [categoryId, limit]);
-        
+
       const posts = result.rows.map(row => {
         if (detailed) {
           return {
@@ -1345,7 +1519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         }
       });
-      
+
       console.log(`Encontrados ${posts.length} posts para categoria ${categoryId}`);
       res.json(posts);
     } catch (error) {
@@ -1358,7 +1532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/categories/:slug', async (req, res) => {
     try {
       const slug = req.params.slug;
-      
+
       const query = `
         SELECT 
           c.id,
@@ -1373,13 +1547,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE c.slug = $1 OR (c.slug IS NULL AND c.id::text = $1)
         GROUP BY c.id, c.name, c.description, c.slug
       `;
-      
+
       const result = await pool.query(query, [slug]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Category not found' });
       }
-      
+
       const category = {
         id: result.rows[0].id,
         name: result.rows[0].name,
@@ -1387,7 +1561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         slug: result.rows[0].slug,
         postCount: parseInt(result.rows[0].post_count)
       };
-      
+
       res.json(category);
     } catch (error) {
       console.error('Error fetching category by slug:', error);
@@ -1399,11 +1573,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const category = await storage.getCategoryById(id);
-      
+
       if (!category) {
         return res.status(404).json({ message: 'Category not found' });
       }
-      
+
       res.json(category);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching category' });
@@ -1413,14 +1587,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/categories', async (req, res) => {
     try {
       const parsedData = insertCategorySchema.safeParse(req.body);
-      
+
       if (!parsedData.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid category data',
-          errors: parsedData.error.format() 
+          errors: parsedData.error.format()
         });
       }
-      
+
       const category = await storage.createCategory(parsedData.data);
       res.status(201).json(category);
     } catch (error) {
@@ -1431,35 +1605,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/admin/categories/:id', async (req, res) => {
     try {
       console.log('PUT /api/admin/categories/:id - Recebido:', req.params.id, req.body);
-      
+
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'ID da categoria inválido'
         });
       }
-      
+
       const parsedData = insertCategorySchema.partial().safeParse(req.body);
-      
+
       if (!parsedData.success) {
         console.log('Erro de validação:', parsedData.error.format());
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Dados da categoria inválidos',
-          errors: parsedData.error.format() 
+          errors: parsedData.error.format()
         });
       }
-      
+
       console.log('Dados validados:', parsedData.data);
-      
+
       const category = await storage.updateCategory(id, parsedData.data);
-      
+
       console.log('Categoria atualizada com sucesso:', category);
       res.json(category);
     } catch (error) {
       console.error('Erro ao atualizar categoria:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar categoria',
         error: errorMessage
       });
@@ -1470,20 +1644,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Registrar detalhes da requisição para depuração
       console.log(`DELETE /api/admin/categories/${req.params.id} - Iniciando exclusão`);
-      
+
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'ID da categoria inválido'
         });
       }
-      
+
       // A função agora retorna informações sobre os posts atualizados
       const result = await storage.deleteCategory(id);
-      
+
       console.log(`DELETE /api/admin/categories/${id} - Categoria excluída com sucesso. ${result.postsUpdated} posts afetados.`);
-      
+
       // Enviar resposta com detalhes sobre os posts atualizados
       if (result.postsUpdated > 0) {
         return res.status(200).json({
@@ -1493,33 +1667,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: `${result.postsUpdated} postagens foram atualizadas para ficar sem categoria.`
         });
       }
-      
+
       // Se não havia posts, continuar com a resposta padrão de sucesso
       res.status(204).end();
     } catch (error: any) {
       // Capturar a mensagem de erro para análise
       const errorMessage = error.message || 'Erro desconhecido ao excluir categoria';
       console.error(`DELETE /api/admin/categories/${req.params.id} - Erro:`, errorMessage);
-      
+
       // Verificar se é um erro de restrição de chave estrangeira
       if (errorMessage.includes('violates foreign key constraint')) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Não foi possível excluir a categoria devido a restrições de banco de dados. Verifique se há outros objetos relacionados à categoria.',
           error: 'RESTRICAO_BANCO_DADOS'
         });
       }
-      
+
       // Verificar outros erros comuns
       if (errorMessage.includes('Erro ao atualizar os posts relacionados')) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: errorMessage,
           error: 'ERRO_ATUALIZAR_POSTS'
         });
       }
-      
+
       // Erro técnico - problema no servidor
       console.error('Detalhes completos do erro:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao excluir categoria',
         details: errorMessage
       });
@@ -1547,7 +1721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Alterando status da categoria ${id} para isActive=${isActive}`);
 
       const updatedCategory = await storage.updateCategory(id, { isActive });
-      
+
       res.json({
         success: true,
         category: updatedCategory,
@@ -1556,7 +1730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Erro ao alterar status da categoria:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao alterar status da categoria',
         error: errorMessage
       });
@@ -1568,7 +1742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/posts/preview/:id', async (req, res) => {
     try {
       const postId = parseInt(req.params.id);
-      
+
       if (!postId || isNaN(postId)) {
         return res.status(400).json({ message: 'ID de post inválido' });
       }
@@ -1591,7 +1765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const internalPost = await storage.getPostById(postId);
           if (internalPost) {
             console.log(`Preview - Post ${postId} encontrado no sistema interno`);
-            
+
             // Cache headers para melhor performance
             res.set('Cache-Control', 'public, max-age=300');
             return res.json(internalPost);
@@ -1599,7 +1773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (internalError) {
           console.error(`Preview - Erro no sistema interno:`, internalError);
         }
-        
+
         console.log(`Preview - Post ${postId} não encontrado em nenhum sistema`);
         return res.status(404).json({ message: 'Post não encontrado' });
       }
@@ -1638,9 +1812,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Cache headers para melhor performance do feed público
       res.set('Cache-Control', 'public, max-age=180'); // 3 minutos de cache
-      
+
       console.log('Buscando posts aprovados via Supabase...');
-      
+
       // Usar a implementação com Supabase para maior velocidade em acesso público
       const { data, error } = await supabase
         .from('posts')
@@ -1648,18 +1822,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq('status', 'aprovado')
         .eq('is_visible', true) // Apenas posts visíveis
         .order('created_at', { ascending: false });
-        
+
       if (error) {
         console.error("Erro ao buscar posts aprovados:", error);
         throw error;
       }
-      
+
       console.log(`Encontrados ${data?.length || 0} posts aprovados no Supabase`);
-      
+
       // Normalizar os dados para o formato esperado pelo frontend
       const normalizedPosts = (data || []).map(post => {
         console.log(`Post ${post.id}: ${post.title} - URL: ${post.image_url}`);
-        
+
         return {
           id: post.id,
           title: post.title,
@@ -1677,7 +1851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           licenseType: post.license_type
         };
       });
-      
+
       console.log(`Retornando ${normalizedPosts.length} posts normalizados`);
       res.json(normalizedPosts);
     } catch (error) {
@@ -1690,7 +1864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/posts/formats', async (req, res) => {
     try {
       console.log('Buscando todos os formatos únicos disponíveis nos posts...');
-      
+
       const query = `
         SELECT DISTINCT formato as name
         FROM posts 
@@ -1700,30 +1874,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         AND formato != ''
         ORDER BY formato ASC
       `;
-      
+
       const result = await pool.query(query);
       const formats = result.rows.map(row => row.name);
-      
+
       console.log(`Encontrados ${formats.length} formatos únicos:`, formats);
-      
+
       res.json(formats);
     } catch (error) {
       console.error('Error fetching unique formats:', error);
       res.status(500).json({ message: 'Error fetching formats' });
     }
   });
-  
+
   // Endpoint público para obter posts relacionados (variações de formato)
   app.get('/api/posts/formats/:groupId', async (req, res) => {
     try {
       const { groupId } = req.params;
-      
+
       if (!groupId) {
         return res.status(400).json({ message: 'Group ID is required' });
       }
-      
+
       console.log(`Buscando todos os formatos do grupo: ${groupId}`);
-      
+
       // Buscar todos os posts do grupo usando PostgreSQL direto
       const query = `
         SELECT id, title, description, image_url, unique_code, category_id, user_id,
@@ -1734,14 +1908,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         AND status = 'aprovado'
         ORDER BY id ASC
       `;
-      
+
       const result = await pool.query(query, [groupId]);
-      
+
       if (!result.rows || result.rows.length === 0) {
         console.log(`Nenhum formato encontrado para o grupo ${groupId}`);
         return res.json([]);
       }
-      
+
       // Mapear os dados para o formato esperado pelo cliente
       const formattedData = result.rows.map(post => ({
         id: post.id,
@@ -1763,7 +1937,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         formatoData: post.formato_data,
         isVisible: post.is_visible !== false
       }));
-      
+
       console.log(`Encontradas ${formattedData.length} variações de formato para o grupo ${groupId}`);
       res.json(formattedData);
     } catch (error) {
@@ -1778,11 +1952,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.query.groupId) {
         const groupId = req.query.groupId as string;
         console.log(`Buscando posts do grupo: ${groupId}`);
-        
+
         const groupPosts = await storage.getPostsByGroupId(groupId);
         return res.json(groupPosts);
       }
-      
+
       const filters = {
         searchTerm: req.query.search as string,
         categoryId: req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined,
@@ -1795,7 +1969,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
       };
-      
+
       const posts = await storage.getPosts(filters);
       res.json(posts);
     } catch (error) {
@@ -1808,11 +1982,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const post = await storage.getPostById(id);
-      
+
       if (!post) {
         return res.status(404).json({ message: 'Post not found' });
       }
-      
+
       res.json(post);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching post' });
@@ -1823,11 +1997,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/posts/related/:groupId', async (req, res) => {
     try {
       const { groupId } = req.params;
-      
+
       if (!groupId) {
         return res.status(400).json({ message: 'Group ID is required' });
       }
-      
+
       const relatedPosts = await storage.getPostsByGroupId(groupId);
       res.json(relatedPosts);
     } catch (error) {
@@ -1842,47 +2016,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const postSchema = insertPostSchema.extend({
         uniqueCode: z.string().min(4).max(50),
       });
-      
+
       const parsedData = postSchema.safeParse(req.body);
-      
+
       if (!parsedData.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid post data',
-          errors: parsedData.error.format() 
+          errors: parsedData.error.format()
         });
       }
-      
+
       // Verificar se estamos criando múltiplos formatos
       const { formatos } = req.body;
-      
+
       if (formatos && Array.isArray(formatos) && formatos.length > 0) {
         // Múltiplos formatos - cria uma arte para cada formato com o mesmo grupo_id
         console.log(`Criando post com ${formatos.length} formatos diferentes`);
-        
+
         // Gerando um UUID para o grupo
         const groupId = crypto.randomUUID();
         console.log(`ID do grupo gerado: ${groupId}`);
-        
+
         // Extraindo o título base
         const tituloBase = parsedData.data.title;
         console.log(`Título base: ${tituloBase}`);
-        
+
         const createdPosts = [];
-        
+
         // Para cada formato, criar um post específico
         for (const formato of formatos) {
-          const formatoData = typeof formato === 'string' 
-            ? { formato } 
+          const formatoData = typeof formato === 'string'
+            ? { formato }
             : formato;
-          
+
           // Manter o título original limpo sem adicionar informações de formato
           const title = tituloBase;
-          
+
           // Gerando um uniqueCode para cada formato
-          const uniqueCode = parsedData.data.uniqueCode 
-            ? `${parsedData.data.uniqueCode}-${formatoData.formato}` 
+          const uniqueCode = parsedData.data.uniqueCode
+            ? `${parsedData.data.uniqueCode}-${formatoData.formato}`
             : crypto.randomUUID().substring(0, 8);
-          
+
           // Preparando os dados únicos para este formato específico
           const postData = {
             ...parsedData.data,
@@ -1894,24 +2068,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             formato: formatoData.formato || formatoData.type,
             formatoData: JSON.stringify(formatoData),
             canvaUrl: formatoData.canvaUrl || formatoData.editUrl || formatoData.links?.[0]?.url || '',
-            imageUrl: (formatoData.imageUrl && !formatoData.imageUrl.startsWith('blob:')) 
-              ? formatoData.imageUrl 
+            imageUrl: (formatoData.imageUrl && !formatoData.imageUrl.startsWith('blob:'))
+              ? formatoData.imageUrl
               : (formatoData.previewUrl && !formatoData.previewUrl.startsWith('blob:'))
-                ? formatoData.previewUrl 
+                ? formatoData.previewUrl
                 : '', // Validar URLs de imagem para evitar blob URLs
           };
-          
+
           console.log(`Criando formato ${formatoData.formato || formatoData.type} com dados únicos:`, {
             imageUrl: postData.imageUrl,
             canvaUrl: postData.canvaUrl,
             groupId: postData.groupId
           });
-          
+
           // Criando o post para este formato com dados do autor
           const post = await storage.createPost(postData, req.user);
           createdPosts.push(post);
         }
-        
+
         res.status(201).json({
           success: true,
           message: `${createdPosts.length} posts criados com sucesso no grupo ${groupId}`,
@@ -1932,17 +2106,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/admin/posts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       // Esquema parcial para atualização
       const parsedData = insertPostSchema.partial().safeParse(req.body);
-      
+
       if (!parsedData.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid post data',
-          errors: parsedData.error.format() 
+          errors: parsedData.error.format()
         });
       }
-      
+
       const post = await storage.updatePost(id, parsedData.data);
       res.json(post);
     } catch (error) {
@@ -1959,112 +2133,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error deleting post' });
     }
   });
-  
+
   // Endpoint PATCH para atualizações completas de posts (edit mode)
   app.patch('/api/admin/posts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       console.log(`PATCH /api/admin/posts/${id} - Dados:`, req.body);
-      
+
       // Extrair todos os campos que podem ser atualizados
-      const { 
-        title, 
-        categoryId, 
-        status, 
-        description, 
-        licenseType, 
-        isVisible, 
-        formatData, 
+      const {
+        title,
+        categoryId,
+        status,
+        description,
+        licenseType,
+        isVisible,
+        formatData,
         imageUrl,
         groupId,
         uniqueCode,
-        formatos 
+        formatos
       } = req.body;
-      
+
       // Mapear para o formato do modelo
       const updateData: Partial<InsertPost> = {};
-      
+
       // Campos básicos
       if (title !== undefined) {
         updateData.title = title;
         console.log(`Atualizando título para: ${title}`);
       }
-      
+
       if (categoryId !== undefined) {
         updateData.categoryId = parseInt(categoryId);
         console.log(`Atualizando categoria para: ${categoryId}`);
       }
-      
+
       if (status !== undefined) {
         updateData.status = status;
         console.log(`Atualizando status para: ${status}`);
       }
-      
+
       if (description !== undefined) {
         updateData.description = description;
         console.log(`Atualizando descrição`);
       }
-      
+
       if (licenseType !== undefined) {
         updateData.licenseType = licenseType;
         updateData.isPro = licenseType === 'premium';
         console.log(`Atualizando licenseType para ${licenseType} e isPro para ${updateData.isPro}`);
       }
-      
+
       if (isVisible !== undefined) {
         updateData.isVisible = isVisible;
         console.log(`Atualizando isVisible para ${isVisible}`);
       }
-      
+
       if (imageUrl !== undefined) {
         updateData.imageUrl = imageUrl;
         console.log(`Atualizando imageUrl`);
       }
-      
+
       if (formatData !== undefined) {
         updateData.formatData = formatData;
         console.log(`Atualizando formatData com ${formatData?.length || 0} caracteres`);
       }
-      
+
       if (groupId !== undefined) {
         updateData.groupId = groupId;
         console.log(`Atualizando groupId para: ${groupId}`);
       }
-      
+
       if (uniqueCode !== undefined) {
         updateData.uniqueCode = uniqueCode;
         console.log(`Atualizando uniqueCode para: ${uniqueCode}`);
       }
-      
+
       // Se há formatos múltiplos, atualizar todos os posts do grupo
       if (formatos && Array.isArray(formatos) && formatos.length > 0 && groupId) {
         console.log(`Atualizando grupo de ${formatos.length} formatos`);
-        
+
         try {
           const relatedPosts = await storage.getPostsByGroupId(groupId);
           console.log(`Encontrados ${relatedPosts.length} posts no grupo ${groupId}`);
-          
+
           const updatedPosts = [];
-          
+
           for (const formato of formatos) {
             try {
               // Encontrar o post correspondente a este formato
               const existingPost = relatedPosts.find(p => p.formato === formato.formato);
-              
+
               if (existingPost) {
                 // Criar uma cópia dos dados de atualização sem o uniqueCode
                 const { uniqueCode, ...baseUpdateData } = updateData;
-                
+
                 // Preparar dados específicos para este formato, preservando URLs válidas
                 let imageUrl = existingPost.imageUrl; // Manter URL existente por padrão
-                
+
                 // Usar nova URL apenas se for válida (não blob)
                 if (formato.imageUrl && !formato.imageUrl.startsWith('blob:')) {
                   imageUrl = formato.imageUrl;
                 } else if (formato.previewUrl && !formato.previewUrl.startsWith('blob:')) {
                   imageUrl = formato.previewUrl;
                 }
-                
+
                 const formatUpdateData = {
                   ...baseUpdateData,
                   imageUrl: imageUrl, // Usar URL validada
@@ -2072,9 +2246,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   formatData: JSON.stringify(formato)
                   // Não incluir uniqueCode para manter o código único de cada post
                 };
-                
+
                 console.log(`Atualizando formato ${formato.formato} - URL imagem: ${imageUrl}`);
-                
+
                 console.log(`Atualizando post ${existingPost.id} (${formato.formato})`);
                 const updatedPost = await storage.updatePost(existingPost.id, formatUpdateData);
                 updatedPosts.push(updatedPost);
@@ -2087,9 +2261,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               throw formatError;
             }
           }
-          
+
           console.log(`Grupo atualizado com sucesso: ${updatedPosts.length} posts`);
-          
+
           // Retornar o primeiro post atualizado para manter compatibilidade com o frontend
           const mainPost = updatedPosts.find(p => p.id === id) || updatedPosts[0];
           if (mainPost) {
@@ -2112,24 +2286,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error updating post' });
     }
   });
-  
+
   // Excluir múltiplos posts em lote
   app.delete('/api/admin/posts/batch', async (req, res) => {
     try {
       const { ids } = req.body;
-      
+
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ message: 'Invalid post IDs' });
       }
-      
+
       // Excluir cada post do array de IDs
       for (const id of ids) {
         await storage.deletePost(id);
       }
-      
-      res.status(200).json({ 
+
+      res.status(200).json({
         success: true,
-        message: `${ids.length} posts deleted successfully` 
+        message: `${ids.length} posts deleted successfully`
       });
     } catch (error) {
       console.error('Error deleting posts in batch:', error);
@@ -2141,46 +2315,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/admin/posts/status/batch', async (req, res) => {
     try {
       const { ids, status } = req.body;
-      
+
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ message: 'Invalid post IDs' });
       }
-      
+
       if (!['aprovado', 'rascunho', 'rejeitado'].includes(status)) {
         return res.status(400).json({ message: 'Invalid status value' });
       }
-      
+
       await storage.updatePostStatus(ids, status);
       res.status(200).json({ message: 'Posts updated successfully' });
     } catch (error) {
       res.status(500).json({ message: 'Error updating posts status' });
     }
   });
-  
+
   // Endpoint especial para atualizar apenas a licença diretamente no Supabase
   app.patch('/api/admin/posts/:id/premium', async (req, res) => {
     try {
       const postId = parseInt(req.params.id);
       const { isPremium } = req.body;
-      
+
       if (isNaN(postId) || typeof isPremium !== 'boolean') {
         return res.status(400).json({ message: 'ID de post e estado premium são obrigatórios' });
       }
-      
+
       console.log(`Endpoint /premium - Atualizando post ${postId} para isPremium=${isPremium}`);
-      
+
       // Atualizar diretamente via Supabase
       const { error } = await supabase
         .from('posts')
-        .update({ 
+        .update({
           is_pro: isPremium,
           license_type: isPremium ? 'premium' : 'free'
         })
         .eq('id', postId);
-      
+
       if (error) {
         console.error("Endpoint /premium - Erro ao atualizar via Supabase:", error);
-        
+
         // Tentar atualizar direto no PostgreSQL
         try {
           const result = await pool.query(`
@@ -2189,11 +2363,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             WHERE id = $3
             RETURNING id, title, is_pro, license_type
           `, [isPremium, isPremium ? 'premium' : 'free', postId]);
-          
+
           if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Post não encontrado' });
           }
-          
+
           console.log("Endpoint /premium - Post atualizado via PostgreSQL:", result.rows[0]);
           return res.json(result.rows[0]);
         } catch (pgError) {
@@ -2202,10 +2376,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         console.log("Endpoint /premium - Post atualizado com sucesso via Supabase");
-        
+
         // Retornar sucesso mesmo sem buscar o post atualizado para evitar problemas de cache
-        return res.json({ 
-          id: postId, 
+        return res.json({
+          id: postId,
           isPremium,
           success: true,
           message: `Post ${postId} updated to premium=${isPremium}`
@@ -2223,13 +2397,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Este endpoint apenas recebe os metadados da imagem após o upload direto para o Supabase
       // e retorna a confirmação
       const { imageUrl, filename, size } = req.body;
-      
+
       if (!imageUrl) {
         return res.status(400).json({ message: 'Image URL is required' });
       }
-      
-      res.status(200).json({ 
-        success: true, 
+
+      res.status(200).json({
+        success: true,
         imageUrl,
         metadata: {
           filename,
@@ -2246,7 +2420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/stats', async (req, res) => {
     try {
       console.log("Buscando estatísticas do painel admin...");
-      
+
       // Usar PostgreSQL direto para dados reais
       const postsCountQuery = `SELECT COUNT(*) as count FROM posts`;
       const approvedPostsQuery = `SELECT COUNT(*) as count FROM posts WHERE status = 'aprovado'`;
@@ -2259,7 +2433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY created_at DESC 
         LIMIT 5
       `;
-      
+
       const [
         postsResult,
         approvedPostsResult,
@@ -2275,7 +2449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pool.query(subscribersQuery),
         pool.query(recentPostsQuery)
       ]);
-      
+
       const postsCount = parseInt(postsResult.rows[0]?.count || 0);
       const approvedPostsCount = parseInt(approvedPostsResult.rows[0]?.count || 0);
       const categoriesCount = parseInt(categoriesResult.rows[0]?.count || 0);
@@ -2287,9 +2461,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: post.status,
         createdAt: post.created_at
       }));
-      
+
       console.log(`Estatísticas: ${postsCount} posts, ${approvedPostsCount} aprovados, ${categoriesCount} categorias, ${usersCount} usuários, ${subscribersCount} assinantes`);
-      
+
       // Retornar estatísticas reais
       res.json({
         postsCount,
@@ -2306,25 +2480,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error fetching admin stats' });
     }
   });
-  
+
   // Rota de teste para criar categoria e post (acesso sem autenticação para facilitar teste)
   app.get('/api/admin/setup-test-data', async (req, res) => {
     try {
       console.log("Configurando dados de teste para o painel admin...");
-      
+
       // Criar categoria de teste se não existir
       const { data: existingCategories, error: categoryCheckError } = await supabase
         .from('categories')
         .select('*')
         .eq('slug', 'tutoriais');
-        
+
       if (categoryCheckError) {
         console.error("Erro ao verificar categorias existentes:", categoryCheckError);
         throw categoryCheckError;
       }
-      
+
       let categoryId;
-      
+
       if (!existingCategories || existingCategories.length === 0) {
         // Criar nova categoria
         const { data: newCategory, error: categoryCreateError } = await supabase
@@ -2337,22 +2511,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .select()
           .single();
-          
+
         if (categoryCreateError) {
           console.error("Erro ao criar categoria:", categoryCreateError);
           throw categoryCreateError;
         }
-        
+
         categoryId = newCategory.id;
         console.log(`Categoria criada com ID: ${categoryId}`);
       } else {
         categoryId = existingCategories[0].id;
         console.log(`Categoria existente com ID: ${categoryId}`);
       }
-      
+
       // Criar um post de teste
       const uniqueCode = `post-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-      
+
       const { data: newPost, error: postCreateError } = await supabase
         .from('posts')
         .insert({
@@ -2366,12 +2540,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .select()
         .single();
-        
+
       if (postCreateError) {
         console.error("Erro ao criar post:", postCreateError);
         throw postCreateError;
       }
-      
+
       res.json({
         success: true,
         message: 'Dados de teste criados com sucesso',
@@ -2388,7 +2562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Erro ao configurar dados de teste:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao configurar dados de teste',
         error: error instanceof Error ? error.message : String(error)
       });
@@ -2402,296 +2576,296 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       console.log('Buscando todos os planos (via compatibilidade)');
-      
+
       // Parâmetro opcional: mostrar todos ou apenas ativos
       const showInactive = req.query.showInactive === 'true';
-      
+
       try {
         const plans = await storage.getPlans(showInactive);
         console.log(`Encontrados ${plans.length} planos`);
         return res.json(plans);
       } catch (storageError: any) {
         console.error("Erro ao buscar planos via storage:", storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar planos',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching plans:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar planos',
         error: error.message
       });
     }
   });
-  
+
   app.get('/api/admin/plans', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       console.log('Buscando todos os planos');
-      
+
       // Parâmetro opcional: mostrar todos ou apenas ativos
       const showInactive = req.query.showInactive === 'true';
-      
+
       try {
         const plans = await storage.getPlans(showInactive);
         console.log(`Encontrados ${plans.length} planos`);
         return res.json(plans);
       } catch (storageError: any) {
         console.error("Erro ao buscar planos via storage:", storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar planos',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching plans:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar planos',
         error: error.message
       });
     }
   });
-  
+
   // Rota de compatibilidade em português
   app.get('/api/admin/planos/:id', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       console.log(`Buscando plano #${id} (via compatibilidade)`);
-      
+
       try {
         const plan = await storage.getPlanById(id);
-        
+
         if (!plan) {
           return res.status(404).json({ message: 'Plano não encontrado' });
         }
-        
+
         return res.json(plan);
       } catch (storageError: any) {
         console.error(`Erro ao buscar plano #${id} via storage:`, storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar plano',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching plan:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar plano',
         error: error.message
       });
     }
   });
-  
+
   app.get('/api/admin/plans/:id', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       console.log(`Buscando plano #${id}`);
-      
+
       try {
         const plan = await storage.getPlanById(id);
-        
+
         if (!plan) {
           return res.status(404).json({ message: 'Plano não encontrado' });
         }
-        
+
         return res.json(plan);
       } catch (storageError: any) {
         console.error(`Erro ao buscar plano #${id} via storage:`, storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar plano',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching plan:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar plano',
         error: error.message
       });
     }
   });
-  
+
   app.post('/api/admin/plans', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       console.log('Criando novo plano:', req.body);
-      
+
       // Validar dados do plano com o schema de inserção
       const parsedData = insertPlanSchema.safeParse(req.body);
-      
+
       if (!parsedData.success) {
         return res.status(400).json({
           message: 'Dados do plano inválidos',
           errors: parsedData.error.format()
         });
       }
-      
+
       try {
         // Se for plano gratuito, garantir que o valor seja 0
         if (parsedData.data.isGratuito) {
           parsedData.data.valor = "0,00";
         }
-        
+
         const newPlan = await storage.createPlan(parsedData.data);
         return res.status(201).json(newPlan);
       } catch (storageError: any) {
         console.error("Erro ao criar plano via storage:", storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao criar plano',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error creating plan:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao criar plano',
         error: error.message
       });
     }
   });
-  
+
   app.put('/api/admin/plans/:id', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       console.log(`Atualizando plano #${id}:`, req.body);
-      
+
       // Validar dados parciais do plano
       const parsedData = insertPlanSchema.partial().safeParse(req.body);
-      
+
       if (!parsedData.success) {
         return res.status(400).json({
           message: 'Dados do plano inválidos',
           errors: parsedData.error.format()
         });
       }
-      
+
       // Se for plano gratuito, garantir que o valor seja 0
       if (parsedData.data.isGratuito === true) {
         parsedData.data.valor = "0,00";
       }
-      
+
       try {
         const updatedPlan = await storage.updatePlan(id, parsedData.data);
         return res.json(updatedPlan);
       } catch (storageError: any) {
         console.error(`Erro ao atualizar plano #${id} via storage:`, storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar plano',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error updating plan:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar plano',
         error: error.message
       });
     }
   });
-  
+
   app.delete('/api/admin/plans/:id', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       console.log(`Excluindo plano #${id}`);
-      
+
       try {
         await storage.deletePlan(id);
         return res.status(200).json({ success: true });
       } catch (storageError: any) {
         console.error(`Erro ao excluir plano #${id} via storage:`, storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao excluir plano',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error deleting plan:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao excluir plano',
         error: error.message
       });
     }
   });
-  
+
   // Endpoint para ativar/desativar plano
   app.patch('/api/admin/plans/:id/toggle', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
         return res.status(403).json({ message: 'Acesso negado' });
       }
-      
+
       const id = parseInt(req.params.id);
       const isActive = req.body.isActive === true;
-      
+
       console.log(`${isActive ? 'Ativando' : 'Desativando'} plano #${id}`);
-      
+
       try {
         const updatedPlan = await storage.togglePlanStatus(id, isActive);
         return res.json(updatedPlan);
       } catch (storageError: any) {
         console.error(`Erro ao alterar status do plano #${id} via storage:`, storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao alterar status do plano',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error toggling plan status:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao alterar status do plano',
         error: error.message
       });
     }
   });
-  
+
   // Rota pública para listar planos ativos
   app.get('/api/plans', async (req, res) => {
     try {
       console.log('Buscando planos ativos para usuários');
-      
+
       // Por padrão, apenas planos ativos são mostrados para usuários
       const showInactive = false;
-      
+
       try {
         const plans = await storage.getPlans(showInactive);
         console.log(`Encontrados ${plans.length} planos ativos`);
         return res.json(plans);
       } catch (storageError: any) {
         console.error("Erro ao buscar planos via storage:", storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar planos',
           error: storageError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching plans:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar planos',
         error: error.message
       });
@@ -2706,7 +2880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('Buscando todos os usuários');
-      
+
       try {
         // Buscar usuários com dados completos incluindo dados de assinatura
         const query = `
@@ -2725,19 +2899,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM users u
           ORDER BY u.created_at DESC
         `;
-        
+
         const result = await pool.query(query);
         return res.json(result.rows || []);
       } catch (dbError: any) {
         console.error("Erro ao buscar usuários:", dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar usuários',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching users:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar usuários',
         error: error.message
       });
@@ -2751,12 +2925,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
         console.error(`ID inválido recebido: ${req.params.id}`);
         return res.status(400).json({ message: 'ID de usuário inválido' });
       }
-      
+
       try {
         const query = `
           SELECT 
@@ -2773,9 +2947,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM users u
           WHERE u.id = $1
         `;
-        
+
         const result = await pool.query(query, [id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           return res.json(result.rows[0]);
         } else {
@@ -2783,14 +2957,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao buscar usuário #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar usuário',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching user:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar usuário',
         error: error.message
       });
@@ -2805,26 +2979,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { username, email, isAdmin, tipo, plano_id, data_vencimento, active, telefone } = req.body;
-      
+
       console.log(`Atualizando usuário #${id}:`, req.body);
-      
+
       // Construir a query SQL de atualização
       let setClauses = [];
       const queryParams = [];
       let paramIndex = 1;
-      
+
       if (username !== undefined) {
         setClauses.push(`username = $${paramIndex}`);
         queryParams.push(username);
         paramIndex++;
       }
-      
+
       if (email !== undefined) {
         setClauses.push(`email = $${paramIndex}`);
         queryParams.push(email);
         paramIndex++;
       }
-      
+
       if (telefone !== undefined) {
         if (telefone === "") {
           setClauses.push(`whatsapp = NULL`);
@@ -2834,19 +3008,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paramIndex++;
         }
       }
-      
+
       if (isAdmin !== undefined) {
         setClauses.push(`is_admin = $${paramIndex}`);
         queryParams.push(isAdmin);
         paramIndex++;
       }
-      
+
       if (tipo !== undefined) {
         setClauses.push(`tipo = $${paramIndex}`);
         queryParams.push(tipo);
         paramIndex++;
       }
-      
+
       if (plano_id !== undefined) {
         if (plano_id === "") {
           setClauses.push(`plano_id = NULL`);
@@ -2856,7 +3030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paramIndex++;
         }
       }
-      
+
       if (data_vencimento !== undefined) {
         if (data_vencimento === "") {
           setClauses.push(`data_vencimento = NULL`);
@@ -2866,21 +3040,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paramIndex++;
         }
       }
-      
+
       if (active !== undefined) {
         setClauses.push(`active = $${paramIndex}`);
         queryParams.push(active);
         paramIndex++;
       }
-      
+
       // Se não houver cláusulas para atualizar, retornar erro
       if (setClauses.length === 0) {
         return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
       }
-      
+
       // Adicionar o parâmetro id ao final
       queryParams.push(id);
-      
+
       const updateQuery = `
         UPDATE users 
         SET ${setClauses.join(', ')} 
@@ -2888,10 +3062,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
           COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
       `;
-      
+
       try {
         const result = await pool.query(updateQuery, queryParams);
-        
+
         if (result.rows && result.rows.length > 0) {
           return res.json(result.rows[0]);
         } else {
@@ -2899,14 +3073,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao atualizar usuário #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar usuário',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error updating user:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar usuário',
         error: error.message
       });
@@ -2920,15 +3094,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       // Não permitir excluir a si mesmo
       if (id === req.user.id) {
         return res.status(400).json({ message: 'Não é possível excluir seu próprio usuário' });
       }
-      
+
       try {
         const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           return res.status(200).json({ success: true });
         } else {
@@ -2936,14 +3110,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao excluir usuário #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao excluir usuário',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error deleting user:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao excluir usuário',
         error: error.message
       });
@@ -2958,9 +3132,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { active } = req.body;
-      
+
       console.log(`Alterando status de ativo do usuário #${id} para ${active}`);
-      
+
       try {
         const result = await pool.query(`
           UPDATE users 
@@ -2969,7 +3143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
             COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
         `, [active, id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           return res.json(result.rows[0]);
         } else {
@@ -2977,14 +3151,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao atualizar status de ativo do usuário #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar status de ativo do usuário',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error toggling user active status:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar status de ativo do usuário',
         error: error.message
       });
@@ -2999,23 +3173,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { username, email, password, telefone, isAdmin, tipo, plano_id, active } = req.body;
-      
+
       // Validação básica
       if (!username || !email || !password) {
         return res.status(400).json({ message: 'Nome, email e senha são obrigatórios' });
       }
 
       console.log('Criando novo usuário:', { username, email, tipo, isAdmin });
-      
+
       // Verificar se email já existe
       const existingUserCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
       if (existingUserCheck.rows.length > 0) {
         return res.status(400).json({ message: 'Este email já está em uso' });
       }
-      
+
       // Gerar hash da senha
       const hashedPassword = await hashPassword(password);
-      
+
       try {
         const result = await pool.query(`
           INSERT INTO users (username, email, password, is_admin, telefone, tipo, plano_id, active)
@@ -3023,21 +3197,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
             COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, true) as active
         `, [username, email, hashedPassword, isAdmin || false, telefone || null, tipo || 'free', plano_id || null, active !== false]);
-        
+
         const newUser = result.rows[0];
         console.log(`Usuário criado com sucesso - ID: ${newUser.id}`);
-        
+
         return res.status(201).json(newUser);
       } catch (dbError: any) {
         console.error('Erro ao criar usuário no banco:', dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao criar usuário',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error creating user:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao criar usuário',
         error: error.message
       });
@@ -3079,12 +3253,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const column of columnsToAdd) {
           if (!existingColumns.includes(column.name)) {
             console.log(`➕ Adicionando coluna ${column.name}...`);
-            
+
             await pool.query(`
               ALTER TABLE subscriptions 
               ADD COLUMN ${column.name} ${column.type}
             `);
-            
+
             console.log(`✅ Coluna ${column.name} adicionada`);
             addedColumns.push(column.name);
           } else {
@@ -3103,7 +3277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       } catch (dbError: any) {
         console.error('❌ Erro de banco ao adicionar campos:', dbError);
-        res.status(500).json({ 
+        res.status(500).json({
           message: 'Erro de banco ao configurar campos',
           error: dbError.message,
           code: dbError.code
@@ -3112,7 +3286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('❌ Erro geral ao adicionar campos Hotmart:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao configurar campos do Hotmart',
         error: error.message
       });
@@ -3163,7 +3337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(hotmartPlans);
     } catch (error: any) {
       console.error('Error fetching Hotmart plans:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar planos do Hotmart',
         error: error.message
       });
@@ -3179,16 +3353,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { newPassword } = req.body;
-      
+
       if (!newPassword) {
         return res.status(400).json({ message: 'Nova senha é obrigatória' });
       }
 
       console.log(`Redefinindo senha do usuário #${id} para o padrão`);
-      
+
       // Gerar o hash da nova senha
       const hashedPassword = await hashPassword(newPassword);
-      
+
       try {
         const result = await pool.query(`
           UPDATE users 
@@ -3197,9 +3371,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", 
             COALESCE(tipo, 'free') as tipo, plano_id, data_vencimento, COALESCE(active, false) as active
         `, [hashedPassword, id]);
-        
+
         if (result.rows && result.rows.length > 0) {
-          return res.json({ 
+          return res.json({
             message: 'Senha redefinida com sucesso',
             user: result.rows[0]
           });
@@ -3208,14 +3382,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao redefinir senha do usuário #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao redefinir senha do usuário',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error resetting user password:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao redefinir senha do usuário',
         error: error.message
       });
@@ -3226,13 +3400,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/users/:id', async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      
+
       if (!userId || isNaN(userId)) {
         return res.status(400).json({ message: 'ID de usuário inválido' });
       }
-      
+
       console.log(`Buscando dados públicos do usuário admin #${userId}`);
-      
+
       try {
         const result = await pool.query(`
           SELECT 
@@ -3250,10 +3424,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM users 
           WHERE id = $1 AND is_admin = true
         `, [userId]);
-        
+
         if (result.rows && result.rows.length > 0) {
           const userData = result.rows[0];
-          
+
           // Remover informações sensíveis para exibição pública
           const publicUserData = {
             id: userData.id,
@@ -3264,7 +3438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             active: userData.active,
             bio: userData.bio
           };
-          
+
           console.log(`Dados públicos do usuário admin #${userId} encontrados:`, publicUserData.username);
           return res.json(publicUserData);
         } else {
@@ -3273,14 +3447,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao buscar usuário #${userId}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar dados do usuário',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching user data:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar dados do usuário',
         error: error.message
       });
@@ -3295,7 +3469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('Buscando todos os assinantes premium com dados reais de vencimento');
-      
+
       try {
         // Buscar usuários premium com dados reais da tabela subscriptions
         const query = `
@@ -3318,19 +3492,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           WHERE u.tipo = 'premium'
           ORDER BY COALESCE(s.end_date, u.data_vencimento) ASC
         `;
-        
+
         const result = await pool.query(query);
         return res.json(result.rows || []);
       } catch (dbError: any) {
         console.error("Erro ao buscar assinantes:", dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao buscar assinantes',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error fetching subscribers:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar assinantes',
         error: error.message
       });
@@ -3345,14 +3519,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { username, email, tipo, plano_id, data_vencimento, active, telefone } = req.body;
-      
+
       console.log(`Atualizando assinante #${id}:`, req.body);
-      
+
       // Construir a query SQL de atualização
       let setClauses = [];
       const queryParams = [];
       let paramIndex = 1;
-      
+
       // Permitir alterar o tipo do usuário (premium ou free)
       if (tipo !== undefined) {
         if (tipo === 'free' || tipo === 'premium') {
@@ -3363,19 +3537,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: 'Tipo de usuário inválido. Use "free" ou "premium".' });
         }
       }
-      
+
       if (username !== undefined) {
         setClauses.push(`username = $${paramIndex}`);
         queryParams.push(username);
         paramIndex++;
       }
-      
+
       if (email !== undefined) {
         setClauses.push(`email = $${paramIndex}`);
         queryParams.push(email);
         paramIndex++;
       }
-      
+
       if (telefone !== undefined) {
         if (telefone === "") {
           setClauses.push(`telefone = NULL`);
@@ -3385,7 +3559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paramIndex++;
         }
       }
-      
+
       if (plano_id !== undefined) {
         if (plano_id === "") {
           setClauses.push(`plano_id = NULL`);
@@ -3395,7 +3569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paramIndex++;
         }
       }
-      
+
       if (data_vencimento !== undefined) {
         if (data_vencimento === "") {
           setClauses.push(`data_vencimento = NULL`);
@@ -3405,21 +3579,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paramIndex++;
         }
       }
-      
+
       if (active !== undefined) {
         setClauses.push(`active = $${paramIndex}`);
         queryParams.push(active);
         paramIndex++;
       }
-      
+
       // Se não houver cláusulas para atualizar além do tipo, retornar erro
       if (setClauses.length <= 1) {
         return res.status(400).json({ message: 'Nenhum campo para atualizar fornecido' });
       }
-      
+
       // Adicionar o parâmetro id ao final
       queryParams.push(id);
-      
+
       const updateQuery = `
         UPDATE users 
         SET ${setClauses.join(', ')} 
@@ -3427,10 +3601,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
           tipo, plano_id, data_vencimento, active, telefone
       `;
-      
+
       try {
         const result = await pool.query(updateQuery, queryParams);
-        
+
         if (result.rows && result.rows.length > 0) {
           return res.json(result.rows[0]);
         } else {
@@ -3438,14 +3612,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao atualizar assinante #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar assinante',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error updating subscriber:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar assinante',
         error: error.message
       });
@@ -3460,9 +3634,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { active } = req.body;
-      
+
       console.log(`Alterando status de ativo do assinante #${id} para ${active}`);
-      
+
       try {
         const result = await pool.query(`
           UPDATE users 
@@ -3471,7 +3645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
             tipo, plano_id, data_vencimento, active, telefone
         `, [active, id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           return res.json(result.rows[0]);
         } else {
@@ -3479,14 +3653,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao atualizar status do assinante #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar status do assinante',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error toggling subscriber active status:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar status do assinante',
         error: error.message
       });
@@ -3500,9 +3674,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       console.log(`Cancelando assinatura do usuário #${id}`);
-      
+
       try {
         const result = await pool.query(`
           UPDATE users 
@@ -3515,7 +3689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
             tipo, plano_id, data_vencimento, active, telefone
         `, [id]);
-        
+
         if (result.rows && result.rows.length > 0) {
           return res.json(result.rows[0]);
         } else {
@@ -3523,20 +3697,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao cancelar assinatura do usuário #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao cancelar assinatura',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error canceling subscription:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao cancelar assinatura',
         error: error.message
       });
     }
   });
-  
+
   // Rota para redefinir a senha de um assinante para o padrão
   app.patch('/api/admin/assinantes/:id/reset-password', async (req, res) => {
     try {
@@ -3546,16 +3720,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { newPassword } = req.body;
-      
+
       if (!newPassword) {
         return res.status(400).json({ message: 'Nova senha é obrigatória' });
       }
 
       console.log(`Redefinindo senha do assinante #${id}`);
-      
+
       // Gerar o hash da nova senha
       const hashedPassword = await hashPassword(newPassword);
-      
+
       try {
         const result = await pool.query(`
           UPDATE users 
@@ -3564,9 +3738,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           RETURNING id, username, email, is_admin as "isAdmin", created_at as "createdAt", 
             tipo, plano_id, data_vencimento, active, telefone
         `, [hashedPassword, id]);
-        
+
         if (result.rows && result.rows.length > 0) {
-          return res.json({ 
+          return res.json({
             message: 'Senha redefinida com sucesso',
             user: result.rows[0]
           });
@@ -3575,14 +3749,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao redefinir senha do assinante #${id}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao redefinir senha do assinante',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error resetting subscriber password:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao redefinir senha do assinante',
         error: error.message
       });
@@ -3598,38 +3772,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const { username, email, telefone, biografia, site, localizacao } = req.body;
-      
+
       console.log(`Atualizando perfil do usuário #${userId}:`, req.body);
-      
+
       // Verificar se o usuário é premium (integração Hotmart)
       const currentUser = await storage.getUser(userId);
       const isPremiumUser = currentUser?.tipo === "premium";
-      
+
       // Bloquear alterações de email/telefone para usuários premium
       if (isPremiumUser && (email !== undefined || telefone !== undefined)) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Usuários premium devem solicitar alteração de email e telefone via suporte devido à integração com Hotmart',
           error: 'ALTERACAO_RESTRITA_PREMIUM'
         });
       }
-      
+
       // Construir a query SQL de atualização
       let setClauses = [];
       const queryParams = [];
       let paramIndex = 1;
-      
+
       if (username !== undefined) {
         setClauses.push(`username = $${paramIndex}`);
         queryParams.push(username);
         paramIndex++;
       }
-      
+
       if (email !== undefined) {
         setClauses.push(`email = $${paramIndex}`);
         queryParams.push(email);
         paramIndex++;
       }
-      
+
       if (telefone !== undefined) {
         if (telefone === "") {
           setClauses.push(`telefone = NULL`);
@@ -3639,29 +3813,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paramIndex++;
         }
       }
-      
+
       if (biografia !== undefined) {
         setClauses.push(`bio = $${paramIndex}`);
         queryParams.push(biografia);
         paramIndex++;
       }
-      
+
       if (setClauses.length === 0) {
         return res.status(400).json({ message: 'Nenhum campo fornecido para atualização' });
       }
-      
+
       queryParams.push(userId); // ID vai por último
-      
+
       const updateQuery = `
         UPDATE users 
         SET ${setClauses.join(', ')} 
         WHERE id = $${paramIndex}
         RETURNING id, username, email, telefone, is_admin as "isAdmin", created_at as "createdAt", bio
       `;
-      
+
       try {
         const result = await pool.query(updateQuery, queryParams);
-        
+
         if (result.rows && result.rows.length > 0) {
           const updatedUser = result.rows[0];
           console.log(`Perfil do usuário #${userId} atualizado com sucesso`);
@@ -3679,14 +3853,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (dbError: any) {
         console.error(`Erro ao atualizar perfil do usuário #${userId}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar perfil',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error updating user profile:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao atualizar perfil',
         error: error.message
       });
@@ -3701,59 +3875,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const { currentPassword, newPassword } = req.body;
-      
+
       if (!currentPassword || !newPassword) {
         return res.status(400).json({ message: 'Senha atual e nova senha são obrigatórias' });
       }
-      
+
       console.log(`Alterando senha do usuário #${userId}`);
-      
+
       try {
         // Buscar a senha atual do usuário
         const userQuery = 'SELECT password FROM users WHERE id = $1';
         const userResult = await pool.query(userQuery, [userId]);
-        
+
         if (!userResult.rows || userResult.rows.length === 0) {
           return res.status(404).json({ message: 'Usuário não encontrado' });
         }
-        
+
         const currentHashedPassword = userResult.rows[0].password;
-        
+
         // Verificar se a senha atual está correta
         const { scrypt, randomBytes, timingSafeEqual } = await import('crypto');
         const { promisify } = await import('util');
         const scryptAsync = promisify(scrypt);
-        
+
         const [hashed, salt] = currentHashedPassword.split('.');
         const hashedBuf = Buffer.from(hashed, 'hex');
         const suppliedBuf = (await scryptAsync(currentPassword, salt, 64)) as Buffer;
-        
+
         if (!timingSafeEqual(hashedBuf, suppliedBuf)) {
           return res.status(400).json({ message: 'Senha atual incorreta' });
         }
-        
+
         // Gerar hash para a nova senha
         const newSalt = randomBytes(16).toString('hex');
         const newHashedBuf = (await scryptAsync(newPassword, newSalt, 64)) as Buffer;
         const newHashedPassword = `${newHashedBuf.toString('hex')}.${newSalt}`;
-        
+
         // Atualizar a senha no banco
         const updateQuery = 'UPDATE users SET password = $1 WHERE id = $2';
         await pool.query(updateQuery, [newHashedPassword, userId]);
-        
+
         console.log(`Senha do usuário #${userId} alterada com sucesso`);
         return res.json({ message: 'Senha alterada com sucesso' });
-        
+
       } catch (dbError: any) {
         console.error(`Erro ao alterar senha do usuário #${userId}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao alterar senha',
           error: dbError.message
         });
       }
     } catch (error: any) {
       console.error('Error changing user password:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao alterar senha',
         error: error.message
       });
@@ -3773,7 +3947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const file = req.file;
-      
+
       console.log(`Upload de foto para usuário #${userId}`);
 
       try {
@@ -3789,7 +3963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Importar função de upload do Supabase
         const { uploadImageToSupabase, ensureBucket } = await import('./supabase-upload.js');
-        
+
         // Assegurar que o bucket perfis existe
         await ensureBucket('perfis');
 
@@ -3802,7 +3976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         if (uploadResult.error || !uploadResult.url) {
-          return res.status(500).json({ 
+          return res.status(500).json({
             message: 'Erro no upload da imagem',
             error: uploadResult.error
           });
@@ -3812,13 +3986,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const updatedUser = await storage.updateUserProfileImage(userId, uploadResult.url);
 
         console.log(`Foto de perfil atualizada para usuário #${userId}: ${uploadResult.url}`);
-        
+
         // Garantir que a resposta contém a URL correta da nova imagem
         const responseUser = {
           ...updatedUser,
           profileImage: uploadResult.url
         };
-        
+
         return res.json({
           success: true,
           user: responseUser,
@@ -3828,7 +4002,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       } catch (storageError: any) {
         console.error('Erro ao processar upload:', storageError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao processar upload da imagem',
           error: storageError.message
         });
@@ -3836,7 +4010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('Erro no upload de foto de perfil:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro interno do servidor',
         error: error.message
       });
@@ -3851,7 +4025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userId = req.user.id;
-      
+
       try {
         // Primeiro tentar buscar com todos os campos
         let result = await pool.query(`
@@ -3927,7 +4101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('Erro ao obter perfil:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro interno do servidor',
         error: error.message
       });
@@ -3943,13 +4117,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const { username, email, telefone, biografia, site, localizacao } = req.body;
-      
+
       console.log(`Atualizando perfil do usuário #${userId}:`, req.body);
 
       try {
         // Verificar se o usuário existe usando o storage (mesma forma da autenticação)
         const currentUser = await storage.getUser(userId);
-        
+
         console.log(`Verificando usuário para atualização #${userId}:`, currentUser);
 
         if (!currentUser) {
@@ -4007,8 +4181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (result.rows && result.rows.length > 0) {
           const updatedUser = result.rows[0];
           console.log(`Perfil atualizado para usuário #${userId}:`, updatedUser.username);
-          
-          return res.json({ 
+
+          return res.json({
             message: 'Perfil atualizado com sucesso',
             user: updatedUser
           });
@@ -4018,7 +4192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       } catch (dbError: any) {
         console.error(`Erro ao atualizar perfil do usuário #${userId}:`, dbError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Erro ao atualizar dados do perfil',
           error: dbError.message
         });
@@ -4026,7 +4200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('Erro ao atualizar perfil:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro interno do servidor',
         error: error.message
       });
@@ -4054,7 +4228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const recentEditsIds = result.rows[0].recent_edits || [];
-        
+
         if (recentEditsIds.length === 0) {
           return res.json([]);
         }
@@ -4068,7 +4242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `, recentEditsIds);
 
         // Ordenar pelos IDs na ordem original (mais recente primeiro)
-        const orderedPosts = recentEditsIds.map(id => 
+        const orderedPosts = recentEditsIds.map(id =>
           postsResult.rows.find(post => post.id === id)
         ).filter(Boolean);
 
@@ -4239,13 +4413,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         let recentEdits = userResult.rows[0].recent_edits || [];
-        
+
         // Remover o post se já existe (para evitar duplicatas)
         recentEdits = recentEdits.filter(id => id !== postId);
-        
+
         // Adicionar no início da lista
         recentEdits.unshift(postId);
-        
+
         // Limitar a 20 itens
         if (recentEdits.length > 20) {
           recentEdits = recentEdits.slice(0, 20);
@@ -4257,8 +4431,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `, [JSON.stringify(recentEdits), userId]);
 
         console.log(`Edições recentes atualizadas para usuário ${userId}:`, recentEdits);
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: 'Post adicionado às edições recentes',
           recentEditsCount: recentEdits.length
         });
@@ -4277,12 +4451,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users/:id/followers', async (req, res) => {
     try {
       let userId = parseInt(req.params.id);
-      
+
       // Mapear autor/1 para o usuário admin (ID 3 - Jean Carlos)
       if (userId === 1) {
         userId = 3;
       }
-      
+
       try {
         // Contar seguidores
         const result = await pool.query(`
@@ -4290,9 +4464,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM user_follows 
           WHERE following_id = $1
         `, [userId]);
-        
+
         const count = result.rows && result.rows.length > 0 ? parseInt(result.rows[0].count) : 0;
-        
+
         return res.json({ count });
       } catch (dbError: any) {
         // Se a tabela não existir, retornar 0
@@ -4312,7 +4486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const postId = parseInt(req.params.id);
       const limit = parseInt(req.query.limit as string) || 8;
-      
+
       if (!postId) {
         return res.status(400).json({ message: 'ID do post inválido' });
       }
@@ -4323,27 +4497,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM posts 
         WHERE id = $1
       `;
-      
+
       const currentPostResult = await pool.query(currentPostQuery, [postId]);
-      
+
       if (currentPostResult.rows.length === 0) {
         return res.status(404).json({ message: 'Post não encontrado' });
       }
-      
+
       const currentPost = currentPostResult.rows[0];
       const { title, category_id, group_id } = currentPost;
-      
+
       // Extrair palavras-chave do título (remover palavras comuns e manter as principais)
       const titleWords = title
         .toLowerCase()
         .replace(/[^\w\s]/g, ' ')
         .split(/\s+/)
-        .filter(word => 
-          word.length > 3 && 
+        .filter(word =>
+          word.length > 3 &&
           !['para', 'com', 'sem', 'que', 'uma', 'seu', 'sua', 'seus', 'suas', 'arte', 'canva', 'editável', 'social', 'media'].includes(word)
         )
         .slice(0, 5); // Máximo 5 palavras-chave
-      
+
       // Construir query para buscar posts relacionados
       let relatedQuery = `
         SELECT DISTINCT ON (p.group_id) 
@@ -4360,20 +4534,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           AND (
             p.category_id = $3
       `;
-      
+
       const queryParams = [postId, group_id || '', category_id];
       let paramIndex = 4;
-      
+
       // Adicionar condições de similaridade de título se temos palavras-chave
       if (titleWords.length > 0) {
         const titleConditions = titleWords.map(word => {
           queryParams.push(`%${word}%`);
           return `LOWER(p.title) LIKE $${paramIndex++}`;
         }).join(' OR ');
-        
+
         relatedQuery += ` OR (${titleConditions})`;
       }
-      
+
       relatedQuery += `
           )
         ORDER BY p.group_id, 
@@ -4381,16 +4555,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           p.created_at DESC
         LIMIT $${paramIndex}
       `;
-      
+
       queryParams.push(limit);
-      
+
       const result = await pool.query(relatedQuery, queryParams);
-      
+
       return res.json(result.rows);
-      
+
     } catch (error: any) {
       console.error('Erro ao buscar artes relacionadas:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao buscar artes relacionadas',
         error: error.message
       });
@@ -4425,7 +4599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           DELETE FROM post_likes 
           WHERE user_id = $1 AND post_id = $2
         `, [userId, postId]);
-        
+
         console.log(`Curtida removida: usuário ${userId}, post ${postId}`);
         res.json({ liked: false });
       } else {
@@ -4434,7 +4608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           INSERT INTO post_likes (user_id, post_id, created_at)
           VALUES ($1, $2, NOW())
         `, [userId, postId]);
-        
+
         console.log(`Curtida adicionada: usuário ${userId}, post ${postId}`);
         res.json({ liked: true });
       }
@@ -4471,7 +4645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           DELETE FROM post_saves 
           WHERE user_id = $1 AND post_id = $2
         `, [userId, postId]);
-        
+
         console.log(`Post removido dos salvos: usuário ${userId}, post ${postId}`);
         res.json({ saved: false });
       } else {
@@ -4480,7 +4654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           INSERT INTO post_saves (user_id, post_id, created_at)
           VALUES ($1, $2, NOW())
         `, [userId, postId]);
-        
+
         console.log(`Post salvo: usuário ${userId}, post ${postId}`);
         res.json({ saved: true });
       }
@@ -4751,10 +4925,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/posts/visible', async (req, res) => {
     try {
       const now = Date.now();
-      
+
       // Cache headers para melhor performance
       res.set('Cache-Control', 'public, max-age=300'); // 5 minutos de cache no navegador
-      
+
       // Verificar se temos cache válido
       if (visiblePostsCache && (now - visiblePostsCache.timestamp) < CACHE_TTL) {
         return res.json(visiblePostsCache.data);
@@ -4762,13 +4936,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Buscar dados frescos
       const posts = await storage.getVisiblePosts();
-      
+
       // Atualizar cache
       visiblePostsCache = {
         data: posts,
         timestamp: now
       };
-      
+
       res.json(posts);
     } catch (error) {
       console.error("Erro ao buscar posts visíveis:", error);
@@ -4792,7 +4966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Upload usando o cliente administrativo do Supabase (bypassa RLS)
       const { uploadFileToSupabase } = await import('./supabase-upload');
-      
+
       const result = await uploadFileToSupabase(
         req.file.buffer,
         req.file.originalname,
@@ -4832,7 +5006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { key } = req.params;
       const setting = await storage.getSetting(key);
-      
+
       if (!setting) {
         return res.status(404).json({ message: 'Configuração não encontrada' });
       }
@@ -4851,7 +5025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { key, value, description } = req.body;
-      
+
       if (!key || !value) {
         return res.status(400).json({ message: 'Chave e valor são obrigatórios' });
       }
@@ -4872,7 +5046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { key } = req.params;
       const { value } = req.body;
-      
+
       if (!value) {
         return res.status(400).json({ message: 'Valor é obrigatório' });
       }
@@ -4912,7 +5086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const file = req.file;
-      
+
       // Validar tipo de arquivo
       const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
       if (!validTypes.includes(file.mimetype)) {
@@ -4926,10 +5100,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Converter arquivo para base64
       const base64Data = file.buffer.toString('base64');
-      
+
       // Limpar logos anteriores (manter apenas o último)
       await pool.query('DELETE FROM platform_logo');
-      
+
       // Inserir novo logo
       const logoId = await pool.query(`
         INSERT INTO platform_logo (image_data, mime_type, filename, size, uploaded_at)
@@ -4938,7 +5112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [base64Data, file.mimetype, file.originalname, file.size]);
 
       console.log(`Logo salvo no banco com ID: ${logoId.rows[0].id}`);
-      
+
       res.json({
         success: true,
         message: 'Logo atualizado com sucesso',
@@ -4966,10 +5140,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const logo = result.rows[0];
-      
+
       // Retornar logo como data URL
       const dataUrl = `data:${logo.mime_type};base64,${logo.image_data}`;
-      
+
       res.json({
         dataUrl,
         filename: logo.filename,
@@ -4991,9 +5165,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Remover todos os logos
       const result = await pool.query('DELETE FROM platform_logo');
-      
+
       console.log(`${result.rowCount || 0} logo(s) removido(s) do banco`);
-      
+
       res.json({
         success: true,
         message: 'Logo removido com sucesso'
@@ -5017,7 +5191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const file = req.file;
-      
+
       // Validar tipo de arquivo
       const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
       if (!validTypes.includes(file.mimetype)) {
@@ -5032,7 +5206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Salvar logo localmente para evitar problemas com Supabase
       const fs = await import('fs/promises');
       const path = await import('path');
-      
+
       // Criar diretório de logos se não existir
       const logoDir = path.join(process.cwd(), 'public', 'logos');
       try {
@@ -5044,14 +5218,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Processar arquivo (converter SVG para PNG se necessário)
       let finalBuffer = file.buffer;
       let fileExtension = '';
-      
+
       if (file.mimetype === 'image/svg+xml') {
         // Converter SVG para PNG usando Sharp
         const sharp = await import('sharp');
         try {
           finalBuffer = await sharp.default(file.buffer, { density: 300 })
-            .resize(800, 800, { 
-              fit: 'inside', 
+            .resize(800, 800, {
+              fit: 'inside',
               withoutEnlargement: true,
               background: { r: 255, g: 255, b: 255, alpha: 0 }
             })
@@ -5074,7 +5248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fileExtension = '.png';
         } catch (error) {
           // Manter formato original se não conseguir converter
-          fileExtension = file.originalname.includes('.') ? 
+          fileExtension = file.originalname.includes('.') ?
             '.' + file.originalname.split('.').pop() : '.png';
         }
       }
@@ -5082,22 +5256,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Gerar nome único para o arquivo
       const fileName = `logo_${Date.now()}${fileExtension}`;
       const filePath = path.join(logoDir, fileName);
-      
+
       // Salvar arquivo
       await fs.writeFile(filePath, finalBuffer);
-      
+
       // URL pública do logo
       const logoPath = `/logos/${fileName}`;
       if (!logoPath) {
-        return res.status(500).json({ 
-          message: 'URL do logo não foi retornada do Supabase' 
+        return res.status(500).json({
+          message: 'URL do logo não foi retornada do Supabase'
         });
       }
       console.log(`Logo salvo no Supabase: ${logoPath}`);
 
       // Salvar no banco de dados
       const setting = await storage.setSetting('logo_plataforma', logoPath!, 'Logo personalizado da plataforma');
-      
+
       res.json({
         success: true,
         message: 'Logo atualizado com sucesso',
@@ -5192,37 +5366,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Função para limpar o nome do plano removendo o prefixo do produto
         const cleanPlanName = (planName: string) => {
           if (!planName) return 'Premium';
-          
+
           // Remover "Kit de Documentos Estética Premium" e limpar
           const cleaned = planName
             .replace(/Kit de Documentos Estética Premium\s*-?\s*/i, '')
             .trim();
-          
+
           // Se ficou vazio após limpeza, mapear pelo tipo
           if (!cleaned) {
             if (subscription.plan_type === 'mensal') return 'Plano Mensal Premium';
-            if (subscription.plan_type === 'trimestral') return 'Plano Trimestral Premium'; 
+            if (subscription.plan_type === 'trimestral') return 'Plano Trimestral Premium';
             if (subscription.plan_type === 'semestral') return 'Plano Semestral Premium';
             if (subscription.plan_type === 'anual') return 'Plano Anual Premium';
             return 'Premium';
           }
-          
+
           return cleaned;
         };
 
         return {
           ...subscription,
           // Se temos dados do Hotmart, limpar o nome, senão usar plan_type
-          plan_display_name: subscription.hotmart_plan_name ? 
-            cleanPlanName(subscription.hotmart_plan_name) : 
+          plan_display_name: subscription.hotmart_plan_name ?
+            cleanPlanName(subscription.hotmart_plan_name) :
             `Plano ${subscription.plan_type}`,
-          plan_price_display: subscription.hotmart_plan_price ? 
-            `R$ ${parseFloat(subscription.hotmart_plan_price).toFixed(2).replace('.', ',')}` : 
+          plan_price_display: subscription.hotmart_plan_price ?
+            `R$ ${parseFloat(subscription.hotmart_plan_price).toFixed(2).replace('.', ',')}` :
             'N/A',
           plan_source: subscription.hotmart_plan_id ? 'Hotmart' : 'Sistema'
         };
       });
-      
+
       res.json(processedSubscriptions);
     } catch (error: any) {
       console.error('Erro ao buscar assinaturas:', error);
@@ -5336,7 +5510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Verificar se já existe curso de exemplo
       const existingCourse = await pool.query('SELECT id FROM courses LIMIT 1');
-      
+
       if (existingCourse.rows.length === 0) {
         // Inserir dados de exemplo
         const courseResult = await pool.query(`
@@ -5432,22 +5606,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('🎉 Sistema de cursos configurado com sucesso!');
-      
-      res.json({ 
-        success: true, 
-        message: 'Sistema de cursos configurado com sucesso!' 
+
+      res.json({
+        success: true,
+        message: 'Sistema de cursos configurado com sucesso!'
       });
     } catch (error: any) {
       console.error('Erro ao configurar sistema de cursos:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Erro ao configurar sistema de cursos',
-        error: error.message 
+        error: error.message
       });
     }
   });
 
   // COURSES API ENDPOINTS
-  
+
   // Admin course management
   app.get('/api/admin/courses', async (req, res) => {
     try {
@@ -5474,7 +5648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         GROUP BY c.id, c.title, c.description, c.short_description, c.cover_image, c.is_active, c.created_at
         ORDER BY c.created_at DESC
       `;
-      
+
       const result = await pool.query(query);
       res.json(result.rows || []);
     } catch (error: any) {
@@ -5490,13 +5664,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { title, description, shortDescription, coverImage, isActive } = req.body;
-      
+
       const query = `
         INSERT INTO courses (title, description, short_description, cover_image, is_active)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
       `;
-      
+
       const result = await pool.query(query, [title, description, shortDescription, coverImage, isActive]);
       res.json(result.rows[0]);
     } catch (error: any) {
@@ -5513,62 +5687,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const updates = req.body;
-      
+
       // Build dynamic query based on provided fields
       const updateFields = [];
       const queryParams = [];
       let paramIndex = 1;
-      
+
       if (updates.title !== undefined) {
         updateFields.push(`title = $${paramIndex}`);
         queryParams.push(updates.title);
         paramIndex++;
       }
-      
+
       if (updates.description !== undefined) {
         updateFields.push(`description = $${paramIndex}`);
         queryParams.push(updates.description);
         paramIndex++;
       }
-      
+
       if (updates.shortDescription !== undefined) {
         updateFields.push(`short_description = $${paramIndex}`);
         queryParams.push(updates.shortDescription);
         paramIndex++;
       }
-      
+
       if (updates.coverImage !== undefined) {
         updateFields.push(`cover_image = $${paramIndex}`);
         queryParams.push(updates.coverImage);
         paramIndex++;
       }
-      
+
       if (updates.isActive !== undefined) {
         updateFields.push(`is_active = $${paramIndex}`);
         queryParams.push(updates.isActive);
         paramIndex++;
       }
-      
+
       if (updateFields.length === 0) {
         return res.status(400).json({ message: 'Nenhum campo para atualizar' });
       }
-      
+
       updateFields.push(`updated_at = NOW()`);
       queryParams.push(id);
-      
+
       const query = `
         UPDATE courses 
         SET ${updateFields.join(', ')}
         WHERE id = $${paramIndex}
         RETURNING *
       `;
-      
+
       const result = await pool.query(query, queryParams);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Curso não encontrado' });
       }
-      
+
       res.json(result.rows[0]);
     } catch (error: any) {
       console.error('Erro ao atualizar curso:', error);
@@ -5583,19 +5757,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       // Verificar se o curso existe
       const checkQuery = 'SELECT id FROM courses WHERE id = $1';
       const checkResult = await pool.query(checkQuery, [id]);
-      
+
       if (checkResult.rows.length === 0) {
         return res.status(404).json({ message: 'Curso não encontrado' });
       }
-      
+
       // Deletar curso (cascade vai remover módulos, aulas e matrículas)
       const deleteQuery = 'DELETE FROM courses WHERE id = $1';
       await pool.query(deleteQuery, [id]);
-      
+
       res.json({ success: true });
     } catch (error: any) {
       console.error('Erro ao excluir curso:', error);
@@ -5611,7 +5785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const courseId = parseInt(req.params.courseId);
-      
+
       const query = `
         SELECT 
           m.id, 
@@ -5641,7 +5815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         GROUP BY m.id, m.course_id, m.title, m.description, m.order_index
         ORDER BY m.order_index, m.id
       `;
-      
+
       const result = await pool.query(query, [courseId]);
       res.json(result.rows.map(row => ({
         ...row,
@@ -5662,18 +5836,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const courseId = parseInt(req.params.courseId);
       const { title, description } = req.body;
-      
+
       // Get next order index
       const orderQuery = 'SELECT COALESCE(MAX(order_index), 0) + 1 as next_order FROM modules WHERE course_id = $1';
       const orderResult = await pool.query(orderQuery, [courseId]);
       const orderIndex = orderResult.rows[0].next_order;
-      
+
       const query = `
         INSERT INTO modules (course_id, title, description, order_index)
         VALUES ($1, $2, $3, $4)
         RETURNING id, course_id as "courseId", title, description, order_index as "orderIndex"
       `;
-      
+
       const result = await pool.query(query, [courseId, title, description, orderIndex]);
       res.json(result.rows[0]);
     } catch (error: any) {
@@ -5690,20 +5864,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { title, description } = req.body;
-      
+
       const query = `
         UPDATE modules 
         SET title = $1, description = $2, updated_at = NOW()
         WHERE id = $3
         RETURNING id, course_id as "courseId", title, description, order_index as "orderIndex"
       `;
-      
+
       const result = await pool.query(query, [title, description, id]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Módulo não encontrado' });
       }
-      
+
       res.json(result.rows[0]);
     } catch (error: any) {
       console.error('Erro ao atualizar módulo:', error);
@@ -5718,19 +5892,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       // Verificar se o módulo existe
       const checkQuery = 'SELECT id FROM modules WHERE id = $1';
       const checkResult = await pool.query(checkQuery, [id]);
-      
+
       if (checkResult.rows.length === 0) {
         return res.status(404).json({ message: 'Módulo não encontrado' });
       }
-      
+
       // Deletar módulo (cascade vai remover aulas e progresso)
       const deleteQuery = 'DELETE FROM modules WHERE id = $1';
       await pool.query(deleteQuery, [id]);
-      
+
       res.json({ success: true });
     } catch (error: any) {
       console.error('Erro ao excluir módulo:', error);
@@ -5746,19 +5920,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       const query = `
         SELECT id, title, description, cover_image as "coverImage", is_active as "isActive", created_at as "createdAt"
         FROM courses 
         WHERE id = $1
       `;
-      
+
       const result = await pool.query(query, [id]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Curso não encontrado' });
       }
-      
+
       res.json(result.rows[0]);
     } catch (error: any) {
       console.error('Erro ao buscar curso:', error);
@@ -5776,18 +5950,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const moduleId = parseInt(req.params.moduleId);
       const { title, description, content, type } = req.body;
-      
+
       // Get next order index
       const orderQuery = 'SELECT COALESCE(MAX(order_index), 0) + 1 as next_order FROM lessons WHERE module_id = $1';
       const orderResult = await pool.query(orderQuery, [moduleId]);
       const orderIndex = orderResult.rows[0].next_order;
-      
+
       const query = `
         INSERT INTO lessons (module_id, title, description, content, type, order_index)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex"
       `;
-      
+
       const result = await pool.query(query, [moduleId, title, description || '', content || '', type || 'video', orderIndex]);
       res.json(result.rows[0]);
     } catch (error: any) {
@@ -5804,14 +5978,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const id = parseInt(req.params.id);
       const { title, description, content, type, videoPlatform, isPremium, extraMaterials: existingMaterialsUpdate } = req.body;
-      
+
       // Log the request to understand what's being sent
       console.log('📝 Update request body:', { title, description, hasContent: !!content, type, videoPlatform, isPremium, hasExtraMaterials: !!existingMaterialsUpdate });
       console.log('📁 Existing materials update:', existingMaterialsUpdate);
       const files = req.files as Express.Multer.File[];
-      
+
       console.log('📁 Files received:', files?.map(f => ({ name: f.fieldname, original: f.originalname, type: f.mimetype })));
-      
+
       // First, add missing columns if they don't exist
       try {
         await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS cover_image TEXT');
@@ -5829,25 +6003,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const coverFile = files?.find(f => f.fieldname === 'coverImage');
       if (coverFile) {
         let processedBuffer = coverFile.buffer;
-        
+
         // Converter imagem para WebP se for uma imagem
         if (coverFile.mimetype.startsWith('image/')) {
           try {
             const sharp = await import('sharp');
             processedBuffer = await sharp.default(coverFile.buffer)
               .webp({ quality: 80 })
-              .resize(800, 600, { 
+              .resize(800, 600, {
                 fit: 'inside',
-                withoutEnlargement: true 
+                withoutEnlargement: true
               })
               .toBuffer();
           } catch (sharpError: any) {
             console.warn('Sharp não disponível, usando imagem original:', sharpError.message);
           }
         }
-        
+
         const coverFileName = `lesson_cover_${id}_${Date.now()}.webp`;
-        
+
         const { data: coverData, error: coverError } = await supabase.storage
           .from('lesson-covers')
           .upload(coverFileName, processedBuffer, {
@@ -5868,7 +6042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const materialFile = materialFiles[i];
         const extension = materialFile.originalname.split('.').pop() || 'bin';
         const materialFileName = `lesson_${id}_material_${i}_${Date.now()}.${extension}`;
-        
+
         const { data: materialData, error: materialError } = await supabase.storage
           .from('lesson-materials')
           .upload(materialFileName, materialFile.buffer, {
@@ -5882,7 +6056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const fileUrl = `${supabaseUrl}/storage/v1/object/public/lesson-materials/${materialFileName}`;
           // Fix encoding issues with filename
           const cleanFileName = Buffer.from(materialFile.originalname, 'latin1').toString('utf8');
-          
+
           materialsToUpdate.push({
             name: cleanFileName,
             url: fileUrl,
@@ -5942,15 +6116,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Handle materials update
       const hasNewUploads = materialsToUpdate.length > 0;
       const hasExistingUpdate = existingMaterialsUpdate !== undefined && existingMaterialsUpdate !== null;
-      
+
       if (hasExistingUpdate || hasNewUploads) {
         let finalMaterials = [];
-        
+
         if (hasExistingUpdate) {
           // This is a removal/update request - use the filtered materials as-is
           try {
-            const parsedMaterials = typeof existingMaterialsUpdate === 'string' 
-              ? JSON.parse(existingMaterialsUpdate) 
+            const parsedMaterials = typeof existingMaterialsUpdate === 'string'
+              ? JSON.parse(existingMaterialsUpdate)
               : existingMaterialsUpdate;
             finalMaterials = Array.isArray(parsedMaterials) ? parsedMaterials : [];
             console.log('🗑️ Materials update (removal):', finalMaterials);
@@ -5965,8 +6139,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const currentResult = await pool.query(currentLessonQuery, [id]);
             if (currentResult.rows[0]?.extra_materials) {
               const currentMaterials = currentResult.rows[0].extra_materials;
-              finalMaterials = Array.isArray(currentMaterials) 
-                ? currentMaterials 
+              finalMaterials = Array.isArray(currentMaterials)
+                ? currentMaterials
                 : JSON.parse(currentMaterials);
               console.log('📁 Current materials from DB:', finalMaterials);
             }
@@ -5975,14 +6149,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             finalMaterials = [];
           }
         }
-        
+
         // Add new materials to existing ones
         if (hasNewUploads) {
           finalMaterials = finalMaterials.concat(materialsToUpdate);
           console.log('➕ Adding new materials:', materialsToUpdate);
           console.log('📋 Final materials list:', finalMaterials);
         }
-        
+
         updateFields.push(`extra_materials = $${paramCount}`);
         updateValues.push(JSON.stringify(finalMaterials));
         paramCount++;
@@ -5997,13 +6171,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING id, module_id as "moduleId", title, description, content, type, order_index as "orderIndex", 
                   cover_image as "coverImage", extra_materials as "extraMaterials", video_platform as "videoPlatform", is_premium as "isPremium"
       `;
-      
+
       const result = await pool.query(query, updateValues);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });
       }
-      
+
       res.json(result.rows[0]);
     } catch (error: any) {
       console.error('Erro ao atualizar aula:', error);
@@ -6018,19 +6192,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       // Verificar se a aula existe
       const checkQuery = 'SELECT id FROM lessons WHERE id = $1';
       const checkResult = await pool.query(checkQuery, [id]);
-      
+
       if (checkResult.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });
       }
-      
+
       // Deletar aula
       const deleteQuery = 'DELETE FROM lessons WHERE id = $1';
       await pool.query(deleteQuery, [id]);
-      
+
       res.json({ success: true });
     } catch (error: any) {
       console.error('Erro ao excluir aula:', error);
@@ -6046,7 +6220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      
+
       const query = `
         SELECT 
           l.id, 
@@ -6067,13 +6241,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JOIN modules m ON l.module_id = m.id
         WHERE l.id = $1
       `;
-      
+
       const result = await pool.query(query, [id]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });
       }
-      
+
       res.json(result.rows[0]);
     } catch (error: any) {
       console.error('Erro ao buscar aula:', error);
@@ -6089,7 +6263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const courseId = parseInt(req.params.id);
-      
+
       // Buscar curso
       const courseQuery = `
         SELECT id, title, description, cover_image as "coverImage"
@@ -6097,13 +6271,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE id = $1
       `;
       const courseResult = await pool.query(courseQuery, [courseId]);
-      
+
       if (courseResult.rows.length === 0) {
         return res.status(404).json({ message: 'Curso não encontrado' });
       }
-      
+
       const course = courseResult.rows[0];
-      
+
       // Buscar módulos
       const modulesQuery = `
         SELECT id, title, order_index as "orderIndex"
@@ -6112,7 +6286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY order_index
       `;
       const modulesResult = await pool.query(modulesQuery, [courseId]);
-      
+
       // Buscar aulas para cada módulo
       const modules = [];
       for (const module of modulesResult.rows) {
@@ -6131,25 +6305,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ORDER BY order_index
         `;
         const lessonsResult = await pool.query(lessonsQuery, [module.id]);
-        
+
         const lessonsWithFiles = lessonsResult.rows.map(lesson => ({
           ...lesson,
           files: lesson.extra_materials || []
         }));
-        
+
         modules.push({
           ...module,
           lessons: lessonsWithFiles
         });
       }
-      
+
       console.log('✅ Curso completo encontrado:', {
         courseId: course.id,
         title: course.title,
         modulesCount: modules.length,
         lessonsCount: modules.reduce((acc, m) => acc + m.lessons.length, 0)
       });
-      
+
       res.json({
         ...course,
         modules
@@ -6170,7 +6344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const lessonId = parseInt(req.params.id);
-      
+
       const query = `
         SELECT 
           id, 
@@ -6185,13 +6359,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM lessons 
         WHERE id = $1
       `;
-      
+
       const result = await pool.query(query, [lessonId]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });
       }
-      
+
       res.json(result.rows[0]);
     } catch (error: any) {
       console.error('Erro ao buscar aula:', error);
@@ -6207,7 +6381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const courseId = parseInt(req.params.courseId);
-      
+
       // Buscar primeira aula do primeiro módulo do curso
       const query = `
         SELECT 
@@ -6223,16 +6397,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY m.order_index ASC, l.order_index ASC
         LIMIT 1
       `;
-      
+
       const result = await pool.query(query, [courseId]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Nenhuma aula encontrada para este curso' });
       }
-      
+
       const firstLesson = result.rows[0];
       console.log('🎯 Primeira aula encontrada:', firstLesson);
-      
+
       res.json({
         courseId,
         lessonId: firstLesson.lesson_id,
@@ -6253,7 +6427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const courseId = parseInt(req.params.courseId);
       const { title, description = '', orderIndex = 1 } = req.body;
-      
+
       if (!title) {
         return res.status(400).json({ message: 'Título é obrigatório' });
       }
@@ -6280,7 +6454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const courseId = parseInt(req.params.courseId);
       const { moduleIds } = req.body;
-      
+
       if (!Array.isArray(moduleIds)) {
         return res.status(400).json({ message: 'moduleIds deve ser um array' });
       }
@@ -6309,7 +6483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const moduleId = parseInt(req.params.moduleId);
       const { lessonIds } = req.body;
-      
+
       if (!Array.isArray(lessonIds)) {
         return res.status(400).json({ message: 'lessonIds deve ser um array' });
       }
@@ -6337,13 +6511,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const moduleId = parseInt(req.params.moduleId);
-      
+
       // Primeiro excluir todas as aulas do módulo
       await pool.query('DELETE FROM lessons WHERE module_id = $1', [moduleId]);
-      
+
       // Depois excluir o módulo
       const result = await pool.query('DELETE FROM modules WHERE id = $1 RETURNING *', [moduleId]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Módulo não encontrado' });
       }
@@ -6363,37 +6537,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const moduleId = parseInt(req.params.moduleId);
-      
+
       // Buscar módulo original
       const moduleResult = await pool.query(`
         SELECT * FROM modules WHERE id = $1
       `, [moduleId]);
-      
+
       if (moduleResult.rows.length === 0) {
         return res.status(404).json({ message: 'Módulo não encontrado' });
       }
-      
+
       const originalModule = moduleResult.rows[0];
-      
+
       // Criar novo módulo
       const newModuleResult = await pool.query(`
         INSERT INTO modules (course_id, title, description, order_index) 
         VALUES ($1, $2, $3, $4) 
         RETURNING id, course_id as "courseId", title, description, order_index as "orderIndex"
       `, [
-        originalModule.course_id, 
-        originalModule.title + ' (Cópia)', 
-        originalModule.description, 
+        originalModule.course_id,
+        originalModule.title + ' (Cópia)',
+        originalModule.description,
         originalModule.order_index + 1
       ]);
-      
+
       const newModule = newModuleResult.rows[0];
-      
+
       // Buscar aulas do módulo original
       const lessonsResult = await pool.query(`
         SELECT * FROM lessons WHERE module_id = $1 ORDER BY order_index
       `, [moduleId]);
-      
+
       // Duplicar aulas
       for (const lesson of lessonsResult.rows) {
         await pool.query(`
@@ -6426,9 +6600,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const lessonId = parseInt(req.params.lessonId);
-      
+
       const result = await pool.query('DELETE FROM lessons WHERE id = $1 RETURNING *', [lessonId]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });
       }
@@ -6448,18 +6622,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const lessonId = parseInt(req.params.lessonId);
-      
+
       // Buscar aula original
       const lessonResult = await pool.query(`
         SELECT * FROM lessons WHERE id = $1
       `, [lessonId]);
-      
+
       if (lessonResult.rows.length === 0) {
         return res.status(404).json({ message: 'Aula não encontrada' });
       }
-      
+
       const originalLesson = lessonResult.rows[0];
-      
+
       // Criar nova aula
       const newLessonResult = await pool.query(`
         INSERT INTO lessons (module_id, title, description, content, type, duration, extra_materials, order_index) 
@@ -6492,7 +6666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const lessonId = parseInt(req.params.lessonId);
       const { newModuleId, newPosition } = req.body;
-      
+
       if (!newModuleId || !newPosition) {
         return res.status(400).json({ message: 'newModuleId e newPosition são obrigatórios' });
       }
@@ -6540,9 +6714,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const isPremium = req.user.tipo === 'premium' && req.user.active === true;
-      
+
       console.log(`[USER COURSES] User ${userId}: tipo=${req.user.tipo}, active=${req.user.active}, isPremium=${isPremium}`);
-      
+
       const query = `
         SELECT 
           c.id,
@@ -6573,11 +6747,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         GROUP BY c.id, c.title, c.description, c.short_description, c.cover_image, c.is_active, c.created_at, ce.id
         ORDER BY c.created_at DESC
       `;
-      
+
       const result = await pool.query(query, [userId, isPremium]);
-      
+
       console.log(`[USER COURSES] Found ${result.rows.length} courses, user has access to ${result.rows.filter((c: any) => c.hasAccess).length}`);
-      
+
       res.json(result.rows || []);
     } catch (error: any) {
       console.error('Erro ao buscar cursos do usuário:', error);
@@ -6594,9 +6768,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const courseId = parseInt(req.params.id);
       const userId = req.user.id;
       const isPremium = req.user.tipo === 'premium' && req.user.active === true;
-      
+
       console.log(`[COURSE ACCESS] User ${userId}: tipo=${req.user.tipo}, active=${req.user.active}, isPremium=${isPremium}`);
-      
+
       // Buscar curso com módulos e aulas
       const courseQuery = `
         SELECT 
@@ -6609,19 +6783,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN course_enrollments ce ON c.id = ce.course_id AND ce.user_id = $2 AND ce.is_active = true
         WHERE c.id = $1 AND c.is_active = true
       `;
-      
+
       const courseResult = await pool.query(courseQuery, [courseId, userId, isPremium]);
-      
+
       if (courseResult.rows.length === 0) {
         return res.status(404).json({ message: 'Curso não encontrado' });
       }
-      
+
       const course = courseResult.rows[0];
-      
+
       if (!course.hasAccess) {
         return res.json({ ...course, modules: [] });
       }
-      
+
       // Buscar módulos com aulas e progresso
       const modulesQuery = `
         SELECT 
@@ -6647,18 +6821,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         GROUP BY cm.id
         ORDER BY cm.order, cm.created_at
       `;
-      
+
       const modulesResult = await pool.query(modulesQuery, [courseId, userId]);
-      
+
       // Calcular progresso total
-      const totalLessons = modulesResult.rows.reduce((acc, module) => 
+      const totalLessons = modulesResult.rows.reduce((acc, module) =>
         acc + (module.lessons ? module.lessons.length : 0), 0
       );
-      const completedLessons = modulesResult.rows.reduce((acc, module) => 
+      const completedLessons = modulesResult.rows.reduce((acc, module) =>
         acc + (module.lessons ? module.lessons.filter((l: any) => l.isCompleted).length : 0), 0
       );
       const progress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
-      
+
       res.json({
         ...course,
         modules: modulesResult.rows.map(module => ({
@@ -6681,7 +6855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const { lessonId, isCompleted } = req.body;
-      
+
       const query = `
         INSERT INTO course_progress (user_id, lesson_id, is_completed, completed_at)
         VALUES ($1, $2, $3, $4)
@@ -6691,10 +6865,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           completed_at = CASE WHEN $3 = true THEN NOW() ELSE NULL END
         RETURNING *
       `;
-      
+
       const completedAt = isCompleted ? new Date() : null;
       const result = await pool.query(query, [userId, lessonId, isCompleted, completedAt]);
-      
+
       res.json(result.rows[0]);
     } catch (error: any) {
       console.error('Erro ao salvar progresso:', error);
@@ -6786,10 +6960,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING id, created_at
       `, [lessonId, userId, comment.trim()]);
 
-      res.json({ 
+      res.json({
         id: result.rows[0].id,
         createdAt: result.rows[0].created_at,
-        success: true 
+        success: true
       });
     } catch (error: any) {
       console.error('Erro ao salvar comentário:', error);
@@ -6823,7 +6997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // === ROTAS PARA INVESTIMENTOS EM TRÁFEGO ===
-  
+
   // Buscar investimentos em tráfego
   app.get('/api/admin/traffic-investments', async (req, res) => {
     try {
@@ -6832,27 +7006,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { startDate, endDate, limit } = req.query;
-      
+
       let query = 'SELECT * FROM traffic_investments';
       const params: any[] = [];
       const conditions: string[] = [];
-      
+
       if (startDate) {
         conditions.push('date >= $' + (params.length + 1));
         params.push(startDate);
       }
-      
+
       if (endDate) {
         conditions.push('date <= $' + (params.length + 1));
         params.push(endDate);
       }
-      
+
       if (conditions.length > 0) {
         query += ' WHERE ' + conditions.join(' AND ');
       }
-      
+
       query += ' ORDER BY date DESC';
-      
+
       if (limit) {
         query += ' LIMIT $' + (params.length + 1);
         params.push(parseInt(limit as string));
@@ -6874,7 +7048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { date, amount, description, utm_campaign } = req.body;
-      
+
       if (!date || !amount) {
         return res.status(400).json({ message: 'Data e valor são obrigatórios' });
       }
@@ -6905,7 +7079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { id } = req.params;
       const { date, amount, description, utm_campaign } = req.body;
-      
+
       if (!date || !amount) {
         return res.status(400).json({ message: 'Data e valor são obrigatórios' });
       }
@@ -6966,7 +7140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { startDate, endDate } = req.query;
-      
+
       let query = `
         SELECT 
           COALESCE(SUM(amount), 0) as total_investment,
@@ -6976,17 +7150,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `;
       const params: any[] = [];
       const conditions: string[] = [];
-      
+
       if (startDate) {
         conditions.push('date >= $' + (params.length + 1));
         params.push(startDate);
       }
-      
+
       if (endDate) {
         conditions.push('date <= $' + (params.length + 1));
         params.push(endDate);
       }
-      
+
       if (conditions.length > 0) {
         query += ' WHERE ' + conditions.join(' AND ');
       }
@@ -7007,7 +7181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { startDate, endDate } = req.query;
-      
+
       let query = `
         SELECT 
           utm_campaign,
@@ -7018,17 +7192,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE utm_campaign IS NOT NULL AND utm_campaign != ''
       `;
       const params: any[] = [];
-      
+
       if (startDate) {
         query += ' AND date >= $' + (params.length + 1);
         params.push(startDate);
       }
-      
+
       if (endDate) {
         query += ' AND date <= $' + (params.length + 1);
         params.push(endDate);
       }
-      
+
       query += ' GROUP BY utm_campaign ORDER BY total_investment DESC';
 
       const result = await pool.query(query, params);
@@ -7047,7 +7221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tools', async (req, res) => {
     try {
       const { category } = req.query;
-      
+
       let query = `
         SELECT 
           t.*,
@@ -7057,16 +7231,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN tool_categories tc ON t.category_id = tc.id
         WHERE t.is_active = true
       `;
-      
+
       const params: any[] = [];
-      
+
       if (category) {
         query += ' AND tc.name = $1';
         params.push(category);
       }
-      
+
       query += ' ORDER BY t.is_new DESC, t.created_at DESC';
-      
+
       const result = await pool.query(query, params);
       res.json(result.rows);
     } catch (error: any) {
@@ -7142,7 +7316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Upload image if provided
       if (req.file) {
         const fileName = `tool_${Date.now()}_${req.file.originalname}`;
-        
+
         const { data, error } = await supabase.storage
           .from('images')
           .upload(fileName, req.file.buffer, {
@@ -7182,7 +7356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Upload new image if provided
       if (req.file) {
         const fileName = `tool_${Date.now()}_${req.file.originalname}`;
-        
+
         const { data, error } = await supabase.storage
           .from('images')
           .upload(fileName, req.file.buffer, {
@@ -7222,9 +7396,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/admin/tools/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       const result = await pool.query('DELETE FROM tools WHERE id = $1 RETURNING *', [id]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Ferramenta não encontrada' });
       }
@@ -7240,7 +7414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/tool-categories', async (req, res) => {
     try {
       const { name, description } = req.body;
-      
+
       const result = await pool.query(`
         INSERT INTO tool_categories (name, description)
         VALUES ($1, $2)
@@ -7259,7 +7433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { name, description, isActive } = req.body;
-      
+
       const result = await pool.query(`
         UPDATE tool_categories 
         SET name = $1, description = $2, is_active = $3, updated_at = NOW()
@@ -7282,16 +7456,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/admin/tool-categories/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Check if category has tools
       const toolsCheck = await pool.query('SELECT COUNT(*) FROM tools WHERE category_id = $1', [id]);
-      
+
       if (parseInt(toolsCheck.rows[0].count) > 0) {
         return res.status(400).json({ message: 'Não é possível excluir categoria que possui ferramentas' });
       }
-      
+
       const result = await pool.query('DELETE FROM tool_categories WHERE id = $1 RETURNING *', [id]);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Categoria não encontrada' });
       }

@@ -24,7 +24,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+
   // Usar o hook de ações de post com dados reais
   const { liked, saved, isLiking, isSaving, handleLike, handleSave } = usePostActions(artwork.id);
 
@@ -45,7 +45,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
 
   const handleImageError = () => {
     console.log(`Mídia falhou ao carregar: ${imageSrc}`);
-    
+
     // First, try the correct path in Supabase Storage: images/uploads/
     if (imageSrc.includes('supabase.co') && !imageSrc.includes('uploads/') && !imageError) {
       const filename = imageSrc.split('/').pop()?.split('?')[0];
@@ -57,7 +57,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
         return;
       }
     }
-    
+
     // If it's a Supabase URL and we haven't tried alternatives yet
     if (imageSrc.includes('supabase.co') && !imageSrc.includes('?download=') && !imageError) {
       const altUrl = `${imageSrc}?download=public`;
@@ -65,7 +65,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
       setImageSrc(altUrl);
       return;
     }
-    
+
     // If still failing, try to convert to a local path
     if (imageSrc.includes('supabase.co') && !imageError) {
       // Extract filename from Supabase URL
@@ -78,7 +78,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
         return;
       }
     }
-    
+
     // Final fallback - show placeholder
     if (!imageError) {
       console.log('Usando placeholder como fallback final');
@@ -89,7 +89,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   const handleEditClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Se é premium e usuário não é premium, não rastrear nem abrir
     if (artwork.isPro) {
       toast({
@@ -99,15 +99,15 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
       });
       return;
     }
-    
+
     // Rastrear a edição se o usuário estiver logado
     if (user) {
       addRecentEditMutation.mutate(artwork.id);
     }
-    
+
     // Abrir no Canva (aqui você pode adicionar a lógica para obter a URL real do Canva)
     window.open('https://canva.com', '_blank');
-    
+
     toast({
       title: "Editar no Canva",
       description: "Redirecionando para o editor...",
@@ -116,7 +116,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   };
 
   return (
-    <div 
+    <div
       className="image-card relative rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md hover:scale-[1.02] w-full mb-3"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -139,21 +139,21 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               onError={handleImageError}
             />
           )}
-          
+
           {/* Pro badge - coroa premium SEMPRE visível no canto superior direito */}
           {artwork.isPro && <PremiumCrown />}
-          
+
           {/* Hover actions - botões de curtir e salvar */}
-          <div 
+          <div
             className={`hover-actions absolute bottom-3 right-3 flex gap-2 transition-opacity duration-300 ease-in-out z-20
               ${hovered ? 'opacity-100' : 'opacity-0'}`}
           >
-            <button 
+            <button
               disabled={isLiking}
               className={cn(
                 "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
-                liked 
-                  ? 'bg-red-500 text-white' 
+                liked
+                  ? 'bg-red-500 text-white'
                   : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500',
                 isLiking && "animate-bounce scale-110"
               )}
@@ -162,14 +162,14 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             >
               <Heart className="h-4 w-4 transition-all duration-300" fill={liked ? "currentColor" : "none"} />
             </button>
-            
-            <button 
+
+            <button
               disabled={isSaving}
               className={cn(
                 "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
-                saved 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-500',
+                saved
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-primary/10 hover:text-primary',
                 isSaving && "animate-bounce scale-110"
               )}
               onClick={handleSave}
@@ -178,7 +178,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
               <Bookmark className="h-4 w-4 transition-all duration-300" fill={saved ? "currentColor" : "none"} />
             </button>
           </div>
-          
+
 
         </div>
       </Link>

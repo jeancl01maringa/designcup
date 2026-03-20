@@ -1,0 +1,81 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "teste",
+      "description": "Oferta por tempo limitado!",
+      "slug": "teste",
+      "imageUrl": null,
+      "isActive": true,
+      "createdAt": "2026-03-04T06:05:04.926Z"
+    },
+    {
+      "id": 2,
+      "name": "teste 02",
+      "description": "",
+      "slug": "teste-02",
+      "imageUrl": null,
+      "isActive": true,
+      "createdAt": "2026-03-04T06:05:15.684Z"
+    }
+  ],
+  "posts": [
+    {
+      "id": 1,
+      "title": "Futebol",
+      "description": null,
+      "imageUrl": "",
+      "uniqueCode": "cmAjNtZu",
+      "categoryId": 1,
+      "status": "rascunho",
+      "licenseType": "premium",
+      "formatData": "[{\"type\":\"feed\",\"imageUrl\":\"\",\"links\":[]}]",
+      "groupId": "ZQLuVERV",
+      "isVisible": true,
+      "createdAt": "2026-03-04T06:05:39.984Z",
+      "publishedAt": "2026-03-04T06:05:39.984Z",
+      "authorName": "Admin Local"
+    },
+    {
+      "id": 2,
+      "title": "Teste",
+      "description": null,
+      "imageUrl": "",
+      "uniqueCode": "IC7tFLQZ-Cartaz",
+      "categoryId": 1,
+      "status": "aprovado",
+      "licenseType": "premium",
+      "groupId": "50d5dbfe-78fd-4f7b-9866-d774e50b2fcb",
+      "isVisible": true,
+      "userId": 9999,
+      "tituloBase": "Teste",
+      "formato": "Cartaz",
+      "formatoData": "{\"formato\":\"Cartaz\",\"imageUrl\":\"blob:http://localhost:5000/73829749-c2db-4a35-844c-56248678e9d2\",\"canvaUrl\":\"https://www.canva.com/design/DAGPEY4t5kw/mjBWJAPzkQ77C7AqYeqAVA/view?utm_content=DAGPEY4t5kw&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview\",\"links\":[{\"provider\":\"canva\",\"url\":\"https://www.canva.com/design/DAGPEY4t5kw/mjBWJAPzkQ77C7AqYeqAVA/view?utm_content=DAGPEY4t5kw&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview\",\"id\":\"a8Yl9PLD\"}]}",
+      "canvaUrl": "https://www.canva.com/design/DAGPEY4t5kw/mjBWJAPzkQ77C7AqYeqAVA/view?utm_content=DAGPEY4t5kw&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink&mode=preview",
+      "createdAt": "2026-03-04T06:42:03.004Z",
+      "publishedAt": "2026-03-04T06:42:03.004Z",
+      "authorName": "Admin Local"
+    }
+  ],
+  "artworks": [],
+  "fileFormats": [
+    {
+      "id": 1772606492960,
+      "name": "Canva",
+      "type": "Editável",
+      "icon": "canva",
+      "is_active": true,
+      "created_at": "2026-03-04T06:41:32.960Z"
+    }
+  ],
+  "postFormats": [
+    {
+      "id": 1772606487312,
+      "name": "Cartaz",
+      "size": "1080X1350px",
+      "orientation": "Vertical",
+      "is_active": true,
+      "created_at": "2026-03-04T06:41:27.312Z"
+    }
+  ]
+}

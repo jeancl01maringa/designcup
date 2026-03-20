@@ -6,7 +6,7 @@ export default {
   theme: {
     fontFamily: {
       sans: ['Inter', 'sans-serif'],
-      montserrat: ['Montserrat', 'sans-serif']
+      inter: ['Inter', 'sans-serif'],
     },
     extend: {
       borderRadius: {
