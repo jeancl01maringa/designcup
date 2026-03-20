@@ -54,7 +54,7 @@ export default function HeroSection() {
         {/* Badges - Always side by side */}
         <div className="flex flex-row justify-center gap-2 sm:gap-4 md:gap-6 mb-4 sm:mb-6 px-4">
           <div className="bg-background/70 dark:bg-card/70 backdrop-blur-sm rounded-full py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 flex items-center justify-center shadow-sm border border-border text-center">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Canva_icon_2021.svg" alt="Canva" className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+            <img src="/canva-logo.png" alt="Canva" className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
             <span className="text-[14px] font-medium text-foreground whitespace-nowrap">Templates Canva</span>
           </div>
         </div>

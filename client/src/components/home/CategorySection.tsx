@@ -322,13 +322,8 @@ export default function CategorySection() {
 
                     {/* Retângulo branco centralizado com título da categoria - sempre visível - FORA do container com overflow */}
                     <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 z-30">
-                      <div className="bg-card rounded-full px-8 py-3 shadow-lg shadow-black/10 min-w-[180px] flex items-center gap-3 relative border border-border">
-                        <img
-                          src="/category-icon-new.png"
-                          alt="Ícone"
-                          className="w-7 h-7 flex-shrink-0"
-                        />
-                        <span className="text-card-foreground text-sm font-bold flex-1 text-center">
+                      <div className="bg-card rounded-full px-8 py-3 shadow-lg shadow-black/10 min-w-[180px] flex items-center justify-center relative border border-border">
+                        <span className="text-card-foreground text-sm font-bold text-center">
                           {category.name}
                         </span>
                       </div>
