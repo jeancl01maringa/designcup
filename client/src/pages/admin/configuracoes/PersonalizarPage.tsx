@@ -8,13 +8,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Image as ImageIcon, Trash2, Save } from "lucide-react";
 import imageCompression from 'browser-image-compression';
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { uploadFileToSupabase } from "@/lib/supabase";
 
 export default function PersonalizarPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const logoFileInputRef = useRef<HTMLInputElement>(null);
   const backgroundFileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [logoUploading, setLogoUploading] = useState(false);
   const [backgroundUploading, setBackgroundUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export default function PersonalizarPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key, value }),
       });
-      
+
       if (!response.ok) throw new Error('Erro ao atualizar configuração');
       return response.json();
     },
@@ -74,7 +75,7 @@ export default function PersonalizarPage() {
       };
 
       const compressedFile = await imageCompression(file, options);
-      
+
       // Criar preview
       const previewUrl = URL.createObjectURL(compressedFile);
       if (type === 'logo') {
@@ -83,33 +84,20 @@ export default function PersonalizarPage() {
         setBackgroundPreview(previewUrl);
       }
 
-      // Upload para Supabase Storage - usar endpoint de logo para ambos
-      // pois já tem permissões funcionando no bucket 'logos'
-      const formData = new FormData();
-      formData.append('logo', compressedFile);
-      const uploadUrl = '/api/logo/upload';
+      // Upload para Supabase Storage usando o novo padrão
+      const fileName = type === 'logo' ? 'plataforma_logo' : 'login_background';
+      const { url: imageUrl, error: uploadError } = await uploadFileToSupabase(
+        compressedFile,
+        'images',
+        `uploads/${fileName}`
+      );
 
-      console.log(`Fazendo upload ${type} para ${uploadUrl}, arquivo: ${(compressedFile.size / 1024).toFixed(1)}KB`);
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        throw new Error(`Erro no upload: ${errorText}`);
+      if (uploadError || !imageUrl) {
+        throw new Error(`Erro no upload: ${uploadError || 'URL não retornada'}`);
       }
-      
-      const uploadResult = await uploadResponse.json();
-      const imageUrl = uploadResult.imageUrl || uploadResult.url;
-      
-      if (!imageUrl) {
-        throw new Error('URL da imagem não retornada pelo servidor');
-      }
-      
+
       console.log(`Upload concluído: ${imageUrl}`);
-      
+
       // Atualizar configuração no banco
       const settingKey = type === 'logo' ? 'logo_url' : 'login_background_url';
       await updateSettingMutation.mutateAsync({ key: settingKey, value: imageUrl });
@@ -139,7 +127,7 @@ export default function PersonalizarPage() {
   const handleRemoveImage = async (type: 'logo' | 'background') => {
     const settingKey = type === 'logo' ? 'logo_url' : 'login_background_url';
     await updateSettingMutation.mutateAsync({ key: settingKey, value: '' });
-    
+
     if (type === 'logo') {
       setLogoPreview(null);
     } else {
@@ -170,172 +158,172 @@ export default function PersonalizarPage() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Logo da Plataforma */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5" />
-              Logo da Plataforma
-            </CardTitle>
-            <CardDescription>
-              Logo exibido no cabeçalho e página de login
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Preview do logo */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
-              {logoPreview || logoUrl ? (
-                <div className="space-y-4">
-                  <img
-                    src={logoPreview || logoUrl}
-                    alt="Logo preview"
-                    className="max-h-32 mx-auto object-contain"
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5" />
+                Logo da Plataforma
+              </CardTitle>
+              <CardDescription>
+                Logo exibido no cabeçalho e página de login
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Preview do logo */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
+                {logoPreview || logoUrl ? (
+                  <div className="space-y-4">
+                    <img
+                      src={logoPreview || logoUrl}
+                      alt="Logo preview"
+                      className="max-h-32 mx-auto object-contain"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveImage('logo')}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remover
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-gray-500">
+                    <ImageIcon className="w-12 h-12 mx-auto mb-4" />
+                    <p>Nenhum logo configurado</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload do logo */}
+              <div className="space-y-2">
+                <Label htmlFor="logo-upload">Selecionar Logo</Label>
+                <div className="flex gap-2">
+                  <Input
+                    ref={logoFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(file, 'logo');
+                    }}
+                    className="hidden"
                   />
                   <Button
                     variant="outline"
-                    size="sm"
-                    onClick={() => handleRemoveImage('logo')}
-                    className="text-red-600 hover:text-red-700"
+                    onClick={() => logoFileInputRef.current?.click()}
+                    disabled={logoUploading}
+                    className="flex-1"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remover
+                    <Upload className="w-4 h-4 mr-2" />
+                    {logoUploading ? 'Enviando...' : 'Escolher Arquivo'}
                   </Button>
                 </div>
-              ) : (
-                <div className="text-gray-500">
-                  <ImageIcon className="w-12 h-12 mx-auto mb-4" />
-                  <p>Nenhum logo configurado</p>
-                </div>
-              )}
-            </div>
-
-            {/* Upload do logo */}
-            <div className="space-y-2">
-              <Label htmlFor="logo-upload">Selecionar Logo</Label>
-              <div className="flex gap-2">
-                <Input
-                  ref={logoFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleImageUpload(file, 'logo');
-                  }}
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => logoFileInputRef.current?.click()}
-                  disabled={logoUploading}
-                  className="flex-1"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {logoUploading ? 'Enviando...' : 'Escolher Arquivo'}
-                </Button>
+                <p className="text-xs text-gray-500">
+                  Formatos: PNG, JPG, JPEG. Será comprimido para WebP automaticamente.
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                Formatos: PNG, JPG, JPEG. Será comprimido para WebP automaticamente.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Imagem de Fundo do Login */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5" />
-              Fundo do Login
-            </CardTitle>
-            <CardDescription>
-              Imagem de fundo da página de login
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Preview da imagem de fundo */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
-              {backgroundPreview || backgroundUrl ? (
-                <div className="space-y-4 w-full">
-                  <img
-                    src={backgroundPreview || backgroundUrl}
-                    alt="Background preview"
-                    className="max-h-32 mx-auto object-cover rounded-lg w-full"
+          {/* Imagem de Fundo do Login */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5" />
+                Fundo do Login
+              </CardTitle>
+              <CardDescription>
+                Imagem de fundo da página de login
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Preview da imagem de fundo */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
+                {backgroundPreview || backgroundUrl ? (
+                  <div className="space-y-4 w-full">
+                    <img
+                      src={backgroundPreview || backgroundUrl}
+                      alt="Background preview"
+                      className="max-h-32 mx-auto object-cover rounded-lg w-full"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveImage('background')}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remover
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-gray-500">
+                    <ImageIcon className="w-12 h-12 mx-auto mb-4" />
+                    <p>Nenhuma imagem de fundo configurada</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload da imagem de fundo */}
+              <div className="space-y-2">
+                <Label htmlFor="background-upload">Selecionar Imagem de Fundo</Label>
+                <div className="flex gap-2">
+                  <Input
+                    ref={backgroundFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(file, 'background');
+                    }}
+                    className="hidden"
                   />
                   <Button
                     variant="outline"
-                    size="sm"
-                    onClick={() => handleRemoveImage('background')}
-                    className="text-red-600 hover:text-red-700"
+                    onClick={() => backgroundFileInputRef.current?.click()}
+                    disabled={backgroundUploading}
+                    className="flex-1"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remover
+                    <Upload className="w-4 h-4 mr-2" />
+                    {backgroundUploading ? 'Enviando...' : 'Escolher Arquivo'}
                   </Button>
                 </div>
-              ) : (
-                <div className="text-gray-500">
-                  <ImageIcon className="w-12 h-12 mx-auto mb-4" />
-                  <p>Nenhuma imagem de fundo configurada</p>
-                </div>
-              )}
-            </div>
-
-            {/* Upload da imagem de fundo */}
-            <div className="space-y-2">
-              <Label htmlFor="background-upload">Selecionar Imagem de Fundo</Label>
-              <div className="flex gap-2">
-                <Input
-                  ref={backgroundFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleImageUpload(file, 'background');
-                  }}
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => backgroundFileInputRef.current?.click()}
-                  disabled={backgroundUploading}
-                  className="flex-1"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {backgroundUploading ? 'Enviando...' : 'Escolher Arquivo'}
-                </Button>
+                <p className="text-xs text-gray-500">
+                  Formatos: PNG, JPG, JPEG. Resolução recomendada: 1920x1080px ou superior.
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                Formatos: PNG, JPG, JPEG. Resolução recomendada: 1920x1080px ou superior.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Instruções */}
         <Card>
           <CardHeader>
-          <CardTitle>Como usar</CardTitle>
+            <CardTitle>Como usar</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Logo da Plataforma</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Aparece no cabeçalho de todas as páginas</li>
-                <li>• Exibido na página de login</li>
-                <li>• Tamanho recomendado: 200x60px</li>
-                <li>• Fundo transparente (PNG) é recomendado</li>
-              </ul>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Logo da Plataforma</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Aparece no cabeçalho de todas as páginas</li>
+                  <li>• Exibido na página de login</li>
+                  <li>• Tamanho recomendado: 200x60px</li>
+                  <li>• Fundo transparente (PNG) é recomendado</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Imagem de Fundo</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Aparece como fundo na página de login</li>
+                  <li>• Resolução recomendada: 1920x1080px</li>
+                  <li>• Será automaticamente otimizada</li>
+                  <li>• Use imagens relacionadas ao tema estética</li>
+                </ul>
+              </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Imagem de Fundo</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Aparece como fundo na página de login</li>
-                <li>• Resolução recomendada: 1920x1080px</li>
-                <li>• Será automaticamente otimizada</li>
-                <li>• Use imagens relacionadas ao tema estética</li>
-              </ul>
-            </div>
-          </div>
           </CardContent>
         </Card>
       </div>
