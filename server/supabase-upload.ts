@@ -29,19 +29,19 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function compressAndConvertToWebP(buffer: Buffer, originalName: string): Promise<Buffer> {
   try {
     console.log(`Comprimindo e convertendo ${originalName} para WebP...`);
-    
+
     // Usar Sharp para comprimir e converter para WebP
     const compressedBuffer = await sharp(buffer)
-      .resize(1920, 1920, { 
-        fit: 'inside', 
-        withoutEnlargement: true 
+      .resize(1920, 1920, {
+        fit: 'inside',
+        withoutEnlargement: true
       })
-      .webp({ 
+      .webp({
         quality: 85,
         effort: 4
       })
       .toBuffer();
-    
+
     console.log(`Conversão WebP bem-sucedida: ${originalName} -> ${(compressedBuffer.length / 1024).toFixed(1)}KB`);
     return compressedBuffer;
   } catch (error) {
@@ -60,17 +60,17 @@ async function convertToWebM(buffer: Buffer, originalName: string): Promise<Buff
 
   try {
     console.log(`Convertendo ${originalName} para WebM...`);
-    
+
     // Escrever arquivo temporário
     await writeFile(inputPath, buffer);
-    
+
     // Converter usando FFmpeg com configurações mais robustas
     await new Promise<void>((resolve, reject) => {
       const command = ffmpeg(inputPath);
-      
+
       // Detectar se é GIF ou MP4 para ajustar configurações
       const isGif = originalName.toLowerCase().includes('.gif');
-      
+
       if (isGif) {
         // Para GIFs: configuração mais simples sem áudio
         command
@@ -101,7 +101,7 @@ async function convertToWebM(buffer: Buffer, originalName: string): Promise<Buff
             '-error-resilient 1'
           ]);
       }
-      
+
       command
         .output(outputPath)
         .on('start', (commandLine) => {
@@ -130,26 +130,26 @@ async function convertToWebM(buffer: Buffer, originalName: string): Promise<Buff
     // Ler arquivo convertido
     const { readFile } = await import('fs/promises');
     const convertedBuffer = await readFile(outputPath);
-    
+
     console.log(`Conversão WebM bem-sucedida: ${originalName} -> ${(convertedBuffer.length / 1024).toFixed(1)}KB`);
-    
+
     // Limpeza dos arquivos temporários
     await Promise.all([
-      unlink(inputPath).catch(() => {}),
-      unlink(outputPath).catch(() => {})
+      unlink(inputPath).catch(() => { }),
+      unlink(outputPath).catch(() => { })
     ]);
-    
+
     return convertedBuffer;
-    
+
   } catch (error) {
     console.error(`Erro na conversão WebM de ${originalName}:`, error);
-    
+
     // Limpeza em caso de erro
     await Promise.all([
-      unlink(inputPath).catch(() => {}),
-      unlink(outputPath).catch(() => {})
+      unlink(inputPath).catch(() => { }),
+      unlink(outputPath).catch(() => { })
     ]);
-    
+
     throw error;
   }
 }
@@ -224,60 +224,60 @@ export async function uploadFileToSupabase(
     }
 
     const finalPath = `${fileName}_${timestamp}${fileExtension}`;
-    
+
     console.log(`Fazendo upload para Supabase: ${finalBucket}/${finalPath} (${(processedBuffer.length / 1024).toFixed(1)}KB)`);
 
     // Upload para o Supabase com upsert - usar sempre client normal
     const uploadClient = supabase;
-    
+
     const { data, error } = await uploadClient.storage
       .from(finalBucket)
-      .upload(finalPath, processedBuffer, { 
-        contentType, 
-        upsert: true 
+      .upload(finalPath, processedBuffer, {
+        contentType,
+        upsert: true
       });
 
     if (error) {
       console.error('Erro no upload Supabase:', error);
-      
+
       // Se é erro de MIME type com WebM, salvar como GIF original
-      if (error.message.includes('mime type video/webm is not supported') || 
-          error.message.includes('invalid_mime_type')) {
+      if (error.message.includes('mime type video/webm is not supported') ||
+        error.message.includes('invalid_mime_type')) {
         console.log('Fallback: Salvando arquivo original ao invés do WebM convertido');
-        
+
         // Upload do arquivo original
         const originalPath = `${fileName}_${timestamp}${path.extname(originalName)}`;
         const { data: fallbackData, error: fallbackError } = await supabase.storage
           .from(bucket)
-          .upload(originalPath, buffer, { 
-            contentType: mimeType, 
-            upsert: true 
+          .upload(originalPath, buffer, {
+            contentType: mimeType,
+            upsert: true
           });
-        
+
         if (fallbackError) {
           console.error('Erro no fallback upload:', fallbackError);
           return { url: null, error: `Upload falhou: ${error.message}` };
         }
-        
-        const fallbackUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${originalPath}?t=${timestamp}`;
+
+        const fallbackUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${originalPath}?t=${timestamp}`;
         console.log(`Fallback bem-sucedido (arquivo original): ${fallbackUrl}`);
         return { url: fallbackUrl, error: null };
       }
-      
+
       return { url: null, error: error.message };
     }
 
     // Obter URL pública com timestamp para cache-busting
-    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${finalBucket}/${finalPath}?t=${timestamp}`;
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/${finalBucket}/${finalPath}?t=${timestamp}`;
 
     console.log(`Upload bem-sucedido: ${publicUrl}`);
     return { url: publicUrl, error: null };
 
   } catch (error) {
     console.error('Erro geral no upload:', error);
-    return { 
-      url: null, 
-      error: error instanceof Error ? error.message : 'Erro desconhecido no upload' 
+    return {
+      url: null,
+      error: error instanceof Error ? error.message : 'Erro desconhecido no upload'
     };
   }
 }
@@ -310,45 +310,45 @@ export async function uploadLogoToSupabase(
     let finalBuffer = buffer;
     let contentType = 'image/png';
     let fileExtension = '.png';
-    
+
     // Gerar timestamp único para evitar cache
     const timestamp = Date.now();
-    
+
     console.log(`Processando logo: ${originalName} (${mimeType})`);
-    
+
     // Converter para PNG de alta qualidade (funciona com SVG e outros formatos)
     try {
       if (mimeType === 'image/svg+xml') {
         console.log(`Convertendo SVG ${originalName} para PNG de alta qualidade...`);
-        
+
         // Para SVG, criar PNG de alta resolução
         finalBuffer = await sharp(buffer, { density: 300 })
-          .resize(800, 800, { 
-            fit: 'inside', 
+          .resize(800, 800, {
+            fit: 'inside',
             withoutEnlargement: true,
             background: { r: 255, g: 255, b: 255, alpha: 0 } // Fundo transparente
           })
-          .png({ 
+          .png({
             quality: 100,
             compressionLevel: 6,
             adaptiveFiltering: true
           })
           .toBuffer();
-          
+
         console.log(`SVG convertido para PNG de alta qualidade: ${(finalBuffer.length / 1024).toFixed(1)}KB`);
       } else {
         // Para outros formatos, otimizar mantendo boa qualidade
         finalBuffer = await sharp(buffer)
-          .resize(800, 800, { 
-            fit: 'inside', 
-            withoutEnlargement: true 
+          .resize(800, 800, {
+            fit: 'inside',
+            withoutEnlargement: true
           })
-          .png({ 
+          .png({
             quality: 95,
             compressionLevel: 6
           })
           .toBuffer();
-          
+
         console.log(`${originalName} otimizado para PNG: ${(finalBuffer.length / 1024).toFixed(1)}KB`);
       }
     } catch (sharpError) {
@@ -361,15 +361,15 @@ export async function uploadLogoToSupabase(
     }
 
     const finalPath = `${fileName}_${timestamp}${fileExtension}`;
-    
+
     console.log(`Fazendo upload do logo: ${bucket}/${finalPath} (${(finalBuffer.length / 1024).toFixed(1)}KB)`);
 
     // Upload para o Supabase com upsert
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(finalPath, finalBuffer, { 
-        contentType, 
-        upsert: true 
+      .upload(finalPath, finalBuffer, {
+        contentType,
+        upsert: true
       });
 
     if (error) {
@@ -378,16 +378,16 @@ export async function uploadLogoToSupabase(
     }
 
     // Obter URL pública com timestamp para cache-busting
-    const publicUrl = `https://kmunxjuiuxaqitbovjls.supabase.co/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${finalPath}?t=${timestamp}`;
 
     console.log(`Upload do logo bem-sucedido: ${publicUrl}`);
     return { url: publicUrl, error: null };
 
   } catch (error) {
     console.error('Erro geral no upload do logo:', error);
-    return { 
-      url: null, 
-      error: error instanceof Error ? error.message : 'Erro desconhecido no upload do logo' 
+    return {
+      url: null,
+      error: error instanceof Error ? error.message : 'Erro desconhecido no upload do logo'
     };
   }
 }
@@ -399,7 +399,7 @@ export async function ensureBucket(bucketName: string): Promise<boolean> {
   try {
     // Verificar se o bucket existe
     const { data: bucket, error: getBucketError } = await supabase.storage.getBucket(bucketName);
-    
+
     if (getBucketError) {
       // Tentar criar o bucket
       console.log(`Criando bucket ${bucketName}...`);
@@ -408,7 +408,7 @@ export async function ensureBucket(bucketName: string): Promise<boolean> {
         allowedMimeTypes: ['image/*', 'video/*'], // Suportar imagens e vídeos
         fileSizeLimit: 52428800 // 50MB para suportar vídeos
       });
-      
+
       if (createError) {
         console.error(`Erro ao criar bucket ${bucketName}:`, createError);
         return false;
@@ -418,7 +418,7 @@ export async function ensureBucket(bucketName: string): Promise<boolean> {
       console.log(`Tornando bucket ${bucketName} público...`);
       await supabase.storage.updateBucket(bucketName, { public: true });
     }
-    
+
     return true;
   } catch (error) {
     console.error(`Erro ao verificar/criar bucket ${bucketName}:`, error);
