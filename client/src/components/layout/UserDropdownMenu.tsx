@@ -97,7 +97,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
       onClick={handleOverlayClick}
     >
       <div
-        className="mr-2 w-[260px] md:w-[280px] bg-white rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-80px)] overflow-y-auto"
+        className="mr-2 w-[260px] md:w-[280px] bg-card text-card-foreground border border-border rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-80px)] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho com fundo escuro e layout alinhado à esquerda */}
@@ -142,7 +142,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
         {/* Lista de opções */}
         <ul className="py-1">
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/perfil')}
@@ -152,12 +152,12 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-gray-800">Minha conta</p>
-                <p className="text-xs md:text-sm text-gray-500">Perfil, privacidade e dados</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Perfil, privacidade e dados</p>
               </div>
             </button>
           </li>
 
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/assinatura')}
@@ -167,12 +167,12 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-gray-800">Assinatura</p>
-                <p className="text-xs md:text-sm text-gray-500">Gerenciar sua assinatura</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Gerenciar sua assinatura</p>
               </div>
             </button>
           </li>
 
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/edicoes-recentes')}
@@ -182,17 +182,17 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-gray-800">Edições recentes</p>
-                <p className="text-xs md:text-sm text-gray-500">Histórico de edições</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Histórico de edições</p>
               </div>
               <span className="ml-auto">
                 <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Infinity className="w-3 h-3 text-gray-500" />
+                  <Infinity className="w-3 h-3 text-muted-foreground" />
                 </div>
               </span>
             </button>
           </li>
 
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/curtidas')}
@@ -202,12 +202,12 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-gray-800">Curtidas</p>
-                <p className="text-xs md:text-sm text-gray-500">Seus itens favoritos</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Seus itens favoritos</p>
               </div>
             </button>
           </li>
 
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/salvos')}
@@ -217,12 +217,12 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-gray-800">Salvos</p>
-                <p className="text-xs md:text-sm text-gray-500">Artes para usar depois</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Artes para usar depois</p>
               </div>
             </button>
           </li>
 
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={() => handleClick('/seguindo')}
@@ -232,7 +232,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-gray-800">Seguindo</p>
-                <p className="text-xs md:text-sm text-gray-500">Designers que você segue</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Designers que você segue</p>
               </div>
             </button>
           </li>
@@ -244,7 +244,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
         {/* Suporte e Logout */}
         <ul className="py-1">
           {whatsappUrl && (
-            <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+            <li className="hover:bg-accent/50 transition-colors duration-200">
               <a
                 href={`${whatsappUrl}?text=Olá, preciso de ajuda!`}
                 target="_blank"
@@ -257,13 +257,13 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-sm md:text-base text-green-600">Suporte por WhatsApp</p>
-                  <p className="text-xs md:text-sm text-gray-500">Dúvidas e perguntas</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Dúvidas e perguntas</p>
                 </div>
               </a>
             </li>
           )}
 
-          <li className="hover:bg-[#f7f7f7] transition-colors duration-200">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-3 py-2 md:px-4 md:py-3 flex items-center gap-3"
               onClick={handleLogout}
@@ -273,7 +273,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm md:text-base text-red-600">Sair da conta</p>
-                <p className="text-xs md:text-sm text-gray-500">Encerrar sessão atual</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Encerrar sessão atual</p>
               </div>
             </button>
           </li>

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+﻿import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const loginSchema = z.object({
-  email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
-  password: z.string().min(1, "Senha é obrigatória"),
+  email: z.string().email("E-mail invÃ¡lido").min(1, "E-mail Ã© obrigatÃ³rio"),
+  password: z.string().min(1, "Senha Ã© obrigatÃ³ria"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -26,7 +26,7 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation } = useAuth();
 
-  // Redirecionar para home após login bem-sucedido
+  // Redirecionar para home apÃ³s login bem-sucedido
   useEffect(() => {
     if (loginMutation.isSuccess && user) {
       navigate("/");
@@ -60,7 +60,7 @@ export default function LoginPage() {
           Cadastre-se
         </Link>
       </div>
-      {/* Título da seção */}
+      {/* TÃ­tulo da seÃ§Ã£o */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre com sua conta</h2>
         <p className="text-sm text-gray-600">Entre com suas credenciais para acessar sua conta</p>
@@ -94,7 +94,7 @@ export default function LoginPage() {
                 <FormLabel className="text-gray-700 font-medium">Senha</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                     type="password"
                     {...field}
                     className="h-12 border-gray-300 focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
@@ -107,7 +107,7 @@ export default function LoginPage() {
 
           <Button
             type="submit"
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-primary to-blue-500 hover:opacity-90 transition-all duration-200 rounded-lg shadow-lg"
+            className="w-full h-12 text-white font-semibold bg-primary hover:opacity-90 transition-all duration-200 rounded-lg shadow-lg"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? "Entrando..." : "Entrar"}

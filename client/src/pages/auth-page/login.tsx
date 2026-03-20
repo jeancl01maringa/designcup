@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+﻿import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,8 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const loginSchema = z.object({
-  email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
-  password: z.string().min(1, "Senha é obrigatória"),
+  email: z.string().email("E-mail invÃ¡lido").min(1, "E-mail Ã© obrigatÃ³rio"),
+  password: z.string().min(1, "Senha Ã© obrigatÃ³ria"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -37,7 +37,7 @@ export default function LoginPage() {
     },
   });
 
-  // Redirecionar se já estiver logado
+  // Redirecionar se jÃ¡ estiver logado
   useEffect(() => {
     if (user) {
       navigate("/");
@@ -58,7 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-6">
-      {/* Texto de cabeçalho */}
+      {/* Texto de cabeÃ§alho */}
       <div className="text-center">
         <p className="text-gray-600 text-sm">
           Acesse sua conta ou crie uma nova para continuar
@@ -81,7 +81,7 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      {/* Título da seção */}
+      {/* TÃ­tulo da seÃ§Ã£o */}
       <div className="text-left">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Login</h2>
         <p className="text-sm text-gray-600">Entre com suas credenciais para acessar sua conta</p>
@@ -119,7 +119,7 @@ export default function LoginPage() {
                   <FormLabel className="text-gray-700 font-medium">Senha</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="••••••••"
+                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                       type="password"
                       {...field}
                       className="h-12 border-gray-300 focus:border-primary focus:ring-primary"
@@ -133,7 +133,7 @@ export default function LoginPage() {
 
           <Button
             type="submit"
-            className="w-full h-12 text-white font-semibold bg-gradient-to-r from-primary to-blue-500 hover:opacity-90 transition-all duration-200 rounded-lg"
+            className="w-full h-12 text-white font-semibold bg-primary hover:opacity-90 transition-all duration-200 rounded-lg"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? (
