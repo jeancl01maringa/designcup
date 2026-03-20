@@ -52,7 +52,7 @@ const Logo = () => {
           <img
             src={logoUrl}
             alt="Logo da Plataforma"
-            className="h-8 md:h-8 w-auto max-w-[150px] md:max-w-[200px] object-contain"
+            className="h-6 md:h-7 w-auto max-w-[120px] md:max-w-[150px] object-contain"
             style={{
               imageRendering: 'crisp-edges',
               filter: 'contrast(1.1) brightness(1.05)'
@@ -77,11 +77,11 @@ const Logo = () => {
           />
         ) : (
           <div className="flex items-center">
-            <svg className="h-7 md:h-7 w-7 md:w-7 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-6 md:h-6 w-6 md:w-6 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
               <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
             </svg>
-            <span className="ml-2 font-bold text-base md:text-lg lg:text-xl">
+            <span className="ml-2 font-bold text-sm md:text-base lg:text-lg">
               <span className="text-foreground">Design</span><span className="text-primary">Cup</span>
             </span>
           </div>
@@ -590,7 +590,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-background sticky top-0 z-50 overflow-visible border-b border-border">
+    <header className="bg-background/80 backdrop-blur-md sticky top-0 z-50 overflow-visible border-b border-border">
       {/* Cabeçalho principal - oculto quando menu mobile está aberto */}
       <div className={`container-global py-3 flex items-center transition-all duration-300 h-[70px] ${isOpen ? 'md:flex hidden' : 'flex'}`}>
 
