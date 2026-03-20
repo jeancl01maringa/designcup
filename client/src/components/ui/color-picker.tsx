@@ -48,7 +48,7 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
         >
           <div className="flex items-center gap-2">
             <div
-              className="h-5 w-5 rounded-sm border border-gray-300"
+              className="h-5 w-5 rounded-sm border border-border"
               style={{ backgroundColor: localColor }}
             />
             <span className="text-sm">{localColor}</span>
@@ -90,7 +90,7 @@ export function ColorPicker({ color, onChange, className }: ColorPickerProps) {
                 className={`h-6 w-6 rounded-sm ${
                   preset.toLowerCase() === localColor.toLowerCase()
                     ? 'ring-2 ring-primary ring-offset-2'
-                    : 'border border-gray-300'
+                    : 'border border-border'
                 }`}
                 style={{ backgroundColor: preset }}
                 onClick={() => handlePresetClick(preset)}

@@ -61,7 +61,7 @@ export default function AuthPage() {
       </div>
 
       {/* Modal centralizado */}
-      <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+      <div className="relative z-10 bg-card rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
         <Switch>
           <Route path="/auth/login" component={LoginPage} />
           <Route path="/auth/register" component={RegisterPage} />

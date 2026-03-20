@@ -30,12 +30,12 @@ export default function LoguinPage() {
   }, []);
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen relative flex items-center justify-center bg-muted">
       {/* Gradiente sutil de fundo */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50" />
 
       {/* Modal centralizado */}
-      <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 border border-gray-200/50">
+      <div className="relative z-10 bg-card rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 border border-border/50">
         {/* Logo no topo do modal */}
         <div className="text-center mb-8">
           {logoData?.imageUrl ? (
@@ -57,7 +57,7 @@ export default function LoguinPage() {
               </div>
             </div>
           )}
-          <p className="text-gray-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             Acesse sua conta ou crie uma nova para continuar
           </p>
         </div>

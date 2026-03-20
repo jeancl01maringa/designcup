@@ -200,7 +200,7 @@ export default function PostFormatsPage() {
       case 'Horizontal':
         return <LayoutList size={16} className="mr-1 text-purple-500" />;
       default:
-        return <LayoutTemplate size={16} className="mr-1 text-gray-500" />;
+        return <LayoutTemplate size={16} className="mr-1 text-muted-foreground" />;
     }
   };
 
@@ -288,7 +288,7 @@ export default function PostFormatsPage() {
         </div>
 
         {/* Tabela de formatos */}
-        <div className="bg-white rounded-md shadow">
+        <div className="bg-card rounded-md shadow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -311,7 +311,7 @@ export default function PostFormatsPage() {
                   <TableRow key={format.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="flex justify-center items-center w-8 h-8 rounded-full bg-gray-100">
+                        <div className="flex justify-center items-center w-8 h-8 rounded-full bg-muted">
                           <LayoutTemplate size={16} />
                         </div>
                         <span className="font-medium">{format.name}</span>

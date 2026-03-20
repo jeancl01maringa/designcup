@@ -26,7 +26,7 @@ export default function CategoryDetailPage() {
 
   if (categoryLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted">
         <div className="pt-24 pb-8">
           <div className="container-global">
             <div className="animate-pulse">
@@ -41,11 +41,11 @@ export default function CategoryDetailPage() {
 
   if (!category) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted">
         <div className="pt-24 pb-8">
           <div className="container-global">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Categoria não encontrada</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-4">Categoria não encontrada</h1>
               <Link href="/categorias">
                 <Button variant="outline">
                   <ChevronLeft className="h-4 w-4 mr-2" />
@@ -60,25 +60,25 @@ export default function CategoryDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <div className="pt-24 pb-8">
         <div className="container-global">
           {/* Breadcrumb */}
           <div className="mb-6">
             <Link href="/categorias">
-              <Button variant="ghost" className="text-gray-600 hover:text-gray-900 p-0 h-auto">
+              <Button variant="ghost" className="text-muted-foreground hover:text-foreground p-0 h-auto">
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Categorias
               </Button>
             </Link>
             <span className="text-gray-400 mx-2">/</span>
-            <span className="text-gray-900 font-medium">{category.name}</span>
+            <span className="text-foreground font-medium">{category.name}</span>
           </div>
 
           {/* Header da Categoria */}
           <div className="mb-6 md:mb-8">
-            <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 md:mb-2">{category.name}</h1>
-            <p className="text-sm md:text-lg text-gray-600 mb-2 md:mb-4">{category.description}</p>
+            <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-1 md:mb-2">{category.name}</h1>
+            <p className="text-sm md:text-lg text-muted-foreground mb-2 md:mb-4">{category.description}</p>
           </div>
 
           {/* Grid de Artes - Usando o mesmo componente da home */}

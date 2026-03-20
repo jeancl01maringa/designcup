@@ -120,17 +120,17 @@ export default function Categories() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Erro ao carregar categorias</h2>
-          <p className="text-gray-600">Tente novamente mais tarde</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Erro ao carregar categorias</h2>
+          <p className="text-muted-foreground">Tente novamente mais tarde</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Hero Section - Exactly matching Home Page */}
       <section className="bg-gradient-to-b from-[#FFF4E9] to-[#FFFCF9] py-8 md:py-12">
         <div className="container-global flex flex-col items-center text-center">
@@ -146,7 +146,7 @@ export default function Categories() {
           </p>
 
           <div className="w-full max-w-[480px] mx-auto px-3 sm:px-6">
-            <div className="flex items-center bg-white border border-gray-200 rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-3 sm:pl-[15px] pr-2 sm:pr-[6px]">
+            <div className="flex items-center bg-card border border-border rounded-[10px] shadow-[0_1px_5px_rgba(0,0,0,0.05)] pl-3 sm:pl-[15px] pr-2 sm:pr-[6px]">
               <input
                 type="text"
                 placeholder="Busque por artes ou ID..."
@@ -171,16 +171,16 @@ export default function Categories() {
                 </button>
 
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-[9999] shadow-lg">
+                  <div className="absolute right-0 mt-2 w-44 bg-card border border-border rounded-lg z-[9999] shadow-lg">
                     <div className="py-2">
                       {formats.map(format => (
                         <button
                           key={format.id}
                           type="button"
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-muted
                             ${format.name === selectedFormat
                               ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-gray-700'}`}
+                              : 'text-muted-foreground'}`}
                           onClick={() => selectFormat(format.name)}
                         >
                           <span>{format.name}</span>
@@ -204,7 +204,7 @@ export default function Categories() {
       </section>
 
       {/* Categories Grid Section */}
-      <section className="py-8 bg-white border-b border-gray-100">
+      <section className="py-8 bg-card border-b border-border">
         <div className="container-global">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -213,7 +213,7 @@ export default function Categories() {
           ) : filteredCategories.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <ImageOff className="h-12 w-12 text-gray-400 mb-2" />
-              <p className="text-gray-500 text-lg">Nenhuma categoria encontrada</p>
+              <p className="text-muted-foreground text-lg">Nenhuma categoria encontrada</p>
               <p className="text-gray-400 text-sm">Tente ajustar sua busca</p>
             </div>
           ) : (
@@ -226,7 +226,7 @@ export default function Categories() {
                     className="block group cursor-pointer"
                   >
                     {/* Grid 2x2 de imagens com overlay */}
-                    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square relative">
+                    <div className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform group-hover:scale-[1.02] aspect-square relative">
                       <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-full">
                         {/* Mostrar até 4 imagens ou placeholders */}
                         {Array.from({ length: 4 }).map((_, index) => {
@@ -243,7 +243,7 @@ export default function Categories() {
                                   />
                                 </>
                               ) : (
-                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                <div className="w-full h-full bg-muted flex items-center justify-center">
                                   <ImageOff className="h-6 w-6 text-gray-300" />
                                 </div>
                               )}
@@ -264,8 +264,8 @@ export default function Categories() {
 
                   {/* Informações abaixo da imagem */}
                   <div className="mt-4 text-center">
-                    <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
-                    <p className="text-sm text-gray-600">{category.postCount} {category.postCount === 1 ? 'arte' : 'artes'}</p>
+                    <h3 className="font-semibold text-foreground mb-1">{category.name}</h3>
+                    <p className="text-sm text-muted-foreground">{category.postCount} {category.postCount === 1 ? 'arte' : 'artes'}</p>
                   </div>
                 </div>
               ))}

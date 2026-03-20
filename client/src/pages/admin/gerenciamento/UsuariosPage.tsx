@@ -306,7 +306,7 @@ export default function UsuariosPage() {
   // Função para renderizar informações do plano
   const renderPlanoInfo = (usuario: Usuario) => {
     if (usuario.tipo !== 'premium' || !usuario.plano_id) {
-      return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-300">Sem plano</Badge>;
+      return <Badge variant="secondary" className="bg-muted text-muted-foreground border-border">Sem plano</Badge>;
     }
 
     // Buscar o plano nos dados reais do Hotmart
@@ -574,7 +574,7 @@ export default function UsuariosPage() {
                 id="tipo"
                 value={editFormData.tipo}
                 onChange={(e) => setEditFormData({ ...editFormData, tipo: e.target.value as 'free' | 'premium' })}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-border rounded-md"
               >
                 <option value="free">Free</option>
                 <option value="premium">Premium</option>
@@ -589,7 +589,7 @@ export default function UsuariosPage() {
                     id="plano_id"
                     value={editFormData.plano_id}
                     onChange={(e) => setEditFormData({ ...editFormData, plano_id: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-border rounded-md"
                   >
                     <option value="">Selecione um plano</option>
                     {hotmartPlanos.map(plano => (
@@ -746,7 +746,7 @@ export default function UsuariosPage() {
                   id="create-tipo"
                   value={createFormData.tipo}
                   onChange={(e) => setCreateFormData(prev => ({ ...prev, tipo: e.target.value as 'free' | 'premium' }))}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border border-border rounded-md"
                 >
                   <option value="free">Gratuito</option>
                   <option value="premium">Premium</option>
@@ -758,7 +758,7 @@ export default function UsuariosPage() {
                   id="create-plano"
                   value={createFormData.plano_id}
                   onChange={(e) => setCreateFormData(prev => ({ ...prev, plano_id: e.target.value }))}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border border-border rounded-md"
                   disabled={createFormData.tipo !== 'premium'}
                 >
                   <option value="">Selecione um plano</option>

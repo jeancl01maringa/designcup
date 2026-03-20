@@ -69,7 +69,7 @@ export default function SearchSection() {
               <div className="relative flex-grow">
                 <Input
                   type="text"
-                  className="w-full px-4 py-3 h-[48px] text-base border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 h-[48px] text-base border border-border rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Buscar artes por palavra-chave ou ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -79,15 +79,15 @@ export default function SearchSection() {
               <div className="relative">
                 <button
                   type="button"
-                  className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-gray-300 bg-white hover:bg-gray-50 min-w-[120px]"
+                  className="flex justify-between items-center text-sm px-5 py-3 h-[48px] border border-l-0 border-border bg-card hover:bg-muted min-w-[120px]"
                   onClick={() => setShowFormatDropdown(!showFormatDropdown)}
                 >
-                  <span className="text-gray-700 font-medium">{selectedFormat}</span>
-                  <ChevronDown className="ml-3 h-4 w-4 text-gray-500" />
+                  <span className="text-muted-foreground font-medium">{selectedFormat}</span>
+                  <ChevronDown className="ml-3 h-4 w-4 text-muted-foreground" />
                 </button>
                 
                 {showFormatDropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg z-20">
+                  <div className="absolute right-0 mt-2 w-44 bg-card border border-border rounded-lg z-20">
                     <div className="py-2">
                       {formats.map(format => (
                         <button
@@ -96,7 +96,7 @@ export default function SearchSection() {
                           className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 flex items-center gap-3
                             ${format.name === selectedFormat 
                               ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500' 
-                              : 'text-gray-700 hover:bg-gray-50'}`}
+                              : 'text-muted-foreground hover:bg-muted'}`}
                           onClick={() => selectFormat(format.name)}
                         >
                           <div className="w-5 h-5 flex items-center justify-center">

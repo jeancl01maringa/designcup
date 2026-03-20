@@ -150,8 +150,8 @@ export default function PersonalizarPage() {
     <AdminLayout>
       <div className="p-6 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Personalizar</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-2xl font-bold text-foreground">Personalizar</h1>
+          <p className="text-muted-foreground mt-2">
             Configure o logo da plataforma e a imagem de fundo da página de login
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function PersonalizarPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Preview do logo */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
                 {logoPreview || logoUrl ? (
                   <div className="space-y-4">
                     <img
@@ -189,7 +189,7 @@ export default function PersonalizarPage() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-gray-500">
+                  <div className="text-muted-foreground">
                     <ImageIcon className="w-12 h-12 mx-auto mb-4" />
                     <p>Nenhum logo configurado</p>
                   </div>
@@ -220,7 +220,7 @@ export default function PersonalizarPage() {
                     {logoUploading ? 'Enviando...' : 'Escolher Arquivo'}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Formatos: PNG, JPG, JPEG. Será comprimido para WebP automaticamente.
                 </p>
               </div>
@@ -240,7 +240,7 @@ export default function PersonalizarPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Preview da imagem de fundo */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center min-h-[200px] flex items-center justify-center">
                 {backgroundPreview || backgroundUrl ? (
                   <div className="space-y-4 w-full">
                     <img
@@ -259,7 +259,7 @@ export default function PersonalizarPage() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-gray-500">
+                  <div className="text-muted-foreground">
                     <ImageIcon className="w-12 h-12 mx-auto mb-4" />
                     <p>Nenhuma imagem de fundo configurada</p>
                   </div>
@@ -290,7 +290,7 @@ export default function PersonalizarPage() {
                     {backgroundUploading ? 'Enviando...' : 'Escolher Arquivo'}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Formatos: PNG, JPG, JPEG. Resolução recomendada: 1920x1080px ou superior.
                 </p>
               </div>
@@ -306,8 +306,8 @@ export default function PersonalizarPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Logo da Plataforma</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-semibold text-foreground mb-2">Logo da Plataforma</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Aparece no cabeçalho de todas as páginas</li>
                   <li>• Exibido na página de login</li>
                   <li>• Tamanho recomendado: 200x60px</li>
@@ -315,8 +315,8 @@ export default function PersonalizarPage() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Imagem de Fundo</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-semibold text-foreground mb-2">Imagem de Fundo</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Aparece como fundo na página de login</li>
                   <li>• Resolução recomendada: 1920x1080px</li>
                   <li>• Será automaticamente otimizada</li>

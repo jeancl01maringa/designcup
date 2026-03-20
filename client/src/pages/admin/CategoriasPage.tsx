@@ -402,7 +402,7 @@ export default function CategoriasPage() {
                         Ativo
                       </div>
                     ) : (
-                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                         <AlertCircle className="h-3 w-3 mr-1" />
                         Inativo
                       </div>

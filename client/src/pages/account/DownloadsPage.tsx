@@ -74,10 +74,10 @@ export default function DownloadsPage() {
             <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
               <Download className="w-10 h-10 text-green-300" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
               Nenhum download ainda
             </h2>
-            <p className="text-gray-600 mb-8 max-w-md">
+            <p className="text-muted-foreground mb-8 max-w-md">
               Quando você baixar uma arte, ela aparecerá aqui no seu histórico de downloads.
             </p>
             <Link href="/">
@@ -90,7 +90,7 @@ export default function DownloadsPage() {
         ) : (
           <div>
             <div className="mb-6 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {downloadedPosts.length} {downloadedPosts.length === 1 ? 'download' : 'downloads'}
               </p>
               <Badge variant="secondary" className="gap-1">
@@ -111,7 +111,7 @@ export default function DownloadsPage() {
                     category: post.categoryId ? `${post.categoryId}` : null,
                     createdAt: post.createdAt
                   }} />
-                  <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                  <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
                     <Download className="w-3 h-3" />
                     Baixado em {new Date(post.downloadedAt).toLocaleDateString('pt-BR')}
                   </div>

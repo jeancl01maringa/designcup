@@ -36,7 +36,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <Button
           onClick={toggleSidebar}
           size="lg"
-          className="fixed top-4 left-4 z-40 bg-white shadow-lg border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-full p-3 min-w-[48px] min-h-[48px] md:hidden"
+          className="fixed top-4 left-4 z-40 bg-card shadow-lg border border-border text-muted-foreground hover:bg-muted rounded-full p-3 min-w-[48px] min-h-[48px] md:hidden"
         >
           <Menu className="h-5 w-5" />
         </Button>

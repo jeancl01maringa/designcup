@@ -210,9 +210,9 @@ export default function PlansPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Hero Section */}
-      <div className="bg-white text-gray-900 pt-4 pb-6 border-b">
+      <div className="bg-card text-foreground pt-4 pb-6 border-b">
         <div className="container-global text-center">
           <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-2">
             <Sparkles className="h-4 w-4 text-blue-600" />
@@ -223,7 +223,7 @@ export default function PlansPage() {
             Junte-se ao <span className="text-amber-700">premium</span>
           </h1>
           
-          <p className="text-lg mb-16 text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg mb-16 text-muted-foreground max-w-3xl mx-auto">
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
 
@@ -265,11 +265,11 @@ export default function PlansPage() {
                 <X className="h-6 w-6 text-red-600" />
               </div>
               <h3 className="mt-4 text-lg font-semibold">Erro ao carregar planos</h3>
-              <p className="mt-2 text-gray-600">Tente novamente mais tarde.</p>
+              <p className="mt-2 text-muted-foreground">Tente novamente mais tarde.</p>
             </div>
           ) : sortedPlans.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">Nenhum plano disponível no momento.</p>
+              <p className="text-muted-foreground">Nenhum plano disponível no momento.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl" style={{ gridTemplateColumns: window.innerWidth >= 768 ? 'repeat(2, minmax(0, 400px))' : '1fr', justifyContent: window.innerWidth >= 768 ? 'center' : 'normal' }}>
@@ -277,7 +277,7 @@ export default function PlansPage() {
                 <Card key={plan.id} className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
                   plan.isPrincipal 
                     ? 'border-blue-500 border shadow-xl bg-gradient-to-br from-blue-50 to-white' 
-                    : 'border-gray-200 hover:border-blue-300 bg-white'
+                    : 'border-border hover:border-blue-300 bg-card'
                 }`}>
                   {/* Badge Superior */}
                   {plan.isPrincipal && (
@@ -291,24 +291,24 @@ export default function PlansPage() {
                   <CardHeader className="text-center pb-4">
                     <div className="flex flex-col items-center">
                       {getPlanIcon(plan)}
-                      <CardTitle className="text-xl font-bold text-gray-900">{plan.name}</CardTitle>
+                      <CardTitle className="text-xl font-bold text-foreground">{plan.name}</CardTitle>
                     </div>
                     <div className="mt-4">
                       {plan.isGratuito ? (
-                        <div className="text-4xl font-bold text-gray-900">Grátis</div>
+                        <div className="text-4xl font-bold text-foreground">Grátis</div>
                       ) : (
                         <div className="flex flex-col items-center justify-center">
                           {plan.valorOriginal && (
-                            <div className="text-sm text-gray-500 line-through mb-1">
+                            <div className="text-sm text-muted-foreground line-through mb-1">
                               De R$ {parseFloat(plan.valorOriginal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                           )}
                           <div className="flex items-baseline">
-                            <span className="text-2xl font-bold text-gray-900">R$</span>
-                            <span className="text-4xl font-bold text-gray-900 ml-1">
+                            <span className="text-2xl font-bold text-foreground">R$</span>
+                            <span className="text-4xl font-bold text-foreground ml-1">
                               {getPlanPrice(plan).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
-                            <span className="text-sm text-gray-600 ml-1">
+                            <span className="text-sm text-muted-foreground ml-1">
                               /{getPlanPeriod(plan).replace('por ', '').replace('para ', '')}
                             </span>
                           </div>
@@ -321,7 +321,7 @@ export default function PlansPage() {
                           )}
                         </div>
                       )}
-                      <div className="text-sm text-gray-600 mt-1">
+                      <div className="text-sm text-muted-foreground mt-1">
                         {plan.isGratuito ? 'Para sempre' : ''}
                       </div>
                     </div>
@@ -376,60 +376,60 @@ export default function PlansPage() {
         </div>
       </div>
       {/* Seção de garantias e benefícios adicionais */}
-      <div className="bg-gray-50 py-10">
+      <div className="bg-muted py-10">
         <div className="container-global max-w-6xl">
           <div className="text-center mb-8">
-            <h3 className="text-3xl font-bold text-gray-900 mb-3">Por que escolher nossos planos?</h3>
-            <p className="text-lg text-gray-600">Benefícios exclusivos para todos os nossos clientes</p>
+            <h3 className="text-3xl font-bold text-foreground mb-3">Por que escolher nossos planos?</h3>
+            <p className="text-lg text-muted-foreground">Benefícios exclusivos para todos os nossos clientes</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+            <div className="text-center p-6 bg-card rounded-lg shadow-lg">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
                 <Crown className="h-8 w-8" />
               </div>
               <h4 className="text-xl font-semibold mb-2">+300 Templates Premium</h4>
-              <p className="text-gray-600">Acesso completo à nossa biblioteca com centenas de templates profissionais.</p>
+              <p className="text-muted-foreground">Acesso completo à nossa biblioteca com centenas de templates profissionais.</p>
             </div>
             
-            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+            <div className="text-center p-6 bg-card rounded-lg shadow-lg">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4">
                 <RefreshCw className="h-8 w-8" />
               </div>
               <h4 className="text-xl font-semibold mb-2">Qualidade Premium</h4>
-              <p className="text-gray-600">Artes de altíssima qualidade criadas por designers profissionais experientes.</p>
+              <p className="text-muted-foreground">Artes de altíssima qualidade criadas por designers profissionais experientes.</p>
             </div>
             
-            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+            <div className="text-center p-6 bg-card rounded-lg shadow-lg">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-4">
                 <Headphones className="h-8 w-8" />
               </div>
               <h4 className="text-xl font-semibold mb-2">Suporte Exclusivo</h4>
-              <p className="text-gray-600">Atendimento premium disponível 24 horas por dia, 7 dias por semana.</p>
+              <p className="text-muted-foreground">Atendimento premium disponível 24 horas por dia, 7 dias por semana.</p>
             </div>
             
-            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+            <div className="text-center p-6 bg-card rounded-lg shadow-lg">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 text-amber-600 rounded-full mb-4">
                 <BadgeCheck className="h-8 w-8" />
               </div>
               <h4 className="text-xl font-semibold mb-2">Garantia de 7 dias</h4>
-              <p className="text-gray-600">Não ficou satisfeito? Devolvemos 100% do seu dinheiro em até 7 dias.</p>
+              <p className="text-muted-foreground">Não ficou satisfeito? Devolvemos 100% do seu dinheiro em até 7 dias.</p>
             </div>
             
-            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+            <div className="text-center p-6 bg-card rounded-lg shadow-lg">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-4">
                 <Infinity className="h-8 w-8" />
               </div>
               <h4 className="text-xl font-semibold mb-2">Download Ilimitado</h4>
-              <p className="text-gray-600">Baixe quantos templates quiser, sem limites de download.</p>
+              <p className="text-muted-foreground">Baixe quantos templates quiser, sem limites de download.</p>
             </div>
             
-            <div className="text-center p-6 bg-white rounded-lg shadow-lg">
+            <div className="text-center p-6 bg-card rounded-lg shadow-lg">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 text-pink-600 rounded-full mb-4">
                 <Zap className="h-8 w-8" />
               </div>
               <h4 className="text-xl font-semibold mb-2">Sempre Atualizado</h4>
-              <p className="text-gray-600">Plataforma constantemente atualizada com novos recursos e melhorias.</p>
+              <p className="text-muted-foreground">Plataforma constantemente atualizada com novos recursos e melhorias.</p>
             </div>
           </div>
         </div>

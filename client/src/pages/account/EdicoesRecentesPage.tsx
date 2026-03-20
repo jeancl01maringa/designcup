@@ -75,10 +75,10 @@ export default function EdicoesRecentesPage() {
             <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-purple-50 flex items-center justify-center mb-4 lg:mb-6">
               <Edit3 className="w-8 h-8 lg:w-10 lg:h-10 text-purple-300" />
             </div>
-            <h2 className="text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl lg:text-2xl font-semibold text-foreground mb-2">
               Nenhuma edição ainda
             </h2>
-            <p className="text-gray-600 mb-6 lg:mb-8 max-w-md text-sm lg:text-base">
+            <p className="text-muted-foreground mb-6 lg:mb-8 max-w-md text-sm lg:text-base">
               Quando você clicar em "Editar no Canva" em uma arte, ela aparecerá aqui no seu histórico.
             </p>
             <Link href="/">
@@ -91,7 +91,7 @@ export default function EdicoesRecentesPage() {
         ) : (
           <div>
             <div className="mb-6 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {recentEdits.length} {recentEdits.length === 1 ? 'edição recente' : 'edições recentes'}
               </p>
               <Badge variant="secondary" className="gap-1">
@@ -103,7 +103,7 @@ export default function EdicoesRecentesPage() {
               {recentEdits.map((edit) => (
                 <div key={`${edit.post.id}-${edit.editedAt}`} className="relative group">
                   {/* Card da arte */}
-                  <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 hover:border-purple-300 transition-all duration-300">
+                  <div className="relative aspect-square rounded-lg overflow-hidden bg-muted border border-border hover:border-purple-300 transition-all duration-300">
                     <img
                       src={edit.post.imageUrl}
                       alt={edit.post.title}
@@ -139,12 +139,12 @@ export default function EdicoesRecentesPage() {
 
                   {/* Informações da arte */}
                   <div className="mt-3 space-y-1">
-                    <h3 className="font-medium text-sm text-gray-900 line-clamp-2 leading-tight">
+                    <h3 className="font-medium text-sm text-foreground line-clamp-2 leading-tight">
                       {edit.post.title}
                     </h3>
                     
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span className="bg-gray-100 px-2 py-1 rounded-full">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="bg-muted px-2 py-1 rounded-full">
                         {edit.post.formato || 'Arte'}
                       </span>
                       <span className="flex items-center gap-1">

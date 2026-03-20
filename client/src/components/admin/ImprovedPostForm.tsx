@@ -944,7 +944,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
     <div className="flex items-center justify-center py-6 mx-auto max-w-md">
       <div className="flex flex-col items-center mx-4">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-          step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+          step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-muted-foreground'
         }`}>
           1
         </div>
@@ -955,7 +955,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       
       <div className="flex flex-col items-center mx-4">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-          step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+          step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-muted-foreground'
         }`}>
           2
         </div>
@@ -966,7 +966,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
       
       <div className="flex flex-col items-center mx-4">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-          step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+          step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-muted-foreground'
         }`}>
           3
         </div>
@@ -1146,7 +1146,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                       style={{ cursor: 'pointer' }}
                     >
                       <div 
-                        className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${formData.isVisible ? 'translate-x-5' : 'translate-x-0.5'}`}
+                        className={`absolute top-0.5 w-4 h-4 bg-card rounded-full transition-transform ${formData.isVisible ? 'translate-x-5' : 'translate-x-0.5'}`}
                       ></div>
                     </div>
                   </div>
@@ -1488,7 +1488,7 @@ export function ImprovedPostForm({ open, onOpenChange, initialData, isEdit = fal
                   {formData.formats.map((format) => (
                     <Card key={format} className="overflow-hidden">
                       <div 
-                        className="bg-gray-100 flex items-center justify-center p-2"
+                        className="bg-muted flex items-center justify-center p-2"
                         style={{
                           height: "150px"
                         }}

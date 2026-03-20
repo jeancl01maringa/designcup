@@ -385,7 +385,7 @@ export default function TagsPage() {
         </div>
       
         {/* Tabela de tags */}
-        <div className="bg-white rounded-md shadow">
+        <div className="bg-card rounded-md shadow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -414,7 +414,7 @@ export default function TagsPage() {
                   <TableRow key={tag.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="flex justify-center items-center w-8 h-8 rounded-full bg-gray-100">
+                        <div className="flex justify-center items-center w-8 h-8 rounded-full bg-muted">
                           <Tag size={16} />
                         </div>
                         <span className="font-medium">{tag.name}</span>

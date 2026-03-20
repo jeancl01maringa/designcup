@@ -19,7 +19,7 @@ export default function ErrorPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+        <div className="bg-card rounded-2xl shadow-xl p-8 border border-border">
           {/* Error Icon */}
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertTriangle className="w-10 h-10 text-red-600" />
@@ -31,12 +31,12 @@ export default function ErrorPage({
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+          <h1 className="text-2xl font-bold text-foreground mb-3">
             {title}
           </h1>
 
           {/* Message */}
-          <p className="text-gray-600 mb-8 leading-relaxed">
+          <p className="text-muted-foreground mb-8 leading-relaxed">
             {message}
           </p>
 
@@ -61,8 +61,8 @@ export default function ErrorPage({
           </div>
 
           {/* Support Contact */}
-          <div className="border-t border-gray-200 pt-6">
-            <p className="text-sm text-gray-500 mb-3">
+          <div className="border-t border-border pt-6">
+            <p className="text-sm text-muted-foreground mb-3">
               Precisa de ajuda? Entre em contato conosco:
             </p>
             <SupportContact 
@@ -74,7 +74,7 @@ export default function ErrorPage({
         </div>
 
         {/* Additional Help Text */}
-        <p className="text-sm text-gray-500 mt-6">
+        <p className="text-sm text-muted-foreground mt-6">
           Se o problema persistir, nossa equipe de suporte está pronta para ajudar.
         </p>
       </div>

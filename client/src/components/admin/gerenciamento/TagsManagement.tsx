@@ -373,7 +373,7 @@ export function TagsManagement({ open, onOpenChange }: TagsManagementProps) {
                             onClick={() => handleToggleActive(tag)}
                           >
                             <span
-                              className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                              className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
                                 tag.isActive ? 'translate-x-4' : 'translate-x-0'
                               }`}
                             />

@@ -29,19 +29,19 @@ export default function FirstLessonRedirect() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#AA5E2F] mx-auto mb-4" />
-          <p className="text-gray-600">Carregando curso...</p>
+          <p className="text-muted-foreground">Carregando curso...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-muted flex items-center justify-center">
       <div className="text-center">
-        <p className="text-gray-600">Redirecionando...</p>
+        <p className="text-muted-foreground">Redirecionando...</p>
       </div>
     </div>
   );

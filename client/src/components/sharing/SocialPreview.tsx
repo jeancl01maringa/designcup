@@ -80,8 +80,8 @@ export function SocialPreview({
         </TabsList>
         
         <TabsContent value="facebook" className="mt-4">
-          <Card className="overflow-hidden max-w-[500px] mx-auto border border-gray-300 rounded-md">
-            <div className="bg-gray-100 py-1 px-2 text-xs text-gray-600 border-b border-gray-300">
+          <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-md">
+            <div className="bg-muted py-1 px-2 text-xs text-muted-foreground border-b border-border">
               facebook.com
             </div>
             {renderImage()}
@@ -92,10 +92,10 @@ export function SocialPreview({
               >
                 {brandName}
               </h3>
-              <h4 className="text-sm text-gray-900 font-semibold mt-1 line-clamp-2">
+              <h4 className="text-sm text-foreground font-semibold mt-1 line-clamp-2">
                 {title}
               </h4>
-              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                 {description}
               </p>
             </CardContent>
@@ -103,7 +103,7 @@ export function SocialPreview({
         </TabsContent>
         
         <TabsContent value="twitter" className="mt-4">
-          <Card className="overflow-hidden max-w-[500px] mx-auto border border-gray-300 rounded-xl">
+          <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-2">
                 <div 
@@ -113,18 +113,18 @@ export function SocialPreview({
                   <span className="text-white font-bold">{getInitials(brandName)}</span>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900">{brandName}</p>
-                  <p className="text-gray-500 text-sm">{getSocialUsername(brandName)}</p>
+                  <p className="font-bold text-foreground">{brandName}</p>
+                  <p className="text-muted-foreground text-sm">{getSocialUsername(brandName)}</p>
                 </div>
               </div>
               
-              <p className="text-gray-900 mb-3">
+              <p className="text-foreground mb-3">
                 {title}
               </p>
-              <div className="rounded-xl overflow-hidden border border-gray-300">
+              <div className="rounded-xl overflow-hidden border border-border">
                 {renderImage()}
-                <div className="p-3 bg-white">
-                  <p className="text-gray-500 text-sm line-clamp-2">
+                <div className="p-3 bg-card">
+                  <p className="text-muted-foreground text-sm line-clamp-2">
                     {description}
                   </p>
                 </div>
@@ -134,8 +134,8 @@ export function SocialPreview({
         </TabsContent>
         
         <TabsContent value="instagram" className="mt-4">
-          <Card className="overflow-hidden max-w-[500px] mx-auto border border-gray-300 rounded-xl">
-            <div className="p-2 border-b border-gray-300 flex items-center gap-2">
+          <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-xl">
+            <div className="p-2 border-b border-border flex items-center gap-2">
               <div 
                 className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
                 style={{ backgroundColor: brandColor }}
@@ -147,12 +147,12 @@ export function SocialPreview({
             <div className="aspect-square w-full max-h-[500px] overflow-hidden">
               {renderImage()}
             </div>
-            <CardContent className="p-3 bg-white">
+            <CardContent className="p-3 bg-card">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">{brandName}</span>
-                <span className="text-sm text-gray-900">{title}</span>
+                <span className="text-sm text-foreground">{title}</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Ver todos os {Math.floor(Math.random() * 20) + 5} comentários
               </p>
               <p className="text-[10px] text-gray-400 mt-1">HÁ 1 HORA</p>
@@ -161,7 +161,7 @@ export function SocialPreview({
         </TabsContent>
         
         <TabsContent value="whatsapp" className="mt-4">
-          <Card className="overflow-hidden max-w-[500px] mx-auto border border-gray-300 rounded-md">
+          <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-md">
             <div 
               className="py-1 px-3 text-xs text-white"
               style={{ backgroundColor: "#128C7E" }}
@@ -170,13 +170,13 @@ export function SocialPreview({
             </div>
             {renderImage()}
             <CardContent className="p-3 bg-[#DCF8C6]">
-              <h4 className="text-sm text-gray-900 font-semibold line-clamp-1">
+              <h4 className="text-sm text-foreground font-semibold line-clamp-1">
                 {title}
               </h4>
-              <p className="text-xs text-gray-700 mt-1 line-clamp-2">
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                 {description}
               </p>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Toque para mais informações
               </p>
             </CardContent>

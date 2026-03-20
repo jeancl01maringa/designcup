@@ -163,7 +163,7 @@ export default function LogoPage() {
                 {currentLogo?.dataUrl && (
                   <div className="space-y-2">
                     <FormLabel>Logo Atual</FormLabel>
-                    <div className="p-4 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+                    <div className="p-4 border-2 border-dashed border-border rounded-lg bg-muted">
                       <div className="flex items-center justify-center">
                         <img 
                           src={currentLogo.dataUrl} 

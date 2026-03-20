@@ -495,7 +495,7 @@ export default function ModulosPage() {
                         className={`border rounded-lg ${snapshot.isDragging ? 'shadow-lg' : ''}`}
                       >
                         {/* Module Header */}
-                        <div className="flex items-center gap-3 p-4 hover:bg-gray-50">
+                        <div className="flex items-center gap-3 p-4 hover:bg-muted">
                           <div {...provided.dragHandleProps}>
                             <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
                           </div>
@@ -589,7 +589,7 @@ export default function ModulosPage() {
                                       <div 
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
-                                        className={`flex items-center gap-3 py-2 px-4 hover:bg-gray-50 rounded ${snapshot.isDragging ? 'shadow-md bg-white' : ''}`}
+                                        className={`flex items-center gap-3 py-2 px-4 hover:bg-muted rounded ${snapshot.isDragging ? 'shadow-md bg-card' : ''}`}
                                       >
                                         <div {...provided.dragHandleProps}>
                                           <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />

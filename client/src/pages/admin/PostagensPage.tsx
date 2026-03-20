@@ -861,7 +861,7 @@ export default function PostagensPage() {
                       title={isPostVisible(post) ? 'Visível no feed (clique para ocultar)' : 'Oculto no feed (clique para tornar visível)'}
                     >
                       <span 
-                        className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${isPostVisible(post) ? 'translate-x-6' : 'translate-x-1'}`} 
+                        className={`pointer-events-none block h-5 w-5 rounded-full bg-card shadow-lg ring-0 transition-transform ${isPostVisible(post) ? 'translate-x-6' : 'translate-x-1'}`} 
                         data-state={isPostVisible(post) ? 'checked' : 'unchecked'} 
                       />
                     </div>
@@ -972,10 +972,10 @@ export default function PostagensPage() {
           
           {postToDelete && (
             <AlertDialogDescription className="mb-6">
-              <p className="font-medium text-base text-gray-900 mb-2">
+              <p className="font-medium text-base text-foreground mb-2">
                 Tem certeza que deseja excluir a postagem "{posts?.find(p => p.id === postToDelete)?.title}"?
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Esta ação não pode ser desfeita. Todos os dados associados serão permanentemente removidos.
               </p>
             </AlertDialogDescription>
@@ -1022,10 +1022,10 @@ export default function PostagensPage() {
           </div>
           
           <AlertDialogDescription className="mb-6">
-            <p className="font-medium text-base text-gray-900 mb-2">
+            <p className="font-medium text-base text-foreground mb-2">
               Tem certeza que deseja excluir {selectedPosts.length} {selectedPosts.length === 1 ? 'postagem' : 'postagens'}?
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Esta ação não pode ser desfeita. Todos os dados associados serão permanentemente removidos.
             </p>
           </AlertDialogDescription>

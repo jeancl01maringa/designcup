@@ -184,7 +184,7 @@ export default function ImageUploadDemo() {
             {previewUrl && (
               <div className="mt-4">
                 <p className="text-sm text-muted-foreground mb-2">Preview:</p>
-                <div className="border rounded-md overflow-hidden w-full max-h-[300px] bg-slate-50 flex items-center justify-center">
+                <div className="border rounded-md overflow-hidden w-full max-h-[300px] bg-muted flex items-center justify-center">
                   <ImageWithFallback
                     src={previewUrl}
                     alt="Preview"
@@ -230,7 +230,7 @@ export default function ImageUploadDemo() {
                   <p className="text-sm font-medium">Upload concluído com sucesso!</p>
                 </div>
                 
-                <div className="border rounded-md overflow-hidden max-h-[250px] bg-slate-50 flex items-center justify-center">
+                <div className="border rounded-md overflow-hidden max-h-[250px] bg-muted flex items-center justify-center">
                   <ImageWithFallback
                     src={uploadedImageUrl}
                     alt="Imagem enviada"
@@ -241,7 +241,7 @@ export default function ImageUploadDemo() {
                 <div className="mt-2 space-y-3">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">URL da imagem:</p>
-                    <div className="bg-slate-50 p-2 rounded text-xs font-mono break-all border">
+                    <div className="bg-muted p-2 rounded text-xs font-mono break-all border">
                       {uploadedImageUrl}
                     </div>
                   </div>

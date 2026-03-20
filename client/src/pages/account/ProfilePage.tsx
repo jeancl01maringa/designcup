@@ -345,7 +345,7 @@ export default function ProfilePage() {
                       <Camera className="h-6 w-6 text-white" />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 text-center max-w-24">
+                  <p className="text-sm text-muted-foreground text-center max-w-24">
                     {user?.profileImage || imagePreview ? "Clique para alterar" : "Clique para adicionar foto"}
                   </p>
                 </div>
@@ -365,7 +365,7 @@ export default function ProfilePage() {
                     <div className="space-y-2">
                       <Label>Nova foto selecionada</Label>
                       <div className="flex items-center gap-4">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-muted-foreground">
                           {selectedImage.name} ({(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
                         </div>
                         <Button 
@@ -393,13 +393,13 @@ export default function ProfilePage() {
 
                 {!selectedImage && (
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       • Formatos aceitos: JPG, PNG, GIF
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       • Tamanho máximo: 5MB
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       • Recomendado: imagens quadradas
                     </p>
 
@@ -443,10 +443,10 @@ export default function ProfilePage() {
                     onChange={(e) => setEditableData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="seu.email@exemplo.com"
                     disabled={isPremiumUser}
-                    className={isPremiumUser ? "bg-gray-100 cursor-not-allowed" : ""}
+                    className={isPremiumUser ? "bg-muted cursor-not-allowed" : ""}
                   />
                   {isPremiumUser && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Usuários premium devem solicitar alteração de email via suporte devido à integração com Hotmart
                     </p>
                   )}
@@ -466,10 +466,10 @@ export default function ProfilePage() {
                     onChange={(e) => setEditableData(prev => ({ ...prev, telefone: e.target.value }))}
                     placeholder="(11) 99999-9999"
                     disabled={isPremiumUser}
-                    className={isPremiumUser ? "bg-gray-100 cursor-not-allowed" : ""}
+                    className={isPremiumUser ? "bg-muted cursor-not-allowed" : ""}
                   />
                   {isPremiumUser && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Usuários premium devem solicitar alteração de telefone via suporte devido à integração com Hotmart
                     </p>
                   )}

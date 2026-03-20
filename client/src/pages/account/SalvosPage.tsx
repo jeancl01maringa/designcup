@@ -69,10 +69,10 @@ export default function SalvosPage() {
             <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-amber-50 flex items-center justify-center mb-4 lg:mb-6">
               <Bookmark className="w-8 h-8 lg:w-10 lg:h-10 text-amber-300" />
             </div>
-            <h2 className="text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl lg:text-2xl font-semibold text-foreground mb-2">
               Nenhuma arte salva ainda
             </h2>
-            <p className="text-gray-600 mb-6 lg:mb-8 max-w-md text-sm lg:text-base">
+            <p className="text-muted-foreground mb-6 lg:mb-8 max-w-md text-sm lg:text-base">
               Salve artes interessantes para acessar facilmente mais tarde e organizar seus projetos.
             </p>
             <Link href="/">
@@ -85,7 +85,7 @@ export default function SalvosPage() {
         ) : (
           <div>
             <div className="mb-6">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {savedPosts.length} {savedPosts.length === 1 ? 'arte salva' : 'artes salvas'}
               </p>
             </div>

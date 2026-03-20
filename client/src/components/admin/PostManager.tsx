@@ -781,29 +781,29 @@ export function PostManager() {
       
       {/* Diálogo de confirmação de exclusão individual */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <AlertDialogContent className="bg-white rounded-md shadow-md border-0 p-0 overflow-hidden max-w-md">
+        <AlertDialogContent className="bg-card rounded-md shadow-md border-0 p-0 overflow-hidden max-w-md">
           <div className="p-6">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-semibold">Excluir postagem</AlertDialogTitle>
-              <AlertDialogDescription className="pt-2 text-gray-600">
+              <AlertDialogDescription className="pt-2 text-muted-foreground">
                 Você tem certeza que deseja excluir esta postagem? Essa ação não poderá ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           
-          <div className="flex border-t border-gray-100">
+          <div className="flex border-t border-border">
             <AlertDialogCancel 
               onClick={() => {
                 setIsDeleteModalOpen(false);
                 setSelectedPost(null);
               }}
-              className="flex-1 m-0 rounded-none bg-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-800 border-r"
+              className="flex-1 m-0 rounded-none bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-r"
             >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete}
-              className="flex-1 m-0 rounded-none bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="flex-1 m-0 rounded-none bg-card text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               {deletePostMutation.isPending ? (
                 <>
@@ -820,27 +820,27 @@ export function PostManager() {
       
       {/* Diálogo de confirmação de exclusão em lote */}
       <AlertDialog open={isBatchDeleteModalOpen} onOpenChange={setIsBatchDeleteModalOpen}>
-        <AlertDialogContent className="bg-white rounded-md shadow-md border-0 p-0 overflow-hidden max-w-md">
+        <AlertDialogContent className="bg-card rounded-md shadow-md border-0 p-0 overflow-hidden max-w-md">
           <div className="p-6">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-semibold">Excluir postagens selecionadas</AlertDialogTitle>
-              <AlertDialogDescription className="pt-2 text-gray-600">
+              <AlertDialogDescription className="pt-2 text-muted-foreground">
                 Você tem certeza que deseja excluir <strong>{selectedPosts.length}</strong> postagens? 
                 Essa ação não poderá ser desfeita e todos os arquivos associados serão removidos permanentemente.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           
-          <div className="flex border-t border-gray-100">
+          <div className="flex border-t border-border">
             <AlertDialogCancel 
               onClick={() => setIsBatchDeleteModalOpen(false)}
-              className="flex-1 m-0 rounded-none bg-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-800 border-r"
+              className="flex-1 m-0 rounded-none bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-r"
             >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmBatchDelete}
-              className="flex-1 m-0 rounded-none bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="flex-1 m-0 rounded-none bg-card text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               {batchDeleteMutation.isPending ? (
                 <>

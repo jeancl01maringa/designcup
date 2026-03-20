@@ -34,15 +34,15 @@ export default function More() {
             <CardContent className="p-6 space-y-4">
               <div>
                 <h3 className="text-lg font-medium">Como funciona a assinatura?</h3>
-                <p className="text-gray-600">Nossa assinatura dá acesso ilimitado a todos os templates e atualizações mensais.</p>
+                <p className="text-muted-foreground">Nossa assinatura dá acesso ilimitado a todos os templates e atualizações mensais.</p>
               </div>
               <div>
                 <h3 className="text-lg font-medium">Preciso saber design para usar os templates?</h3>
-                <p className="text-gray-600">Não! Nossos templates são fáceis de editar mesmo sem conhecimento prévio.</p>
+                <p className="text-muted-foreground">Não! Nossos templates são fáceis de editar mesmo sem conhecimento prévio.</p>
               </div>
               <div>
                 <h3 className="text-lg font-medium">Posso editar no celular?</h3>
-                <p className="text-gray-600">Sim, todos os nossos templates podem ser editados em dispositivos móveis.</p>
+                <p className="text-muted-foreground">Sim, todos os nossos templates podem ser editados em dispositivos móveis.</p>
               </div>
             </CardContent>
           </Card>

@@ -518,7 +518,7 @@ export default function EditLessonPage() {
                   <Label className="text-sm font-medium">Texto</Label>
                   <div className="mt-1">
                     {/* Toolbar do Editor */}
-                    <div className="border border-gray-200 bg-gray-50 p-2 flex flex-wrap gap-1 rounded-t-md">
+                    <div className="border border-border bg-muted p-2 flex flex-wrap gap-1 rounded-t-md">
                       <Button
                         type="button"
                         variant="ghost"
@@ -576,7 +576,7 @@ export default function EditLessonPage() {
                       <div className="relative">
                         <input
                           type="color"
-                          className="h-8 w-8 border border-gray-300 rounded cursor-pointer"
+                          className="h-8 w-8 border border-border rounded cursor-pointer"
                           onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()}
                           title="Escolher cor do texto"
                         />
@@ -611,7 +611,7 @@ export default function EditLessonPage() {
                   {/* Materiais existentes */}
                   {lesson?.extraMaterials && lesson.extraMaterials.length > 0 && (
                     <div className="mt-2 space-y-2">
-                      <p className="text-sm text-gray-600">Materiais salvos:</p>
+                      <p className="text-sm text-muted-foreground">Materiais salvos:</p>
                       {lesson.extraMaterials.map((material, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-center gap-3">
@@ -624,7 +624,7 @@ export default function EditLessonPage() {
                             </div>
                             <div>
                               <p className="font-medium text-sm">{material.name}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-muted-foreground">
                                 {material.type?.includes('pdf') ? 'Documento PDF' : 
                                  material.type?.includes('image') ? 'Imagem' :
                                  'Arquivo'}
@@ -656,9 +656,9 @@ export default function EditLessonPage() {
                   )}
                   
                   <div className="mt-3">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
                       <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500 mb-2">
+                      <p className="text-sm text-muted-foreground mb-2">
                         Adicione novos materiais (imagens, PDFs, etc.)
                       </p>
                       <Button 
@@ -682,7 +682,7 @@ export default function EditLessonPage() {
                     {/* Lista de novos materiais adicionados */}
                     {formData.extraMaterials.length > 0 && (
                       <div className="mt-3 space-y-2">
-                        <p className="text-sm text-gray-600">Novos materiais a adicionar:</p>
+                        <p className="text-sm text-muted-foreground">Novos materiais a adicionar:</p>
                         {formData.extraMaterials.map((file, index) => (
                           <div key={index} className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded">
                             <div className="flex items-center gap-2">
@@ -719,7 +719,7 @@ export default function EditLessonPage() {
                 <CardTitle className="text-base">Capa do conteúdo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg aspect-video flex items-center justify-center bg-gray-50">
+                <div className="border-2 border-dashed border-border rounded-lg aspect-video flex items-center justify-center bg-muted">
                   {formData.coverImage ? (
                     <img 
                       src={formData.coverImage} 
@@ -729,7 +729,7 @@ export default function EditLessonPage() {
                   ) : (
                     <div className="text-center">
                       <Image className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Nenhuma imagem</p>
+                      <p className="text-sm text-muted-foreground">Nenhuma imagem</p>
                     </div>
                   )}
                 </div>

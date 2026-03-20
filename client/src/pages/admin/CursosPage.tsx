@@ -181,7 +181,7 @@ export default function CursosPage() {
   };
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+    return isActive ? 'bg-green-100 text-green-800' : 'bg-muted text-foreground';
   };
 
   return (
@@ -300,7 +300,7 @@ export default function CursosPage() {
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-100 rounded animate-pulse"></div>
+                <div key={i} className="h-16 bg-muted rounded animate-pulse"></div>
               ))}
             </div>
           ) : (

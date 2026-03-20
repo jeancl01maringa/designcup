@@ -317,7 +317,7 @@ export function CategoryManager() {
                           }
                           disabled={toggleStatusMutation.isPending}
                         />
-                        <span className={`text-sm ${category.isActive ? 'text-green-600' : 'text-gray-500'}`}>
+                        <span className={`text-sm ${category.isActive ? 'text-green-600' : 'text-muted-foreground'}`}>
                           {category.isActive ? 'Ativo' : 'Inativo'}
                         </span>
                       </div>

@@ -59,17 +59,17 @@ export default function ToolsPage() {
 
   if (toolsLoading || categoriesLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando ferramentas...</p>
+          <p className="text-muted-foreground">Carregando ferramentas...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <Helmet>
         <title>Ferramentas Úteis - Design para Estética</title>
         <meta name="description" content="Descubra ferramentas úteis para design, produtividade e marketing. Recursos selecionados para profissionais da estética." />
@@ -82,17 +82,17 @@ export default function ToolsPage() {
             <div className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full">
               <Wrench className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900">
+            <h1 className="text-4xl font-bold text-foreground">
               Ferramentas Úteis
             </h1>
           </div>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Descubra ferramentas úteis selecionadas para profissionais de estética.
           </p>
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="bg-white rounded-lg border shadow-sm p-6 mb-8">
+        <div className="bg-card rounded-lg border shadow-sm p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -126,7 +126,7 @@ export default function ToolsPage() {
           {/* Active Filters */}
           {(searchTerm || selectedCategory !== "all") && (
             <div className="flex items-center gap-2 mt-4 pt-4 border-t">
-              <span className="text-sm text-gray-500">Filtros ativos:</span>
+              <span className="text-sm text-muted-foreground">Filtros ativos:</span>
               {searchTerm && (
                 <Badge variant="secondary" className="gap-1">
                   Busca: "{searchTerm}"
@@ -157,7 +157,7 @@ export default function ToolsPage() {
         {filteredTools.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTools.map((tool) => (
-              <Card key={tool.id} className="group hover:shadow-lg transition-all duration-200 bg-white border border-gray-200">
+              <Card key={tool.id} className="group hover:shadow-lg transition-all duration-200 bg-card border border-border">
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -169,11 +169,11 @@ export default function ToolsPage() {
                         />
                       ) : (
                         <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
-                          <ExternalLink className="h-6 w-6 text-gray-500" />
+                          <ExternalLink className="h-6 w-6 text-muted-foreground" />
                         </div>
                       )}
                       <div>
-                        <CardTitle className="text-lg text-gray-900 group-hover:text-orange-600 transition-colors">
+                        <CardTitle className="text-lg text-foreground group-hover:text-orange-600 transition-colors">
                           {tool.name}
                         </CardTitle>
                         {tool.category_name && (
@@ -194,7 +194,7 @@ export default function ToolsPage() {
 
                 <CardContent className="pt-0">
                   {tool.description && (
-                    <CardDescription className="text-gray-600 mb-4 line-clamp-2">
+                    <CardDescription className="text-muted-foreground mb-4 line-clamp-2">
                       {tool.description}
                     </CardDescription>
                   )}
@@ -212,13 +212,13 @@ export default function ToolsPage() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="h-12 w-12 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               Nenhuma ferramenta encontrada
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               {searchTerm || selectedCategory !== "all"
                 ? "Tente ajustar seus filtros de busca."
                 : "Nenhuma ferramenta está disponível no momento."}
@@ -240,23 +240,23 @@ export default function ToolsPage() {
         {/* Categories Overview */}
         {selectedCategory === "all" && categories.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Categorias</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6">Categorias</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {categories.map((category) => (
                 <Card
                   key={category.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow bg-white border border-gray-200"
+                  className="cursor-pointer hover:shadow-md transition-shadow bg-card border border-border"
                   onClick={() => setSelectedCategory(category.name)}
                 >
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-gray-900">{category.name}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">{category.name}</CardTitle>
                     <CardDescription className="text-sm">
                       {category.tools_count} {category.tools_count === 1 ? 'ferramenta' : 'ferramentas'}
                     </CardDescription>
                   </CardHeader>
                   {category.description && (
                     <CardContent className="pt-0">
-                      <p className="text-sm text-gray-600 line-clamp-2">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {category.description}
                       </p>
                     </CardContent>

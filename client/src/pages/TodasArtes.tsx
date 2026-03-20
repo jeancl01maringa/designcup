@@ -189,7 +189,7 @@ export default function TodasArtes() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted">
         <div className="container-global py-8">
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {Array.from({ length: 20 }).map((_, i) => (
@@ -203,12 +203,12 @@ export default function TodasArtes() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             Erro ao carregar as artes
           </h3>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Tente recarregar a página.
           </p>
         </div>
@@ -217,24 +217,24 @@ export default function TodasArtes() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <div className="container-global py-8">
         {/* Header */}
         <div className="mb-6 md:mb-8">
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">
+          <h1 className="text-xl md:text-3xl font-bold text-foreground mb-1 md:mb-2">
             Todos os Designs
           </h1>
-          <p className="text-gray-600 text-sm md:text-lg">
+          <p className="text-muted-foreground text-sm md:text-lg">
             Explore nossa coleção completa de templates profissionais para impulsionar seu negócio.
           </p>
         </div>
 
         {/* Filtros Desktop */}
-        <div className="hidden md:block bg-white rounded-lg shadow-sm border p-6 mb-8">
+        <div className="hidden md:block bg-card rounded-lg shadow-sm border p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Campo de Pesquisa */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Pesquisar por título
               </label>
               <div className="relative">
@@ -251,7 +251,7 @@ export default function TodasArtes() {
 
             {/* Filtro de Categoria */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Categoria
               </label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -271,7 +271,7 @@ export default function TodasArtes() {
 
             {/* Filtro de Formato */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Formato
               </label>
               <Select value={selectedFormat} onValueChange={setSelectedFormat}>
@@ -291,7 +291,7 @@ export default function TodasArtes() {
 
             {/* Filtro de Tipo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Tipo
               </label>
               <Select value={selectedType} onValueChange={setSelectedType}>
@@ -308,7 +308,7 @@ export default function TodasArtes() {
 
             {/* Ordenação */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Ordenar por
               </label>
               <Select value={sortOrder} onValueChange={setSortOrder}>
@@ -325,12 +325,12 @@ export default function TodasArtes() {
         </div>
 
         {/* Filtros Mobile */}
-        <div className="md:hidden bg-white rounded-lg shadow-sm border p-4 mb-8">
+        <div className="md:hidden bg-card rounded-lg shadow-sm border p-4 mb-8">
           {/* Pesquisa e Botão Filtros */}
           <div className="flex gap-3 mb-4">
             {/* Campo de Pesquisa */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Pesquisar por título
               </label>
               <div className="relative">
@@ -364,7 +364,7 @@ export default function TodasArtes() {
             <div className="border-t pt-4 space-y-4">
               {/* Filtro de Categoria */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Categoria
                 </label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -384,7 +384,7 @@ export default function TodasArtes() {
 
               {/* Filtro de Formato */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Formato
                 </label>
                 <Select value={selectedFormat} onValueChange={setSelectedFormat}>
@@ -404,7 +404,7 @@ export default function TodasArtes() {
 
               {/* Filtro de Tipo */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Tipo
                 </label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
@@ -421,7 +421,7 @@ export default function TodasArtes() {
 
               {/* Ordenação */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Ordenar por
                 </label>
                 <Select value={sortOrder} onValueChange={setSortOrder}>
@@ -493,10 +493,10 @@ export default function TodasArtes() {
         ) : (
           <div className="text-center py-12">
             <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               Nenhum resultado encontrado
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Tente ajustar os filtros para encontrar mais designs.
             </p>
           </div>
@@ -516,7 +516,7 @@ export default function TodasArtes() {
             </Button>
 
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Página {currentPage} de {totalPages}
               </span>
             </div>

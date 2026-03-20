@@ -87,7 +87,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({
       <div className="relative">
         {isLoading && (
           <div className={`${className} bg-muted flex items-center justify-center absolute inset-0 z-10`}>
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+            <div className="w-4 h-4 border-2 border-border border-t-gray-600 rounded-full animate-spin"></div>
           </div>
         )}
         <video

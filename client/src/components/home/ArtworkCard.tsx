@@ -128,7 +128,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
             Não estamos forçando nenhum aspect-ratio via CSS
           */}
           {imageError ? (
-            <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
+            <div className="w-full aspect-square bg-muted flex items-center justify-center">
               <ImageIcon className="w-12 h-12 text-gray-400" />
             </div>
           ) : (
@@ -154,7 +154,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
                 "p-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-110",
                 liked
                   ? 'bg-red-500 text-white'
-                  : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500',
+                  : 'bg-card text-muted-foreground hover:bg-red-50 hover:text-red-500',
                 isLiking && "animate-bounce scale-110"
               )}
               onClick={handleLike}

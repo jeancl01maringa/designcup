@@ -123,19 +123,19 @@ export function ImageRestoreManager({ open, onOpenChange }: ImageRestoreManagerP
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-red-600">{postsWithImageIssues.length}</div>
-                <div className="text-sm text-gray-600">Posts sem imagem</div>
+                <div className="text-sm text-muted-foreground">Posts sem imagem</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">{postsWithValidImages.length}</div>
-                <div className="text-sm text-gray-600">Posts com imagem</div>
+                <div className="text-sm text-muted-foreground">Posts com imagem</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">{posts?.length || 0}</div>
-                <div className="text-sm text-gray-600">Total de posts</div>
+                <div className="text-sm text-muted-foreground">Total de posts</div>
               </CardContent>
             </Card>
           </div>
@@ -156,7 +156,7 @@ export function ImageRestoreManager({ open, onOpenChange }: ImageRestoreManagerP
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h4 className="font-semibold text-sm">{post.title}</h4>
-                          <div className="text-xs text-gray-500">ID: {post.id}</div>
+                          <div className="text-xs text-muted-foreground">ID: {post.id}</div>
                           {post.isPro && (
                             <Badge variant="secondary" className="mt-1">Premium</Badge>
                           )}
@@ -167,7 +167,7 @@ export function ImageRestoreManager({ open, onOpenChange }: ImageRestoreManagerP
                       </div>
                       
                       <div className="space-y-2">
-                        <div className="w-full h-24 bg-gray-100 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        <div className="w-full h-24 bg-muted rounded border-2 border-dashed border-border flex items-center justify-center">
                           <ImageIcon className="h-8 w-8 text-gray-400" />
                         </div>
                         
@@ -224,7 +224,7 @@ export function ImageRestoreManager({ open, onOpenChange }: ImageRestoreManagerP
                 {postsWithValidImages.slice(0, 8).map((post) => (
                   <Card key={post.id} className="border-green-200">
                     <CardContent className="p-2">
-                      <div className="aspect-square bg-gray-100 rounded mb-2 overflow-hidden">
+                      <div className="aspect-square bg-muted rounded mb-2 overflow-hidden">
                         <img 
                           src={post.imageUrl} 
                           alt={post.title}
@@ -233,14 +233,14 @@ export function ImageRestoreManager({ open, onOpenChange }: ImageRestoreManagerP
                         />
                       </div>
                       <div className="text-xs font-medium truncate">{post.title}</div>
-                      <div className="text-xs text-gray-500">ID: {post.id}</div>
+                      <div className="text-xs text-muted-foreground">ID: {post.id}</div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
               
               {postsWithValidImages.length > 8 && (
-                <div className="text-center text-sm text-gray-500">
+                <div className="text-center text-sm text-muted-foreground">
                   E mais {postsWithValidImages.length - 8} posts com imagens...
                 </div>
               )}

@@ -279,7 +279,7 @@ export default function FileFormatsPage() {
         </div>
 
         {/* Tabela de formatos */}
-        <div className="bg-white rounded-md shadow">
+        <div className="bg-card rounded-md shadow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -301,7 +301,7 @@ export default function FileFormatsPage() {
                 fileFormats.map((format) => (
                   <TableRow key={format.id}>
                     <TableCell>
-                      <div className="flex justify-center items-center w-8 h-8 rounded-full bg-gray-100">
+                      <div className="flex justify-center items-center w-8 h-8 rounded-full bg-muted">
                         <FileType size={16} />
                       </div>
                     </TableCell>

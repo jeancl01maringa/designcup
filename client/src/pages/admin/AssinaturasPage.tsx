@@ -74,9 +74,9 @@ export default function AssinaturasPage() {
       case 'canceled':
         return 'bg-red-100 text-red-800';
       case 'expired':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
@@ -85,9 +85,9 @@ export default function AssinaturasPage() {
       case 'hotmart':
         return 'bg-blue-100 text-blue-800';
       case 'manual':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
@@ -253,7 +253,7 @@ export default function AssinaturasPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge className={subscription.origin === 'hotmart' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-gray-100 text-gray-700'}>
+                              <Badge className={subscription.origin === 'hotmart' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-muted text-muted-foreground'}>
                                 {subscription.origin === 'hotmart' ? 'Hotmart' : 'Manual'}
                               </Badge>
                             </TableCell>
@@ -310,7 +310,7 @@ export default function AssinaturasPage() {
               <div>
                 <Label className="text-sm font-medium">URL do Webhook</Label>
                 <div className="mt-1 flex items-center gap-2">
-                  <div className="flex-1 p-3 bg-gray-50 rounded-md border">
+                  <div className="flex-1 p-3 bg-muted rounded-md border">
                     <code className="text-sm font-mono break-all">
                       https://designcup.com.br/webhook/hotmart
                     </code>

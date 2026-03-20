@@ -341,13 +341,13 @@ export default function MonetizacaoPage() {
           {/* Card Faturamento */}
           <Card className="border-l-4 border-l-green-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Faturamento</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Faturamento</CardTitle>
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                 <DollarSign className="h-5 w-5 text-green-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatarMoeda(faturamentoReal)}</div>
+              <div className="text-2xl font-bold text-foreground">{formatarMoeda(faturamentoReal)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {crescimentoFaturamento >= 0 ? (
                   <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
@@ -362,13 +362,13 @@ export default function MonetizacaoPage() {
           {/* Card Tráfego */}
           <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Tráfego</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Tráfego</CardTitle>
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatarMoeda(investimentoTrafego)}</div>
+              <div className="text-2xl font-bold text-foreground">{formatarMoeda(investimentoTrafego)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 {crescimentoTrafego >= 0 ? (
                   <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
@@ -383,13 +383,13 @@ export default function MonetizacaoPage() {
           {/* Card Lucro */}
           <Card className="border-l-4 border-l-purple-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Lucro</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Lucro</CardTitle>
               <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                 <PiggyBank className="h-5 w-5 text-purple-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatarMoeda(lucroReal)}</div>
+              <div className="text-2xl font-bold text-foreground">{formatarMoeda(lucroReal)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
                 {formatarPorcentagem(crescimentoLucro)} de crescimento
@@ -400,13 +400,13 @@ export default function MonetizacaoPage() {
           {/* Card ROAS */}
           <Card className="border-l-4 border-l-orange-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">ROAS</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">ROAS</CardTitle>
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
                 <Zap className="h-5 w-5 text-orange-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{roasReal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-foreground">{roasReal.toFixed(2)}</div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
                 {formatarPorcentagem(crescimentoRoas)} de eficiência
@@ -666,7 +666,7 @@ export default function MonetizacaoPage() {
                       <code>?utm_source=facebook&utm_medium=cpc&utm_campaign=nome_da_sua_campanha</code>
                       <button
                         onClick={() => copyToClipboard('?utm_source=facebook&utm_medium=cpc&utm_campaign=nome_da_sua_campanha', 'facebook')}
-                        className="ml-2 p-1 hover:bg-white rounded transition-colors"
+                        className="ml-2 p-1 hover:bg-card rounded transition-colors"
                         title="Copiar código"
                       >
                         {copiedCode === 'facebook' ? 
@@ -692,7 +692,7 @@ export default function MonetizacaoPage() {
                       <code>?utm_source=google&utm_medium=cpc&utm_campaign=nome_da_sua_campanha</code>
                       <button
                         onClick={() => copyToClipboard('?utm_source=google&utm_medium=cpc&utm_campaign=nome_da_sua_campanha', 'google')}
-                        className="ml-2 p-1 hover:bg-white rounded transition-colors"
+                        className="ml-2 p-1 hover:bg-card rounded transition-colors"
                         title="Copiar código"
                       >
                         {copiedCode === 'google' ? 
@@ -718,7 +718,7 @@ export default function MonetizacaoPage() {
                       <code>?utm_source=instagram&utm_medium=story&utm_campaign=nome_da_sua_campanha</code>
                       <button
                         onClick={() => copyToClipboard('?utm_source=instagram&utm_medium=story&utm_campaign=nome_da_sua_campanha', 'instagram')}
-                        className="ml-2 p-1 hover:bg-white rounded transition-colors"
+                        className="ml-2 p-1 hover:bg-card rounded transition-colors"
                         title="Copiar código"
                       >
                         {copiedCode === 'instagram' ? 
@@ -834,7 +834,7 @@ export default function MonetizacaoPage() {
       {/* Modal para Adicionar/Editar Investimento */}
       {isAddingInvestment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">
               {editingInvestment ? 'Editar Investimento' : 'Adicionar Investimento'}
             </h3>
@@ -846,7 +846,7 @@ export default function MonetizacaoPage() {
                   type="date"
                   value={investmentForm.date}
                   onChange={(e) => setInvestmentForm({...investmentForm, date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
@@ -858,7 +858,7 @@ export default function MonetizacaoPage() {
                   value={investmentForm.amount}
                   onChange={(e) => setInvestmentForm({...investmentForm, amount: e.target.value})}
                   placeholder="0,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
@@ -869,7 +869,7 @@ export default function MonetizacaoPage() {
                   value={investmentForm.description}
                   onChange={(e) => setInvestmentForm({...investmentForm, description: e.target.value})}
                   placeholder="Ex: Campanha Facebook - Botox"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
@@ -880,7 +880,7 @@ export default function MonetizacaoPage() {
                   value={investmentForm.utm_campaign}
                   onChange={(e) => setInvestmentForm({...investmentForm, utm_campaign: e.target.value})}
                   placeholder="Ex: facebook_ads_botox"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>

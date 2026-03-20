@@ -39,7 +39,7 @@ export default function AssinaturaPage() {
     return (
       <ProfileLayout>
         <div className="text-center py-12">
-          <p className="text-gray-500">Usuário não encontrado.</p>
+          <p className="text-muted-foreground">Usuário não encontrado.</p>
         </div>
       </ProfileLayout>
     );
@@ -50,8 +50,8 @@ export default function AssinaturaPage() {
       <div className="max-w-4xl space-y-6">
         {/* Cabeçalho */}
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Assinatura</h1>
-          <p className="text-gray-600 mt-1 text-sm lg:text-base">
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Assinatura</h1>
+          <p className="text-muted-foreground mt-1 text-sm lg:text-base">
             Gerencie sua assinatura e veja detalhes do seu plano.
           </p>
         </div>
@@ -214,7 +214,7 @@ export default function AssinaturaPage() {
                           PREMIUM
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-gray-600">
+                        <Badge variant="outline" className="text-muted-foreground">
                           GRATUITO
                         </Badge>
                       )}
@@ -286,13 +286,13 @@ export default function AssinaturaPage() {
                 <div className="space-y-4">
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Horário de Atendimento</h4>
-                    <p className="text-sm text-gray-600">Segunda a Sexta, das 9h às 18h</p>
-                    <p className="text-sm text-gray-500 mt-1">Respondemos em até 24 horas úteis</p>
+                    <p className="text-sm text-muted-foreground">Segunda a Sexta, das 9h às 18h</p>
+                    <p className="text-sm text-muted-foreground mt-1">Respondemos em até 24 horas úteis</p>
                   </div>
 
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Perguntas Frequentes</h4>
-                    <p className="text-sm text-gray-600">Consulte nossa central de ajuda para respostas rápidas às dúvidas mais comuns sobre planos e funcionalidades.</p>
+                    <p className="text-sm text-muted-foreground">Consulte nossa central de ajuda para respostas rápidas às dúvidas mais comuns sobre planos e funcionalidades.</p>
                   </div>
                 </div>
               </CardContent>

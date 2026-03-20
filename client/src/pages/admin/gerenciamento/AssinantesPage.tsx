@@ -329,7 +329,7 @@ export default function AssinantesPage() {
         </div>
       
         {/* Tabela de assinantes */}
-        <div className="bg-white rounded-md shadow">
+        <div className="bg-card rounded-md shadow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -492,7 +492,7 @@ export default function AssinantesPage() {
                   id="tipo"
                   value={editFormData.tipo}
                   onChange={(e) => setEditFormData({ ...editFormData, tipo: e.target.value as 'free' | 'premium' })}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border border-border rounded-md"
                 >
                   <option value="free">Free</option>
                   <option value="premium">Premium</option>
@@ -513,7 +513,7 @@ export default function AssinantesPage() {
                 id="plano_id"
                 value={editFormData.tipo === 'free' ? '' : editFormData.plano_id}
                 onChange={(e) => setEditFormData({ ...editFormData, plano_id: e.target.value })}
-                className={`w-full p-2 border ${editFormData.tipo === 'free' ? 'bg-gray-100 text-gray-400 border-gray-200' : 'border-gray-300'} rounded-md`}
+                className={`w-full p-2 border ${editFormData.tipo === 'free' ? 'bg-muted text-gray-400 border-border' : 'border-border'} rounded-md`}
                 disabled={editFormData.tipo === 'free'}
               >
                 <option value="">Selecione um plano</option>
@@ -534,7 +534,7 @@ export default function AssinantesPage() {
                 type="date"
                 value={editFormData.tipo === 'free' ? '' : editFormData.data_vencimento}
                 onChange={(e) => setEditFormData({ ...editFormData, data_vencimento: e.target.value })}
-                className={editFormData.tipo === 'free' ? 'bg-gray-100 text-gray-400 border-gray-200' : ''}
+                className={editFormData.tipo === 'free' ? 'bg-muted text-gray-400 border-border' : ''}
                 disabled={editFormData.tipo === 'free'}
               />
             </div>
@@ -561,7 +561,7 @@ export default function AssinantesPage() {
               </div>
             )}
             {editFormData.tipo === 'free' && (
-              <div className="p-2 bg-gray-50 rounded border border-gray-200 text-gray-500 text-sm">
+              <div className="p-2 bg-muted rounded border border-border text-muted-foreground text-sm">
                 Status de assinatura não aplicável para usuários Free
               </div>
             )}

@@ -250,7 +250,7 @@ export default function PopupsPageImproved() {
 
       <div>
         <Label htmlFor="image">Imagem (opcional)</Label>
-        <div className="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+        <div className="mt-1 border-2 border-dashed border-border rounded-lg p-6 text-center">
           <input
             id="image"
             type="file"
@@ -260,8 +260,8 @@ export default function PopupsPageImproved() {
           />
           <label htmlFor="image" className="cursor-pointer">
             <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm text-gray-600">Clique para fazer upload de uma imagem</p>
-            <p className="text-xs text-gray-500 mt-1">PNG, JPG até 10MB</p>
+            <p className="text-sm text-muted-foreground">Clique para fazer upload de uma imagem</p>
+            <p className="text-xs text-muted-foreground mt-1">PNG, JPG até 10MB</p>
           </label>
         </div>
         {formData.imageUrl && (
@@ -482,7 +482,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="all-pages" className="font-medium">Todas as páginas</Label>
-                <p className="text-sm text-gray-500">Exibir em qualquer página da plataforma</p>
+                <p className="text-sm text-muted-foreground">Exibir em qualquer página da plataforma</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -493,7 +493,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="home-page" className="font-medium">Feed Principal</Label>
-                <p className="text-sm text-gray-500">Página inicial com posts</p>
+                <p className="text-sm text-muted-foreground">Página inicial com posts</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -504,7 +504,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="auth-page" className="font-medium">Login/Registro</Label>
-                <p className="text-sm text-gray-500">Página de autenticação</p>
+                <p className="text-sm text-muted-foreground">Página de autenticação</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -515,7 +515,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="plans-page" className="font-medium">Planos e Assinaturas</Label>
-                <p className="text-sm text-gray-500">Página de planos</p>
+                <p className="text-sm text-muted-foreground">Página de planos</p>
               </div>
             </div>
           </CardContent>
@@ -537,7 +537,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="all-users" className="font-medium">Todos os usuários</Label>
-                <p className="text-sm text-gray-500">Visitantes e usuários logados</p>
+                <p className="text-sm text-muted-foreground">Visitantes e usuários logados</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -548,7 +548,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="visitors" className="font-medium">Visitantes</Label>
-                <p className="text-sm text-gray-500">Usuários não autenticados</p>
+                <p className="text-sm text-muted-foreground">Usuários não autenticados</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -559,7 +559,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="free-users" className="font-medium">Usuários Free</Label>
-                <p className="text-sm text-gray-500">Plano gratuito ativo</p>
+                <p className="text-sm text-muted-foreground">Plano gratuito ativo</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -570,7 +570,7 @@ export default function PopupsPageImproved() {
               />
               <div>
                 <Label htmlFor="premium-users" className="font-medium">Usuários Premium</Label>
-                <p className="text-sm text-gray-500">Assinatura premium ativa</p>
+                <p className="text-sm text-muted-foreground">Assinatura premium ativa</p>
               </div>
             </div>
           </CardContent>
@@ -630,14 +630,14 @@ export default function PopupsPageImproved() {
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-lg font-semibold mb-4">Preview do Popup</h3>
-        <p className="text-gray-600 mb-6">Veja como seu popup aparecerá para os usuários</p>
+        <p className="text-muted-foreground mb-6">Veja como seu popup aparecerá para os usuários</p>
       </div>
 
-      <div className="bg-gray-100 p-8 rounded-lg min-h-[400px] relative">
+      <div className="bg-muted p-8 rounded-lg min-h-[400px] relative">
         {formData.title || formData.content ? (
           <div className="flex items-center justify-center h-full">
             <div
-              className="bg-white shadow-lg p-6 max-w-md w-full"
+              className="bg-card shadow-lg p-6 max-w-md w-full"
               style={{
                 backgroundColor: formData.backgroundColor,
                 color: formData.textColor,
@@ -698,11 +698,11 @@ export default function PopupsPageImproved() {
         )}
       </div>
 
-      <div className="bg-white p-4 rounded border">
+      <div className="bg-card p-4 rounded border">
         <h4 className="font-medium mb-3">Configurações do Popup</h4>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-gray-600">Posição:</span>
+            <span className="text-muted-foreground">Posição:</span>
             <span className="ml-2 font-medium">
               {formData.position === 'center' ? 'Centro' :
                formData.position === 'top' ? 'Topo' :
@@ -711,14 +711,14 @@ export default function PopupsPageImproved() {
             </span>
           </div>
           <div>
-            <span className="text-gray-600">Tamanho:</span>
+            <span className="text-muted-foreground">Tamanho:</span>
             <span className="ml-2 font-medium">
               {formData.size === 'small' ? 'Pequeno' :
                formData.size === 'medium' ? 'Médio' : 'Grande'}
             </span>
           </div>
           <div>
-            <span className="text-gray-600">Animação:</span>
+            <span className="text-muted-foreground">Animação:</span>
             <span className="ml-2 font-medium">
               {formData.animation === 'fade' ? 'Fade' :
                formData.animation === 'slide' ? 'Slide' :
@@ -726,17 +726,17 @@ export default function PopupsPageImproved() {
             </span>
           </div>
           <div>
-            <span className="text-gray-600">Delay:</span>
+            <span className="text-muted-foreground">Delay:</span>
             <span className="ml-2 font-medium">{formData.delaySeconds}s</span>
           </div>
           <div>
-            <span className="text-gray-600">Páginas:</span>
+            <span className="text-muted-foreground">Páginas:</span>
             <span className="ml-2 font-medium">
               {formData.targetPages.includes('all') ? 'Todas' : formData.targetPages.length + ' selecionadas'}
             </span>
           </div>
           <div>
-            <span className="text-gray-600">Usuários:</span>
+            <span className="text-muted-foreground">Usuários:</span>
             <span className="ml-2 font-medium">
               {formData.targetUserTypes.includes('all') ? 'Todos' : formData.targetUserTypes.length + ' selecionados'}
             </span>
@@ -780,7 +780,7 @@ export default function PopupsPageImproved() {
             </Button>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-muted-foreground text-center py-8">
               Nenhum popup criado ainda. Clique em "Criar Popup" para começar.
             </p>
           </CardContent>
@@ -789,7 +789,7 @@ export default function PopupsPageImproved() {
         {/* Modal de criação melhorado */}
         {isCreating && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
+            <div className="bg-card rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
               {/* Header */}
               <div className="border-b p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -816,7 +816,7 @@ export default function PopupsPageImproved() {
                           flex items-center justify-center w-8 h-8 rounded-full border-2 
                           ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 
                             isCompleted ? 'border-green-600 bg-green-600 text-white' : 
-                            'border-gray-300 text-gray-400'}
+                            'border-border text-gray-400'}
                         `}>
                           <Icon className="h-4 w-4" />
                         </div>

@@ -340,7 +340,7 @@ export default function PopupsPage() {
         </div>
         <div>
           <Label className="text-sm">Imagem (opcional)</Label>
-          <div className="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-3 text-center">
+          <div className="mt-1 border-2 border-dashed border-border rounded-lg p-3 text-center">
             <input
               type="file"
               accept="image/*"
@@ -350,7 +350,7 @@ export default function PopupsPage() {
             />
             <label htmlFor="image-upload" className="cursor-pointer">
               <Upload className="mx-auto h-6 w-6 text-gray-400" />
-              <p className="mt-1 text-xs text-gray-600">Clique para upload</p>
+              <p className="mt-1 text-xs text-muted-foreground">Clique para upload</p>
             </label>
           </div>
         </div>
@@ -376,7 +376,7 @@ export default function PopupsPage() {
               onChange={(e) => handleInputChange('backgroundColor', e.target.value)}
               className="h-8 w-12 p-0 border rounded"
             />
-            <span className="text-xs text-gray-500">{formData.backgroundColor}</span>
+            <span className="text-xs text-muted-foreground">{formData.backgroundColor}</span>
           </div>
         </div>
         <div>
@@ -388,7 +388,7 @@ export default function PopupsPage() {
               onChange={(e) => handleInputChange('textColor', e.target.value)}
               className="h-8 w-12 p-0 border rounded"
             />
-            <span className="text-xs text-gray-500">{formData.textColor}</span>
+            <span className="text-xs text-muted-foreground">{formData.textColor}</span>
           </div>
         </div>
         <div>
@@ -400,7 +400,7 @@ export default function PopupsPage() {
               onChange={(e) => handleInputChange('buttonColor', e.target.value)}
               className="h-8 w-12 p-0 border rounded"
             />
-            <span className="text-xs text-gray-500">{formData.buttonColor}</span>
+            <span className="text-xs text-muted-foreground">{formData.buttonColor}</span>
           </div>
         </div>
         <div>
@@ -412,7 +412,7 @@ export default function PopupsPage() {
               onChange={(e) => handleInputChange('buttonTextColor', e.target.value)}
               className="h-8 w-12 p-0 border rounded"
             />
-            <span className="text-xs text-gray-500">{formData.buttonTextColor}</span>
+            <span className="text-xs text-muted-foreground">{formData.buttonTextColor}</span>
           </div>
         </div>
       </div>
@@ -600,7 +600,7 @@ export default function PopupsPage() {
     <div className="space-y-4 h-full overflow-y-auto">
       <div className="text-center">
         <h3 className="text-lg font-medium mb-4">Preview Final do Popup</h3>
-        <div className="bg-gray-100 rounded-lg p-4 min-h-[250px] flex items-center justify-center">
+        <div className="bg-muted rounded-lg p-4 min-h-[250px] flex items-center justify-center">
           <div 
             className="popup-preview max-w-sm w-full"
             style={{
@@ -637,7 +637,7 @@ export default function PopupsPage() {
         </div>
       </div>
 
-      <div className="bg-gray-50 p-3 rounded-lg">
+      <div className="bg-muted p-3 rounded-lg">
         <h4 className="font-medium mb-2 text-sm">Configurações do Popup:</h4>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div><strong>Posição:</strong> {formData.position === 'center' ? 'Centro' : formData.position}</div>
@@ -688,10 +688,10 @@ export default function PopupsPage() {
           {isLoadingPopups ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-500">Carregando popups...</p>
+              <p className="text-muted-foreground">Carregando popups...</p>
             </div>
           ) : popups.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Nenhum popup criado ainda</p>
               <p className="text-sm mt-1">Clique em "Novo Popup" para começar</p>
@@ -699,19 +699,19 @@ export default function PopupsPage() {
           ) : (
             <div className="space-y-4">
               {popups.map((popup: any) => (
-                <div key={popup.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div key={popup.id} className="border rounded-lg p-4 hover:bg-muted transition-colors">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-medium text-lg">{popup.title}</h3>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          popup.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                          popup.isActive ? 'bg-green-100 text-green-800' : 'bg-muted text-muted-foreground'
                         }`}>
                           {popup.isActive ? 'Ativo' : 'Inativo'}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm mb-2">{popup.content}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <p className="text-muted-foreground text-sm mb-2">{popup.content}</p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span>Posição: {popup.position === 'center' ? 'Centro' : popup.position}</span>
                         <span>Tamanho: {popup.size === 'small' ? 'Pequeno' : popup.size === 'medium' ? 'Médio' : 'Grande'}</span>
                         <span>Animação: {popup.animation}</span>
@@ -721,7 +721,7 @@ export default function PopupsPage() {
                     <div className="flex items-center gap-3 ml-4">
                       {/* Toggle Switch */}
                       <div className="flex items-center gap-2">
-                        <Label htmlFor={`toggle-${popup.id}`} className="text-xs text-gray-600">
+                        <Label htmlFor={`toggle-${popup.id}`} className="text-xs text-muted-foreground">
                           {popup.isActive ? 'Ativo' : 'Inativo'}
                         </Label>
                         <Switch
@@ -794,7 +794,7 @@ export default function PopupsPage() {
       {/* Modal de criação/edição */}
       {isCreating && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col">
+          <div className="bg-card rounded-lg shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-xl font-semibold">{isEditing ? 'Editar Popup' : 'Criar Novo Popup'}</h2>
@@ -837,7 +837,7 @@ export default function PopupsPage() {
                               flex items-center justify-center w-8 h-8 rounded-full border-2 
                               ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 
                                 isCompleted ? 'border-green-600 bg-green-600 text-white' : 
-                                'border-gray-300 text-gray-400'}
+                                'border-border text-gray-400'}
                             `}>
                               <Icon className="h-4 w-4" />
                             </div>
@@ -870,7 +870,7 @@ export default function PopupsPage() {
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between items-center p-4 border-t bg-gray-50 flex-shrink-0">
+                <div className="flex justify-between items-center p-4 border-t bg-muted flex-shrink-0">
                   <Button
                     variant="outline"
                     onClick={prevStep}
@@ -881,7 +881,7 @@ export default function PopupsPage() {
                     Voltar
                   </Button>
                   
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Passo {currentStep} de 4
                   </div>
                   
@@ -909,9 +909,9 @@ export default function PopupsPage() {
 
               {/* Preview ao vivo à direita */}
               {currentStep < 4 && (
-                <div className="w-80 border-l bg-gray-50 p-4 overflow-y-auto">
-                  <h3 className="text-sm font-medium text-gray-700 mb-4">Preview em Tempo Real</h3>
-                  <div className="bg-white rounded-lg p-4 shadow-sm min-h-[300px] flex items-center justify-center">
+                <div className="w-80 border-l bg-muted p-4 overflow-y-auto">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-4">Preview em Tempo Real</h3>
+                  <div className="bg-card rounded-lg p-4 shadow-sm min-h-[300px] flex items-center justify-center">
                     <div 
                       className="popup-preview max-w-sm w-full"
                       style={{
@@ -959,7 +959,7 @@ export default function PopupsPage() {
                   </div>
                   
                   {/* Configurações resumidas */}
-                  <div className="mt-4 text-xs text-gray-600 space-y-1">
+                  <div className="mt-4 text-xs text-muted-foreground space-y-1">
                     <p><strong>Posição:</strong> {formData.position === 'center' ? 'Centro' : formData.position}</p>
                     <p><strong>Tamanho:</strong> {formData.size === 'small' ? 'Pequeno' : formData.size === 'medium' ? 'Médio' : 'Grande'}</p>
                     <p><strong>Animação:</strong> {formData.animation}</p>

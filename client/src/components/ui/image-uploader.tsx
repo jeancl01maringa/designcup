@@ -260,7 +260,7 @@ export function ImageUploader({
         "relative flex flex-col items-center justify-center w-full min-h-[200px] border-2 border-dashed rounded-lg transition-all",
         isDragging 
           ? "border-primary bg-primary/5" 
-          : "border-gray-300 hover:border-primary/50 hover:bg-gray-50/50",
+          : "border-border hover:border-primary/50 hover:bg-muted/50",
         className
       )}
       onDragOver={handleDragOver}
@@ -278,7 +278,7 @@ export function ImageUploader({
       {isUploading ? (
         <div className="flex flex-col items-center justify-center p-6 w-full h-full">
           <RefreshCw size={30} className="text-primary/70 mb-4 animate-spin" />
-          <p className="text-sm text-gray-500 mb-3">Processando imagem...</p>
+          <p className="text-sm text-muted-foreground mb-3">Processando imagem...</p>
           <div className="w-full max-w-xs">
             <Progress value={uploadProgress} className="h-2" />
           </div>
@@ -287,7 +287,7 @@ export function ImageUploader({
         <div className="flex flex-col items-center justify-center p-6 w-full h-full">
           <AlertCircle size={30} className="text-amber-500 mb-3" />
           <p className="text-sm text-amber-600 font-medium mb-2">Falha na conexão com Supabase</p>
-          <div className="text-xs text-gray-500 text-center max-w-xs">
+          <div className="text-xs text-muted-foreground text-center max-w-xs">
             <p className="mb-2">Verifique se as variáveis de ambiente do Supabase estão configuradas:</p>
             <ol className="list-decimal list-inside text-left space-y-1 mb-3">
               <li>VITE_SUPABASE_URL</li>
@@ -316,7 +316,7 @@ export function ImageUploader({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white hover:bg-gray-100"
+                className="bg-card hover:bg-muted"
                 onClick={triggerFileInput}
               >
                 Trocar
@@ -350,7 +350,7 @@ export function ImageUploader({
           ) : (
             <>
               <Upload size={30} className="text-gray-400 mb-3" />
-              <p className="text-sm text-gray-500 mb-1">
+              <p className="text-sm text-muted-foreground mb-1">
                 Arraste e solte uma imagem aqui ou
               </p>
               <Button 

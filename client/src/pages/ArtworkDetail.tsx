@@ -67,7 +67,7 @@ export default function ArtworkDetail() {
           <CardContent className="py-8">
             <div className="text-center space-y-4">
               <h1 className="text-2xl font-bold text-red-500">Erro</h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Não foi possível carregar este artwork. Por favor, tente novamente mais tarde.
               </p>
               <Button onClick={() => setLocation('/')}>
@@ -131,7 +131,7 @@ export default function ArtworkDetail() {
           </div>
           
           {artwork.description && (
-            <p className="text-gray-600 mt-4">{artwork.description}</p>
+            <p className="text-muted-foreground mt-4">{artwork.description}</p>
           )}
           
           <div className="pt-4 flex flex-wrap gap-3">

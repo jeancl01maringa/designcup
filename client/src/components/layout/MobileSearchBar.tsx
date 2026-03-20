@@ -125,12 +125,12 @@ export function MobileSearchBar() {
   }, []);
 
   return (
-    <div className={`md:hidden fixed top-[70px] left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-40 transition-transform duration-300 ease-in-out ${
+    <div className={`md:hidden fixed top-[70px] left-0 right-0 bg-card shadow-lg border-b border-border z-40 transition-transform duration-300 ease-in-out ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
       <div className="container-global py-3">
         <form onSubmit={handleSearch} className="flex items-center">
-          <div className="relative flex items-center w-full border border-gray-300 rounded-full focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] bg-white">
+          <div className="relative flex items-center w-full border border-border rounded-full focus-within:ring-2 focus-within:ring-[#AA5E2F]/40 focus-within:border-[#AA5E2F] bg-card">
             {/* Hambúrguer dos formatos à esquerda */}
             <div className="relative">
               <button
@@ -140,7 +140,7 @@ export function MobileSearchBar() {
                   e.stopPropagation();
                   setShowFormatDropdown(prev => !prev);
                 }}
-                className="flex items-center justify-center py-3 px-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none border-r border-gray-200 bg-gray-50"
+                className="flex items-center justify-center py-3 px-3 text-gray-400 hover:text-muted-foreground transition-colors duration-150 focus:outline-none border-r border-border bg-muted"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -151,7 +151,7 @@ export function MobileSearchBar() {
               {/* Dropdown dos formatos */}
               {showFormatDropdown && (
                 <div 
-                  className="absolute left-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]" 
+                  className="absolute left-0 top-full mt-1 w-40 bg-card border border-border rounded-lg shadow-lg z-[9999]" 
                   ref={dropdownRef}
                 >
                   <div className="py-1">
@@ -164,8 +164,8 @@ export function MobileSearchBar() {
                           e.stopPropagation();
                           selectFormat(format.id);
                         }}
-                        className={`block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                          selectedFormat === format.id ? 'bg-[#AA5E2F]/10 text-[#AA5E2F] font-medium' : 'text-gray-700'
+                        className={`block w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${
+                          selectedFormat === format.id ? 'bg-[#AA5E2F]/10 text-[#AA5E2F] font-medium' : 'text-muted-foreground'
                         }`}
                       >
                         {format.name}

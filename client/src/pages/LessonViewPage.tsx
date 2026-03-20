@@ -180,7 +180,7 @@ export default function LessonViewPage() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Acesso Restrito</CardTitle>
@@ -200,10 +200,10 @@ export default function LessonViewPage() {
 
   if (courseLoading || lessonLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando aula...</p>
+          <p className="text-muted-foreground">Carregando aula...</p>
         </div>
       </div>
     );
@@ -211,10 +211,10 @@ export default function LessonViewPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
           <Book className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">Curso não encontrado</p>
+          <p className="text-muted-foreground">Curso não encontrado</p>
         </div>
       </div>
     );
@@ -222,10 +222,10 @@ export default function LessonViewPage() {
 
   if (!currentLesson) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
           <Play className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">Selecione uma aula para assistir</p>
+          <p className="text-muted-foreground">Selecione uma aula para assistir</p>
         </div>
       </div>
     );
@@ -244,19 +244,19 @@ export default function LessonViewPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-card">
       <Helmet>
         <title>{currentLesson.title} - {course.title}</title>
       </Helmet>
 
       {/* Nome do curso e botão voltar - SEMPRE NO TOPO NO MOBILE */}
-      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+      <div className="lg:hidden bg-card border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+          <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          <h2 className="font-semibold text-base text-gray-900">{course.title}</h2>
+          <h2 className="font-semibold text-base text-foreground">{course.title}</h2>
         </div>
       </div>
 
@@ -264,7 +264,7 @@ export default function LessonViewPage() {
         <div className="flex flex-col lg:grid lg:grid-cols-4 gap-0">
           
           {/* Conteúdo Principal - ÚNICO E RESPONSIVO */}
-          <div className="order-1 lg:order-2 lg:col-span-3 p-4 lg:p-6 bg-white">
+          <div className="order-1 lg:order-2 lg:col-span-3 p-4 lg:p-6 bg-card">
             <Card className="border-0 shadow-none">
               <CardHeader className="px-0 lg:px-6">
                 <div className="flex items-center justify-between">
@@ -300,10 +300,10 @@ export default function LessonViewPage() {
                         />
                       </div>
                     ) : currentLesson.content ? (
-                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
                         <div className="text-center">
                           <Play className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                          <p className="text-gray-600">Link do vídeo:</p>
+                          <p className="text-muted-foreground">Link do vídeo:</p>
                           <a 
                             href={currentLesson.content} 
                             target="_blank" 
@@ -315,8 +315,8 @@ export default function LessonViewPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                        <div className="text-center text-gray-500">
+                      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                        <div className="text-center text-muted-foreground">
                           <Play className="h-16 w-16 mx-auto mb-4" />
                           <p>Nenhum vídeo configurado para esta aula</p>
                         </div>
@@ -328,7 +328,7 @@ export default function LessonViewPage() {
                     {currentLesson.content ? (
                       <div dangerouslySetInnerHTML={{ __html: currentLesson.content }} />
                     ) : (
-                      <p className="text-gray-500">Nenhum conteúdo disponível para esta aula.</p>
+                      <p className="text-muted-foreground">Nenhum conteúdo disponível para esta aula.</p>
                     )}
                   </div>
                 )}
@@ -423,7 +423,7 @@ export default function LessonViewPage() {
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Descrição</h3>
                       <div 
-                        className="prose max-w-none text-gray-600 leading-relaxed"
+                        className="prose max-w-none text-muted-foreground leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: currentLesson.description }}
                       />
                     </div>
@@ -445,14 +445,14 @@ export default function LessonViewPage() {
                           const fileExtension = fileName.split('.').pop()?.toLowerCase();
                           
                           return (
-                            <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                            <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
                                   <FileText className="h-4 w-4 text-blue-600" />
                                 </div>
                                 <div>
                                   <p className="font-medium text-sm">{fileName}</p>
-                                  <p className="text-xs text-gray-500 capitalize">
+                                  <p className="text-xs text-muted-foreground capitalize">
                                     {fileExtension === 'pdf' ? 'Documento PDF' : 
                                      fileExtension === 'doc' || fileExtension === 'docx' ? 'Documento Word' :
                                      fileExtension === 'txt' ? 'Arquivo de Texto' :
@@ -478,10 +478,10 @@ export default function LessonViewPage() {
                   )}
 
                   {/* Ações da Aula - Mobile - MOVIDAS PARA BAIXO DO CONTEÚDO */}
-                  <div className="bg-gray-50 p-4 rounded-lg border space-y-4 mt-6">
+                  <div className="bg-muted p-4 rounded-lg border space-y-4 mt-6">
                     {/* Sistema de Avaliação - Mobile */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Avalie esta aula:</span>
+                      <span className="text-sm font-medium text-muted-foreground">Avalie esta aula:</span>
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((star) => {
                           const averageRating = lessonRating?.average_rating || 0;
@@ -509,7 +509,7 @@ export default function LessonViewPage() {
                     
                     {/* Exibir média de avaliações */}
                     {lessonRating && lessonRating.rating_count > 0 && (
-                      <div className="text-xs text-gray-600 text-center">
+                      <div className="text-xs text-muted-foreground text-center">
                         Média: {Number(lessonRating.average_rating).toFixed(1)} ({lessonRating.rating_count} avaliações)
                       </div>
                     )}
@@ -560,7 +560,7 @@ export default function LessonViewPage() {
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Descrição</h3>
                       <div 
-                        className="prose max-w-none text-gray-600 leading-relaxed"
+                        className="prose max-w-none text-muted-foreground leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: currentLesson.description }}
                       />
                     </div>
@@ -582,14 +582,14 @@ export default function LessonViewPage() {
                           const fileExtension = fileName.split('.').pop()?.toLowerCase();
                           
                           return (
-                            <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                            <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
                                   <FileText className="h-4 w-4 text-blue-600" />
                                 </div>
                                 <div>
                                   <p className="font-medium text-sm">{fileName}</p>
-                                  <p className="text-xs text-gray-500 capitalize">
+                                  <p className="text-xs text-muted-foreground capitalize">
                                     {fileExtension === 'pdf' ? 'Documento PDF' : 
                                      fileExtension === 'doc' || fileExtension === 'docx' ? 'Documento Word' :
                                      fileExtension === 'txt' ? 'Arquivo de Texto' :
@@ -619,16 +619,16 @@ export default function LessonViewPage() {
           </div>
 
           {/* Sidebar de navegação das aulas - SEGUNDO NO MOBILE */}
-          <div className="order-2 lg:order-1 col-span-1 bg-gray-50/50">
+          <div className="order-2 lg:order-1 col-span-1 bg-muted/50">
             {/* Layout Desktop - Sidebar à esquerda com lista de aulas */}
             <div className="hidden lg:block h-full">
-              <div className="p-6 border-b border-gray-200">
-                <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+              <div className="p-6 border-b border-border">
+                <Button variant="ghost" onClick={handleBack} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                   <ArrowLeft className="h-4 w-4" />
                   Voltar ao curso
                 </Button>
-                <h3 className="text-xl font-bold text-gray-900 mt-4">{course.title}</h3>
-                <div className="flex items-center gap-2 text-gray-700">
+                <h3 className="text-xl font-bold text-foreground mt-4">{course.title}</h3>
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <BookOpen className="h-5 w-5" />
                   <span className="text-base font-medium">{course.modules.length} módulos</span>
                 </div>
@@ -642,7 +642,7 @@ export default function LessonViewPage() {
                         <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                           {moduleIndex + 1}
                         </div>
-                        <h4 className="font-bold text-lg text-gray-900">{module.title}</h4>
+                        <h4 className="font-bold text-lg text-foreground">{module.title}</h4>
                       </div>
                       
                       <div className="space-y-2 ml-11">
@@ -659,7 +659,7 @@ export default function LessonViewPage() {
                                   ? 'bg-blue-50 border-blue-200 text-blue-900' 
                                   : isCompleted 
                                     ? 'bg-green-50 border-green-200 text-green-900 hover:bg-green-100' 
-                                    : 'bg-white hover:bg-gray-50 border-gray-200'
+                                    : 'bg-card hover:bg-muted border-border'
                               }`}
                             >
                               <div className="flex items-center gap-3">
@@ -670,7 +670,7 @@ export default function LessonViewPage() {
                                 ) : (
                                   <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                 )}
-                                <span className={`text-sm break-words ${isActive ? 'font-medium text-blue-900' : 'text-gray-700'}`}>
+                                <span className={`text-sm break-words ${isActive ? 'font-medium text-blue-900' : 'text-muted-foreground'}`}>
                                   {lesson.title}
                                 </span>
                               </div>
@@ -685,9 +685,9 @@ export default function LessonViewPage() {
             </div>
 
             {/* Layout Mobile - Design com dropdowns */}
-            <div className="lg:hidden bg-white">
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">Lista de Conteúdos</h3>
+            <div className="lg:hidden bg-card">
+              <div className="p-4 border-b border-border">
+                <h3 className="text-xl font-bold text-foreground">Lista de Conteúdos</h3>
               </div>
               
               <div className="p-4 space-y-4">
@@ -697,7 +697,7 @@ export default function LessonViewPage() {
                   const totalLessons = currentModuleLessons.length;
                   
                   return (
-                    <div key={module.id} className="bg-gray-50 rounded-lg p-4 border">
+                    <div key={module.id} className="bg-muted rounded-lg p-4 border">
                       {/* Cabeçalho do Módulo - CLICÁVEL PARA ABRIR/FECHAR */}
                       <button 
                         onClick={() => toggleModule(module.id)}
@@ -708,13 +708,13 @@ export default function LessonViewPage() {
                             {moduleIndex + 1}
                           </div>
                           <div>
-                            <h4 className="font-bold text-lg text-gray-900">{module.title}</h4>
-                            <p className="text-sm text-gray-600">{totalLessons} aulas</p>
+                            <h4 className="font-bold text-lg text-foreground">{module.title}</h4>
+                            <p className="text-sm text-muted-foreground">{totalLessons} aulas</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-base font-semibold text-gray-700">{completedLessons}/{totalLessons}</p>
-                          <ChevronDown className={`h-5 w-5 text-gray-500 mx-auto mt-1 transition-transform ${
+                          <p className="text-base font-semibold text-muted-foreground">{completedLessons}/{totalLessons}</p>
+                          <ChevronDown className={`h-5 w-5 text-muted-foreground mx-auto mt-1 transition-transform ${
                             openModules.has(module.id) ? 'rotate-180' : ''
                           }`} />
                         </div>
@@ -728,17 +728,17 @@ export default function LessonViewPage() {
                             const isCompleted = isLessonCompleted(lesson.id);
                             
                             return (
-                              <div key={lesson.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                              <div key={lesson.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
                                 <div className="flex items-center gap-3 flex-1">
                                   <Play className="h-5 w-5 text-blue-500 flex-shrink-0" />
                                   <div className="flex-1">
                                     <h5 className={`font-semibold text-base ${
-                                      isActive ? 'text-blue-900' : 'text-gray-900'
+                                      isActive ? 'text-blue-900' : 'text-foreground'
                                     }`}>
                                       {lesson.title}
                                     </h5>
                                     {lesson.description && (
-                                      <div className="text-sm text-gray-600 mt-1"
+                                      <div className="text-sm text-muted-foreground mt-1"
                                            dangerouslySetInnerHTML={{ 
                                              __html: lesson.description.length > 50 ? 
                                              lesson.description.substring(0, 50) + '...' : 
@@ -748,7 +748,7 @@ export default function LessonViewPage() {
                                     )}
                                   </div>
                                   <div className="text-center">
-                                    <span className="text-lg font-bold text-gray-900">{isCompleted ? '1' : '0'}</span>
+                                    <span className="text-lg font-bold text-foreground">{isCompleted ? '1' : '0'}</span>
                                   </div>
                                 </div>
                                 <Button

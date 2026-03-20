@@ -558,12 +558,12 @@ export default function FerramentasPage() {
                                 className="w-8 h-8 rounded-lg object-cover border"
                               />
                             ) : (
-                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <ExternalLink className="h-4 w-4 text-gray-500" />
+                              <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                                <ExternalLink className="h-4 w-4 text-muted-foreground" />
                               </div>
                             )}
                             <div>
-                              <div className="font-medium text-gray-900 flex items-center gap-2">
+                              <div className="font-medium text-foreground flex items-center gap-2">
                                 {tool.name}
                                 {tool.is_new && (
                                   <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs">
@@ -573,7 +573,7 @@ export default function FerramentasPage() {
                                 )}
                               </div>
                               {tool.description && (
-                                <div className="text-sm text-gray-500 line-clamp-1">
+                                <div className="text-sm text-muted-foreground line-clamp-1">
                                   {tool.description}
                                 </div>
                               )}
@@ -660,10 +660,10 @@ export default function FerramentasPage() {
               ) : (
                 <div className="text-center py-8">
                   <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     {searchTerm ? "Nenhuma ferramenta encontrada" : "Nenhuma ferramenta encontrada"}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {searchTerm ? "Tente ajustar o termo de busca" : "Adicione uma nova ferramenta para começar"}
                   </p>
                 </div>
@@ -790,9 +790,9 @@ export default function FerramentasPage() {
                       <TableRow key={category.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium text-gray-900">{category.name}</div>
+                            <div className="font-medium text-foreground">{category.name}</div>
                             {category.description && (
-                              <div className="text-sm text-gray-500 line-clamp-1">
+                              <div className="text-sm text-muted-foreground line-clamp-1">
                                 {category.description}
                               </div>
                             )}
@@ -868,10 +868,10 @@ export default function FerramentasPage() {
               ) : (
                 <div className="text-center py-8">
                   <Folder className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     {searchTerm ? "Nenhuma categoria encontrada" : "Nenhuma categoria encontrada"}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {searchTerm ? "Tente ajustar o termo de busca" : "Adicione uma nova categoria para começar"}
                   </p>
                 </div>

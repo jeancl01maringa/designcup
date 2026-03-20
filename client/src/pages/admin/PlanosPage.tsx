@@ -282,7 +282,7 @@ export default function PlanosPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Coluna esquerda - Dados básicos */}
                   <div className="space-y-4">
-                    <h4 className="font-medium text-gray-900 border-b pb-2">Informações Básicas</h4>
+                    <h4 className="font-medium text-foreground border-b pb-2">Informações Básicas</h4>
                     
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome do Plano</Label>
@@ -335,7 +335,7 @@ export default function PlanosPage() {
                         placeholder="Ex: 147,00"
                         disabled={formData.isGratuito}
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Valor original antes do desconto (ex: R$ 497,00)
                       </p>
                     </div>
@@ -349,14 +349,14 @@ export default function PlanosPage() {
                         placeholder="Ex: 25%"
                         disabled={formData.isGratuito}
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Porcentagem de economia a ser exibida (ex: "Economize 25%")
                       </p>
                     </div>
 
                     {/* Configurações */}
                     <div className="space-y-3">
-                      <h5 className="font-medium text-sm text-gray-700">Configurações</h5>
+                      <h5 className="font-medium text-sm text-muted-foreground">Configurações</h5>
                       <div className="flex items-center space-x-2">
                         <Switch 
                           id="isActive"
@@ -394,7 +394,7 @@ export default function PlanosPage() {
 
                   {/* Coluna direita - Dados da Hotmart e conteúdo */}
                   <div className="space-y-4">
-                    <h4 className="font-medium text-gray-900 border-b pb-2">Dados da Hotmart</h4>
+                    <h4 className="font-medium text-foreground border-b pb-2">Dados da Hotmart</h4>
                     
                     <div className="space-y-2">
                       <Label htmlFor="codigoHotmart">Código Hotmart (opcional)</Label>
@@ -436,7 +436,7 @@ export default function PlanosPage() {
                         placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
                         rows={3}
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
                       </p>
                     </div>
@@ -457,7 +457,7 @@ export default function PlanosPage() {
         </div>
 
         {/* Tabela de planos */}
-        <div className="bg-white rounded-md shadow">
+        <div className="bg-card rounded-md shadow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -541,7 +541,7 @@ export default function PlanosPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coluna esquerda - Dados básicos */}
               <div className="space-y-4">
-                <h4 className="font-medium text-gray-900 border-b pb-2">Informações Básicas</h4>
+                <h4 className="font-medium text-foreground border-b pb-2">Informações Básicas</h4>
                 
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">Nome do Plano</Label>
@@ -594,7 +594,7 @@ export default function PlanosPage() {
                     placeholder="Ex: 147,00"
                     disabled={formData.isGratuito}
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Valor original antes do desconto (ex: R$ 497,00)
                   </p>
                 </div>
@@ -608,14 +608,14 @@ export default function PlanosPage() {
                     placeholder="Ex: 25%"
                     disabled={formData.isGratuito}
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Porcentagem de economia a ser exibida (ex: "Economize 25%")
                   </p>
                 </div>
 
                 {/* Configurações */}
                 <div className="space-y-3">
-                  <h5 className="font-medium text-sm text-gray-700">Configurações</h5>
+                  <h5 className="font-medium text-sm text-muted-foreground">Configurações</h5>
                   <div className="flex items-center space-x-2">
                     <Switch 
                       id="edit-isActive"
@@ -653,7 +653,7 @@ export default function PlanosPage() {
 
               {/* Coluna direita - Dados da Hotmart e conteúdo */}
               <div className="space-y-4">
-                <h4 className="font-medium text-gray-900 border-b pb-2">Dados da Hotmart</h4>
+                <h4 className="font-medium text-foreground border-b pb-2">Dados da Hotmart</h4>
                 
                 <div className="space-y-2">
                   <Label htmlFor="edit-codigoHotmart">Código Hotmart (opcional)</Label>
@@ -695,7 +695,7 @@ export default function PlanosPage() {
                     placeholder="Ex:&#10;Downloads Ilimitados&#10;Modelos Premium&#10;Suporte individual"
                     rows={3}
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Itens que o usuário NÃO terá acesso (aparecerão riscados na página de planos)
                   </p>
                 </div>

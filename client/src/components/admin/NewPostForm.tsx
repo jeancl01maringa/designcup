@@ -790,7 +790,7 @@ export function MobileOptimizedPostForm({ open, onOpenChange, initialData, isEdi
                   {formData.formats.map((format) => (
                     <div key={format} className="border rounded-lg overflow-hidden">
                       <div 
-                        className="bg-gray-100 flex items-center justify-center"
+                        className="bg-muted flex items-center justify-center"
                         style={{
                           height: "150px"
                         }}

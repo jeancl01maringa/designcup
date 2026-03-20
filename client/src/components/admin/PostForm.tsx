@@ -638,7 +638,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0 md:p-6 md:pb-8">
-        <div className="sticky top-0 bg-white z-20 pt-6 px-6 pb-3 border-b">
+        <div className="sticky top-0 bg-card z-20 pt-6 px-6 pb-3 border-b">
           <DialogTitle className="text-xl font-bold">
             {step === 1 ? "Nova Postagem" : step === 2 ? "Adicionar Arquivos" : "Revisar Postagem"}
           </DialogTitle>
@@ -652,7 +652,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
           <div className="flex items-center justify-center mb-4 pt-2">
             <div className="flex items-center w-full max-w-md">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 1 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
+                step >= 1 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-muted text-gray-400 border border-border"
               }`}>
                 1
               </div>
@@ -660,7 +660,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                 step > 1 ? "bg-[#1f4ed8]" : "bg-gray-200"
               }`}></div>
               <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 2 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
+                step >= 2 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-muted text-gray-400 border border-border"
               }`}>
                 2
               </div>
@@ -668,7 +668,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                 step > 2 ? "bg-[#1f4ed8]" : "bg-gray-200"
               }`}></div>
               <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                step >= 3 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-gray-100 text-gray-400 border border-gray-300"
+                step >= 3 ? "bg-[#1f4ed8]/10 text-[#1f4ed8] border border-[#1f4ed8]/30" : "bg-muted text-gray-400 border border-border"
               }`}>
                 3
               </div>
@@ -691,7 +691,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
             {/* Mobile - Três etapas simples */}
             <div className="md:hidden">
               <Tabs className="w-full" defaultValue="info">
-                <TabsList className="w-full grid grid-cols-3 sticky top-[129px] bg-white z-10 border-b rounded-none shadow-sm">
+                <TabsList className="w-full grid grid-cols-3 sticky top-[129px] bg-card z-10 border-b rounded-none shadow-sm">
                   <TabsTrigger value="info" className="rounded-none">Básico</TabsTrigger>
                   <TabsTrigger value="meta" className="rounded-none">Detalhes</TabsTrigger>
                   <TabsTrigger value="formats" className="rounded-none">Formatos</TabsTrigger>
@@ -744,7 +744,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                     </div>
                     
                     {/* ID único */}
-                    <div className="bg-slate-50 p-3 rounded-md border mt-4">
+                    <div className="bg-muted p-3 rounded-md border mt-4">
                       <div className="flex items-center">
                         <div className="mr-3 bg-[#1f4ed8]/10 rounded-md p-2">
                           <FileCheck className="h-5 w-5 text-[#1f4ed8]" />
@@ -913,7 +913,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                               className={`w-full h-12 flex items-center justify-start px-4 rounded-lg transition-colors ${
                                 formData.formats.includes(format.id as PostFormat) 
                                   ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
-                                  : "border-gray-200 hover:bg-gray-50"
+                                  : "border-border hover:bg-muted"
                               }`}
                               onClick={() => handleFormatToggle(format.id as PostFormat)}
                             >
@@ -1135,7 +1135,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                         className={`w-full h-12 flex items-center justify-start px-4 rounded-lg transition-colors ${
                           formData.formats.includes(format.id as PostFormat) 
                             ? "bg-[#1f4ed8]/5 text-[#1f4ed8] border-[#1f4ed8]/30 shadow-sm hover:bg-[#1f4ed8]/10" 
-                            : "border-gray-200 hover:bg-gray-50"
+                            : "border-border hover:bg-muted"
                         }`}
                         onClick={() => handleFormatToggle(format.id as PostFormat)}
                       >
@@ -1159,7 +1159,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
             </div>
             
             {/* Botões de Navegação - Sempre visíveis no bottom */}
-            <div className="flex justify-between border-t bg-white px-6 py-4 sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
+            <div className="flex justify-between border-t bg-card px-6 py-4 sticky bottom-0 left-0 right-0 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-30">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
                   Cancelar
@@ -1319,7 +1319,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                     </CardContent>
                   </Card>
                   
-                  <div className="bg-slate-50 p-3 rounded-md border">
+                  <div className="bg-muted p-3 rounded-md border">
                     <div className="flex items-center">
                       <div className="mr-3 bg-[#1f4ed8]/10 rounded-md p-2">
                         <FileCheck className="h-5 w-5 text-[#1f4ed8]" />
@@ -1523,7 +1523,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
         {step === 3 && (
           // ETAPA 3: Revisão final e confirmação
           <div className="space-y-6">
-            <div className="bg-slate-50 p-4 rounded-md border">
+            <div className="bg-muted p-4 rounded-md border">
               <div className="flex items-center gap-2 mb-4 text-[#1f4ed8]">
                 <FileCheck className="h-5 w-5" />
                 <h3 className="font-medium text-lg">Revise os dados antes de publicar</h3>
@@ -1591,7 +1591,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                       "overflow-hidden transition-all",
                       hasImageOrLinks(format) 
                         ? "border-[#1f4ed8]/30" 
-                        : "border-gray-200 opacity-60"
+                        : "border-border opacity-60"
                     )}>
                       <CardHeader className="pb-2 pt-4 px-4">
                         <CardTitle className="text-md capitalize">{format}</CardTitle>
@@ -1605,7 +1605,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                         {formData.formatFiles[format].imagePreview ? (
                           <div className="relative border-t border-b py-3 flex items-center justify-center">
                             <div 
-                              className="overflow-hidden flex items-center justify-center bg-slate-50"
+                              className="overflow-hidden flex items-center justify-center bg-muted"
                               style={{
                                 width: format === 'feed' ? "150px" : format === 'cartaz' ? "120px" : "85px",
                                 height: format === 'feed' ? "150px" : format === 'cartaz' ? "150px" : "150px"
@@ -1619,7 +1619,7 @@ export function PostForm({ open, onOpenChange, initialData, isEdit = false, cate
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center h-16 border-t border-b bg-slate-50">
+                          <div className="flex items-center justify-center h-16 border-t border-b bg-muted">
                             <FileImage className="h-6 w-6 text-slate-300" />
                           </div>
                         )}

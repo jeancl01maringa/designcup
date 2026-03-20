@@ -85,7 +85,7 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
     >
       <div className="relative overflow-hidden w-full">
         {imageError ? (
-          <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
+          <div className="w-full aspect-square bg-muted flex items-center justify-center">
             <ImageIcon className="w-12 h-12 text-gray-400" />
           </div>
         ) : (
@@ -107,7 +107,7 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
             ${hovered ? 'opacity-100' : 'opacity-0'}`}
         >
           <button 
-            className="p-2 rounded-full shadow-md transition-colors bg-white text-black hover:bg-white/90"
+            className="p-2 rounded-full shadow-md transition-colors bg-card text-black hover:bg-card/90"
             onClick={handleLike}
             aria-label="Adicionar aos favoritos"
           >
@@ -115,7 +115,7 @@ function ProfileArtworkCard({ post, onNavigate }: { post: Post; onNavigate: () =
           </button>
           
           <button 
-            className="p-2 rounded-full shadow-md transition-colors bg-white text-black hover:bg-white/90"
+            className="p-2 rounded-full shadow-md transition-colors bg-card text-black hover:bg-card/90"
             onClick={handleSave}
             aria-label="Salvar item"
           >
@@ -282,7 +282,7 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Banner superior */}
       <div className="relative h-48 bg-gradient-to-r from-blue-400 via-purple-500 to-orange-400 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-400/80 via-purple-500/80 to-orange-400/80">
@@ -296,7 +296,7 @@ export default function ProfilePage() {
       {/* Container principal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">
         {/* Card do perfil */}
-        <Card className="bg-white shadow-lg border-0 mb-8">
+        <Card className="bg-card shadow-lg border-0 mb-8">
           <CardContent className="p-8">
             <div className="flex flex-col items-center text-center gap-6">
               {/* Avatar centralizado com proporção correta */}
@@ -320,9 +320,9 @@ export default function ProfilePage() {
               
               {/* Informações básicas centralizadas */}
               <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
-                <p className="text-gray-600">Desde {joinDate}</p>
-                <p className="text-gray-700 mt-2 max-w-md mx-auto">
+                <h1 className="text-2xl font-bold text-foreground">{profile.username}</h1>
+                <p className="text-muted-foreground">Desde {joinDate}</p>
+                <p className="text-muted-foreground mt-2 max-w-md mx-auto">
                   {profile.bio || "Bem-vindo ao nosso perfil oficial! Aqui você encontra conteúdos criativos que agregam valor aos seus projetos."}
                 </p>
                 
@@ -334,7 +334,7 @@ export default function ProfilePage() {
                       onClick={handleFollow}
                       disabled={followLoading}
                       className={isFollowing 
-                        ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300" 
+                        ? "bg-muted hover:bg-gray-200 text-muted-foreground border border-border" 
                         : "bg-black hover:bg-gray-800 text-white border-0"
                       }
                     >
@@ -356,20 +356,20 @@ export default function ProfilePage() {
               {/* Estatísticas centralizadas */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{stats?.postsCount || 0}</div>
-                  <div className="text-sm text-gray-600">Arquivos</div>
+                  <div className="text-2xl font-bold text-foreground">{stats?.postsCount || 0}</div>
+                  <div className="text-sm text-muted-foreground">Arquivos</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{stats?.downloads || 0}</div>
-                  <div className="text-sm text-gray-600">Downloads</div>
+                  <div className="text-2xl font-bold text-foreground">{stats?.downloads || 0}</div>
+                  <div className="text-sm text-muted-foreground">Downloads</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{stats?.views || 0}</div>
-                  <div className="text-sm text-gray-600">Visualizações</div>
+                  <div className="text-2xl font-bold text-foreground">{stats?.views || 0}</div>
+                  <div className="text-sm text-muted-foreground">Visualizações</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{stats?.followers || 0}</div>
-                  <div className="text-sm text-gray-600">Seguidores</div>
+                  <div className="text-2xl font-bold text-foreground">{stats?.followers || 0}</div>
+                  <div className="text-sm text-muted-foreground">Seguidores</div>
                 </div>
               </div>
             </div>
@@ -377,7 +377,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Seção de artes */}
-        <Card className="bg-white shadow-lg border-0">
+        <Card className="bg-card shadow-lg border-0">
           <CardContent className="p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-blue-600">
@@ -426,8 +426,8 @@ export default function ProfilePage() {
                 <div className="text-gray-400 mb-4">
                   <Filter className="h-16 w-16 mx-auto" />
                 </div>
-                <h3 className="text-xl font-medium text-gray-900 mb-2">Nenhuma arte encontrada</h3>
-                <p className="text-gray-600 max-w-md mx-auto">
+                <h3 className="text-xl font-medium text-foreground mb-2">Nenhuma arte encontrada</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
                   {activeFilter === 'todos' 
                     ? 'Este designer ainda não publicou nenhuma arte.' 
                     : 'Nenhuma arte encontrada para este filtro. Tente selecionar "Todos" para ver todas as artes.'
