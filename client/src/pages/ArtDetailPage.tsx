@@ -321,10 +321,11 @@ export default function ArtDetailPage() {
   useEffect(() => {
     if (post && post.id) {
       trackViewContent({
-        content_name: post.title,
-        content_type: 'product',
-        content_ids: [post.id.toString()],
-        content_category: post.categoria || post.category_name || 'Arte'
+        postId: post.id.toString(),
+        title: post.title,
+        category: post.categoria || post.category_name || 'Arte',
+        format: post.formato || 'Feed',
+        isPremium: post.isPro || false
       });
     }
   }, [post, trackViewContent]);
@@ -906,27 +907,19 @@ export default function ArtDetailPage() {
           <div className="bg-muted p-4 rounded-lg">
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
-                </div>
+                <img src="/canva-logo.png" alt="Canva" className="w-5 h-5 flex-shrink-0" />
                 <span className="text-muted-foreground text-sm">Editável no Canva gratuito</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
-                </div>
+                <Check size={20} className="text-green-500 flex-shrink-0" />
                 <span className="text-muted-foreground text-sm">Para projetos comerciais e pessoais</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
-                </div>
+                <Check size={20} className="text-green-500 flex-shrink-0" />
                 <span className="text-muted-foreground text-sm">Não precisa atribuir o autor</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
-                </div>
+                <Check size={20} className="text-green-500 flex-shrink-0" />
                 <span className="text-muted-foreground text-sm">Qualidade profissional</span>
               </li>
             </ul>
@@ -936,40 +929,21 @@ export default function ArtDetailPage() {
           <div className="bg-muted rounded-lg p-4">
             <h3 className="text-sm font-medium text-muted-foreground mb-3">Especificações do Arquivo</h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 border border-border rounded-full bg-card border-border"></div>
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Formato:</span>
-                  <span className="text-sm">{selectedFormat?.name || formatLabel(currentPost?.formato || 'Feed')}</span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-sm">Formato:</span>
+                <span className="text-foreground text-sm font-medium">{selectedFormat?.name || formatLabel(currentPost?.formato || 'Feed')}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 border border-border rounded-full bg-card border-border"></div>
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Tipo:</span>
-                  <span className="text-sm">Canva</span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-sm">Tipo:</span>
+                <span className="text-foreground text-sm font-medium">Canva</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 flex items-center justify-center">
-                  <Heart size={13} className="text-gray-400" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Curtidas:</span>
-                  <span className="text-sm">{likesCount}</span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-sm">Curtidas:</span>
+                <span className="text-foreground text-sm font-medium">{likesCount}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 flex items-center justify-center">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                  </svg>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Número de identificação:</span>
-                  <span className="text-sm">#{post.id}</span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-sm">Identificação:</span>
+                <span className="text-foreground text-sm font-medium">#{post.id}</span>
               </div>
             </div>
           </div>
@@ -1117,7 +1091,7 @@ export default function ArtDetailPage() {
                   {/* Botão amarelo para artes premium quando não logado */}
                   <Button
                     onClick={() => setLocation('/planos')}
-                    className="w-full bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                    className="w-full bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
                   >
                     <Crown size={16} className="text-white" />
                     <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
@@ -1175,7 +1149,7 @@ export default function ArtDetailPage() {
                 <>
                   <Button
                     onClick={() => setLocation('/loguin')}
-                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
@@ -1225,7 +1199,7 @@ export default function ArtDetailPage() {
             <div className="space-y-3">
               <Button
                 onClick={() => setLocation('/planos')}
-                className="w-full bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground py-3 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                className="w-full bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
               >
                 <Crown size={16} className="text-white drop-shadow-sm" />
                 <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
@@ -1239,7 +1213,7 @@ export default function ArtDetailPage() {
                   variant="outline"
                   size="sm"
                   disabled={postActions.isLiking}
-                  className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-muted-foreground"
+                  className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-500 text-red-500" : "text-muted-foreground"
                     }`}
                 >
                   <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
@@ -1251,7 +1225,7 @@ export default function ArtDetailPage() {
                   variant="outline"
                   size="sm"
                   disabled={postActions.isSaving}
-                  className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-muted-foreground"
+                  className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-500 text-blue-500" : "text-muted-foreground"
                     }`}
                 >
                   <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
@@ -1287,7 +1261,7 @@ export default function ArtDetailPage() {
             <div className="space-y-3">
               <Button
                 onClick={handleEditCanva}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
@@ -1304,7 +1278,7 @@ export default function ArtDetailPage() {
                   variant="outline"
                   size="sm"
                   disabled={postActions.isLiking}
-                  className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-300 bg-red-50 text-red-600" : "text-muted-foreground"
+                  className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-500 text-red-500" : "text-muted-foreground"
                     }`}
                 >
                   <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
@@ -1316,7 +1290,7 @@ export default function ArtDetailPage() {
                   variant="outline"
                   size="sm"
                   disabled={postActions.isSaving}
-                  className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-300 bg-blue-50 text-blue-600" : "text-muted-foreground"
+                  className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-500 text-blue-500" : "text-muted-foreground"
                     }`}
                 >
                   <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
@@ -1337,7 +1311,7 @@ export default function ArtDetailPage() {
           )}
 
           {/* Informações do criador */}
-          <div className="border-t pt-4 mt-2">
+          <div className="pt-2 mt-4">
             <div className="flex items-center justify-between">
               {authorLoading ? (
                 <div className="flex items-center gap-3">
