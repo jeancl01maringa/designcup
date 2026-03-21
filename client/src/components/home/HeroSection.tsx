@@ -67,7 +67,9 @@ export default function HeroSection() {
 
         {/* Description - Reduced font sizes */}
         <p className="text-muted-foreground text-[16px] md:text-[18px] mb-6 sm:mb-8 max-w-3xl font-sans font-light leading-relaxed px-4 sm:px-0">
-          <span className="text-foreground font-semibold">Artes 100% editáveis</span> para <span className="text-foreground font-semibold">lojas de camisas de futebol.</span>
+          <span className="text-foreground font-semibold">Artes 100% editáveis</span> para <span className="text-foreground font-semibold">lojas</span>
+          <br className="block sm:hidden" />
+          <span className="text-foreground font-semibold"> de camisas de futebol.</span>
         </p>
 
         {/* Search Bar with Format Dropdown - Hidden on mobile */}
