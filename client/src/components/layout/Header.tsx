@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "wouter";
 
 import { Button } from "@/components/ui/button";
@@ -697,9 +698,9 @@ export default function Header() {
 
       </div>
 
-      {/* Modal de Pesquisa Mobile (Reutilizando a lógica do Desktop) */}
-      {isMobileSearchOpen && (
-        <div className="md:hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Modal de Pesquisa Mobile - Renderizado via Portal no body para centralizar na tela */}
+      {isMobileSearchOpen && createPortal(
+        <div className="md:hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             onClick={() => setIsMobileSearchOpen(false)}
@@ -734,7 +735,8 @@ export default function Header() {
               </button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );
