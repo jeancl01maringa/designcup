@@ -150,10 +150,10 @@ const UserMenu = () => {
         <Button
           variant="default"
           size="sm"
-          className="flex items-center gap-1.5 bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground shadow-lg transition-all duration-300 rounded-full font-medium px-3 py-1.5 h-8 text-xs border-0"
+          className="flex items-center gap-1.5 bg-[#8C8261] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-full font-semibold px-3 py-1.5 h-8 text-xs border-0"
           onClick={() => navigate("/planos")}
         >
-          <Crown className="h-3.5 w-3.5" />
+          <Crown className="h-3.5 w-3.5" fill="currentColor" />
           <span>Assine o Premium</span>
         </Button>
         <Button
@@ -216,10 +216,10 @@ const UserMenu = () => {
       {isFreeUser && (
         <Button
           variant="default"
-          className="flex items-center gap-1 bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground shadow-lg transition-all duration-300 rounded-full font-medium px-3 h-[35px] text-xs border-0"
+          className="flex items-center gap-1 bg-[#8C8261] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-full font-semibold px-3 h-[35px] text-xs border-0"
           onClick={() => navigate("/planos")}
         >
-          <Crown className="h-3 w-3" />
+          <Crown className="h-3 w-3" fill="currentColor" />
           <span>Assine o Premium</span>
         </Button>
       )}
@@ -244,7 +244,7 @@ const UserMenu = () => {
             </div>
           )}
         </div>
-        <span className="max-w-[100px] truncate">{user.username}</span>
+        <span className="max-w-[100px] truncate">{user.username?.split(' ')[0] || 'Usuário'}</span>
         <ChevronDown className="h-4 w-4" />
       </Button>
 
