@@ -28,7 +28,7 @@ export default function LoguinPage() {
             <img
               src={logoUrl}
               alt="DesignCup"
-              className="h-10 md:h-12 w-auto object-contain mb-4"
+              className="h-7 md:h-8 w-auto max-w-[180px] object-contain mb-6 mx-auto"
               style={{
                 imageRendering: 'crisp-edges',
                 filter: 'contrast(1.1) brightness(1.05)'

@@ -23,7 +23,7 @@ export default function AuthPage() {
           <img
             src={logoUrl}
             alt="DesignCup"
-            className="h-12 md:h-14 w-auto object-contain"
+            className="h-7 md:h-8 w-auto max-w-[180px] object-contain mb-6 mx-auto"
             style={{
               imageRendering: 'crisp-edges',
               filter: 'contrast(1.1) brightness(1.05)'
