@@ -28,7 +28,7 @@ function useResponsiveColumns() {
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    
+
     const updateColumns = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
@@ -39,7 +39,7 @@ function useResponsiveColumns() {
         else if (width < 1024) newColumns = 3;
         else if (width < 1280) newColumns = 4;
         else newColumns = 5;
-        
+
         setColumns(prev => prev !== newColumns ? newColumns : prev);
       }, 150);
     };
@@ -57,12 +57,12 @@ function useResponsiveColumns() {
 // Distribuir posts em colunas
 function distributePostsInColumns(posts: Post[], columns: number): Post[][] {
   const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
-  
+
   posts.forEach((post, index) => {
     const columnIndex = index % columns;
     columnArrays[columnIndex].push(post);
   });
-  
+
   return columnArrays;
 }
 
@@ -82,19 +82,19 @@ export default function TodasArtesOptimized() {
     const page = parseInt(urlParams.get('page') || '1');
     const search = urlParams.get('search') || '';
     const format = urlParams.get('format') || '';
-    
+
     setCurrentPage(page);
-    
+
     // Aplicar filtros de pesquisa vindos da home
     if (search) {
       setSearchTerm(search);
     }
-    
+
     if (format && format !== 'all') {
       // Mapear os formatos da home para os filtros da página
       const formatMap: Record<string, string> = {
         'feed': 'Feed',
-        'poster': 'Cartaz', 
+        'poster': 'Cartaz',
         'stories': 'Stories',
         'images': 'Imagens'
       };
@@ -162,7 +162,7 @@ export default function TodasArtesOptimized() {
 
     // Filtro de pesquisa por título
     if (searchTerm.trim()) {
-      allPosts = allPosts.filter(post => 
+      allPosts = allPosts.filter(post =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase().trim())
       );
     }
@@ -251,13 +251,13 @@ export default function TodasArtesOptimized() {
               Voltar
             </Button>
           </div>
-          <h1 className="text-xl md:text-3xl font-bold text-foreground mb-1 md:mb-2">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground mb-1 md:mb-2">
             {searchTerm ? `Resultados da busca para "${searchTerm}"` : "Todos os Designs"}
           </h1>
-          <p className="text-muted-foreground text-sm md:text-lg">
-            {searchTerm 
+          <p className="text-muted-foreground text-sm md:text-base">
+            {searchTerm
               ? `Aproximadamente ${filteredPosts.length > 0 ? filteredPosts.length : '0'} resultados, se você não encontrou o que procura, tente outra palavra-chave.`
-              : "Explore nossa coleção completa de templates profissionais para impulsionar seu negócio."
+              : "Explore nossa coleção completa de templates profissionais."
             }
           </p>
         </div>
@@ -387,7 +387,7 @@ export default function TodasArtesOptimized() {
                 />
               </div>
             </div>
-            
+
             {/* Botão Filtros */}
             <div className="flex flex-col justify-end">
               <Button
@@ -558,7 +558,7 @@ export default function TodasArtesOptimized() {
             <p className="text-muted-foreground mb-4">
               Tente ajustar os filtros para ver mais resultados.
             </p>
-            <Button 
+            <Button
               onClick={() => {
                 setSelectedCategory("all");
                 setSelectedFormat("all");
