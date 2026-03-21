@@ -190,7 +190,7 @@ const UserMenu = () => {
       {isAdmin && (
         <Button
           variant="outline"
-          className="flex items-center gap-1 border-primary/50 text-primary hover:bg-primary/10 rounded-lg px-3 h-[35px] text-xs"
+          className="flex items-center gap-1 border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-lg px-3 h-[35px] text-xs transition-colors"
           onClick={() => navigate("/admin")}
         >
           <svg
@@ -239,7 +239,7 @@ const UserMenu = () => {
               key={user.profileImage}
             />
           ) : (
-            <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
+            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
               <User className="h-4 w-4" />
             </div>
           )}
@@ -289,7 +289,7 @@ const MobileUserMenu = () => {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-1 border-primary/50 text-primary hover:bg-primary/10 px-2"
+          className="flex items-center gap-1 border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground px-2 transition-colors"
           onClick={() => navigate("/admin")}
         >
           <svg
@@ -326,7 +326,7 @@ const MobileUserMenu = () => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary">
+            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
               <User className="h-5 w-5" />
             </div>
           )}
