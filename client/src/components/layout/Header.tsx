@@ -157,18 +157,18 @@ const UserMenu = () => {
           <span>Assine o Premium</span>
         </Button>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="flex items-center gap-1.5 border-[#191c2c] text-[#191c2c] hover:bg-[#191c2c] hover:text-white bg-transparent transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
+          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
           onClick={() => navigate("/loguin/cadastro")}
         >
           <UserPlus className="h-3.5 w-3.5" />
           <span>Cadastre-se</span>
         </Button>
         <Button
-          variant="default"
+          variant="outline"
           size="sm"
-          className="flex items-center gap-1.5 bg-[#191c2c] hover:bg-[#14182a] text-white shadow-sm transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
+          className="flex items-center gap-1.5 bg-muted/30 border-border hover:bg-muted text-foreground transition-all duration-200 rounded-full px-4 py-1.5 h-8 text-xs"
           onClick={() => navigate("/loguin")}
         >
           <LogIn className="h-3.5 w-3.5" />
