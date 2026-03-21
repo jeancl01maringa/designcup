@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
+
 import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
-import { MobileSearchBar } from "./MobileSearchBar";
 import { ProfileMobileNav } from "@/components/layout/ProfileMobileNav";
 import { useAuth } from "@/hooks/use-auth";
 import { useSupportNumber } from "@/hooks/use-support-number";
@@ -15,7 +15,8 @@ import {
   ChevronDown,
   MessageSquare,
   Crown,
-  Search
+  Search,
+  X
 } from "lucide-react";
 import { UserDropdownMenu } from "./UserDropdownMenu";
 import { SupportContact } from "@/components/ui/SupportContact";
@@ -535,6 +536,7 @@ export default function Header() {
     location.startsWith('/salvos') || location.startsWith('/seguindo') ||
     location.startsWith('/edicoes-recentes') || location.startsWith('/assinatura');
   const [showScrollSearchBar, setShowScrollSearchBar] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [showFormatDropdown, setShowFormatDropdown] = useState(false);
@@ -679,13 +681,61 @@ export default function Header() {
 
           {/* Botões - lado direito */}
           <div className="flex items-center justify-end gap-1">
-            <MobileSearchBar />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileSearchOpen(true)}
+              className="text-muted-foreground hover:text-foreground hover:bg-muted/50 w-10 h-10 flex items-center justify-center rounded-lg transition-colors focus:outline-none"
+              aria-label="Abrir pesquisa"
+            >
+              <Search className="w-5 h-5" />
+            </Button>
             {isProfilePage ? <ProfileMobileNav /> : <MobileMenu />}
             <MobileUserMenu />
           </div>
         </div>
 
       </div>
+
+      {/* Modal de Pesquisa Mobile (Reutilizando a lógica do Desktop) */}
+      {isMobileSearchOpen && (
+        <div className="md:hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setIsMobileSearchOpen(false)}
+          />
+
+          <div className="relative w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <form onSubmit={(e) => { handleScrollSearch(e); setIsMobileSearchOpen(false); }} className="space-y-4">
+              <div className="relative flex items-center w-full">
+                <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Busque por arquivos"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-14 pl-12 pr-12 bg-[#121212] border border-primary rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground shadow-lg"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => { setIsMobileSearchOpen(false); setSearchQuery(""); }}
+                  className="absolute right-3 p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full h-14 bg-primary text-white font-semibold text-lg rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+              >
+                Buscar
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
