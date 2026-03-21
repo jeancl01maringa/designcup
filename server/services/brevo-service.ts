@@ -15,7 +15,7 @@ interface EmailData {
 export class BrevoService {
   private static remetente = {
     email: 'jean.maringa@hotmail.com',
-    name: 'Design para Estética'
+    name: 'DesignCup'
   };
 
   /**
@@ -25,13 +25,13 @@ export class BrevoService {
     try {
       const payload: any = {
         sender: this.remetente,
-        to: [{ 
-          email: data.to, 
-          name: data.toName || data.to.split('@')[0] 
+        to: [{
+          email: data.to,
+          name: data.toName || data.to.split('@')[0]
         }],
         subject: data.subject
       };
-      
+
       if (data.templateId) {
         payload.templateId = data.templateId;
         payload.params = data.params || {};
@@ -72,7 +72,7 @@ export class BrevoService {
       const payload: any = {
         email: email
       };
-      
+
       if (nome) {
         const nomeParts = nome.trim().split(' ');
         payload.attributes = {
@@ -80,7 +80,7 @@ export class BrevoService {
           SOBRENOME: nomeParts.slice(1).join(' ') || nomeParts[0]
         };
       }
-      
+
       if (listIds && listIds.length > 0) {
         payload.listIds = listIds;
       }
@@ -168,11 +168,11 @@ export class BrevoService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Bem-vindo ao Design para Estética!</h1>
+            <h1>Bem-vindo ao DesignCup!</h1>
           </div>
           <div class="content">
             <h2>Olá, ${nome}!</h2>
-            <p>É um prazer ter você conosco! Agora você faz parte da melhor plataforma de artes para estética do Brasil.</p>
+            <p>É um prazer ter você conosco! Agora você faz parte da melhor plataforma de designs para profissionais de estética do Brasil.</p>
             
             <p><strong>O que você pode fazer agora:</strong></p>
             <ul>
@@ -186,10 +186,10 @@ export class BrevoService {
             
             <p>Se tiver alguma dúvida, nossa equipe de suporte está sempre disponível para ajudar!</p>
             
-            <p>Bem-vindo à família Design para Estética!</p>
+            <p>Bem-vindo à família DesignCup!</p>
           </div>
           <div class="footer">
-            <p>Design para Estética - A melhor plataforma de artes para estética do Brasil</p>
+            <p>DesignCup - A melhor plataforma de designs para profissionais de estética do Brasil</p>
             <p>Este é um email automático, não responda esta mensagem.</p>
           </div>
         </div>
@@ -200,9 +200,9 @@ export class BrevoService {
     return await this.enviarEmail({
       to: email,
       toName: nome,
-      subject: '🎨 Bem-vindo ao Design para Estética!',
+      subject: '🎨 Bem-vindo ao DesignCup!',
       htmlContent,
-      textContent: `Olá ${nome}! Bem-vindo ao Design para Estética. Sua conta foi criada com sucesso e você já pode acessar nossa plataforma de templates para estética.`
+      textContent: `Olá ${nome}! Bem-vindo ao DesignCup. Sua conta foi criada com sucesso e você já pode acessar nossa plataforma de designs para estética.`
     });
   }
 
@@ -250,10 +250,10 @@ export class BrevoService {
               <li>Novos templates semanais</li>
             </ul>
             
-            <p>Obrigado por escolher o Design para Estética!</p>
+            <p>Obrigado por escolher o DesignCup!</p>
           </div>
           <div class="footer">
-            <p>Design para Estética - A melhor plataforma de artes para estética do Brasil</p>
+            <p>DesignCup - A melhor plataforma de designs para profissionais de estética do Brasil</p>
             <p>Este é um email automático, não responda esta mensagem.</p>
           </div>
         </div>
@@ -352,7 +352,7 @@ export class BrevoService {
           </div>
           <div class="content">
             <h2>Olá, Administrador!</h2>
-            <p>Um novo usuário se cadastrou na plataforma Design para Estética.</p>
+            <p>Um novo usuário se cadastrou na plataforma DesignCup.</p>
             
             <div class="info-box">
               <h3>Dados do novo usuário:</h3>
@@ -365,7 +365,7 @@ export class BrevoService {
             <p>O usuário recebeu um email de boas-vindas automaticamente e já pode acessar a plataforma.</p>
           </div>
           <div class="footer">
-            <p>Design para Estética - Notificação Administrativa</p>
+            <p>DesignCup - Notificação Administrativa</p>
             <p>Este é um email automático, não responda esta mensagem.</p>
           </div>
         </div>
@@ -406,7 +406,7 @@ export class BrevoService {
           </div>
           <div class="content">
             <h2>Ótimas notícias!</h2>
-            <p>Uma nova compra foi realizada na plataforma via Hotmart.</p>
+            <p>Uma nova compra foi realizada na plataforma.</p>
             
             <div class="info-box">
               <h3>Detalhes da compra:</h3>
@@ -421,7 +421,7 @@ export class BrevoService {
             <p>O cliente foi automaticamente promovido para premium e recebeu email de confirmação.</p>
           </div>
           <div class="footer">
-            <p>Design para Estética - Notificação Administrativa</p>
+            <p>DesignCup - Notificação Administrativa</p>
             <p>Este é um email automático, não responda esta mensagem.</p>
           </div>
         </div>
