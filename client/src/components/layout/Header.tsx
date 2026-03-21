@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
+import { MobileSearchBar } from "./MobileSearchBar";
 import { ProfileMobileNav } from "@/components/layout/ProfileMobileNav";
 import { useAuth } from "@/hooks/use-auth";
 import { useSupportNumber } from "@/hooks/use-support-number";
@@ -284,6 +285,8 @@ const MobileUserMenu = () => {
 
   return (
     <div className="flex md:hidden items-center gap-2">
+      {/* Mobile Search Icon */}
+      <MobileSearchBar />
       {/* Admin Button for Mobile */}
       {isAdmin && (
         <Button
@@ -362,11 +365,11 @@ const MobileMenu = () => {
         <SheetTrigger asChild>
           <Button
             variant="ghost"
-            size="lg"
-            className="text-[#1D1D1D] hover:text-[#AA5E2F] min-w-[80px] min-h-[80px] p-5"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted/50 w-10 h-10 transition-colors"
           >
-            <svg className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3.5" d="M4 6h16M4 12h16M4 18h16"></path>
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </Button>
         </SheetTrigger>
