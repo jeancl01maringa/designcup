@@ -75,7 +75,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end items-start pt-16 pr-4 sm:pr-8"
+      className="fixed inset-0 z-50 flex justify-end items-start pt-16 pr-4 sm:pr-8 md:pr-12 lg:pr-[15%]"
       onClick={handleOverlayClick}
     >
       <div
@@ -95,34 +95,35 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
             <div className="flex-1 min-w-0 flex flex-col items-start">
               <div className="flex items-center gap-2">
                 <h3 className="text-foreground font-medium text-sm truncate">{user.username}</h3>
-                {/* Para usuários premium (agora minimizado e inline) */}
-                {(user?.tipo === 'premium' || (userPlan && userPlan.planName !== 'Plano Gratuito')) && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] text-[#121212] tracking-wider uppercase">
-                    <Crown className="w-2.5 h-2.5" fill="currentColor" />
-                    Premium
-                  </span>
-                )}
               </div>
               <p className="text-muted-foreground text-xs truncate mt-0.5">{user.email}</p>
             </div>
           </div>
-
-          {/* Botão de upgrade para usuários gratuitos */}
-          {user?.tipo !== 'premium' && (!userPlan || userPlan.planName === 'Plano Gratuito') && (
-            <div className="mt-4">
-              <button
-                onClick={() => handleClick('/planos')}
-                className="bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] font-semibold py-1.5 px-3 rounded text-xs md:text-sm w-full transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Crown className="w-3.5 h-3.5" fill="currentColor" />
-                Assinar Premium
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Lista de opções minimalista */}
         <ul className="py-2">
+          <li className="hover:bg-accent/50 transition-colors duration-200">
+            <button
+              className="w-full px-5 py-2.5 flex items-center justify-between gap-3"
+              onClick={() => handleClick('/planos')}
+            >
+              <div className="flex items-center gap-3">
+                <Crown className="w-4 h-4 text-muted-foreground" />
+                <p className="font-medium text-sm text-foreground">Planos ativos</p>
+              </div>
+              {(user?.tipo === 'premium' || (userPlan && userPlan.planName !== 'Plano Gratuito')) ? (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] text-[#121212] tracking-wider uppercase">
+                  Premium Pro
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted-foreground/20 text-muted-foreground tracking-wider uppercase">
+                  Gratuito
+                </span>
+              )}
+            </button>
+          </li>
+
           <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
               className="w-full px-5 py-2.5 flex items-center gap-3"
