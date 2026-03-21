@@ -249,7 +249,7 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
         <div className="flex justify-center mt-16">
           <a
             href="/todas-artes"
-            className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-full transition-colors duration-200"
+            className="inline-flex items-center px-6 py-3 bg-muted border border-transparent hover:border-primary text-muted-foreground hover:text-foreground font-medium rounded-lg transition-all duration-300"
           >
             Ver todas as artes
             <ArrowRight className="w-4 h-4 ml-2" />

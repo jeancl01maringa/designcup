@@ -150,7 +150,7 @@ const UserMenu = () => {
         <Button
           variant="default"
           size="sm"
-          className="flex items-center gap-1.5 bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-full font-semibold px-3 py-1.5 h-8 text-xs border-0"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-lg font-semibold px-3 py-1.5 h-8 text-xs border-0"
           onClick={() => navigate("/planos")}
         >
           <Crown className="h-3.5 w-3.5" fill="currentColor" />
@@ -159,7 +159,7 @@ const UserMenu = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 rounded-full px-3 py-1.5 h-8 text-xs"
+          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 rounded-lg px-3 py-1.5 h-8 text-xs"
           onClick={() => navigate("/loguin/cadastro")}
         >
           <UserPlus className="h-3.5 w-3.5" />
@@ -168,7 +168,7 @@ const UserMenu = () => {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-1.5 bg-muted/30 border-border hover:bg-muted text-foreground transition-all duration-200 rounded-full px-4 py-1.5 h-8 text-xs"
+          className="flex items-center gap-1.5 bg-muted/30 border-border hover:bg-muted text-foreground transition-all duration-200 rounded-lg px-4 py-1.5 h-8 text-xs"
           onClick={() => navigate("/loguin")}
         >
           <LogIn className="h-3.5 w-3.5" />
@@ -190,7 +190,7 @@ const UserMenu = () => {
       {isAdmin && (
         <Button
           variant="outline"
-          className="flex items-center gap-1 border-primary/50 text-primary hover:bg-primary/10 rounded-full px-3 h-[35px] text-xs"
+          className="flex items-center gap-1 border-primary/50 text-primary hover:bg-primary/10 rounded-lg px-3 h-[35px] text-xs"
           onClick={() => navigate("/admin")}
         >
           <svg

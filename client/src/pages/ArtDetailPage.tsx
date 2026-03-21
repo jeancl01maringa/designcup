@@ -1136,9 +1136,9 @@ export default function ArtDetailPage() {
                     <div className="flex items-start gap-2">
                       <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
-                        <p className="font-medium text-amber-800 dark:text-amber-400">Acesso Premium Necessário</p>
+                        <p className="font-medium text-amber-800 dark:text-amber-400">Arquivo premium</p>
                         <p className="text-amber-700 dark:text-amber-300/80 mt-1">
-                          Este produto está disponível exclusivamente para os membros premium. Faça upgrade para uma conta Premium para ter acesso a todo o conteúdo premium.
+                          Este arquivo está disponível exclusivamente para membros premium. Torne-se premium para utilizar.
                         </p>
                       </div>
                     </div>
@@ -1248,9 +1248,9 @@ export default function ArtDetailPage() {
                 <div className="flex items-start gap-2">
                   <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium text-amber-800 dark:text-amber-400">Acesso Premium Necessário</p>
+                    <p className="font-medium text-amber-800 dark:text-amber-400">Arquivo premium</p>
                     <p className="text-amber-700 dark:text-amber-300/80 mt-1">
-                      Este produto está disponível exclusivamente para os membros premium. Faça upgrade para uma conta Premium para ter acesso a todo o conteúdo premium.
+                      Este arquivo está disponível exclusivamente para membros premium. Torne-se premium para utilizar.
                     </p>
                   </div>
                 </div>
