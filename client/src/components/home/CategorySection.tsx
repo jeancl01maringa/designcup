@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, ImageOff, Eye } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ImageOff, Eye, ChevronRight } from 'lucide-react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -171,9 +171,8 @@ export default function CategorySection() {
       <section className="py-8 bg-background border-b border-border">
         <div className="container-global">
           <div className="mb-6">
-            <h3 className="text-foreground font-semibold text-lg font-inter mb-1 flex items-center">
-              <span className="mr-2">📁</span>
-              Escolha sua categoria
+            <h3 className="text-foreground font-semibold text-lg font-inter flex items-center">
+              Categorias em destaque
             </h3>
           </div>
           <div className="flex justify-center items-center h-32">
@@ -194,9 +193,8 @@ export default function CategorySection() {
       <section className="py-8 bg-background border-b border-border">
         <div className="container-global">
           <div className="mb-6">
-            <h3 className="text-foreground font-semibold text-lg font-inter mb-1 flex items-center">
-              <span className="mr-2">📁</span>
-              Escolha sua categoria
+            <h3 className="text-foreground font-semibold text-lg font-inter flex items-center">
+              Categorias em destaque
             </h3>
           </div>
           <div className="flex flex-col items-center justify-center py-6">
@@ -218,30 +216,18 @@ export default function CategorySection() {
         {/* Header */}
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h3 className="text-foreground font-semibold text-sm sm:text-base md:text-lg font-inter mb-1 flex items-center">
-              Escolha sua categoria
+            <h3 className="text-foreground font-semibold text-sm sm:text-base md:text-lg font-inter">
+              Categorias em destaque
             </h3>
-            <p className="text-muted-foreground text-xs sm:text-sm font-light">
-              Encontre recursos ideais para sua clínica de estética
-            </p>
-            <div className="flex items-center mt-2">
-              <div className="flex mt-1">
-                <span className="inline-block h-1 w-6 rounded-full bg-primary mr-1"></span>
-                <span className="inline-block h-1 w-1 rounded-full bg-primary/30 mr-1"></span>
-                <span className="inline-block h-1 w-1 rounded-full bg-primary/30"></span>
-              </div>
-            </div>
           </div>
 
-          {/* Botão Ver categorias - canto superior direito */}
+          {/* Link Ver categorias minimalista */}
           <Link
             href="/categorias"
-            className="bg-background hover:bg-accent text-foreground px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors border border-border shadow-sm whitespace-nowrap"
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           >
-            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
             Ver categorias
+            <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
           </Link>
         </div>
 
