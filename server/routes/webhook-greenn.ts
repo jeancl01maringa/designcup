@@ -137,7 +137,7 @@ router.post('/', async (req, res) => {
                     username = `${username}_${Date.now()}`;
                 }
 
-                const hashedPassword = await hashPassword('estetica@123'); // Senha padrão
+                const hashedPassword = await hashPassword('designcup@123'); // Senha padrão
 
                 await pool.query(`
           INSERT INTO users (

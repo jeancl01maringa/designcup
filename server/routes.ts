@@ -13,6 +13,7 @@ import multer from "multer";
 import * as path from "path";
 import * as fs from "fs";
 import webhookHotmart from "./routes/webhook-hotmart";
+import webhookGreenn from "./routes/webhook-greenn";
 
 // Configurar multer para upload de imagens
 const storage_multer = multer.memoryStorage();
@@ -69,6 +70,9 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar webhook do Hotmart PRIMEIRO (antes de outros middlewares)
   app.use('/webhook/hotmart', webhookHotmart);
+
+  // Registrar webhook da Greenn
+  app.use('/webhook/greenn', webhookGreenn);
 
   // Set up authentication
   setupAuth(app);
@@ -151,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("OFFLINE MODE: Criando formato de arquivo no JSON local");
         let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
         const dbPath = path.resolve(process.cwd(), '.local_db.json');
-        
+
         if (fs.existsSync(dbPath)) {
           localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
         }
@@ -245,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`OFFLINE MODE: Atualizando formato de arquivo #${id} no JSON local`);
         let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
         const dbPath = path.resolve(process.cwd(), '.local_db.json');
-        
+
         if (fs.existsSync(dbPath)) {
           localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
         }
@@ -353,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`OFFLINE MODE: Excluindo formato de arquivo #${id} no JSON local`);
         let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
         const dbPath = path.resolve(process.cwd(), '.local_db.json');
-        
+
         if (fs.existsSync(dbPath)) {
           localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
         }
@@ -472,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("OFFLINE MODE: Criando formato de post no JSON local");
         let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
         const dbPath = path.resolve(process.cwd(), '.local_db.json');
-        
+
         if (fs.existsSync(dbPath)) {
           localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
         }
@@ -566,7 +570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`OFFLINE MODE: Atualizando formato de post #${id} no JSON local`);
         let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
         const dbPath = path.resolve(process.cwd(), '.local_db.json');
-        
+
         if (fs.existsSync(dbPath)) {
           localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
         }
@@ -674,7 +678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`OFFLINE MODE: Excluindo formato de post #${id} no JSON local`);
         let localDb: any = { categories: [], posts: [], artworks: [], fileFormats: [], postFormats: [] };
         const dbPath = path.resolve(process.cwd(), '.local_db.json');
-        
+
         if (fs.existsSync(dbPath)) {
           localDb = { ...localDb, ...JSON.parse(fs.readFileSync(dbPath, 'utf8')) };
         }
@@ -3471,26 +3475,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Buscando todos os assinantes premium com dados reais de vencimento');
 
       try {
-        // Buscar usuários premium com dados reais da tabela subscriptions
+        // Buscar usuários premium diretamente da tabela users
         const query = `
           SELECT 
-            u.id, 
-            u.username, 
-            u.email, 
-            u.is_admin as "isAdmin",
-            u.created_at as "createdAt",
-            u.tipo,
-            u.plano_id,
-            COALESCE(s.end_date, u.data_vencimento) as data_vencimento,
-            COALESCE(u.active, false) as active,
-            u.telefone,
-            s.hotmart_plan_name,
-            s.status as subscription_status,
-            s.origin as subscription_origin
-          FROM users u
-          LEFT JOIN subscriptions s ON u.id = s.user_id AND s.status = 'active'
-          WHERE u.tipo = 'premium'
-          ORDER BY COALESCE(s.end_date, u.data_vencimento) ASC
+            id, 
+            username, 
+            email, 
+            is_admin as "isAdmin",
+            created_at as "createdAt",
+            tipo,
+            plano_id,
+            data_vencimento,
+            COALESCE(active, false) as active,
+            telefone,
+            origem_assinatura,
+            bio
+          FROM users
+          WHERE tipo = 'premium'
+          ORDER BY data_vencimento ASC
         `;
 
         const result = await pool.query(query);

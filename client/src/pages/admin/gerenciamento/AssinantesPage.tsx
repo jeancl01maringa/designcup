@@ -29,6 +29,7 @@ interface Assinante {
   data_vencimento: string;
   active: boolean;
   telefone?: string;
+  origem_assinatura?: string;
 }
 
 // Interface para o plano
@@ -55,7 +56,7 @@ export default function AssinantesPage() {
     active: true,
     telefone: ""
   });
-  
+
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
 
   // Buscar todos os assinantes (usuários premium ativos)
@@ -153,7 +154,7 @@ export default function AssinantesPage() {
   const resetPasswordMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('PATCH', `/api/admin/assinantes/${id}/reset-password`, {
-        newPassword: "estetica@123"
+        newPassword: "designcup@123"
       });
       return response.json();
     },
@@ -163,7 +164,7 @@ export default function AssinantesPage() {
       setIsResetPasswordDialogOpen(false);
       toast({
         title: "Senha redefinida",
-        description: "A senha do assinante foi redefinida para 'estetica@123'.",
+        description: "A senha do assinante foi redefinida para 'designcup@123'.",
       });
     },
     onError: (error: Error) => {
@@ -189,7 +190,7 @@ export default function AssinantesPage() {
     });
     setIsEditDialogOpen(true);
   };
-  
+
   // Função para lidar com a abertura do modal de redefinição de senha
   const handleResetPasswordClick = (assinante: Assinante) => {
     setSelectedAssinante(assinante);
@@ -205,7 +206,7 @@ export default function AssinantesPage() {
   // Função para salvar as alterações no assinante
   const handleSaveAssinante = () => {
     if (!selectedAssinante) return;
-    
+
     updateAssinanteMutation.mutate({
       id: selectedAssinante.id,
       data: editFormData
@@ -215,7 +216,7 @@ export default function AssinantesPage() {
   // Função para cancelar a assinatura
   const handleCancelAssinatura = () => {
     if (!selectedAssinante) return;
-    
+
     cancelarAssinaturaMutation.mutate(selectedAssinante.id);
   };
 
@@ -237,16 +238,16 @@ export default function AssinantesPage() {
       });
       return;
     }
-    
+
     // Remover caracteres não-numéricos
     const numeroLimpo = telefone.replace(/\D/g, '');
-    
+
     // Abrir o WhatsApp com o número
     window.open(`https://wa.me/55${numeroLimpo}`, '_blank');
   };
 
   // Filtrar assinantes com base no termo de pesquisa
-  const filteredAssinantes = assinantes.filter(assinante => 
+  const filteredAssinantes = assinantes.filter(assinante =>
     assinante.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     assinante.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -271,13 +272,13 @@ export default function AssinantesPage() {
   // Função para calcular dias até o vencimento
   const getDaysToExpire = (dateString: string | null) => {
     if (!dateString) return null;
-    
+
     try {
       const expiryDate = new Date(dateString);
       const today = new Date();
       const diffTime = expiryDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       return diffDays;
     } catch (error) {
       return null;
@@ -287,11 +288,11 @@ export default function AssinantesPage() {
   // Função para renderizar o status de vencimento
   const renderVencimentoStatus = (assinante: Assinante) => {
     if (!assinante.data_vencimento) return <Badge variant="outline">Sem data</Badge>;
-    
+
     const daysToExpire = getDaysToExpire(assinante.data_vencimento);
-    
+
     if (daysToExpire === null) return <Badge variant="outline">Data inválida</Badge>;
-    
+
     if (daysToExpire < 0) {
       return <Badge variant="destructive">Vencido há {Math.abs(daysToExpire)} dias</Badge>;
     } else if (daysToExpire === 0) {
@@ -308,11 +309,11 @@ export default function AssinantesPage() {
       <Helmet>
         <title>Gerenciar Assinantes - Painel Administrativo</title>
       </Helmet>
-      
+
       <div className="space-y-4">
-        <PageHeader 
-          title="Gerenciar Assinantes" 
-          description="Visualize e gerencie todos os assinantes premium da plataforma" 
+        <PageHeader
+          title="Gerenciar Assinantes"
+          description="Visualize e gerencie todos os assinantes premium da plataforma"
         />
 
         {/* Barra de pesquisa */}
@@ -327,7 +328,7 @@ export default function AssinantesPage() {
             <Search className="h-4 w-4 text-gray-400" />
           </div>
         </div>
-      
+
         {/* Tabela de assinantes */}
         <div className="bg-card rounded-md shadow">
           <Table>
@@ -337,6 +338,7 @@ export default function AssinantesPage() {
                 <TableHead>E-mail</TableHead>
                 <TableHead>Plano</TableHead>
                 <TableHead>Vencimento</TableHead>
+                <TableHead>Origem</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -344,13 +346,13 @@ export default function AssinantesPage() {
             <TableBody>
               {isLoadingAssinantes ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
+                  <TableCell colSpan={7} className="text-center py-6">
                     Carregando assinantes...
                   </TableCell>
                 </TableRow>
               ) : filteredAssinantes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
+                  <TableCell colSpan={7} className="text-center py-6">
                     {searchTerm ? "Nenhum assinante encontrado com este termo de pesquisa." : "Nenhum assinante cadastrado."}
                   </TableCell>
                 </TableRow>
@@ -383,10 +385,24 @@ export default function AssinantesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
+                      {assinante.origem_assinatura ? (
+                        <Badge variant="outline" className={
+                          assinante.origem_assinatura === 'greenn' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                            assinante.origem_assinatura === 'hotmart' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                              assinante.origem_assinatura === 'kiwify' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                                'bg-gray-100 text-gray-800 border-gray-300'
+                        }>
+                          {assinante.origem_assinatura.charAt(0).toUpperCase() + assinante.origem_assinatura.slice(1)}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-gray-100 text-gray-500 border-gray-300">Manual</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center space-x-2">
                         <div className={`w-2 h-2 rounded-full ${assinante.active ? 'bg-green-500' : 'bg-gray-300'}`} />
                         <span>{assinante.active ? 'Ativo' : 'Inativo'}</span>
-                        <Switch 
+                        <Switch
                           checked={assinante.active}
                           onCheckedChange={() => handleToggleActive(assinante)}
                           className="ml-2"
@@ -403,11 +419,11 @@ export default function AssinantesPage() {
                       >
                         <Edit2 size={16} className="text-blue-600" />
                       </Button>
-                      
+
                       {assinante.telefone && (
-                        <a 
-                          href={`https://wa.me/${assinante.telefone.replace(/\D/g, '')}`} 
-                          target="_blank" 
+                        <a
+                          href={`https://wa.me/${assinante.telefone.replace(/\D/g, '')}`}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="inline-block"
                         >
@@ -417,17 +433,17 @@ export default function AssinantesPage() {
                             className="mr-1"
                             title="Contatar via WhatsApp"
                           >
-                            <svg 
-                              viewBox="0 0 24 24" 
-                              className="w-4 h-4 text-green-600" 
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="w-4 h-4 text-green-600"
                               fill="currentColor"
                             >
-                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                             </svg>
                           </Button>
                         </a>
                       )}
-                      
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -437,7 +453,7 @@ export default function AssinantesPage() {
                       >
                         <Key size={16} className="text-yellow-600" />
                       </Button>
-                      
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -467,17 +483,17 @@ export default function AssinantesPage() {
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="username">Nome do Usuário</Label>
-              <Input 
+              <Input
                 id="username"
                 type="text"
                 value={editFormData.username}
                 onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
-              <Input 
+              <Input
                 id="email"
                 type="email"
                 value={editFormData.email}
@@ -524,12 +540,12 @@ export default function AssinantesPage() {
                 ))}
               </select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="data_vencimento" className={editFormData.tipo === 'free' ? 'text-gray-400' : ''}>
                 Data de Vencimento {editFormData.tipo === 'free' && <span className="text-xs italic">(indisponível para usuários Free)</span>}
               </Label>
-              <Input 
+              <Input
                 id="data_vencimento"
                 type="date"
                 value={editFormData.tipo === 'free' ? '' : editFormData.data_vencimento}
@@ -538,10 +554,10 @@ export default function AssinantesPage() {
                 disabled={editFormData.tipo === 'free'}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="telefone">Telefone (com DDD)</Label>
-              <Input 
+              <Input
                 id="telefone"
                 type="tel"
                 value={editFormData.telefone}
@@ -549,10 +565,10 @@ export default function AssinantesPage() {
                 placeholder="(00) 00000-0000"
               />
             </div>
-            
+
             {editFormData.tipo === 'premium' && (
               <div className="flex items-center space-x-2">
-                <Switch 
+                <Switch
                   id="active"
                   checked={editFormData.active}
                   onCheckedChange={(checked) => setEditFormData({ ...editFormData, active: checked })}
@@ -567,15 +583,15 @@ export default function AssinantesPage() {
             )}
           </div>
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setIsEditDialogOpen(false)}
             >
               Cancelar
             </Button>
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               onClick={handleSaveAssinante}
               disabled={updateAssinanteMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
@@ -585,20 +601,20 @@ export default function AssinantesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Alert dialog para confirmar cancelamento de assinatura */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar cancelamento de assinatura</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja cancelar a assinatura premium de "{selectedAssinante?.username}"? 
+              Tem certeza que deseja cancelar a assinatura premium de "{selectedAssinante?.username}"?
               O usuário será rebaixado para o tipo "free" e perderá acesso aos conteúdos premium.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Voltar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleCancelAssinatura}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
@@ -607,7 +623,7 @@ export default function AssinantesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* Alert dialog para confirmar redefinição de senha */}
       <AlertDialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
         <AlertDialogContent>
@@ -615,12 +631,12 @@ export default function AssinantesPage() {
             <AlertDialogTitle>Redefinir senha do assinante</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja redefinir a senha do assinante "{selectedAssinante?.username}"?
-              A nova senha será "estetica@123".
+              A nova senha será "designcup@123".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => selectedAssinante && resetPasswordMutation.mutate(selectedAssinante.id)}
               className="bg-blue-600 text-white hover:bg-blue-700"
             >

@@ -218,14 +218,14 @@ export default function UsuariosPage() {
   const resetPasswordMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('PATCH', `/api/admin/usuarios/${id}/reset-password`, {
-        newPassword: "estetica@123"
+        newPassword: "designcup@123"
       });
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Senha redefinida",
-        description: "A senha do usuário foi redefinida para 'estetica@123'.",
+        description: "A senha do usuário foi redefinida para 'designcup@123'.",
       });
     },
     onError: (error: Error) => {
@@ -669,7 +669,7 @@ export default function UsuariosPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Redefinir senha</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja redefinir a senha do usuário "{selectedUsuario?.username}" para 'estetica@123'?
+              Tem certeza que deseja redefinir a senha do usuário "{selectedUsuario?.username}" para 'designcup@123'?
               O usuário precisará alterar essa senha no próximo login.
             </AlertDialogDescription>
           </AlertDialogHeader>
