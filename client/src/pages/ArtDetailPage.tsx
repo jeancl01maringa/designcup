@@ -894,7 +894,7 @@ export default function ArtDetailPage() {
                 {post.title}
               </h1>
               {isPremium && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: '#fef3c7', color: '#a76e40' }}>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                   <Crown size={12} className="text-current" />
                   Premium
                 </div>
@@ -1013,7 +1013,7 @@ export default function ArtDetailPage() {
                       <div className="text-sm font-medium text-foreground flex items-center gap-2">
                         {formatLabel(post?.formato || 'FEED')}
                         {post?.isPro && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:text-amber-300/80">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                             Premium
                           </span>
                         )}
