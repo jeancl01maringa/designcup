@@ -197,6 +197,12 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
           label: "Personalizar",
           path: "/admin/configuracoes/personalizar",
           icon: <Image className="h-4 w-4" />,
+        },
+        {
+          id: "integracoes",
+          label: "Integrações (API)",
+          path: "/admin/configuracoes/integracoes",
+          icon: <Globe className="h-4 w-4" />,
         }
       ],
     },
