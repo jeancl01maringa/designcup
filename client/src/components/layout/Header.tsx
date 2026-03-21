@@ -284,9 +284,7 @@ const MobileUserMenu = () => {
   const isFreeUser = !user.tipo || user.tipo === 'free';
 
   return (
-    <div className="flex md:hidden items-center gap-2">
-      {/* Mobile Search Icon */}
-      <MobileSearchBar />
+    <div className="flex md:hidden items-center gap-1">
       {/* Admin Button for Mobile */}
       {isAdmin && (
         <Button
@@ -674,18 +672,15 @@ export default function Header() {
 
         {/* Layout Mobile - nova estrutura */}
         <div className="flex md:hidden items-center justify-between w-full">
-          {/* Menu hambúrguer - lado esquerdo (ou menu de perfil se estivermos em páginas de perfil) */}
-          <div className="flex-shrink-0">
-            {isProfilePage ? <ProfileMobileNav /> : <MobileMenu />}
-          </div>
-
-          {/* Logo - centralizado */}
-          <div className="flex-1 flex justify-center">
+          {/* Logo - lado esquerdo */}
+          <div className="flex-shrink-0 pl-1">
             <Logo />
           </div>
 
-          {/* Botão Entrar - lado direito */}
-          <div className="flex-shrink-0">
+          {/* Botões - lado direito */}
+          <div className="flex items-center justify-end gap-1">
+            <MobileSearchBar />
+            {isProfilePage ? <ProfileMobileNav /> : <MobileMenu />}
             <MobileUserMenu />
           </div>
         </div>
