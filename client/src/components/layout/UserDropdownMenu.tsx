@@ -107,26 +107,23 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
         {/* Lista de opções minimalista */}
         <ul className="py-2">
-          <li className="hover:bg-accent/50 transition-colors duration-200">
-            <button
-              className="w-full px-5 py-2.5 flex items-center justify-between gap-3"
-              onClick={() => handleClick('/planos')}
-            >
-              <div className="flex items-center gap-3">
-                <Crown className="w-4 h-4 text-muted-foreground" />
-                <p className="font-medium text-sm text-foreground">Planos ativos</p>
-              </div>
-              {(user?.tipo === 'premium' || (userPlan && userPlan.planName !== 'Plano Gratuito')) ? (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] text-[#121212] tracking-wider uppercase">
-                  Premium Pro
-                </span>
-              ) : (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted-foreground/20 text-muted-foreground tracking-wider uppercase">
-                  Gratuito
-                </span>
-              )}
-            </button>
+          <li className="px-5 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Crown className="w-4 h-4 text-muted-foreground" />
+              <p className="font-medium text-sm text-foreground">Planos ativos</p>
+            </div>
+            {(user?.tipo === 'premium' || (userPlan && userPlan.planName !== 'Plano Gratuito')) ? (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] text-[#121212] tracking-wider uppercase">
+                Premium Pro
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted-foreground/20 text-muted-foreground tracking-wider uppercase">
+                Gratuito
+              </span>
+            )}
           </li>
+
+          <div className="h-px bg-border mx-4 my-1"></div>
 
           <li className="hover:bg-accent/50 transition-colors duration-200">
             <button
