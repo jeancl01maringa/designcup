@@ -295,7 +295,7 @@ export const popups = pgTable("popups", {
   imageUrl: text("image_url"),
   buttonText: text("button_text"),
   buttonUrl: text("button_url"),
-  
+
   // Appearance settings
   backgroundColor: text("background_color").default("#ffffff"),
   textColor: text("text_color").default("#000000"),
@@ -307,14 +307,14 @@ export const popups = pgTable("popups", {
   position: popupPositionEnum("position").default("center"),
   size: popupSizeEnum("size").default("medium"),
   delaySeconds: integer("delay_seconds").default(3),
-  
+
   // Targeting settings
   targetPages: popupTargetPageEnum("target_pages").array().default(['all']),
   targetUserTypes: popupUserTypeEnum("target_user_types").array().default(['all']),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   frequency: popupFrequencyEnum("frequency").default("once_per_session"),
-  
+
   // Status
   isActive: boolean("is_active").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -586,3 +586,18 @@ export type ToolCategory = typeof toolCategories.$inferSelect;
 export type InsertToolCategory = typeof toolCategories.$inferInsert;
 export type Tool = typeof tools.$inferSelect;
 export type InsertTool = typeof tools.$inferInsert;
+
+// Interactions
+export const postLikes = pgTable("post_likes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  postId: integer("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const postSaves = pgTable("post_saves", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  postId: integer("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
