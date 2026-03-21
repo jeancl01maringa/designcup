@@ -1091,9 +1091,9 @@ export default function ArtDetailPage() {
                   {/* Botão amarelo para artes premium quando não logado */}
                   <Button
                     onClick={() => setLocation('/planos')}
-                    className="w-full bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                    className="w-full bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
                   >
-                    <Crown size={16} className="text-white" />
+                    <Crown size={16} className="text-[#121212]" />
                     <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
                     <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
                   </Button>
@@ -1199,9 +1199,9 @@ export default function ArtDetailPage() {
             <div className="space-y-3">
               <Button
                 onClick={() => setLocation('/planos')}
-                className="w-full bg-gradient-to-r from-primary to-[#E3CF8D] hover:opacity-90 text-primary-foreground py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                className="w-full bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
               >
-                <Crown size={16} className="text-white drop-shadow-sm" />
+                <Crown size={16} className="text-[#121212]" />
                 <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
                 <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
               </Button>
