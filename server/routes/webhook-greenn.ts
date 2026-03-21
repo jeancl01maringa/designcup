@@ -8,6 +8,7 @@ export const router = Router();
 // Pool PostgreSQL para webhook
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
 });
 
 // Função de hash de senha para usuários
@@ -142,10 +143,10 @@ router.post('/', async (req, res) => {
           INSERT INTO users (
             email, username, password, telefone, tipo, plano_id, 
             data_vencimento, active, created_at, is_admin, bio,
-            origem_assinatura, tipo_plano, data_assinatura, acesso_vitalicio
+            origem_assinatura
           )
-          VALUES ($1, $2, $3, $4, 'premium', '2', $5, true, $6, false, 'Cliente Greenn', 'greenn', $7, $8, false)
-        `, [email, username, hashedPassword, telefone, endDate, startDate, planType, startDate]);
+          VALUES ($1, $2, $3, $4, 'premium', $5, $6, true, NOW(), false, 'Cliente Greenn', 'greenn')
+        `, [email, username, hashedPassword, telefone, planType, endDate]);
 
                 console.log(`✅ Novo usuário criado: ${name} (${email}) - Plano Greenn: ${planName}`);
 
@@ -164,81 +165,26 @@ router.post('/', async (req, res) => {
                 await pool.query(`
           UPDATE users SET 
             tipo = 'premium', 
-            tipo_plano = $2, 
+            plano_id = $2, 
             data_vencimento = $3, 
-            origem_assinatura = 'greenn',
             telefone = $4,
             active = true,
-            data_assinatura = $5
+            origem_assinatura = 'greenn'
           WHERE email = $1
-        `, [email, planType, endDate, telefone, startDate]);
+        `, [email, planType, endDate, telefone]);
 
                 console.log(`✅ Usuário atualizado para premium: ${name} (${email}) - Plano Greenn: ${planName}`);
             }
 
-            // Gerencia assinatura na tabela subscriptions
-            const userResult = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-            const userId = userResult.rows[0].id;
-
-            const existingSubscription = await pool.query('SELECT id FROM subscriptions WHERE user_id = $1', [userId]);
-            const mappedPlanId = productData?.id || planType;
-
-            if (existingSubscription.rowCount === 0) {
-                // Cria nova assinatura
-                await pool.query(`
-          INSERT INTO subscriptions (
-            user_id, plan_type, start_date, end_date, status, 
-            transaction_id, origin, last_event, telefone, created_at,
-            hotmart_plan_id, hotmart_plan_name, hotmart_plan_price, hotmart_currency
-          )
-          VALUES ($1, $2, $3, $4, 'active', $5, 'greenn', 'PURCHASE_APPROVED', $6, CURRENT_TIMESTAMP, $7, $8, $9, $10)
-        `, [
-                    userId, planType, startDate, endDate, transactionId, telefone,
-                    mappedPlanId, planName, planPrice, planCurrency
-                ]);
-
-                console.log(`✅ Nova assinatura criada para usuário ${userId} com plano Greenn ${planName}`);
-
-                try {
-                    await BrevoService.enviarEmailTemplate(email, name, 1, {
-                        nome: name, email: email, plano: planName, valor: planPrice.toFixed(2)
-                    });
-                    await BrevoService.notificarNovaCompra('jean.maringa@hotmail.com', name, email, planName, planPrice);
-                } catch (emailError) {
-                    console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
-                }
-            } else {
-                // Atualiza assinatura existente
-                await pool.query(`
-          UPDATE subscriptions SET 
-            plan_type = $2, 
-            end_date = $3, 
-            status = 'active', 
-            transaction_id = $4, 
-            telefone = $5,
-            last_event = 'PURCHASE_APPROVED',
-            updated_at = CURRENT_TIMESTAMP,
-            hotmart_plan_id = $6,
-            hotmart_plan_name = $7,
-            hotmart_plan_price = $8,
-            hotmart_currency = $9,
-            origin = 'greenn'
-          WHERE user_id = $1
-        `, [
-                    userId, planType, endDate, transactionId, telefone,
-                    mappedPlanId, planName, planPrice, planCurrency
-                ]);
-
-                console.log(`✅ Assinatura atualizada para usuário ${userId} com plano Greenn ${planName}`);
-
-                try {
-                    await BrevoService.enviarEmailTemplate(email, name, 1, {
-                        nome: name, email: email, plano: planName, valor: planPrice.toFixed(2)
-                    });
-                    await BrevoService.notificarNovaCompra('jean.maringa@hotmail.com', name, email, planName, planPrice);
-                } catch (emailError) {
-                    console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
-                }
+            // Envia notificações por email
+            try {
+                await BrevoService.enviarEmailTemplate(email, name, 1, {
+                    nome: name, email: email, plano: planName, valor: planPrice.toFixed(2)
+                });
+                await BrevoService.notificarNovaCompra('jean.maringa@hotmail.com', name, email, planName, planPrice);
+                console.log('📧 Emails de confirmação enviados para:', email);
+            } catch (emailError) {
+                console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
             }
 
             return res.status(200).json({ success: true, message: 'Processado com sucesso (Greenn)' });
@@ -264,21 +210,13 @@ router.post('/', async (req, res) => {
             const userUpdateResult = await pool.query(`
         UPDATE users 
         SET tipo = 'free', 
-            tipo_plano = null, 
-            acesso_vitalicio = false, 
+            plano_id = null, 
             data_vencimento = CURRENT_TIMESTAMP,
             active = true
         WHERE email = $1
       `, [email]);
 
             if (userUpdateResult.rowCount && userUpdateResult.rowCount > 0) {
-                await pool.query(`
-          UPDATE subscriptions 
-          SET status = 'canceled', 
-              last_event = $2,
-              updated_at = CURRENT_TIMESTAMP
-          WHERE user_id = (SELECT id FROM users WHERE email = $1)
-        `, [email, status]);
 
                 console.log(`✅ Usuário ${email} rebaixado para free devido a: ${status}`);
 

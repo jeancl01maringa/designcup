@@ -30,7 +30,7 @@ export default function IntegracoesPage() {
             id: "hotmart",
             name: "Hotmart",
             description: "Copie a URL abaixo e cole no painel de Configurações de Webhook da Hotmart selecionando os eventos de compra e cancelamento.",
-            url: `${mainDomain}/api/webhook/hotmart`,
+            url: `${mainDomain}/webhook/hotmart`,
             icon: <ShoppingCart className="h-5 w-5 text-white" />,
             color: "bg-[#F35815]" // Laranja aproximado da Hotmart
         },
@@ -38,7 +38,7 @@ export default function IntegracoesPage() {
             id: "greenn",
             name: "Greenn",
             description: "Copie a URL abaixo e cole na edição do produto da Greenn, na aba Webhook, selecionando Venda Paga, Cancelada e Reembolsada.",
-            url: `${mainDomain}/api/webhook/greenn`,
+            url: `${mainDomain}/webhook/greenn`,
             icon: <Activity className="h-5 w-5 text-white" />,
             color: "bg-[#06D6A0]" // Verde aproximado da Greenn
         },
@@ -46,7 +46,7 @@ export default function IntegracoesPage() {
             id: "kiwify",
             name: "Kiwify",
             description: "Copie a URL abaixo e cole nas configurações de Aplicativos > Webhooks da Kiwify.",
-            url: `${mainDomain}/api/webhook/kiwify`, // Futura rota ou rota atual placeholder
+            url: `${mainDomain}/webhook/kiwify`, // Futura rota ou rota atual placeholder
             icon: <PlugZap className="h-5 w-5 text-white" />,
             color: "bg-[#1E1E1E]" // Pretp/Chumbo aproximado da Kiwify
         }
