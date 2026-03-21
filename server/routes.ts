@@ -7526,6 +7526,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================
+  // ROTAS PÚBLICAS DE RECUPERAÇÃO DE SENHA
+  // ============================================================
+
+  // Armazena tokens de reset temporariamente (em memória)
+  const resetTokens = new Map<string, { email: string; expiresAt: number }>();
+
+  // POST /api/forgot-password - Solicitar recuperação de senha
+  app.post('/api/forgot-password', async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: 'E-mail é obrigatório' });
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+      console.log(`🔑 Solicitação de recuperação de senha para: ${normalizedEmail}`);
+
+      // Verifica se o usuário existe
+      const userResult = await pool.query('SELECT id, username, email FROM users WHERE email = $1', [normalizedEmail]);
+
+      if (!userResult.rows || userResult.rows.length === 0) {
+        // Retorna sucesso mesmo se o email não existe (segurança)
+        console.log(`⚠️ Email não encontrado para reset: ${normalizedEmail}`);
+        return res.json({ message: 'Se o e-mail estiver cadastrado, você receberá as instruções de recuperação.' });
+      }
+
+      const user = userResult.rows[0];
+
+      // Gera token único
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hora
+
+      // Armazena o token
+      resetTokens.set(token, { email: normalizedEmail, expiresAt });
+
+      // Limpar tokens expirados
+      Array.from(resetTokens.entries()).forEach(([key, value]) => {
+        if (value.expiresAt < Date.now()) resetTokens.delete(key);
+      });
+
+      // Determina o domínio para o link
+      const host = req.headers.host || 'designcup.com.br';
+      const protocol = req.headers['x-forwarded-proto'] || (host.includes('localhost') ? 'http' : 'https');
+      const resetLink = `${protocol}://${host}/redefinir-senha?token=${token}`;
+
+      // Envia email via Brevo
+      const { BrevoService } = await import('./services/brevo-service.js');
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; background: #c4a962; color: #1a1a1a; padding: 14px 35px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; }
+            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+            .code-box { background: #e9ecef; padding: 15px; border-radius: 5px; margin: 15px 0; text-align: center; font-family: monospace; font-size: 14px; word-break: break-all; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔑 Recuperação de Senha</h1>
+            </div>
+            <div class="content">
+              <h2>Olá, ${user.username}!</h2>
+              <p>Recebemos uma solicitação para redefinir a senha da sua conta na <strong>DesignCup</strong>.</p>
+              
+              <p>Clique no botão abaixo para criar uma nova senha:</p>
+              
+              <div style="text-align: center;">
+                <a href="${resetLink}" class="button">Redefinir Minha Senha</a>
+              </div>
+              
+              <p style="font-size: 13px; color: #666;">Se o botão não funcionar, copie e cole este link no seu navegador:</p>
+              <div class="code-box">${resetLink}</div>
+              
+              <p><strong>⚠️ Este link expira em 1 hora.</strong></p>
+              <p style="font-size: 13px; color: #666;">Se você não solicitou essa alteração, ignore este e-mail. Sua senha não será alterada.</p>
+            </div>
+            <div class="footer">
+              <p>DesignCup - A melhor plataforma de designs para profissionais de estética</p>
+              <p>Este é um email automático, não responda esta mensagem.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      await BrevoService.enviarEmail({
+        to: normalizedEmail,
+        toName: user.username,
+        subject: '🔑 Recuperação de Senha - DesignCup',
+        htmlContent,
+        textContent: `Olá ${user.username}! Para redefinir sua senha, acesse: ${resetLink} - Este link expira em 1 hora.`
+      });
+
+      console.log(`✅ Email de recuperação enviado para: ${normalizedEmail}`);
+      return res.json({ message: 'Se o e-mail estiver cadastrado, você receberá as instruções de recuperação.' });
+
+    } catch (error: any) {
+      console.error('❌ Erro na recuperação de senha:', error);
+      return res.status(500).json({ message: 'Erro ao processar solicitação' });
+    }
+  });
+
+  // POST /api/reset-password - Redefinir senha com token
+  app.post('/api/reset-password', async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: 'Token e nova senha são obrigatórios' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'A senha deve ter no mínimo 6 caracteres' });
+      }
+
+      // Verifica o token
+      const tokenData = resetTokens.get(token);
+
+      if (!tokenData) {
+        return res.status(400).json({ message: 'Link de recuperação inválido ou já utilizado' });
+      }
+
+      if (tokenData.expiresAt < Date.now()) {
+        resetTokens.delete(token);
+        return res.status(400).json({ message: 'Link de recuperação expirado. Solicite um novo.' });
+      }
+
+      // Atualiza a senha
+      const hashedPassword = await hashPassword(newPassword);
+
+      const result = await pool.query(
+        'UPDATE users SET password = $1 WHERE email = $2 RETURNING id, username, email',
+        [hashedPassword, tokenData.email]
+      );
+
+      if (result.rows && result.rows.length > 0) {
+        // Remove o token usado
+        resetTokens.delete(token);
+
+        console.log(`✅ Senha redefinida com sucesso para: ${tokenData.email}`);
+        return res.json({ message: 'Senha redefinida com sucesso! Você já pode fazer login.' });
+      } else {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+
+    } catch (error: any) {
+      console.error('❌ Erro ao redefinir senha:', error);
+      return res.status(500).json({ message: 'Erro ao redefinir senha' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

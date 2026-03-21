@@ -61,6 +61,7 @@ import CursosUserPage from "@/pages/CursosPage";
 import CursoDetailPage from "@/pages/CursoDetailPage";
 import LessonViewPage from "@/pages/LessonViewPage";
 import FirstLessonRedirect from "@/pages/FirstLessonRedirect";
+import RedefinirSenhaPage from "@/pages/RedefinirSenhaPage";
 
 function Router() {
   const [location] = useLocation();
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/auth/register" component={AuthPage} />
       <Route path="/loguin/cadastro" component={LoguinPage} />
       <Route path="/loguin" component={LoguinPage} />
+      <Route path="/redefinir-senha" component={RedefinirSenhaPage} />
       <Route path="/planos" component={PlansPage} />
       <Route path="/ferramentas" component={ToolsPage} />
       <Route path="/cursos">

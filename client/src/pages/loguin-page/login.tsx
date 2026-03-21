@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido").min(1, "E-mail é obrigatório"),
@@ -25,6 +28,12 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation } = useAuth();
+  const { toast } = useToast();
+
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSendingReset, setIsSendingReset] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   // Redirecionar para home após login bem-sucedido
   useEffect(() => {
@@ -43,6 +52,36 @@ export default function LoginPage() {
 
   const onSubmit = (values: LoginFormValues) => {
     loginMutation.mutate(values);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail || !forgotEmail.includes("@")) {
+      toast({
+        title: "E-mail inválido",
+        description: "Por favor, insira um e-mail válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingReset(true);
+    try {
+      const response = await apiRequest('POST', '/api/forgot-password', { email: forgotEmail });
+      const data = await response.json();
+      setResetSent(true);
+      toast({
+        title: "E-mail enviado!",
+        description: data.message,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: "Erro ao enviar e-mail de recuperação. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingReset(false);
+    }
   };
 
   return (
@@ -122,13 +161,76 @@ export default function LoginPage() {
       </Form>
       {/* Link para esqueci a senha */}
       <div className="text-center">
-        <a
-          href="#"
-          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+        <button
+          type="button"
+          onClick={() => {
+            setIsForgotPasswordOpen(true);
+            setResetSent(false);
+            setForgotEmail("");
+          }}
+          className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
         >
           Esqueceu sua senha?
-        </a>
+        </button>
       </div>
+
+      {/* Modal de recuperação de senha */}
+      <Dialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Recuperar Senha</DialogTitle>
+            <DialogDescription>
+              {resetSent
+                ? "Verifique sua caixa de entrada (e spam) para encontrar o link de recuperação."
+                : "Digite seu e-mail cadastrado e enviaremos um link para redefinir sua senha."
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          {!resetSent ? (
+            <>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label htmlFor="forgot-email" className="text-sm font-medium">E-mail</label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleForgotPassword()}
+                    className="h-12"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsForgotPasswordOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleForgotPassword}
+                  disabled={isSendingReset}
+                  className="bg-primary"
+                >
+                  {isSendingReset ? "Enviando..." : "Enviar Link"}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <DialogFooter>
+              <Button
+                onClick={() => setIsForgotPasswordOpen(false)}
+                className="bg-primary w-full"
+              >
+                Entendi
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
