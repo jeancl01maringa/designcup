@@ -150,7 +150,7 @@ const UserMenu = () => {
         <Button
           variant="default"
           size="sm"
-          className="flex items-center gap-1.5 bg-[#8C8261] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-full font-semibold px-3 py-1.5 h-8 text-xs border-0"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-full font-semibold px-3 py-1.5 h-8 text-xs border-0"
           onClick={() => navigate("/planos")}
         >
           <Crown className="h-3.5 w-3.5" fill="currentColor" />
@@ -216,7 +216,7 @@ const UserMenu = () => {
       {isFreeUser && (
         <Button
           variant="default"
-          className="flex items-center gap-1 bg-[#8C8261] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-full font-semibold px-3 h-[35px] text-xs border-0"
+          className="flex items-center gap-1 bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] shadow-lg transition-all duration-300 rounded-full font-semibold px-3 h-[35px] text-xs border-0"
           onClick={() => navigate("/planos")}
         >
           <Crown className="h-3 w-3" fill="currentColor" />

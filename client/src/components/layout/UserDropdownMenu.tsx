@@ -75,11 +75,11 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end items-start pt-16"
+      className="fixed inset-0 z-50 flex justify-end items-start pt-16 pr-4 sm:pr-8"
       onClick={handleOverlayClick}
     >
       <div
-        className="mr-2 w-[260px] md:w-[280px] bg-card text-card-foreground border border-border rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-80px)] overflow-y-auto"
+        className="w-[260px] md:w-[280px] bg-card text-card-foreground border border-border rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-80px)] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho com fundo escuro e layout alinhado à esquerda */}
@@ -97,7 +97,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
                 <h3 className="text-foreground font-medium text-sm truncate">{user.username}</h3>
                 {/* Para usuários premium (agora minimizado e inline) */}
                 {(user?.tipo === 'premium' || (userPlan && userPlan.planName !== 'Plano Gratuito')) && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#8C8261] text-[#121212] tracking-wider uppercase">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] text-[#121212] tracking-wider uppercase">
                     <Crown className="w-2.5 h-2.5" fill="currentColor" />
                     Premium
                   </span>
@@ -112,7 +112,7 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
             <div className="mt-4">
               <button
                 onClick={() => handleClick('/planos')}
-                className="bg-[#8C8261] hover:opacity-90 text-[#121212] font-semibold py-1.5 px-3 rounded text-xs md:text-sm w-full transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
+                className="bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] font-semibold py-1.5 px-3 rounded text-xs md:text-sm w-full transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
               >
                 <Crown className="w-3.5 h-3.5" fill="currentColor" />
                 Assinar Premium
