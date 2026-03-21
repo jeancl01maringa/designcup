@@ -1,21 +1,12 @@
 import React, { useEffect } from "react";
 import { Route, Switch, useLocation, Redirect } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { usePlatformLogo } from "@/hooks/use-platform-logo";
 import LoginPage from "./login";
 import RegisterPage from "./register";
 
 export default function AuthPage() {
   const [location, navigate] = useLocation();
-
-  // Buscar logo oficial configurado
-  const { data: logoData } = useQuery({
-    queryKey: ['/api/logo'],
-    queryFn: async () => {
-      const res = await fetch('/api/logo');
-      if (!res.ok) throw new Error('Failed to fetch logo');
-      return res.json();
-    },
-  });
+  const { logoUrl, hasCustomLogo, isLoading } = usePlatformLogo();
 
   // Redireciona para login se estiver apenas em /auth
   useEffect(() => {
@@ -25,43 +16,34 @@ export default function AuthPage() {
   }, [location, navigate]);
 
   return (
-    <div
-      className="min-h-screen relative flex items-center justify-center"
-      style={{
-        backgroundImage: `url('/attached_assets/image_1752186866191.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      {/* Overlay escuro */}
-      <div className="absolute inset-0 bg-black bg-opacity-40" />
-
+    <div className="min-h-screen relative flex items-center justify-center bg-background">
       {/* Logo no topo */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
-        {logoData?.imageUrl ? (
+        {!isLoading && hasCustomLogo ? (
           <img
-            src={logoData.imageUrl}
+            src={logoUrl}
             alt="DesignCup"
-            className="h-16"
+            className="h-12 md:h-14 w-auto object-contain"
+            style={{
+              imageRendering: 'crisp-edges',
+              filter: 'contrast(1.1) brightness(1.05)'
+            }}
           />
-        ) : logoData?.dataUrl ? (
-          <img
-            src={logoData.dataUrl}
-            alt="DesignCup"
-            className="h-16"
-          />
-        ) : (
-          <div className="flex items-center justify-center">
-            <div className="bg-gradient-to-r from-[#0066FF] to-[#3B82F6] text-white px-6 py-3 rounded-lg">
-              <span className="text-2xl font-bold">DesignCup</span>
-            </div>
+        ) : !isLoading && !hasCustomLogo ? (
+          <div className="flex items-center">
+            <svg className="h-8 md:h-10 w-8 md:w-10 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
+            </svg>
+            <span className="ml-2 font-bold text-2xl md:text-3xl">
+              <span className="text-foreground">Design</span><span className="text-primary">Cup</span>
+            </span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Modal centralizado */}
-      <div className="relative z-10 bg-card rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+      <div className="relative z-10 bg-card rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 border border-border">
         <Switch>
           <Route path="/auth/login" component={LoginPage} />
           <Route path="/auth/register" component={RegisterPage} />
