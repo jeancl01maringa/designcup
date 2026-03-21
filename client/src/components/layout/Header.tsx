@@ -186,7 +186,7 @@ const UserMenu = () => {
   const isFreeUser = !user.tipo || user.tipo === 'free';
 
   return (
-    <div className="hidden md:flex items-center gap-2">
+    <div className="hidden md:flex items-center gap-2 relative">
       {isAdmin && (
         <Button
           variant="outline"

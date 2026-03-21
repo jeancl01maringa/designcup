@@ -74,12 +74,16 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex justify-end items-start pt-16 pr-4 sm:pr-8 md:pr-12 lg:pr-[15%]"
-      onClick={handleOverlayClick}
-    >
+    <>
+      {/* Overlay invisível para fechar ao clicar fora */}
       <div
-        className="w-[260px] md:w-[280px] bg-card text-card-foreground border border-border rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-80px)] overflow-y-auto"
+        className="fixed inset-0 z-40"
+        onClick={handleOverlayClick}
+      />
+
+      {/* Caixa do menu alinhada precisamente abaixo do Header via relative/absolute */}
+      <div
+        className="absolute right-0 top-[calc(100%+8px)] z-50 w-[260px] md:w-[280px] bg-card text-card-foreground border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho com fundo escuro e layout alinhado à esquerda */}
@@ -216,6 +220,6 @@ export function UserDropdownMenu({ isOpen, onClose }: UserDropdownMenuProps) {
           </li>
         </ul>
       </div>
-    </div>
+    </>
   );
 }
