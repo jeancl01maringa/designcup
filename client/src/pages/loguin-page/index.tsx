@@ -1,23 +1,12 @@
 import React, { useEffect } from "react";
-import { Route, Switch, useLocation, Redirect } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { Route, Switch, useLocation } from "wouter";
+import { usePlatformLogo } from "@/hooks/use-platform-logo";
 import LoginPage from "./login";
 import RegisterPage from "./register";
 
 export default function LoguinPage() {
   const [location, navigate] = useLocation();
-
-  // Buscar logo oficial configurado
-  const { data: logoData } = useQuery({
-    queryKey: ['/api/logo'],
-    queryFn: async () => {
-      const res = await fetch('/api/logo');
-      if (!res.ok) throw new Error('Failed to fetch logo');
-      return res.json();
-    },
-  });
-
-
+  const { logoUrl, hasCustomLogo, isLoading } = usePlatformLogo();
 
   // Facebook Pixel tracking
   useEffect(() => {
@@ -30,33 +19,32 @@ export default function LoguinPage() {
   }, []);
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-muted">
-      {/* Gradiente sutil de fundo */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50" />
-
+    <div className="min-h-screen relative flex items-center justify-center bg-background">
       {/* Modal centralizado */}
-      <div className="relative z-10 bg-card rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 border border-border/50">
+      <div className="relative z-10 bg-card rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 border border-border">
         {/* Logo no topo do modal */}
-        <div className="text-center mb-8">
-          {logoData?.imageUrl ? (
+        <div className="text-center mb-8 flex flex-col items-center">
+          {!isLoading && hasCustomLogo ? (
             <img
-              src={logoData.imageUrl}
+              src={logoUrl}
               alt="DesignCup"
-              className="h-12 mx-auto mb-4"
+              className="h-10 md:h-12 w-auto object-contain mb-4"
+              style={{
+                imageRendering: 'crisp-edges',
+                filter: 'contrast(1.1) brightness(1.05)'
+              }}
             />
-          ) : logoData?.dataUrl ? (
-            <img
-              src={logoData.dataUrl}
-              alt="DesignCup"
-              className="h-12 mx-auto mb-4"
-            />
-          ) : (
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-gradient-to-r from-[#0066FF] to-[#3B82F6] text-white px-4 py-2 rounded-lg">
-                <span className="text-xl font-bold">DesignCup</span>
-              </div>
+          ) : !isLoading && !hasCustomLogo ? (
+            <div className="flex justify-center items-center mb-4">
+              <svg className="h-8 md:h-10 w-8 md:w-10 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0z" stroke="currentColor" strokeWidth="2" fill="none" />
+              </svg>
+              <span className="ml-2 font-bold text-2xl md:text-3xl">
+                <span className="text-foreground">Design</span><span className="text-primary">Cup</span>
+              </span>
             </div>
-          )}
+          ) : null}
           <p className="text-muted-foreground text-sm">
             Acesse sua conta ou crie uma nova para continuar
           </p>

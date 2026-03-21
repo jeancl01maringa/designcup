@@ -166,7 +166,7 @@ export default function RegisterPage() {
                   <Input
                     placeholder="Seu nome completo"
                     {...field}
-                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-primary focus:ring-primary rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -185,7 +185,7 @@ export default function RegisterPage() {
                     placeholder="exemplo@email.com"
                     type="email"
                     {...field}
-                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-primary focus:ring-primary rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -202,7 +202,7 @@ export default function RegisterPage() {
                 <FormControl>
                   <div className="flex gap-2">
                     <select
-                      className="h-12 bg-card border-border border border-border rounded-lg px-3 text-sm text-muted-foreground w-28 flex-shrink-0 outline-none transition-colors focus:border-[#171a2b] focus:ring-2 focus:ring-[#171a2b]/20"
+                      className="h-12 bg-card border-border border border-border rounded-lg px-3 text-sm text-muted-foreground w-28 flex-shrink-0 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={selectedCountryCode}
                       onChange={(e) => {
                         setSelectedCountryCode(e.target.value);
@@ -249,7 +249,7 @@ export default function RegisterPage() {
                           form.clearErrors('whatsapp');
                         }
                       }}
-                      className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] flex-1 rounded-lg"
+                      className="h-12 border-border focus:border-primary focus:ring-primary flex-1 rounded-lg"
                     />
                   </div>
                 </FormControl>
@@ -269,7 +269,7 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     type="password"
                     {...field}
-                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-primary focus:ring-primary rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -288,7 +288,7 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     type="password"
                     {...field}
-                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-primary focus:ring-primary rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />

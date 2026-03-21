@@ -78,7 +78,7 @@ export default function LoginPage() {
                     placeholder="exemplo@email.com"
                     type="email"
                     {...field}
-                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-primary focus:ring-primary rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
@@ -97,7 +97,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     type="password"
                     {...field}
-                    className="h-12 border-border focus:border-[#171a2b] focus:ring-[#171a2b] rounded-lg"
+                    className="h-12 border-border focus:border-primary focus:ring-primary rounded-lg"
                   />
                 </FormControl>
                 <FormMessage />
