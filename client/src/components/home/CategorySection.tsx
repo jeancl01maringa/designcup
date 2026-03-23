@@ -54,8 +54,20 @@ export default function CategorySection() {
       try {
         const response = await fetch('/api/site-config/featured-categories');
         if (!response.ok) return null;
-        const data = await response.json();
-        return data?.data || null; // Return the array stored in 'data'
+        const json = await response.json();
+
+        // Se postgres retornar value como string pura, precisa fazer o parse
+        let parsedData = json?.data;
+        if (typeof parsedData === 'string') {
+          try {
+            parsedData = JSON.parse(parsedData);
+          } catch (e) {
+            console.error('Erro ao fazer parse dos dados de destaque', e);
+            parsedData = [];
+          }
+        }
+
+        return Array.isArray(parsedData) ? parsedData : null;
       } catch (err) {
         console.error('Erro ao buscar categorias em destaque:', err);
         return null;
@@ -66,7 +78,7 @@ export default function CategorySection() {
   // Fallback: Buscar apenas categorias que têm posts dinamicamente
   const { data: dbCategories = [], isLoading: isCategoriesLoading } = useQuery<DbCategory[]>({
     queryKey: ['/api/categories/with-posts'],
-    enabled: featuredConfig === null || featuredConfig.length === 0, // Apenas se não houver destaques publicados
+    enabled: (featuredConfig ?? null) === null || (featuredConfig ?? []).length === 0, // Apenas se não houver destaques publicados
     queryFn: async () => {
       try {
         const response = await fetch('/api/categories/with-posts');
@@ -83,7 +95,7 @@ export default function CategorySection() {
   // Fallback: Buscar posts aprovados
   const { data: dbPosts = [], isLoading: isPostsLoading } = useQuery<DbPost[]>({
     queryKey: ['/api/posts/visible'],
-    enabled: featuredConfig === null || featuredConfig.length === 0,
+    enabled: (featuredConfig ?? null) === null || (featuredConfig ?? []).length === 0,
     queryFn: async () => {
       try {
         const response = await fetch('/api/posts/visible');
@@ -191,7 +203,7 @@ export default function CategorySection() {
   }, [scrollRef.current]);
 
   // Estado de carregamento ou sem dados
-  if (isFeaturedLoading || (isCategoriesLoading && (featuredConfig === null || featuredConfig.length === 0))) {
+  if (isFeaturedLoading || (isCategoriesLoading && ((featuredConfig ?? null) === null || (featuredConfig ?? []).length === 0))) {
     return (
       <section className="py-8 bg-background border-b border-border">
         <div className="container-global">
