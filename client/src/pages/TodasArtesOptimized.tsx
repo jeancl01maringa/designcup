@@ -57,10 +57,24 @@ function useResponsiveColumns() {
 // Distribuir posts em colunas
 function distributePostsInColumns(posts: Post[], columns: number): Post[][] {
   const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
+  const columnHeights: number[] = new Array(columns).fill(0);
 
-  posts.forEach((post, index) => {
-    const columnIndex = index % columns;
-    columnArrays[columnIndex].push(post);
+  posts.forEach((post) => {
+    let height = 1; // Default proportion (1:1)
+    if (post.formato === 'Stories') height = 1.77; // 9:16
+    else if (post.formato === 'Cartaz') height = 1.25; // 4:5
+
+    let targetColumn = 0;
+    let minHeight = columnHeights[0];
+    for (let c = 1; c < columns; c++) {
+      if (columnHeights[c] < minHeight) {
+        minHeight = columnHeights[c];
+        targetColumn = c;
+      }
+    }
+
+    columnArrays[targetColumn].push(post);
+    columnHeights[targetColumn] += height;
   });
 
   return columnArrays;

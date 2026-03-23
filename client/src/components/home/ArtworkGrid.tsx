@@ -141,13 +141,28 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
       postsToShow = shuffledPosts.slice(0, 20);
     }
 
-    // Distribuir posts garantindo equilíbrio absoluto
+    // Distribuir posts garantindo equilíbrio absoluto usando estimativa de altura
     const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
+    const columnHeights: number[] = new Array(columns).fill(0);
 
-    // Distribuir post por post, coluna por coluna
+    // Distribuir post por post, escolhendo a coluna mais curta
     for (let i = 0; i < postsToShow.length; i++) {
-      const columnIndex = i % columns;
-      columnArrays[columnIndex].push(postsToShow[i]);
+      const post = postsToShow[i];
+      let height = 1; // Default proportion (1:1)
+      if (post.formato === 'Stories') height = 1.77; // 9:16
+      else if (post.formato === 'Cartaz') height = 1.25; // 4:5
+
+      let targetColumn = 0;
+      let minHeight = columnHeights[0];
+      for (let c = 1; c < columns; c++) {
+        if (columnHeights[c] < minHeight) {
+          minHeight = columnHeights[c];
+          targetColumn = c;
+        }
+      }
+
+      columnArrays[targetColumn].push(post);
+      columnHeights[targetColumn] += height;
     }
 
     // Debug final - confirmar distribuição
