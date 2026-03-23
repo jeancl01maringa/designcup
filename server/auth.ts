@@ -217,14 +217,14 @@ export function setupAuth(app: Express) {
         isAdmin: false, // Por padrão, novos usuários não são administradores
       });
 
-      // Enviar email de boas-vindas para novos usuários usando Template ID #2
+      // Enviar email de boas-vindas para novos usuários usando Template ID #3
       try {
-        await BrevoService.enviarEmailTemplate(email, username, 2, {
+        await BrevoService.enviarEmailTemplate(email, username, 3, {
           nome: username,
           email: email
         });
         await BrevoService.adicionarContato(email, username, [1]); // Lista ID 1 para novos usuários
-        console.log('📧 Email de boas-vindas enviado via Template ID #2 para:', email);
+        console.log('📧 Email de boas-vindas enviado via Template ID #3 para:', email);
 
         // Notificar administrador sobre novo usuário
         await BrevoService.notificarNovoUsuario('jean.maringa@hotmail.com', username, email);

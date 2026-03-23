@@ -152,7 +152,7 @@ router.post('/', async (req, res) => {
 
                 // Enviar email de boas-vindas
                 try {
-                    await BrevoService.enviarEmailTemplate(email, name, 1, { nome: name, email: email });
+                    await BrevoService.enviarEmailTemplate(email, name, 3, { nome: name, email: email });
                     await BrevoService.adicionarContato(email, name, [1]);
                     console.log('📧 Email de boas-vindas enviado para:', email);
 
@@ -178,7 +178,7 @@ router.post('/', async (req, res) => {
 
             // Envia notificações por email
             try {
-                await BrevoService.enviarEmailTemplate(email, name, 1, {
+                await BrevoService.enviarEmailTemplate(email, name, 4, {
                     nome: name, email: email, plano: planName, valor: planPrice.toFixed(2)
                 });
                 await BrevoService.notificarNovaCompra('jean.maringa@hotmail.com', name, email, planName, planPrice);

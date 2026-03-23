@@ -214,12 +214,12 @@ router.post('/', async (req, res) => {
 
         // Enviar email de boas-vindas para novo usuário
         try {
-          await BrevoService.enviarEmailTemplate(email, name, 1, {
+          await BrevoService.enviarEmailTemplate(email, name, 3, {
             nome: name,
             email: email
           });
           await BrevoService.adicionarContato(email, name, [1]); // Lista ID 1 para novos usuários
-          console.log('📧 Email de boas-vindas enviado via template ID 1 para:', email);
+          console.log('📧 Email de boas-vindas enviado via template ID 3 para:', email);
 
           // Notificar administrador sobre novo usuário
           await BrevoService.notificarNovoUsuario('jean.maringa@hotmail.com', username, email);
@@ -245,7 +245,7 @@ router.post('/', async (req, res) => {
 
       // Envia notificações por email
       try {
-        await BrevoService.enviarEmailTemplate(email, name, 1, {
+        await BrevoService.enviarEmailTemplate(email, name, 4, {
           nome: name,
           email: email,
           plano: planName,

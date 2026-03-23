@@ -1257,6 +1257,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update home configs for a category
+  app.patch('/api/admin/categories/:id/home', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { homeVisible, homeOrder } = req.body;
+      
+      await pool.query(
+        'UPDATE categories SET home_visible = $1, home_order = $2 WHERE id = $3',
+        [homeVisible, homeOrder, id]
+      );
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating category home layout:', error);
+      res.status(500).json({ message: 'Error updating category' });
+    }
+  });
+
+  // Publish featured categories snapshot
+  app.post('/api/admin/categories/publish-featured', async (req, res) => {
+    try {
+      // 1. Get all categories that are visible
+      const result = await pool.query(
+        'SELECT id, name, slug, description FROM categories WHERE home_visible = true AND is_active = true ORDER BY home_order ASC, name ASC'
+      );
+      const featuredCategories = result.rows;
+      
+      // 2. For each, we need their 4 newest Cartaz posts just like the old route did
+      const configData = await Promise.all(featuredCategories.map(async (category) => {
+        // Obter os 4 últimos posts de formato 'Cartaz'
+        const postsResult = await pool.query(`
+          WITH grouped_posts AS (
+            SELECT DISTINCT ON (COALESCE(group_id, 'single_' || id::text)) 
+              id, title, image_url, is_pro
+            FROM posts 
+            WHERE category_id = $1 
+            AND status = 'aprovado' 
+            AND formato = 'Cartaz'
+            AND (is_visible IS NULL OR is_visible = true)
+            ORDER BY COALESCE(group_id, 'single_' || id::text), created_at DESC
+          )
+          SELECT id, title, image_url as "imageUrl", is_pro as "isPro"
+          FROM grouped_posts
+          LIMIT 4
+        `, [category.id]);
+        
+        return {
+          id: category.id,
+          name: category.name,
+          slug: category.slug,
+          description: category.description,
+          posts: postsResult.rows
+        };
+      }));
+      
+      // Filter out those with no posts
+      const finalConfig = configData.filter(c => c.posts.length > 0);
+
+      // Save to site_config
+      await pool.query(
+        'INSERT INTO site_config (key, value, updated_at) VALUES ($1, $2, now()) ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = now()',
+        ['featured-categories', JSON.stringify(finalConfig)]
+      );
+
+      res.json({ success: true, count: finalConfig.length });
+    } catch (error) {
+      console.error('Error publishing featured categories:', error);
+      res.status(500).json({ message: 'Error publishing categories' });
+    }
+  });
+
+  // Public endpoint for home page
+  app.get('/api/site-config/featured-categories', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT value, updated_at FROM site_config WHERE key = $1', ['featured-categories']);
+      if (result.rows.length > 0) {
+        res.json({
+          data: result.rows[0].value,
+          updatedAt: result.rows[0].updated_at
+        });
+      } else {
+        res.json({ data: [], updatedAt: null });
+      }
+    } catch (error) {
+      console.error('Error fetching featured categories config:', error);
+      res.status(500).json({ message: 'Error fetching config' });
+    }
+  });
+
   // Get category statistics with post counts
   app.get('/api/admin/category-stats', async (req, res) => {
     try {

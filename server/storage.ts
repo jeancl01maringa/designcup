@@ -903,7 +903,7 @@ export class DatabaseStorage implements IStorage {
 
       // Usar PostgreSQL direto para evitar problemas de cache
       const query = `
-        SELECT id, name, description, slug, image_url, is_active, created_at
+        SELECT id, name, description, slug, image_url, is_active, home_visible, home_order, created_at
         FROM categories
         ORDER BY name
       `;
@@ -928,6 +928,8 @@ export class DatabaseStorage implements IStorage {
           slug: item.slug || slugify(item.name),
           imageUrl: item.image_url,
           isActive: isActive,
+          homeVisible: Boolean(item.home_visible),
+          homeOrder: typeof item.home_order === 'number' ? item.home_order : parseInt(item.home_order) || 99,
           createdAt: new Date(item.created_at)
         };
       });
@@ -978,6 +980,8 @@ export class DatabaseStorage implements IStorage {
           slug: item.slug || slugify(item.name),
           imageUrl: item.image_url,
           isActive: true, // Todos são ativos nesta query
+          homeVisible: Boolean(item.home_visible),
+          homeOrder: typeof item.home_order === 'number' ? item.home_order : parseInt(item.home_order) || 99,
           createdAt: new Date(item.created_at)
         };
       });
@@ -1031,6 +1035,8 @@ export class DatabaseStorage implements IStorage {
         slug: data.slug || slugify(data.name), // Gera slug se não existir
         imageUrl: data.image_url,
         isActive: isActive,
+        homeVisible: Boolean(data.home_visible),
+        homeOrder: typeof data.home_order === 'number' ? data.home_order : parseInt(data.home_order) || 99,
         createdAt: new Date(data.created_at)
       };
 
@@ -1058,6 +1064,8 @@ export class DatabaseStorage implements IStorage {
           slug: category.slug || slugify(category.name),
           imageUrl: category.imageUrl || null,
           isActive: category.isActive !== undefined ? category.isActive : true,
+          homeVisible: false,
+          homeOrder: 99,
           createdAt: new Date()
         };
         db.categories.push(newCat);
@@ -1097,6 +1105,8 @@ export class DatabaseStorage implements IStorage {
         slug: data.slug,
         imageUrl: data.image_url,
         isActive: data.is_active,
+        homeVisible: false,
+        homeOrder: 99,
         createdAt: new Date(data.created_at)
       };
 
@@ -1183,6 +1193,8 @@ export class DatabaseStorage implements IStorage {
         slug: data.slug || slugify(data.name),
         imageUrl: data.image_url,
         isActive: isActive,
+        homeVisible: Boolean(data.home_visible),
+        homeOrder: typeof data.home_order === 'number' ? data.home_order : parseInt(data.home_order) || 99,
         createdAt: new Date(data.created_at)
       };
 

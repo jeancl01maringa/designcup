@@ -123,6 +123,8 @@ export const categories = pgTable("categories", {
   description: text("description"),
   imageUrl: text("image_url"),
   isActive: boolean("is_active").default(true).notNull(),
+  homeVisible: boolean("home_visible").default(false).notNull(),
+  homeOrder: integer("home_order").default(99).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

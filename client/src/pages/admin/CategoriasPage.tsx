@@ -5,13 +5,13 @@ import { PageHeader } from "@/components/admin/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import {
   Dialog,
@@ -22,15 +22,20 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  CheckCircle, 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  CheckCircle,
   AlertCircle,
-  RefreshCcw
+  RefreshCcw,
+  LayoutDashboard,
+  Save,
+  Globe
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Category } from "@shared/schema";
@@ -78,6 +83,7 @@ export default function CategoriasPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(false);
 
   // Form para criar/editar categoria
   const form = useForm<CategoryFormValues>({
@@ -116,6 +122,20 @@ export default function CategoriasPage() {
       } catch (error) {
         console.error("Erro ao buscar estatísticas das categorias:", error);
         return [];
+      }
+    },
+    refetchOnWindowFocus: false
+  });
+
+  // Buscar última publicação
+  const { data: publishedConfig, refetch: refetchPublished } = useQuery({
+    queryKey: ['/api/site-config/featured-categories'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/site-config/featured-categories');
+        return await response.json();
+      } catch (error) {
+        return { data: [], updatedAt: null };
       }
     },
     refetchOnWindowFocus: false
@@ -214,12 +234,51 @@ export default function CategoriasPage() {
     },
   });
 
+  // Mutation para atualizar configurações da home
+  const updateHomeMutation = useMutation({
+    mutationFn: async (data: { id: number; homeVisible: boolean; homeOrder: number }) => {
+      const response = await apiRequest("PATCH", `/api/admin/categories/${data.id}/home`, data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/category-stats'] });
+      setHasUnpublishedChanges(true);
+      toast({
+        title: "Alteração salva temporariamente",
+        description: "Lembre-se de publicar para que as alterações apareçam na Home.",
+      });
+    },
+  });
+
+  // Mutation para publicar na home
+  const publishMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/categories/publish-featured");
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      setHasUnpublishedChanges(false);
+      refetchPublished();
+      toast({
+        title: "Publicado com sucesso!",
+        description: `${data.count} categorias foram atualizadas na Home.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao publicar",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filtrar categorias pelo termo de busca
   const filteredCategories = searchTerm
-    ? categoryStats.filter((cat: Category & { postCount: number }) => 
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
+    ? categoryStats.filter((cat: Category & { postCount: number }) =>
+      cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
     : categoryStats;
 
   // Abrir modal de edição
@@ -240,6 +299,25 @@ export default function CategoriasPage() {
       id: category.id,
       isActive: !category.isActive
     });
+  };
+
+  const handleToggleHomeVisible = (category: Category & { homeVisible?: boolean, homeOrder?: number }) => {
+    updateHomeMutation.mutate({
+      id: category.id,
+      homeVisible: !category.homeVisible,
+      homeOrder: category.homeOrder || 99
+    });
+  };
+
+  const handleOrderChange = (category: Category & { homeVisible?: boolean }, newOrder: string) => {
+    const orderNum = parseInt(newOrder);
+    if (!isNaN(orderNum)) {
+      updateHomeMutation.mutate({
+        id: category.id,
+        homeVisible: !!category.homeVisible,
+        homeOrder: orderNum
+      });
+    }
   };
 
   // Enviar formulário de criação
@@ -280,7 +358,7 @@ export default function CategoriasPage() {
         title="Categorias"
         description="Gerencie as categorias de conteúdo do site"
       />
-      
+
       {/* Barra de pesquisa e botão de nova categoria */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <div className="relative w-full sm:w-64">
@@ -292,17 +370,17 @@ export default function CategoriasPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => refetch()}
             title="Atualizar"
           >
             <RefreshCcw className="h-4 w-4" />
           </Button>
-          
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button
@@ -349,8 +427,8 @@ export default function CategoriasPage() {
                     <DialogClose asChild>
                       <Button type="button" variant="outline">Cancelar</Button>
                     </DialogClose>
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="bg-blue-600 hover:bg-blue-700"
                       disabled={createMutation.isPending}
                     >
@@ -363,104 +441,229 @@ export default function CategoriasPage() {
           </Dialog>
         </div>
       </div>
-      
-      {/* Tabela de categorias */}
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead className="hidden sm:table-cell">Posts Vinculados</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  Carregando categorias...
-                </TableCell>
-              </TableRow>
-            ) : filteredCategories.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  Nenhuma categoria encontrada.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredCategories.map((category: Category & { postCount: number }) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    {category.postCount}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {category.isActive ? (
-                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Ativo
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Inativo
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right space-x-1">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleEdit(category)}
-                      title="Editar"
-                      className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:ml-2">Editar</span>
-                    </Button>
-                    
-                    {category.isActive ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleStatus(category)}
-                        title="Desativar"
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                      >
-                        <AlertCircle className="h-4 w-4" />
-                        <span className="sr-only sm:not-sr-only sm:ml-2">Desativar</span>
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleStatus(category)}
-                        title="Ativar"
-                        className="text-green-600 border-green-200 hover:bg-green-50"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="sr-only sm:not-sr-only sm:ml-2">Ativar</span>
-                      </Button>
-                    )}
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(category)}
-                      title="Excluir"
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:ml-2">Excluir</span>
-                    </Button>
-                  </TableCell>
+
+      <Tabs defaultValue="todas" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="todas">Todas as Categorias</TabsTrigger>
+          <TabsTrigger value="destaques" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Em Destaque (Home)
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="todas">
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="hidden sm:table-cell">Posts Vinculados</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      Carregando categorias...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredCategories.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      Nenhuma categoria encontrada.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCategories.map((category: Category & { postCount: number }) => (
+                    <TableRow key={category.id}>
+                      <TableCell className="font-medium">{category.name}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {category.postCount}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {category.isActive ? (
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Ativo
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Inativo
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(category)}
+                          title="Editar"
+                          className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only sm:not-sr-only sm:ml-2">Editar</span>
+                        </Button>
+
+                        {category.isActive ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleStatus(category)}
+                            title="Desativar"
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          >
+                            <AlertCircle className="h-4 w-4" />
+                            <span className="sr-only sm:not-sr-only sm:ml-2">Desativar</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleStatus(category)}
+                            title="Ativar"
+                            className="text-green-600 border-green-200 hover:bg-green-50"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="sr-only sm:not-sr-only sm:ml-2">Ativar</span>
+                          </Button>
+                        )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(category)}
+                          title="Excluir"
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only sm:not-sr-only sm:ml-2">Excluir</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="destaques">
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="font-medium text-blue-900 flex items-center gap-2">
+                  <LayoutDashboard className="h-5 w-5" />
+                  Gerenciar Categorias da Home
+                </h3>
+                <p className="text-sm text-blue-700 mt-1">
+                  Escolha quais categorias aparecem na página inicial e em qual ordem.
+                  {publishedConfig?.updatedAt && (
+                    <span className="block mt-1 font-medium">
+                      Última publicação: {new Date(publishedConfig.updatedAt).toLocaleString('pt-BR')}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <Button
+                className={`${hasUnpublishedChanges ? 'bg-amber-500 hover:bg-amber-600 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'}`}
+                onClick={() => publishMutation.mutate()}
+                disabled={publishMutation.isPending || (!hasUnpublishedChanges && publishedConfig?.data?.length > 0)}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {publishMutation.isPending ? "Publicando..." : "Publicar Alterações"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-center w-[120px]">Visível na Home</TableHead>
+                  <TableHead className="w-[120px]">Ordem</TableHead>
+                  <TableHead className="text-right">Posts</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      Carregando configurações...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredCategories.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      Nenhuma categoria encontrada.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  // Order by homeOrder for this view specifically, but keep original array intact to avoid flickers
+                  [...filteredCategories]
+                    .sort((a, b) => {
+                      // Put visible ones first
+                      if (a.homeVisible && !b.homeVisible) return -1;
+                      if (!a.homeVisible && b.homeVisible) return 1;
+                      // Then by order
+                      const orderA = a.homeOrder ?? 99;
+                      const orderB = b.homeOrder ?? 99;
+                      if (orderA !== orderB) return orderA - orderB;
+                      // Then by names
+                      return a.name.localeCompare(b.name);
+                    })
+                    .map((category: Category & { postCount: number, homeVisible?: boolean, homeOrder?: number }) => (
+                      <TableRow key={`home-${category.id}`} className={category.homeVisible ? 'bg-blue-50/30' : ''}>
+                        <TableCell className="font-medium">
+                          {category.name}
+                          {!category.isActive && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-800">
+                              Inativa
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Switch
+                            checked={!!category.homeVisible}
+                            onCheckedChange={() => handleToggleHomeVisible(category)}
+                            disabled={!category.isActive}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            className="w-20 text-center h-8"
+                            min="1"
+                            max="99"
+                            defaultValue={category.homeOrder || 99}
+                            disabled={!category.homeVisible || !category.isActive}
+                            onBlur={(e) => {
+                              if (e.target.value !== String(category.homeOrder)) {
+                                handleOrderChange(category, e.target.value);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleOrderChange(category, e.currentTarget.value);
+                                e.currentTarget.blur();
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground text-sm">
+                          {category.postCount} posts
+                        </TableCell>
+                      </TableRow>
+                    ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Modal de edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -501,8 +704,8 @@ export default function CategoriasPage() {
                   <DialogClose asChild>
                     <Button type="button" variant="outline">Cancelar</Button>
                   </DialogClose>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={updateMutation.isPending}
                   >
@@ -531,8 +734,8 @@ export default function CategoriasPage() {
             <DialogClose asChild>
               <Button type="button" variant="outline">Cancelar</Button>
             </DialogClose>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
               disabled={deleteMutation.isPending}
             >
