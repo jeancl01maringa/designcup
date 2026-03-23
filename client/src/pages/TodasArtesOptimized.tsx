@@ -274,7 +274,7 @@ export default function TodasArtesOptimized() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Ex: Teste 17, Botox..."
+                  placeholder="Ex: Flyer, Social Media..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -380,7 +380,7 @@ export default function TodasArtesOptimized() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Ex: Teste 17, Botox..."
+                  placeholder="Ex: Flyer, Social Media..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"

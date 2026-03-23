@@ -28,7 +28,7 @@ function useResponsiveColumns() {
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    
+
     const updateColumns = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
@@ -39,7 +39,7 @@ function useResponsiveColumns() {
         else if (width < 1024) newColumns = 3;
         else if (width < 1280) newColumns = 4;
         else newColumns = 5;
-        
+
         setColumns(prev => prev !== newColumns ? newColumns : prev);
       }, 150); // Debounce de 150ms
     };
@@ -57,12 +57,12 @@ function useResponsiveColumns() {
 // Distribuir posts em colunas para layout masonry
 function distributePostsInColumns(posts: Post[], columns: number): Post[][] {
   const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
-  
+
   posts.forEach((post, index) => {
     const columnIndex = index % columns;
     columnArrays[columnIndex].push(post);
   });
-  
+
   return columnArrays;
 }
 
@@ -143,7 +143,7 @@ export default function TodasArtes() {
 
     // Filtro de pesquisa por título
     if (searchTerm.trim()) {
-      allPosts = allPosts.filter(post => 
+      allPosts = allPosts.filter(post =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase().trim())
       );
     }
@@ -241,7 +241,7 @@ export default function TodasArtes() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Ex: Teste 17, Botox..."
+                  placeholder="Ex: Flyer, Social Media..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -337,14 +337,14 @@ export default function TodasArtes() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Ex: Teste 17, Botox..."
+                  placeholder="Ex: Flyer, Social Media..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            
+
             {/* Botão Filtros */}
             <div className="flex flex-col justify-end">
               <Button
