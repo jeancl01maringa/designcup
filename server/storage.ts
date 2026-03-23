@@ -901,26 +901,19 @@ export class DatabaseStorage implements IStorage {
         return db.categories.map((c: any) => ({ ...c, createdAt: new Date(c.createdAt) }));
       }
 
-      // Usar PostgreSQL direto para evitar problemas de cache
       const query = `
         SELECT id, name, description, slug, image_url, is_active, home_visible, home_order, created_at
         FROM categories
-        ORDER BY name
+        ORDER BY home_order ASC, name ASC
       `;
-
       const result = await pool.query(query);
 
       if (!result.rows || result.rows.length === 0) {
-        console.log("DATABASE getCategories - Nenhuma categoria encontrada");
         return [];
       }
 
-      // Mapear os dados para o formato esperado pela aplicação
       const categories: Category[] = result.rows.map(item => {
-        // Converter is_active para boolean explicitamente (pode vir como 't' do PostgreSQL)
         const isActive = item.is_active === true || item.is_active === 't';
-        console.log(`Categoria ${item.id} (${item.name}): is_active = ${item.is_active}, isActive = ${isActive}`);
-
         return {
           id: item.id,
           name: item.name,
@@ -934,7 +927,7 @@ export class DatabaseStorage implements IStorage {
         };
       });
 
-      console.log(`DATABASE getCategories - Encontradas ${categories.length} categorias`);
+      console.log(`DATABASE getCategories - Encontradas ${categories.length} categorias via Postgres DB`);
       return categories;
     } catch (error) {
       console.error("DATABASE getCategories - Exceção:", error);
@@ -944,7 +937,7 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveCategories(): Promise<Category[]> {
     try {
-      console.log("DATABASE getActiveCategories - Buscando apenas categorias ativas");
+      console.log("DATABASE getActiveCategories - Buscando apenas categorias ativas via DB Postgres");
 
       const isOfflineMode = process.env.VITE_SUPABASE_URL?.includes("dummy") || process.env.SUPABASE_URL?.includes("dummy");
       if (isOfflineMode) {
@@ -954,25 +947,20 @@ export class DatabaseStorage implements IStorage {
           .map((c: any) => ({ ...c, createdAt: new Date(c.createdAt) }));
       }
 
-      // Usar a API do Supabase para buscar apenas categorias ativas
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
+      const query = `
+        SELECT id, name, description, slug, image_url, is_active, home_visible, home_order, created_at 
+        FROM categories 
+        WHERE is_active = true 
+        ORDER BY home_order ASC, name ASC
+      `;
+      const result = await pool.query(query);
 
-      if (error) {
-        console.error("DATABASE getActiveCategories - Erro ao buscar categorias ativas:", error.message);
-        return [];
-      }
-
-      if (!data || data.length === 0) {
+      if (!result.rows || result.rows.length === 0) {
         console.log("DATABASE getActiveCategories - Nenhuma categoria ativa encontrada");
         return [];
       }
 
-      // Mapear os dados do Supabase para o formato esperado pela aplicação
-      const categories: Category[] = data.map(item => {
+      const categories: Category[] = result.rows.map(item => {
         return {
           id: item.id,
           name: item.name,
@@ -986,7 +974,7 @@ export class DatabaseStorage implements IStorage {
         };
       });
 
-      console.log(`DATABASE getActiveCategories - Encontradas ${categories.length} categorias ativas`);
+      console.log(`DATABASE getActiveCategories - Encontradas ${categories.length} categorias ativas via Postgres DB`);
       return categories;
     } catch (error) {
       console.error("DATABASE getActiveCategories - Exceção:", error);
@@ -1006,25 +994,21 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
 
-      // Usar a API do Supabase para buscar a categoria pelo ID
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const query = `
+        SELECT id, name, description, slug, image_url, is_active, home_visible, home_order, created_at 
+        FROM categories 
+        WHERE id = $1
+      `;
+      const result = await pool.query(query, [id]);
 
-      if (error) {
-        console.error("DATABASE getCategoryById - Erro ao buscar categoria:", error.message);
-        return undefined;
-      }
-
-      if (!data) {
+      if (!result.rows || result.rows.length === 0) {
         console.log(`DATABASE getCategoryById - Categoria com ID ${id} não encontrada`);
         return undefined;
       }
 
-      // Mapear os dados do Supabase para o formato esperado pela aplicação
-      // Converter is_active para boolean explicitamente
+      const data = result.rows[0];
+
+      // Mapear os dados para o formato esperado pela aplicação
       const isActive = data.is_active === true || data.is_active === 't';
       console.log(`Categoria ${data.id} (${data.name}): is_active = ${data.is_active}, isActive = ${isActive}`);
 
