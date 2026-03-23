@@ -17,7 +17,7 @@ import ImageUploadDemo from "@/pages/ImageUploadDemo";
 import SocialSharingDemo from "@/pages/SocialSharingDemo";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { MobileSearchBar } from "@/components/layout/MobileSearchBar";
+
 import { useMobileMenuProvider } from "@/hooks/use-mobile-menu";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -206,8 +206,6 @@ function App() {
   // Facebook Pixel - tracking automático de páginas
   usePixelPageTracking();
 
-  // Mostrar barra de pesquisa móvel apenas na home e na página "todas as artes"
-  const showMobileSearchBar = showHeaderFooter && (location === "/" || location === "/todas-artes");
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="designcup-theme">
@@ -216,7 +214,6 @@ function App() {
           <Context.Provider value={value}>
             <div className="flex flex-col min-h-screen">
               {showHeaderFooter && <Header />}
-              {showMobileSearchBar && <MobileSearchBar />}
               <main className="flex-grow">
                 <Router />
               </main>
