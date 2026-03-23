@@ -47,9 +47,26 @@ export default function CategorySection() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [maxScroll, setMaxScroll] = useState(0);
 
-  // Buscar apenas categorias que têm posts
+  // Buscar configurações das categorias em destaque (site_config)
+  const { data: featuredConfig, isLoading: isFeaturedLoading } = useQuery({
+    queryKey: ['/api/site-config/featured-categories'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/site-config/featured-categories');
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data?.data || null; // Return the array stored in 'data'
+      } catch (err) {
+        console.error('Erro ao buscar categorias em destaque:', err);
+        return null;
+      }
+    }
+  });
+
+  // Fallback: Buscar apenas categorias que têm posts dinamicamente
   const { data: dbCategories = [], isLoading: isCategoriesLoading } = useQuery<DbCategory[]>({
     queryKey: ['/api/categories/with-posts'],
+    enabled: featuredConfig === null || featuredConfig.length === 0, // Apenas se não houver destaques publicados
     queryFn: async () => {
       try {
         const response = await fetch('/api/categories/with-posts');
@@ -63,9 +80,10 @@ export default function CategorySection() {
     }
   });
 
-  // Buscar posts aprovados do PostgreSQL (dados reais)
+  // Fallback: Buscar posts aprovados
   const { data: dbPosts = [], isLoading: isPostsLoading } = useQuery<DbPost[]>({
     queryKey: ['/api/posts/visible'],
+    enabled: featuredConfig === null || featuredConfig.length === 0,
     queryFn: async () => {
       try {
         const response = await fetch('/api/posts/visible');
@@ -79,28 +97,35 @@ export default function CategorySection() {
     }
   });
 
-  // Constrói a estrutura de categorias com posts associados
-  const categoriesWithPosts: CategoryWithPosts[] = dbCategories.map(category => {
-    // Filtrar posts para esta categoria - APENAS formato Cartaz
-    const categoryPosts = dbPosts
-      .filter(post =>
-        post.categoryId === category.id &&
-        (post as any).formato === 'Cartaz'
-      )
-      .map(post => ({
-        id: post.id,
-        title: post.title,
-        imageUrl: post.imageUrl
-      }));
+  // Constrói a estrutura de categorias
+  let categoriesWithPosts: CategoryWithPosts[] = [];
 
-    return {
-      id: category.id,
-      name: category.name,
-      slug: category.slug || null,
-      description: category.description,
-      posts: categoryPosts
-    };
-  }).filter(category => category.posts.length > 0); // Mostrar apenas categorias com posts
+  if (featuredConfig && featuredConfig.length > 0) {
+    // Usar dados publicados no admin (já vêm filtrados, ordenados e com os posts corretos do Cartaz)
+    categoriesWithPosts = featuredConfig;
+  } else {
+    // Fallback original dinâmico
+    categoriesWithPosts = dbCategories.map(category => {
+      const categoryPosts = dbPosts
+        .filter(post =>
+          post.categoryId === category.id &&
+          (post as any).formato === 'Cartaz'
+        )
+        .map(post => ({
+          id: post.id,
+          title: post.title,
+          imageUrl: post.imageUrl
+        }));
+
+      return {
+        id: category.id,
+        name: category.name,
+        slug: category.slug || null,
+        description: category.description,
+        posts: categoryPosts
+      };
+    }).filter(category => category.posts.length > 0);
+  }
 
   // Calcular a largura máxima de rolagem quando os dados são carregados
   useEffect(() => {
@@ -166,7 +191,7 @@ export default function CategorySection() {
   }, [scrollRef.current]);
 
   // Estado de carregamento ou sem dados
-  if (isCategoriesLoading || isPostsLoading) {
+  if (isFeaturedLoading || (isCategoriesLoading && (featuredConfig === null || featuredConfig.length === 0))) {
     return (
       <section className="py-8 bg-background border-b border-border">
         <div className="container-global">
