@@ -1,15 +1,8 @@
 import { Router } from 'express';
-import pkg from 'pg';
-const { Pool } = pkg;
 import { BrevoService } from '../services/brevo-service.js';
+import { pool } from '../db';
 
 export const router = Router();
-
-// Pool PostgreSQL para webhook
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
 
 // Função de hash de senha para usuários
 async function hashPassword(password: string): Promise<string> {
