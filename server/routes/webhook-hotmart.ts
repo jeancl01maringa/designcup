@@ -40,6 +40,13 @@ router.post('/', async (req, res) => {
   console.log('📩 Webhook Hotmart recebido:', payload?.event || 'SEM EVENTO');
   console.log('📋 Payload completo:', JSON.stringify(payload, null, 2));
 
+  try {
+    // Insere o payload no banco de dados para podermos inspecionar
+    await pool.query('INSERT INTO webhook_logs (provider, payload) VALUES ($1, $2)', ['hotmart', payload]);
+  } catch (logErr) {
+    console.error('Erro ao salvar no webhook_logs:', logErr);
+  }
+
   // LÓGICA DE COMPRA APROVADA
   if (isValidPurchase(payload)) {
     try {

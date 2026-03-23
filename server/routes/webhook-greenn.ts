@@ -44,6 +44,12 @@ router.post('/', async (req, res) => {
     console.log('📩 Webhook Greenn recebido:', eventType);
     console.log('📋 Payload completo:', JSON.stringify(payload, null, 2));
 
+    try {
+        await pool.query('INSERT INTO webhook_logs (provider, payload) VALUES ($1, $2)', ['greenn', payload]);
+    } catch (logErr) {
+        console.error('Erro ao salvar no webhook_logs:', logErr);
+    }
+
     // Tenta extrair o status da transação/assinatura
     const status = payload?.currentStatus || payload?.status || payload?.data?.status || eventType;
 
