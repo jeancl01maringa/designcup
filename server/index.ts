@@ -13,6 +13,11 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 // Servir arquivos de logos estaticamente
 app.use('/logos', express.static(path.join(process.cwd(), 'public', 'logos')));
 
+// Health check endpoint — Digital Ocean usa isso para saber se o servidor está vivo
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime() });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -53,38 +58,48 @@ app.use((req, res, next) => {
     } else {
       // Check if storage has seedDatabase method (DatabaseStorage)
       if ('seedDatabase' in storage) {
-        log('Initializing database with sample data...');
-        await (storage as any).seedDatabase();
-        log('Database initialized successfully');
+        try {
+          log('Initializing database with sample data...');
+          await (storage as any).seedDatabase();
+          log('Database initialized successfully');
+        } catch (seedErr: any) {
+          log(`⚠️ seedDatabase falhou (servidor continua): ${seedErr?.message}`);
+        }
       }
 
       // Verificar e criar tabelas de tags
-      log('Verificando e criando tabelas de tags...');
-      await ensureTagTablesExist();
+      try {
+        log('Verificando e criando tabelas de tags...');
+        await ensureTagTablesExist();
+      } catch (tagErr: any) {
+        log(`⚠️ ensureTagTablesExist falhou (servidor continua): ${tagErr?.message}`);
+      }
 
       // Verificar e adicionar campos do Hotmart na tabela subscriptions
-      log('Verificando campos do Hotmart na tabela subscriptions...');
-      await ensureHotmartFieldsExist();
+      try {
+        log('Verificando campos do Hotmart na tabela subscriptions...');
+        await ensureHotmartFieldsExist();
+      } catch (hotmartErr: any) {
+        log(`⚠️ ensureHotmartFieldsExist falhou (servidor continua): ${hotmartErr?.message}`);
+      }
     }
-
-    // Migração desabilitada temporariamente para evitar travamento
-    // log('Configurando tabelas no Supabase...');
-    // await setupSupabaseTables();
-
-    // log('Migrando dados para o Supabase...');
-    // await migrateLocalDataToSupabase(db);
   } catch (error) {
     log(`Error initializing database: ${error}`);
   }
 
   const server = await registerRoutes(app);
 
+  // Error handler global do Express
+  // IMPORTANTE: NÃO re-lançar o erro (throw err) senão o processo inteiro morre!
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    console.error(`❌ Express error handler: [${status}] ${message}`);
+    if (!res.headersSent) {
+      res.status(status).json({ message });
+    }
+    // NÃO fazer throw err aqui! Isso crashava o servidor inteiro.
   });
 
   // importantly only setup vite in development and after
@@ -107,3 +122,9 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
   });
 })();
+
+// Proteção contra crash por exceção não capturada
+process.on('uncaughtException', (err) => {
+  console.error('🔥 uncaughtException (servidor NÃO vai morrer):', err?.message || err);
+});
+
