@@ -33,20 +33,11 @@ function useResponsiveColumns() {
   return columns;
 }
 
-// Função auxiliar para verificar se o post é formato Banner (landscape/horizontal)
+// Verifica se o post é formato Banner (landscape/horizontal)
 function isBannerFormat(post: Post): boolean {
   const formato = (post as any).formato?.toLowerCase() || '';
   return formato === 'banner' || formato === 'horizontal' || formato === 'landscape' ||
     formato === 'youtube thumbnail' || formato === 'capa' || formato === 'capa facebook';
-}
-
-// Função para obter o row span baseado no formato
-function getRowSpan(post: Post): number {
-  const formato = (post as any).formato || '';
-  if (isBannerFormat(post)) return 15; // Banner: landscape, shorter
-  if (formato === 'Stories') return 38; // Stories: 9:16, very tall
-  if (formato === 'Cartaz') return 28; // Cartaz: 4:5
-  return 22; // Feed/default: 1:1 square
 }
 
 export default function ArtworkGrid({ category, searchTerm, sortOrder }: ArtworkGridProps) {
@@ -64,8 +55,8 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
 
   const columns = useResponsiveColumns();
 
-  // Filtrar posts e preparar lista flat
-  const { filteredPosts, displayPosts } = useMemo(() => {
+  // Filtrar posts, separar banners, e organizar em colunas
+  const { filteredPosts, columnArrays, bannerPosts } = useMemo(() => {
     const allPosts = posts || [];
 
     let filtered = allPosts.filter(post =>
@@ -93,9 +84,8 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
       );
     }
 
-    // Evitar duplicatas: manter apenas um post por group_id, priorizando formato Cartaz
+    // Evitar duplicatas: manter apenas um post por group_id
     const groupedPosts = new Map<string, Post[]>();
-
     for (const post of filtered) {
       const groupId = (post as any).group_id || `single_${post.id}`;
       if (!groupedPosts.has(groupId)) {
@@ -108,19 +98,13 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     Array.from(groupedPosts.values()).forEach((groupPosts) => {
       const cartazPost = groupPosts.find((p: any) => p.formato === 'Cartaz');
       const storiesPost = groupPosts.find((p: any) => p.formato === 'Stories');
-
-      if (cartazPost) {
-        uniquePosts.push(cartazPost);
-      } else if (storiesPost) {
-        uniquePosts.push(storiesPost);
-      } else {
-        uniquePosts.push(groupPosts[0]);
-      }
+      if (cartazPost) uniquePosts.push(cartazPost);
+      else if (storiesPost) uniquePosts.push(storiesPost);
+      else uniquePosts.push(groupPosts[0]);
     });
 
-    // Aplicar ordenação
-    let shuffledPosts: Post[] = [];
-
+    // Ordenação
+    let shuffledPosts: Post[];
     if (sortOrder === "Em alta") {
       const sortedByDate = [...uniquePosts].sort((a, b) =>
         new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
@@ -130,15 +114,51 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
       shuffledPosts = [...uniquePosts].sort(() => Math.random() - 0.5);
     }
 
-    // Limitar quantidade de posts
+    // Separar banners dos posts normais
+    const bannerPosts: Post[] = [];
+    const regularPosts: Post[] = [];
+    for (const post of shuffledPosts) {
+      if (isBannerFormat(post)) {
+        bannerPosts.push(post);
+      } else {
+        regularPosts.push(post);
+      }
+    }
+
+    // Limitar quantidade de posts regulares
     let maxPosts = 20;
     if (columns === 2) maxPosts = 12;
     else if (columns === 3) maxPosts = 15;
     else if (columns === 4) maxPosts = 16;
 
-    const displayPosts = shuffledPosts.slice(0, maxPosts);
+    const postsToShow = regularPosts.slice(0, maxPosts);
 
-    return { filteredPosts: filtered, displayPosts };
+    // Distribuir posts em colunas com balanceamento por altura
+    const columnArrays: Post[][] = Array.from({ length: columns }, () => []);
+    const columnHeights: number[] = new Array(columns).fill(0);
+
+    for (const post of postsToShow) {
+      let height = 1; // Default proportion (1:1)
+      if (post.formato === 'Stories') height = 1.77;
+      else if (post.formato === 'Cartaz') height = 1.25;
+
+      let targetColumn = 0;
+      let minHeight = columnHeights[0];
+      for (let c = 1; c < columns; c++) {
+        if (columnHeights[c] < minHeight) {
+          minHeight = columnHeights[c];
+          targetColumn = c;
+        }
+      }
+
+      columnArrays[targetColumn].push(post);
+      columnHeights[targetColumn] += height;
+    }
+
+    // Limitar banners a no máximo 3 para não sobrecarregar
+    const limitedBanners = bannerPosts.slice(0, 3);
+
+    return { filteredPosts: filtered, columnArrays, bannerPosts: limitedBanners };
   }, [posts, categories, category, searchTerm, columns, sortOrder]);
 
   if (isLoading || (category && category !== "todos" && !categories)) {
@@ -163,12 +183,8 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     return (
       <div className="text-center py-12">
         <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          Erro ao carregar posts
-        </h3>
-        <p className="text-muted-foreground">
-          Tente recarregar a página ou entre em contato com o suporte.
-        </p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Erro ao carregar posts</h3>
+        <p className="text-muted-foreground">Tente recarregar a página ou entre em contato com o suporte.</p>
       </div>
     );
   }
@@ -177,39 +193,42 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
     return (
       <div className="text-center py-12">
         <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          Nenhum post encontrado
-        </h3>
-        <p className="text-muted-foreground">
-          Não há posts disponíveis no momento.
-        </p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum post encontrado</h3>
+        <p className="text-muted-foreground">Não há posts disponíveis no momento.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* CSS Grid Masonry com suporte a Banner spanning 2 colunas */}
-      <div
-        className="grid gap-4"
-        style={{
-          gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gridAutoRows: '10px',
-        }}
-      >
-        {displayPosts.map((post) => {
-          const banner = isBannerFormat(post);
-          const rowSpan = getRowSpan(post);
-
-          return (
-            <div
+      {/* Banners em largura total (span across 2 colunas) */}
+      {bannerPosts.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {bannerPosts.map((post) => (
+            <ArtworkCard
               key={post.id}
-              style={{
-                gridRowEnd: `span ${rowSpan}`,
-                ...(banner && columns >= 3 ? { gridColumn: 'span 2' } : {}),
+              artwork={{
+                id: post.id,
+                title: post.title,
+                description: post.description || "",
+                imageUrl: post.imageUrl || "/placeholder.jpg",
+                category: post.categoryId?.toString() || "outros",
+                createdAt: new Date(post.createdAt),
+                isPro: post.isPro === true || post.licenseType === 'premium',
+                format: post.formato || "1:1"
               }}
-            >
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Grid masonry coluna-a-coluna (layout original com espaçamento correto) */}
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {columnArrays.map((columnPosts, columnIndex) => (
+          <div key={columnIndex} className="space-y-4">
+            {columnPosts.map((post) => (
               <ArtworkCard
+                key={post.id}
                 artwork={{
                   id: post.id,
                   title: post.title,
@@ -221,20 +240,16 @@ export default function ArtworkGrid({ category, searchTerm, sortOrder }: Artwork
                   format: post.formato || "1:1"
                 }}
               />
-            </div>
-          );
-        })}
+            ))}
+          </div>
+        ))}
       </div>
 
       {filteredPosts.length === 0 && (
         <div className="text-center py-12">
           <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            Nenhum resultado encontrado
-          </h3>
-          <p className="text-muted-foreground">
-            Tente ajustar os filtros ou termo de busca.
-          </p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum resultado encontrado</h3>
+          <p className="text-muted-foreground">Tente ajustar os filtros ou termo de busca.</p>
         </div>
       )}
 

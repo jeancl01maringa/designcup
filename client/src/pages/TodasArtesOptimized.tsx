@@ -542,46 +542,81 @@ export default function TodasArtesOptimized() {
 
         {/* Grid de Posts */}
         {paginatedPosts.length > 0 ? (
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${columns}, 1fr)`,
-              gridAutoRows: '10px',
-            }}
-          >
-            {paginatedPosts.map((post) => {
-              const formato = (post.formato || '').toLowerCase();
-              const isBanner = formato === 'banner' || formato === 'horizontal' || formato === 'landscape' ||
-                formato === 'youtube thumbnail' || formato === 'capa' || formato === 'capa facebook';
-
-              let rowSpan = 22; // Feed/default: 1:1 square
-              if (isBanner) rowSpan = 15;
-              else if (post.formato === 'Stories') rowSpan = 38;
-              else if (post.formato === 'Cartaz') rowSpan = 28;
-
+          <div>
+            {/* Banners em largura maior */}
+            {(() => {
+              const banners = paginatedPosts.filter(p => {
+                const f = (p.formato || '').toLowerCase();
+                return f === 'banner' || f === 'horizontal' || f === 'landscape';
+              });
+              if (banners.length === 0) return null;
               return (
-                <div
-                  key={`${post.id}-${post.formato}`}
-                  style={{
-                    gridRowEnd: `span ${rowSpan}`,
-                    ...(isBanner && columns >= 3 ? { gridColumn: 'span 2' } : {}),
-                  }}
-                >
-                  <ArtworkCard
-                    artwork={{
-                      id: post.id,
-                      title: post.title,
-                      description: post.description,
-                      imageUrl: post.imageUrl,
-                      createdAt: post.createdAt,
-                      isPro: post.isPro,
-                      format: post.formato || 'Feed',
-                      category: post.categoryId ? `Categoria ${post.categoryId}` : null
-                    }}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  {banners.map((post) => (
+                    <ArtworkCard
+                      key={`banner-${post.id}`}
+                      artwork={{
+                        id: post.id,
+                        title: post.title,
+                        description: post.description,
+                        imageUrl: post.imageUrl,
+                        createdAt: post.createdAt,
+                        isPro: post.isPro,
+                        format: post.formato || 'Feed',
+                        category: post.categoryId ? `Categoria ${post.categoryId}` : null
+                      }}
+                    />
+                  ))}
                 </div>
               );
-            })}
+            })()}
+
+            {/* Grid masonry coluna-a-coluna */}
+            <div className="flex gap-4">
+              {(() => {
+                const regularPosts = paginatedPosts.filter(p => {
+                  const f = (p.formato || '').toLowerCase();
+                  return f !== 'banner' && f !== 'horizontal' && f !== 'landscape';
+                });
+
+                const cols: Post[][] = Array.from({ length: columns }, () => []);
+                const heights: number[] = new Array(columns).fill(0);
+
+                regularPosts.forEach((post) => {
+                  let height = 1;
+                  if (post.formato === 'Stories') height = 1.77;
+                  else if (post.formato === 'Cartaz') height = 1.25;
+
+                  let targetCol = 0;
+                  let minH = heights[0];
+                  for (let c = 1; c < columns; c++) {
+                    if (heights[c] < minH) { minH = heights[c]; targetCol = c; }
+                  }
+                  cols[targetCol].push(post);
+                  heights[targetCol] += height;
+                });
+
+                return cols.map((columnPosts, columnIndex) => (
+                  <div key={columnIndex} className="flex-1 space-y-4">
+                    {columnPosts.map((post) => (
+                      <ArtworkCard
+                        key={`${post.id}-${post.formato}`}
+                        artwork={{
+                          id: post.id,
+                          title: post.title,
+                          description: post.description,
+                          imageUrl: post.imageUrl,
+                          createdAt: post.createdAt,
+                          isPro: post.isPro,
+                          format: post.formato || 'Feed',
+                          category: post.categoryId ? `Categoria ${post.categoryId}` : null
+                        }}
+                      />
+                    ))}
+                  </div>
+                ));
+              })()}
+            </div>
           </div>
         ) : (
           <div className="text-center py-12">
