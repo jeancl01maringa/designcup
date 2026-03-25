@@ -542,12 +542,32 @@ export default function TodasArtesOptimized() {
 
         {/* Grid de Posts */}
         {paginatedPosts.length > 0 ? (
-          <div className="flex gap-4">
-            {columnArrays.map((columnPosts, columnIndex) => (
-              <div key={columnIndex} className="flex-1 space-y-4">
-                {columnPosts.map((post) => (
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${columns}, 1fr)`,
+              gridAutoRows: '10px',
+            }}
+          >
+            {paginatedPosts.map((post) => {
+              const formato = (post.formato || '').toLowerCase();
+              const isBanner = formato === 'banner' || formato === 'horizontal' || formato === 'landscape' ||
+                formato === 'youtube thumbnail' || formato === 'capa' || formato === 'capa facebook';
+
+              let rowSpan = 22; // Feed/default: 1:1 square
+              if (isBanner) rowSpan = 15;
+              else if (post.formato === 'Stories') rowSpan = 38;
+              else if (post.formato === 'Cartaz') rowSpan = 28;
+
+              return (
+                <div
+                  key={`${post.id}-${post.formato}`}
+                  style={{
+                    gridRowEnd: `span ${rowSpan}`,
+                    ...(isBanner && columns >= 3 ? { gridColumn: 'span 2' } : {}),
+                  }}
+                >
                   <ArtworkCard
-                    key={`${post.id}-${post.formato}`}
                     artwork={{
                       id: post.id,
                       title: post.title,
@@ -559,9 +579,9 @@ export default function TodasArtesOptimized() {
                       category: post.categoryId ? `Categoria ${post.categoryId}` : null
                     }}
                   />
-                ))}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12">
