@@ -30,6 +30,7 @@ interface Usuario {
   plano_id: string | null;
   data_vencimento: string | null;
   active: boolean;
+  lastLogin?: string | null;
 }
 
 // Função utilitária para inferir período do plano a partir do vencimento
@@ -473,24 +474,24 @@ export default function UsuariosPage() {
                   <TableRow key={usuario.id}>
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="flex justify-center items-center w-8 h-8 rounded-full border border-gray-600">
+                        <div className="flex justify-center items-center w-8 h-8 rounded-full border border-border">
                           {usuario.isAdmin ? (
-                            <Shield size={14} className="text-gray-400" />
+                            <Shield size={14} className="text-muted-foreground" />
                           ) : (
-                            <User size={14} className="text-gray-400" />
+                            <User size={14} className="text-muted-foreground" />
                           )}
                         </div>
                         <div>
                           <span className="text-sm font-medium text-foreground">{usuario.username}</span>
                           {usuario.isAdmin && (
-                            <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Admin</Badge>
+                            <Badge className="ml-2 bg-blue-600 text-white text-xs">Admin</Badge>
                           )}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-400">{usuario.email}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{usuario.email}</TableCell>
                     <TableCell>
-                      <Badge variant={usuario.tipo === 'premium' ? 'default' : 'outline'} className={usuario.tipo === 'premium' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'text-gray-400 border-gray-600'}>
+                      <Badge variant={usuario.tipo === 'premium' ? 'default' : 'outline'} className={usuario.tipo === 'premium' ? 'bg-blue-600 text-white' : ''}>
                         {usuario.tipo === 'premium' ? 'Premium' : 'Free'}
                       </Badge>
                     </TableCell>
@@ -499,8 +500,8 @@ export default function UsuariosPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${usuario.active ? 'bg-emerald-500' : 'bg-gray-500'}`} />
-                        <span className={`text-sm ${usuario.active ? 'text-emerald-400' : 'text-gray-500'}`}>{usuario.active ? 'Ativo' : 'Inativo'}</span>
+                        <div className={`w-2 h-2 rounded-full ${usuario.active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                        <span className="text-sm text-foreground">{usuario.active ? 'Ativo' : 'Inativo'}</span>
                         <Switch
                           checked={usuario.active}
                           onCheckedChange={() => handleToggleActive(usuario)}
@@ -872,118 +873,67 @@ export default function UsuariosPage() {
 
       {/* Dialog de Histórico do Usuário */}
       <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
-        <DialogContent className="sm:max-w-[550px] bg-[#1a1a1a] border-white/10 text-white">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5">
-                <Clock className="h-5 w-5 text-amber-400" />
-              </div>
-              <div>
-                <DialogTitle className="text-white text-lg">Histórico do Usuário</DialogTitle>
-                <DialogDescription className="text-gray-400 text-sm">
-                  {selectedUsuario?.username}
-                </DialogDescription>
-              </div>
-            </div>
+            <DialogTitle>Histórico do Usuário</DialogTitle>
+            <DialogDescription>
+              {selectedUsuario?.username} — {selectedUsuario?.email}
+            </DialogDescription>
           </DialogHeader>
 
           {selectedUsuario && (() => {
             const createdDate = new Date(selectedUsuario.createdAt);
             const diasNoSistema = differenceInDays(new Date(), createdDate);
-            const plano = hotmartPlanos.find(p => p.id === selectedUsuario.plano_id);
-            const planoNome = plano ? `${plano.name} (${plano.periodo})` :
-              selectedUsuario.plano_id === 'mensal' ? 'Plano Mensal Premium' :
-                selectedUsuario.plano_id === 'anual' ? 'Plano Anual Premium' :
-                  selectedUsuario.plano_id ? `Plano ${selectedUsuario.plano_id}` : null;
+            const periodoPlano = inferirPeriodoDoPlano(selectedUsuario.data_vencimento, selectedUsuario.createdAt);
 
             return (
-              <div className="space-y-5 py-2">
-                {/* Stat Card - Dias no Sistema */}
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
-                  <div className="text-3xl font-bold text-amber-400">{diasNoSistema}</div>
-                  <div className="text-xs text-amber-400/70 mt-1">Dias no Sistema</div>
+              <div className="space-y-4 pt-2">
+                {/* Grid de informações */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted rounded-lg p-3">
+                    <div className="text-xs text-muted-foreground">Dias no Sistema</div>
+                    <div className="text-xl font-bold text-foreground mt-1">{diasNoSistema}</div>
+                  </div>
+                  <div className="bg-muted rounded-lg p-3">
+                    <div className="text-xs text-muted-foreground">Status</div>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <div className={`w-2 h-2 rounded-full ${selectedUsuario.active ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                      <span className="text-sm font-semibold text-foreground">{selectedUsuario.active ? 'Ativo' : 'Inativo'}</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Timeline de Eventos */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Activity className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-300">Timeline de Eventos</span>
+                {/* Detalhes */}
+                <div className="border border-border rounded-lg divide-y divide-border">
+                  <div className="flex justify-between items-center p-3">
+                    <span className="text-sm text-muted-foreground">Cadastrado em</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {format(createdDate, "dd/MM/yyyy 'às' HH:mm", { locale: pt })}
+                    </span>
                   </div>
-
-                  <div className="space-y-3">
-                    {/* Cadastro */}
-                    <div className="flex items-start gap-3 bg-white/5 rounded-lg p-3 border border-white/5">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/15 flex-shrink-0 mt-0.5">
-                        <UserCheck className="h-4 w-4 text-emerald-400" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-white">Usuário Cadastrado</div>
-                        <div className="text-xs text-gray-400">
-                          {format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Último Login */}
-                    <div className="flex items-start gap-3 bg-white/5 rounded-lg p-3 border border-white/5">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/15 flex-shrink-0 mt-0.5">
-                        <Clock className="h-4 w-4 text-blue-400" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-white">Último Login</div>
-                        <div className="text-xs text-gray-400">
-                          {format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Assinatura */}
-                    <div className={`flex items-start gap-3 rounded-lg p-3 border ${selectedUsuario.tipo === 'premium'
-                      ? 'bg-amber-500/5 border-amber-500/15'
-                      : 'bg-white/5 border-white/5'
-                      }`}>
-                      <div className={`flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 mt-0.5 ${selectedUsuario.tipo === 'premium' ? 'bg-amber-500/15' : 'bg-gray-500/15'
-                        }`}>
-                        <Crown className={`h-4 w-4 ${selectedUsuario.tipo === 'premium' ? 'text-amber-400' : 'text-gray-500'}`} />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-white">
-                          {selectedUsuario.tipo === 'premium' ? 'Assinatura Premium Ativada' : 'Sem Assinatura Premium'}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {selectedUsuario.tipo === 'premium' && planoNome
-                            ? `${format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })} - Plano: ${planoNome}`
-                            : selectedUsuario.tipo === 'premium'
-                              ? format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })
-                              : 'Usuário utiliza o plano gratuito'
-                          }
-                        </div>
-                        {selectedUsuario.data_vencimento && (
-                          <div className="text-xs text-amber-400/80 mt-1">
-                            Vencimento: {format(new Date(selectedUsuario.data_vencimento), "dd/MM/yyyy", { locale: pt })}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div className={`flex items-start gap-3 rounded-lg p-3 border ${selectedUsuario.active
-                      ? 'bg-emerald-500/5 border-emerald-500/15'
-                      : 'bg-red-500/5 border-red-500/15'
-                      }`}>
-                      <div className={`flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 mt-0.5 ${selectedUsuario.active ? 'bg-emerald-500/15' : 'bg-red-500/15'
-                        }`}>
-                        <Activity className={`h-4 w-4 ${selectedUsuario.active ? 'text-emerald-400' : 'text-red-400'}`} />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-white">Status Atual</div>
-                        <div className={`text-xs ${selectedUsuario.active ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {selectedUsuario.active ? 'Usuário Ativo' : 'Usuário Inativo'}
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex justify-between items-center p-3">
+                    <span className="text-sm text-muted-foreground">Último Login</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedUsuario.lastLogin
+                        ? format(new Date(selectedUsuario.lastLogin), "dd/MM/yyyy 'às' HH:mm", { locale: pt })
+                        : 'Nunca acessou'
+                      }
+                    </span>
                   </div>
+                  <div className="flex justify-between items-center p-3">
+                    <span className="text-sm text-muted-foreground">Assinatura</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedUsuario.tipo === 'premium' ? `Premium — ${periodoPlano}` : 'Gratuito'}
+                    </span>
+                  </div>
+                  {selectedUsuario.data_vencimento && (
+                    <div className="flex justify-between items-center p-3">
+                      <span className="text-sm text-muted-foreground">Vencimento</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {format(new Date(selectedUsuario.data_vencimento), "dd/MM/yyyy", { locale: pt })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             );

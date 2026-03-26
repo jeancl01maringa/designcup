@@ -371,20 +371,20 @@ export default function AssinantesPage() {
                   <TableRow key={assinante.id}>
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="flex justify-center items-center w-8 h-8 rounded-full border border-gray-600">
-                          <CreditCard size={14} className="text-gray-400" />
+                        <div className="flex justify-center items-center w-8 h-8 rounded-full border border-border">
+                          <CreditCard size={14} className="text-muted-foreground" />
                         </div>
                         <div>
                           <span className="text-sm font-medium text-foreground">{assinante.username}</span>
                           {assinante.isAdmin && (
-                            <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Admin</Badge>
+                            <Badge className="ml-2 bg-blue-600 text-white text-xs">Admin</Badge>
                           )}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-400">{assinante.email}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{assinante.email}</TableCell>
                     <TableCell>
-                      <span className="text-sm text-blue-400 font-medium">
+                      <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
                         {getPlanoInfo(assinante)}
                       </span>
                     </TableCell>
@@ -397,21 +397,21 @@ export default function AssinantesPage() {
                     <TableCell>
                       {assinante.origem_assinatura ? (
                         <Badge variant="outline" className={
-                          assinante.origem_assinatura === 'greenn' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
-                            assinante.origem_assinatura === 'hotmart' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
-                              assinante.origem_assinatura === 'kiwify' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
-                                'bg-gray-500/10 text-gray-400 border-gray-500/30'
+                          assinante.origem_assinatura === 'greenn' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30' :
+                            assinante.origem_assinatura === 'hotmart' ? 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/30' :
+                              assinante.origem_assinatura === 'kiwify' ? 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/30' :
+                                'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30'
                         }>
                           {assinante.origem_assinatura.charAt(0).toUpperCase() + assinante.origem_assinatura.slice(1)}
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/30">Manual</Badge>
+                        <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30">Manual</Badge>
                       )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${assinante.active ? 'bg-emerald-500' : 'bg-gray-500'}`} />
-                        <span className={`text-sm ${assinante.active ? 'text-emerald-400' : 'text-gray-500'}`}>{assinante.active ? 'Ativo' : 'Inativo'}</span>
+                        <div className={`w-2 h-2 rounded-full ${assinante.active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                        <span className="text-sm text-foreground">{assinante.active ? 'Ativo' : 'Inativo'}</span>
                         <Switch
                           checked={assinante.active}
                           onCheckedChange={() => handleToggleActive(assinante)}

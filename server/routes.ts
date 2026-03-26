@@ -1262,12 +1262,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { homeVisible, homeOrder } = req.body;
-      
+
       await pool.query(
         'UPDATE categories SET home_visible = $1, home_order = $2 WHERE id = $3',
         [homeVisible, homeOrder, id]
       );
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error('Error updating category home layout:', error);
@@ -1283,7 +1283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'SELECT id, name, slug, description FROM categories WHERE home_visible = true AND is_active = true ORDER BY home_order ASC, name ASC'
       );
       const featuredCategories = result.rows;
-      
+
       // 2. For each, we need their 4 newest Cartaz posts just like the old route did
       const configData = await Promise.all(featuredCategories.map(async (category) => {
         // Obter os 4 últimos posts de formato 'Cartaz'
@@ -1302,7 +1302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM grouped_posts
           LIMIT 4
         `, [category.id]);
-        
+
         return {
           id: category.id,
           name: category.name,
@@ -1311,7 +1311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           posts: postsResult.rows
         };
       }));
-      
+
       // Filter out those with no posts
       const finalConfig = configData.filter(c => c.posts.length > 0);
 
@@ -2988,7 +2988,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             COALESCE(u.tipo, 'free') as tipo,
             u.plano_id,
             u.data_vencimento,
-            COALESCE(u.active, false) as active
+            COALESCE(u.active, false) as active,
+            u.last_login as "lastLogin"
           FROM users u
           ORDER BY u.created_at DESC
         `;
@@ -4422,9 +4423,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await pool.query(`
             ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT
           `);
-          console.log('Coluna bio verificada/criada com sucesso');
+          await pool.query(`
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP
+          `);
+          console.log('Colunas bio e last_login verificadas/criadas com sucesso');
         } catch (alterError) {
-          console.log('Coluna bio pode já existir, continuando...');
+          console.log('Colunas podem já existir, continuando...');
         }
 
         const result = await pool.query(`

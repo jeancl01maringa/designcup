@@ -258,8 +258,15 @@ export function setupAuth(app: Express) {
       if (!user) {
         return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
       }
-      req.login(user, (err) => {
+      req.login(user, async (err) => {
         if (err) return next(err);
+
+        // Atualizar last_login no banco
+        try {
+          await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+        } catch (e) {
+          console.log('⚠️ Erro ao atualizar last_login:', e);
+        }
 
         // Garantir que isAdmin esteja presente no objeto de resposta e remover a senha
         const responseUser = {
