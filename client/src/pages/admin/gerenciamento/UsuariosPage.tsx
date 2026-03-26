@@ -10,11 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Edit2, KeyRound, Phone, Plus, Search, Shield, Trash2, User } from "lucide-react";
+import { CalendarDays, Edit2, Eye, Filter, KeyRound, Phone, Plus, Search, Shield, Trash2, User, X, Clock, UserCheck, Crown, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 
 // Interface para o tipo de usuário com os novos campos
@@ -54,10 +54,13 @@ interface Plano {
 export default function UsuariosPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [dateFilter, setDateFilter] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [editFormData, setEditFormData] = useState({
     username: "",
@@ -297,11 +300,31 @@ export default function UsuariosPage() {
     setIsResetPasswordDialogOpen(false);
   };
 
-  // Filtrar usuários com base no termo de pesquisa
-  const filteredUsuarios = usuarios.filter(usuario =>
-    usuario.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar e ordenar usuários (mais recentes primeiro)
+  const filteredUsuarios = usuarios
+    .filter(usuario => {
+      // Filtro de pesquisa
+      const matchesSearch = usuario.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        usuario.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Filtro de status
+      const matchesStatus = statusFilter === 'all' ||
+        (statusFilter === 'active' && usuario.active) ||
+        (statusFilter === 'inactive' && !usuario.active);
+
+      // Filtro de data
+      let matchesDate = true;
+      if (dateFilter) {
+        try {
+          const filterDate = new Date(dateFilter);
+          const userDate = new Date(usuario.createdAt);
+          matchesDate = userDate.toDateString() === filterDate.toDateString();
+        } catch { matchesDate = true; }
+      }
+
+      return matchesSearch && matchesStatus && matchesDate;
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // Função para renderizar informações do plano
   const renderPlanoInfo = (usuario: Usuario) => {
@@ -354,26 +377,66 @@ export default function UsuariosPage() {
           description="Visualize e gerencie todos os usuários da plataforma"
         />
 
-        {/* Barra de pesquisa e botão criar */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="relative w-full md:w-96">
-            <Input
-              placeholder="Buscar usuários..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+        {/* Barra de pesquisa, filtros e botão criar */}
+        <div className="flex flex-col gap-3 mb-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="relative w-full md:w-72">
+                <Input
+                  placeholder="Buscar usuários..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+
+              {/* Filtro por Status */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                className="h-10 px-3 border border-border rounded-md bg-card text-foreground text-sm"
+              >
+                <option value="all">Todos os Status</option>
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
+
+              {/* Filtro por Data */}
+              <div className="relative">
+                <Input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="h-10 w-44 text-sm"
+                  title="Filtrar por data de cadastro"
+                />
+              </div>
+
+              {/* Limpar Filtros */}
+              {(searchTerm || statusFilter !== 'all' || dateFilter) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setSearchTerm(''); setStatusFilter('all'); setDateFilter(''); }}
+                  className="text-gray-400 hover:text-white flex items-center gap-1"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Limpar filtros
+                </Button>
+              )}
             </div>
+
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white ml-3"
+            >
+              <Plus className="h-4 w-4" />
+              Criar Novo Usuário
+            </Button>
           </div>
-          <Button
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
-          >
-            <Plus className="h-4 w-4" />
-            Criar Novo Usuário
-          </Button>
         </div>
 
         {/* Tabela de usuários */}
@@ -483,6 +546,15 @@ export default function UsuariosPage() {
                           </Button>
                         </a>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setSelectedUsuario(usuario); setIsHistoryDialogOpen(true); }}
+                        className="mr-1"
+                        title="Ver histórico do usuário"
+                      >
+                        <Eye size={16} className="text-amber-500" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -809,6 +881,127 @@ export default function UsuariosPage() {
               {createUsuarioMutation.isPending ? "Criando..." : "Criar Usuário"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Histórico do Usuário */}
+      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
+        <DialogContent className="sm:max-w-[550px] bg-[#1a1a1a] border-white/10 text-white">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5">
+                <Clock className="h-5 w-5 text-amber-400" />
+              </div>
+              <div>
+                <DialogTitle className="text-white text-lg">Histórico do Usuário</DialogTitle>
+                <DialogDescription className="text-gray-400 text-sm">
+                  {selectedUsuario?.username}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {selectedUsuario && (() => {
+            const createdDate = new Date(selectedUsuario.createdAt);
+            const diasNoSistema = differenceInDays(new Date(), createdDate);
+            const plano = hotmartPlanos.find(p => p.id === selectedUsuario.plano_id);
+            const planoNome = plano ? `${plano.name} (${plano.periodo})` :
+              selectedUsuario.plano_id === 'mensal' ? 'Plano Mensal Premium' :
+                selectedUsuario.plano_id === 'anual' ? 'Plano Anual Premium' :
+                  selectedUsuario.plano_id ? `Plano ${selectedUsuario.plano_id}` : null;
+
+            return (
+              <div className="space-y-5 py-2">
+                {/* Stat Card - Dias no Sistema */}
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
+                  <div className="text-3xl font-bold text-amber-400">{diasNoSistema}</div>
+                  <div className="text-xs text-amber-400/70 mt-1">Dias no Sistema</div>
+                </div>
+
+                {/* Timeline de Eventos */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Activity className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-300">Timeline de Eventos</span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Cadastro */}
+                    <div className="flex items-start gap-3 bg-white/5 rounded-lg p-3 border border-white/5">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/15 flex-shrink-0 mt-0.5">
+                        <UserCheck className="h-4 w-4 text-emerald-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-white">Usuário Cadastrado</div>
+                        <div className="text-xs text-gray-400">
+                          {format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Último Login */}
+                    <div className="flex items-start gap-3 bg-white/5 rounded-lg p-3 border border-white/5">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/15 flex-shrink-0 mt-0.5">
+                        <Clock className="h-4 w-4 text-blue-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-white">Último Login</div>
+                        <div className="text-xs text-gray-400">
+                          {format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assinatura */}
+                    <div className={`flex items-start gap-3 rounded-lg p-3 border ${selectedUsuario.tipo === 'premium'
+                        ? 'bg-amber-500/5 border-amber-500/15'
+                        : 'bg-white/5 border-white/5'
+                      }`}>
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 mt-0.5 ${selectedUsuario.tipo === 'premium' ? 'bg-amber-500/15' : 'bg-gray-500/15'
+                        }`}>
+                        <Crown className={`h-4 w-4 ${selectedUsuario.tipo === 'premium' ? 'text-amber-400' : 'text-gray-500'}`} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-white">
+                          {selectedUsuario.tipo === 'premium' ? 'Assinatura Premium Ativada' : 'Sem Assinatura Premium'}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {selectedUsuario.tipo === 'premium' && planoNome
+                            ? `${format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })} - Plano: ${planoNome}`
+                            : selectedUsuario.tipo === 'premium'
+                              ? format(createdDate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: pt })
+                              : 'Usuário utiliza o plano gratuito'
+                          }
+                        </div>
+                        {selectedUsuario.data_vencimento && (
+                          <div className="text-xs text-amber-400/80 mt-1">
+                            Vencimento: {format(new Date(selectedUsuario.data_vencimento), "dd/MM/yyyy", { locale: pt })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status */}
+                    <div className={`flex items-start gap-3 rounded-lg p-3 border ${selectedUsuario.active
+                        ? 'bg-emerald-500/5 border-emerald-500/15'
+                        : 'bg-red-500/5 border-red-500/15'
+                      }`}>
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 mt-0.5 ${selectedUsuario.active ? 'bg-emerald-500/15' : 'bg-red-500/15'
+                        }`}>
+                        <Activity className={`h-4 w-4 ${selectedUsuario.active ? 'text-emerald-400' : 'text-red-400'}`} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-white">Status Atual</div>
+                        <div className={`text-xs ${selectedUsuario.active ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {selectedUsuario.active ? 'Usuário Ativo' : 'Usuário Inativo'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </AdminLayout>
