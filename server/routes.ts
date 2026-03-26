@@ -3004,42 +3004,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { periodo = '30', startDate, endDate } = req.query;
 
       let dateFilter = '';
+      let userDateFilter = '';
       let params: any[] = [];
 
       if (startDate && endDate) {
         dateFilter = 'AND data_compra BETWEEN $1 AND $2';
+        userDateFilter = 'AND created_at BETWEEN $1 AND $2';
         params = [startDate, endDate];
       } else {
         const days = parseInt(periodo as string) || 30;
         dateFilter = `AND data_compra >= NOW() - INTERVAL '${days} days'`;
+        userDateFilter = `AND created_at >= NOW() - INTERVAL '${days} days'`;
       }
 
-      // 1. Faturamento Total e Transações
+      // 1. Faturamento Total e Transações no Período
       const revenueResult = await pool.query(`
         SELECT 
           COALESCE(SUM(valor), 0) as total_revenue,
           COUNT(*) as total_transactions,
-          AVG(valor) as ticket_medio
+          COALESCE(AVG(valor), 0) as ticket_medio
         FROM transactions
         WHERE status = 'approved' ${dateFilter}
       `, params);
 
       const stats = revenueResult.rows[0];
 
-      // 2. Assinantes Ativos e Totais
-      const usersResult = await pool.query(`
+      // 2. Novos Assinantes e Novos Usuários no Período
+      const growthResult = await pool.query(`
         SELECT 
-          COUNT(*) filter (where tipo = 'premium' AND active = true) as active_premium_users,
-          COUNT(*) as total_users
+          COUNT(*) filter (where tipo = 'premium') as new_premium_users,
+          COUNT(*) as new_total_users
         FROM users
+        WHERE 1=1 ${userDateFilter}
+      `, params);
+
+      const growthStats = growthResult.rows[0];
+
+      // 3. Assinantes Ativos Totais (Snapshot atual)
+      const currentActiveResult = await pool.query(`
+        SELECT COUNT(*) as active_premium_users FROM users WHERE tipo = 'premium' AND active = true
       `);
 
-      const userStats = usersResult.rows[0];
-      const conversionRate = userStats.total_users > 0
-        ? (userStats.active_premium_users / userStats.total_users) * 100
-        : 0;
-
-      // 3. Receita por Gateway
+      // 4. Receita por Gateway no Período
       const gatewayResult = await pool.query(`
         SELECT 
           gateway,
@@ -3050,7 +3056,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         GROUP BY gateway
       `, params);
 
-      // 4. MRR (Receita Recorrente Mensal - Simplificado como soma do último mês)
+      // 5. MRR (Receita Recorrente Mensal - soma de todas as assinaturas ativas mensais)
+      // Simplificado: soma das transações de 30 dias
       const mrrResult = await pool.query(`
         SELECT COALESCE(SUM(valor), 0) as mrr
         FROM transactions
@@ -3058,12 +3065,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         AND data_compra >= NOW() - INTERVAL '30 days'
       `);
 
+      // 6. Taxa de Conversão no Período
+      const conversionRate = growthStats.new_total_users > 0
+        ? (growthStats.new_premium_users / growthStats.new_total_users) * 100
+        : 0;
+
       return res.json({
         totalRevenue: parseFloat(stats.total_revenue),
         totalTransactions: parseInt(stats.total_transactions),
-        ticketMedio: parseFloat(stats.ticket_medio || 0),
-        activePremiumUsers: parseInt(userStats.active_premium_users),
-        totalUsers: parseInt(userStats.total_users),
+        ticketMedio: parseFloat(stats.ticket_medio),
+        newPremiumUsers: parseInt(growthStats.new_premium_users),
+        newTotalUsers: parseInt(growthStats.new_total_users),
+        activePremiumUsers: parseInt(currentActiveResult.rows[0].active_premium_users),
         conversionRate,
         gateways: gatewayResult.rows.map(r => ({
           name: r.gateway,
@@ -3071,7 +3084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           subscribers: parseInt(r.subscribers)
         })),
         mrr: parseFloat(mrrResult.rows[0].mrr),
-        churnRate: 2.1, // Placeholder por enquanto
+        churnRate: 2.1, // Placeholder
       });
 
     } catch (error: any) {

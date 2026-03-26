@@ -188,9 +188,9 @@ export default function MonetizacaoPage() {
                 <div className="flex items-center mt-1.5 text-[11px] font-normal text-muted-foreground">
                   <span className="text-blue-500 font-medium flex items-center mr-1">
                     <UserPlus className="h-3 w-3 mr-0.5" />
-                    +{Math.floor((stats?.activePremiumUsers || 0) * 0.05)}
+                    +{stats?.newPremiumUsers || 0}
                   </span>
-                  est. este mês
+                  novos no período
                 </div>
               </div>
             </CardContent>
@@ -209,7 +209,7 @@ export default function MonetizacaoPage() {
                   {statsLoading ? "..." : `${stats?.conversionRate?.toFixed(1) || 0}%`}
                 </span>
                 <div className="flex items-center mt-1.5 text-[11px] font-normal text-muted-foreground">
-                  Premium vs Gratuito
+                  De {stats?.newTotalUsers || 0} cadastros
                 </div>
               </div>
             </CardContent>
@@ -228,7 +228,7 @@ export default function MonetizacaoPage() {
                   {statsLoading ? "..." : formatarMoeda(stats?.ticketMedio)}
                 </span>
                 <div className="flex items-center mt-1.5 text-[11px] font-normal text-muted-foreground">
-                  Valor médio por venda
+                  {stats?.totalTransactions || 0} vendas aprovadas
                 </div>
               </div>
             </CardContent>
@@ -277,24 +277,24 @@ export default function MonetizacaoPage() {
               <Card className="border-border bg-card shadow-sm">
                 <CardHeader className="pb-3 border-b border-border/50">
                   <CardTitle className="text-sm font-medium">Métricas de Crescimento</CardTitle>
-                  <CardDescription className="text-[11px] font-normal">Estimativas para o período selecionado</CardDescription>
+                  <CardDescription className="text-[11px] font-normal">Baseado no período selecionado</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-5 flex flex-col gap-3.5">
                   <div className="flex items-center justify-between py-1 border-b border-border/30 last:border-0">
                     <span className="text-[13px] text-muted-foreground">Novos Cadastros</span>
-                    <Badge variant="outline" className="text-[11px] h-5 bg-blue-500/5 text-blue-500 border-blue-500/20">+{Math.floor(totalUsuarios * 0.08)}</Badge>
+                    <Badge variant="outline" className="text-[11px] h-5 bg-blue-500/5 text-blue-500 border-blue-500/20">+{stats?.newTotalUsers || 0}</Badge>
                   </div>
                   <div className="flex items-center justify-between py-1 border-b border-border/30 last:border-0">
                     <span className="text-[13px] text-muted-foreground">Conversões</span>
-                    <Badge variant="outline" className="text-[11px] h-5 bg-emerald-500/5 text-emerald-500 border-emerald-500/20">+{Math.floor(usuariosPremium * 0.12)}</Badge>
+                    <Badge variant="outline" className="text-[11px] h-5 bg-emerald-500/5 text-emerald-500 border-emerald-500/20">+{stats?.newPremiumUsers || 0}</Badge>
                   </div>
                   <div className="flex items-center justify-between py-1 border-b border-border/30 last:border-0">
                     <span className="text-[13px] text-muted-foreground">Churn Rate</span>
                     <Badge variant="outline" className="text-[11px] h-5 border-border">2.1%</Badge>
                   </div>
                   <div className="flex items-center justify-between py-1 border-b border-border/30 last:border-0">
-                    <span className="text-[13px] text-muted-foreground">LTV Médio</span>
-                    <Badge variant="outline" className="text-[11px] h-5 border-border">{formatarMoeda(180)}</Badge>
+                    <span className="text-[13px] text-muted-foreground">Ticket Médio</span>
+                    <Badge variant="outline" className="text-[11px] h-5 border-border">{formatarMoeda(stats?.ticketMedio)}</Badge>
                   </div>
                 </CardContent>
               </Card>
