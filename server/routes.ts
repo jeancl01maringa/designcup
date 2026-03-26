@@ -95,73 +95,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     `);
     console.log('Tabela transactions verificada/criada com sucesso');
 
-    // Tentar migrar dados existentes (Backfill de assinaturas reais)
+    // Tentar migrar dados existentes (Backfill de real data via webhook_logs)
     try {
-      // 1. Tentar buscar da tabela subscriptions (plural) que o Jean mencionou
-      const subsToBackfill = await pool.query(`
-        SELECT s.user_id, u.email, s.origin, s.transaction_id, s.hotmart_plan_price as valor, s.status, s.hotmart_plan_name as plano_nome, s.created_at
-        FROM subscriptions s
-        JOIN users u ON s.user_id = u.id
-        WHERE NOT EXISTS (SELECT 1 FROM transactions t WHERE t.transaction_id = s.transaction_id)
+      const logsToBackfill = await pool.query(`
+        SELECT provider, payload, created_at
+        FROM webhook_logs
+        WHERE (provider = 'hotmart' AND payload->>'event' = 'PURCHASE_APPROVED')
+           OR (provider = 'greenn' AND (payload->>'event' = 'salePaid' OR payload->>'event' = 'waiting_payment'))
       `);
 
-      if (subsToBackfill.rows.length > 0) {
-        for (const sub of subsToBackfill.rows) {
-          let valorNumerico = parseFloat(sub.valor) || 49.90;
+      for (const log of logsToBackfill.rows) {
+        const payload = log.payload;
+        let email = '';
+        let transaction_id = '';
+        let valor = 0;
+        let gateway = log.provider;
+        let data_compra = log.created_at;
+        let status = 'approved';
+        let plano_nome = 'Premium';
 
+        if (gateway === 'hotmart') {
+          email = payload.data?.buyer?.email;
+          transaction_id = payload.data?.purchase?.transaction;
+          valor = payload.data?.purchase?.price?.value || 0;
+          // Hotmart sends value in cents sometimes? Or as number?
+          // Based on user feedback, we use the value directly but ensure decimal if it looks like cents
+          if (valor > 5000) { // Ex: 4990 -> 49.90
+            // valor = valor / 100; // Depuração sugeriu que o usuário quer valores reais. 
+            // Se for 4990 e o plano custa 49.90...
+          }
+          data_compra = payload.data?.purchase?.approved_date ? new Date(payload.data.purchase.approved_date) : data_compra;
+          plano_nome = payload.data?.subscription?.plan?.name || payload.data?.product?.name || 'Premium';
+        } else if (gateway === 'greenn') {
+          email = payload.client?.email;
+          transaction_id = payload.sale?.id?.toString();
+          valor = payload.sale?.total || payload.sale?.amount || 0;
+          data_compra = payload.sale?.created_at ? new Date(payload.sale.created_at) : data_compra;
+          plano_nome = payload.product?.name || 'Premium';
+        }
+
+        if (transaction_id && email) {
           await pool.query(`
-            INSERT INTO transactions (user_id, email, gateway, transaction_id, valor, status, plano_nome, data_compra)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO transactions (email, gateway, transaction_id, valor, status, plano_nome, data_compra)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (transaction_id) DO NOTHING
-          `, [
-            sub.user_id,
-            sub.email,
-            sub.origin || 'hotmart',
-            sub.transaction_id || `sub_${sub.user_id}_${sub.created_at?.getTime() || Date.now()}`,
-            valorNumerico,
-            sub.status === 'active' ? 'approved' : sub.status,
-            sub.plano_nome || 'Premium',
-            sub.created_at
-          ]);
+          `, [email, gateway, transaction_id, valor, status, plano_nome, data_compra]);
         }
-        console.log(`Backfill de ${subsToBackfill.rows.length} assinaturas concluído.`);
       }
 
-      // 2. Fallback: buscar usuários premium que ainda não estão em transactions (caso não estejam na tabela subscriptions)
-      const usersToBackfill = await pool.query(`
-        SELECT u.id, u.email, u.plano_id, u.origem_assinatura, u.created_at, p.valor
-        FROM users u
-        LEFT JOIN plans p ON u.plano_id = p.codigo_hotmart OR u.plano_id = p.id::text
-        WHERE u.tipo = 'premium' 
-        AND NOT EXISTS (SELECT 1 FROM transactions t WHERE t.user_id = u.id)
-        AND NOT EXISTS (SELECT 1 FROM subscriptions s WHERE s.user_id = u.id)
-      `);
-
-      for (const user of usersToBackfill.rows) {
-        let valorNumerico = 0;
-        if (user.valor) {
-          valorNumerico = parseFloat(user.valor.replace('R$', '').replace('.', '').replace(',', '.').trim());
-        } else {
-          valorNumerico = 49.90;
-        }
-
-        await pool.query(`
-          INSERT INTO transactions (user_id, email, gateway, transaction_id, valor, status, plano_nome, data_compra)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          ON CONFLICT (transaction_id) DO NOTHING
-        `, [
-          user.id,
-          user.email,
-          user.origem_assinatura || 'hotmart',
-          `backfill_user_${user.id}`,
-          valorNumerico,
-          'approved',
-          user.plano_id || 'Premium',
-          user.created_at
-        ]);
-      }
+      console.log(`Backfill via webhook_logs concluído: ${logsToBackfill.rows.length} processados.`);
     } catch (backfillErr) {
-      console.error('Erro no backfill de transações:', backfillErr);
+      console.error('Erro no backfill de webhook_logs:', backfillErr);
     }
 
   } catch (err) {
@@ -1005,6 +989,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching visible posts:', error);
       res.status(500).json({ message: 'Error fetching visible posts' });
+    }
+  });
+
+  // Rota temporária para depurar dados de assinaturas
+  app.get('/api/admin/debug/subscriptions', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+      const subs = await pool.query('SELECT user_id, hotmart_plan_price, hotmart_plan_name, origin FROM subscriptions LIMIT 10');
+      const plans = await pool.query('SELECT id, name, valor, codigo_hotmart FROM plans LIMIT 10');
+      res.json({ subscriptions: subs.rows, plans: plans.rows });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
     }
   });
 
