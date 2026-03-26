@@ -32,6 +32,23 @@ interface Usuario {
   active: boolean;
 }
 
+// Função utilitária para inferir período do plano a partir do vencimento
+function inferirPeriodoDoPlano(dataVencimento: string | null, createdAt?: string): string {
+  if (!dataVencimento) return 'Sem plano';
+  try {
+    const vencimento = new Date(dataVencimento);
+    const hoje = new Date();
+    const diasRestantes = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    const totalDias = Math.abs(diasRestantes);
+    if (totalDias > 300) return 'Anual';
+    if (totalDias > 170) return 'Semestral';
+    if (totalDias > 80) return 'Trimestral';
+    return 'Mensal';
+  } catch {
+    return 'Premium';
+  }
+}
+
 // Interface para o plano do Hotmart
 interface HotmartPlano {
   id: string;
@@ -326,20 +343,13 @@ export default function UsuariosPage() {
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Função para renderizar informações do plano (usa o período direto do gateway)
+  // Função para renderizar informações do plano (infere do vencimento real)
   const renderPlanoInfo = (usuario: Usuario) => {
-    if (usuario.tipo !== 'premium' || !usuario.plano_id) {
+    if (usuario.tipo !== 'premium') {
       return <span className="text-gray-500 text-sm">Sem plano</span>;
     }
 
-    // plano_id vem direto do gateway como 'mensal', 'anual', etc.
-    const periodo = usuario.plano_id.toLowerCase();
-    const periodoLabel = periodo.includes('mensal') ? 'Mensal' :
-      periodo.includes('anual') ? 'Anual' :
-        periodo.includes('vitalic') || periodo.includes('vitalíc') ? 'Vitalício' :
-          periodo.includes('trimestral') ? 'Trimestral' :
-            periodo.includes('semestral') ? 'Semestral' :
-              usuario.plano_id.charAt(0).toUpperCase() + usuario.plano_id.slice(1);
+    const periodoLabel = inferirPeriodoDoPlano(usuario.data_vencimento, usuario.createdAt);
 
     return (
       <span className="text-sm text-blue-400 font-medium">

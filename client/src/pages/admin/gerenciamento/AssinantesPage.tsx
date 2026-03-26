@@ -254,20 +254,19 @@ export default function AssinantesPage() {
     )
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Função para obter informações do plano (usa o período direto do gateway)
-  const getPlanoInfo = (planoId: string) => {
-    if (!planoId) return "Sem plano";
+  // Função para obter informações do plano (infere do vencimento real)
+  const getPlanoInfo = (assinante: Assinante) => {
+    if (!assinante.data_vencimento) return 'Sem plano';
 
-    // plano_id vem direto do gateway como 'mensal', 'anual', etc.
-    const periodo = planoId.toLowerCase();
-    if (periodo.includes('mensal')) return 'Mensal';
-    if (periodo.includes('anual')) return 'Anual';
-    if (periodo.includes('vitalic') || periodo.includes('vitalíc')) return 'Vitalício';
-    if (periodo.includes('trimestral')) return 'Trimestral';
-    if (periodo.includes('semestral')) return 'Semestral';
+    // Inferir o período real a partir dos dias até o vencimento
+    const daysToExpire = getDaysToExpire(assinante.data_vencimento);
+    if (daysToExpire === null) return 'Premium';
 
-    // Capitaliza o valor se não reconhecido
-    return planoId.charAt(0).toUpperCase() + planoId.slice(1);
+    const totalDays = Math.abs(daysToExpire);
+    if (totalDays > 300) return 'Anual';
+    if (totalDays > 170) return 'Semestral';
+    if (totalDays > 80) return 'Trimestral';
+    return 'Mensal';
   };
 
   // Função para formatar a data
@@ -386,7 +385,7 @@ export default function AssinantesPage() {
                     <TableCell className="text-sm text-gray-400">{assinante.email}</TableCell>
                     <TableCell>
                       <span className="text-sm text-blue-400 font-medium">
-                        {getPlanoInfo(assinante.plano_id)}
+                        {getPlanoInfo(assinante)}
                       </span>
                     </TableCell>
                     <TableCell>
