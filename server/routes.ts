@@ -2975,6 +2975,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Buscando todos os usuários');
 
       try {
+        // Garantir que a coluna last_login existe antes de consultar
+        try {
+          await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP');
+        } catch (e) { /* coluna já existe */ }
+
         // Buscar usuários com dados completos incluindo dados de assinatura
         const query = `
           SELECT 
