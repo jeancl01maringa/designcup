@@ -1,0 +1,1 @@
+fetch('https://designcup.com.br/webhook/greenn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'venda_paga', data: { status: 'venda paga' }, client: { email: 'teste.greenn@example.com', name: 'Teste' }, product: { name: 'Mensal' } }) }).then(async r => console.log('HTTP', r.status, await r.text())).catch(console.error);

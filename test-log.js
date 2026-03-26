@@ -1,0 +1,13 @@
+import pkg from 'pg';
+const { Pool } = pkg;
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+async function run() {
+    const res = await pool.query("SELECT payload FROM webhook_logs WHERE provider = 'greenn' ORDER BY id DESC LIMIT 1");
+    console.dir(res.rows[0]?.payload, { depth: null });
+    process.exit(0);
+}
+run();

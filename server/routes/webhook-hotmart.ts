@@ -244,6 +244,26 @@ router.post('/', async (req, res) => {
         console.log(`✅ Usuário atualizado para premium: ${name} (${email}) - Plano Hotmart: ${planName}`);
       }
 
+      // Registrar transação no banco de dados para faturamento
+      try {
+        const userIdResult = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+        const userId = userIdResult.rows[0]?.id;
+
+        await pool.query(`
+          INSERT INTO transactions (
+            user_id, email, gateway, transaction_id, valor, moeda, status, plano_nome, data_compra
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+          ON CONFLICT (transaction_id) DO UPDATE SET
+            status = EXCLUDED.status,
+            valor = EXCLUDED.valor
+        `, [userId, email, 'hotmart', transactionId, planPrice, planCurrency, 'approved', planName]);
+
+        console.log(`💰 Transação registrada no banco: ${transactionId} - R$ ${planPrice}`);
+      } catch (dbErr) {
+        console.error('❌ Erro ao registrar transação no banco:', dbErr);
+      }
+
       // Envia notificações por email
       try {
         await BrevoService.enviarEmailTemplate(email, name, 4, {

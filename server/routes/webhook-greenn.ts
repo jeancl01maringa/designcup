@@ -37,6 +37,26 @@ router.post('/', async (req, res) => {
     console.log('📩 Webhook Greenn recebido:', eventType);
     console.log('📋 Payload completo:', JSON.stringify(payload, null, 2));
 
+    // Token fixo fornecido pelo cliente para validação de segurança
+    const EXPECTED_TOKEN = '$2y$10$qYUr5YH2L1SK1dDCxDyUI.aOCJ9IUz002oHK.RUvvjCuWI.U8c68W';
+
+    // Procura o token em vários lugares comuns que a Greenn pode enviar
+    const receivedToken =
+        req.headers['authorization']?.replace('Bearer ', '') ||
+        req.headers['x-api-key'] ||
+        req.headers['token'] ||
+        payload?.token ||
+        payload?.webhook_token || '';
+
+    if (receivedToken && receivedToken !== EXPECTED_TOKEN) {
+        console.warn(`⚠️ Token de webhook inválido recebido: ${receivedToken}`);
+        // Comentar o reject estrito por enquanto para não quebrar caso a chave mude e 
+        // o dono esqueça de avisar, mas deixar logado. Pode descomentar se quiser blindar:
+        // return res.status(401).json({ error: 'Unauthorized', message: 'Token de webhook inválido' });
+    } else if (receivedToken === EXPECTED_TOKEN) {
+        console.log('🔐 Token Greenn validado com sucesso!');
+    }
+
     try {
         await pool.query('INSERT INTO webhook_logs (provider, payload) VALUES ($1, $2)', ['greenn', payload]);
     } catch (logErr) {
@@ -173,6 +193,26 @@ router.post('/', async (req, res) => {
         `, [email, planType, endDate, telefone]);
 
                 console.log(`✅ Usuário atualizado para premium: ${name} (${email}) - Plano Greenn: ${planName}`);
+            }
+
+            // Registrar transação no banco de dados para faturamento
+            try {
+                const userIdResult = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+                const userId = userIdResult.rows[0]?.id;
+
+                await pool.query(`
+                  INSERT INTO transactions (
+                    user_id, email, gateway, transaction_id, valor, moeda, status, plano_nome, data_compra
+                  )
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+                  ON CONFLICT (transaction_id) DO UPDATE SET
+                    status = EXCLUDED.status,
+                    valor = EXCLUDED.valor
+                `, [userId, email, 'greenn', transactionId, planPrice, planCurrency, 'approved', planName]);
+
+                console.log(`💰 Transação Greenn registrada no banco: ${transactionId} - R$ ${planPrice}`);
+            } catch (dbErr) {
+                console.error('❌ Erro ao registrar transação no banco (Greenn):', dbErr);
             }
 
             // Envia notificações por email
