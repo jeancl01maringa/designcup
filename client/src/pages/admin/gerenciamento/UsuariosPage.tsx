@@ -326,22 +326,20 @@ export default function UsuariosPage() {
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Função para renderizar informações do plano (mostra período do gateway)
+  // Função para renderizar informações do plano (usa o período direto do gateway)
   const renderPlanoInfo = (usuario: Usuario) => {
     if (usuario.tipo !== 'premium' || !usuario.plano_id) {
       return <span className="text-gray-500 text-sm">Sem plano</span>;
     }
 
-    // Buscar o plano nos dados reais do Hotmart
-    const plano = hotmartPlanos.find(p => p.id === usuario.plano_id);
-
-    // Mostrar apenas o período do gateway
-    const periodo = plano?.periodo?.toLowerCase() || usuario.plano_id?.toLowerCase() || '';
+    // plano_id vem direto do gateway como 'mensal', 'anual', etc.
+    const periodo = usuario.plano_id.toLowerCase();
     const periodoLabel = periodo.includes('mensal') ? 'Mensal' :
       periodo.includes('anual') ? 'Anual' :
         periodo.includes('vitalic') || periodo.includes('vitalíc') ? 'Vitalício' :
           periodo.includes('trimestral') ? 'Trimestral' :
-            periodo.charAt(0).toUpperCase() + periodo.slice(1);
+            periodo.includes('semestral') ? 'Semestral' :
+              usuario.plano_id.charAt(0).toUpperCase() + usuario.plano_id.slice(1);
 
     return (
       <span className="text-sm text-blue-400 font-medium">

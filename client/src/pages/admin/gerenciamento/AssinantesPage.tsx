@@ -246,17 +246,28 @@ export default function AssinantesPage() {
     window.open(`https://wa.me/55${numeroLimpo}`, '_blank');
   };
 
-  // Filtrar assinantes com base no termo de pesquisa
-  const filteredAssinantes = assinantes.filter(assinante =>
-    assinante.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    assinante.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar e ordenar assinantes (mais recentes primeiro)
+  const filteredAssinantes = assinantes
+    .filter(assinante =>
+      assinante.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      assinante.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Função para obter informações do plano
+  // Função para obter informações do plano (usa o período direto do gateway)
   const getPlanoInfo = (planoId: string) => {
-    if (!planoId) return "Plano não definido";
-    const plano = planos.find(p => p.id.toString() === planoId);
-    return plano ? `${plano.name} (${plano.periodo} - ${plano.valor})` : "Plano desconhecido";
+    if (!planoId) return "Sem plano";
+
+    // plano_id vem direto do gateway como 'mensal', 'anual', etc.
+    const periodo = planoId.toLowerCase();
+    if (periodo.includes('mensal')) return 'Mensal';
+    if (periodo.includes('anual')) return 'Anual';
+    if (periodo.includes('vitalic') || periodo.includes('vitalíc')) return 'Vitalício';
+    if (periodo.includes('trimestral')) return 'Trimestral';
+    if (periodo.includes('semestral')) return 'Semestral';
+
+    // Capitaliza o valor se não reconhecido
+    return planoId.charAt(0).toUpperCase() + planoId.slice(1);
   };
 
   // Função para formatar a data
@@ -360,23 +371,23 @@ export default function AssinantesPage() {
                 filteredAssinantes.map((assinante) => (
                   <TableRow key={assinante.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="flex justify-center items-center w-8 h-8 rounded-full bg-blue-100">
-                          <CreditCard size={16} className="text-blue-600" />
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex justify-center items-center w-8 h-8 rounded-full border border-gray-600">
+                          <CreditCard size={14} className="text-gray-400" />
                         </div>
                         <div>
-                          <span className="font-medium">{assinante.username}</span>
+                          <span className="text-sm font-medium text-foreground">{assinante.username}</span>
                           {assinante.isAdmin && (
-                            <Badge className="ml-2 bg-blue-500">Admin</Badge>
+                            <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Admin</Badge>
                           )}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{assinante.email}</TableCell>
+                    <TableCell className="text-sm text-gray-400">{assinante.email}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
+                      <span className="text-sm text-blue-400 font-medium">
                         {getPlanoInfo(assinante.plano_id)}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
@@ -387,21 +398,21 @@ export default function AssinantesPage() {
                     <TableCell>
                       {assinante.origem_assinatura ? (
                         <Badge variant="outline" className={
-                          assinante.origem_assinatura === 'greenn' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                            assinante.origem_assinatura === 'hotmart' ? 'bg-orange-100 text-orange-800 border-orange-300' :
-                              assinante.origem_assinatura === 'kiwify' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                                'bg-gray-100 text-gray-800 border-gray-300'
+                          assinante.origem_assinatura === 'greenn' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                            assinante.origem_assinatura === 'hotmart' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
+                              assinante.origem_assinatura === 'kiwify' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
+                                'bg-gray-500/10 text-gray-400 border-gray-500/30'
                         }>
                           {assinante.origem_assinatura.charAt(0).toUpperCase() + assinante.origem_assinatura.slice(1)}
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-gray-100 text-gray-500 border-gray-300">Manual</Badge>
+                        <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/30">Manual</Badge>
                       )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${assinante.active ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        <span>{assinante.active ? 'Ativo' : 'Inativo'}</span>
+                        <div className={`w-2 h-2 rounded-full ${assinante.active ? 'bg-emerald-500' : 'bg-gray-500'}`} />
+                        <span className={`text-sm ${assinante.active ? 'text-emerald-400' : 'text-gray-500'}`}>{assinante.active ? 'Ativo' : 'Inativo'}</span>
                         <Switch
                           checked={assinante.active}
                           onCheckedChange={() => handleToggleActive(assinante)}
