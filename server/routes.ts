@@ -95,24 +95,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     `);
     console.log('Tabela transactions verificada/criada com sucesso');
 
-    // Tentar migrar dados existentes (Backfill de usuários premium atuais)
+    // Tentar migrar dados existentes (Backfill de assinaturas reais)
     try {
-      // 1. Buscar todos os usuários premium que não têm transação registrada
+      // 1. Tentar buscar da tabela subscriptions (plural) que o Jean mencionou
+      const subsToBackfill = await pool.query(`
+        SELECT s.user_id, u.email, s.origin, s.transaction_id, s.hotmart_plan_price as valor, s.status, s.hotmart_plan_name as plano_nome, s.created_at
+        FROM subscriptions s
+        JOIN users u ON s.user_id = u.id
+        WHERE NOT EXISTS (SELECT 1 FROM transactions t WHERE t.transaction_id = s.transaction_id)
+      `);
+
+      if (subsToBackfill.rows.length > 0) {
+        for (const sub of subsToBackfill.rows) {
+          let valorNumerico = parseFloat(sub.valor) || 49.90;
+
+          await pool.query(`
+            INSERT INTO transactions (user_id, email, gateway, transaction_id, valor, status, plano_nome, data_compra)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (transaction_id) DO NOTHING
+          `, [
+            sub.user_id,
+            sub.email,
+            sub.origin || 'hotmart',
+            sub.transaction_id || `sub_${sub.user_id}_${sub.created_at?.getTime() || Date.now()}`,
+            valorNumerico,
+            sub.status === 'active' ? 'approved' : sub.status,
+            sub.plano_nome || 'Premium',
+            sub.created_at
+          ]);
+        }
+        console.log(`Backfill de ${subsToBackfill.rows.length} assinaturas concluído.`);
+      }
+
+      // 2. Fallback: buscar usuários premium que ainda não estão em transactions (caso não estejam na tabela subscriptions)
       const usersToBackfill = await pool.query(`
         SELECT u.id, u.email, u.plano_id, u.origem_assinatura, u.created_at, p.valor
         FROM users u
         LEFT JOIN plans p ON u.plano_id = p.codigo_hotmart OR u.plano_id = p.id::text
         WHERE u.tipo = 'premium' 
         AND NOT EXISTS (SELECT 1 FROM transactions t WHERE t.user_id = u.id)
+        AND NOT EXISTS (SELECT 1 FROM subscriptions s WHERE s.user_id = u.id)
       `);
 
       for (const user of usersToBackfill.rows) {
-        // Limpar o valor (de "R$ 49,90" para 49.90)
         let valorNumerico = 0;
         if (user.valor) {
           valorNumerico = parseFloat(user.valor.replace('R$', '').replace('.', '').replace(',', '.').trim());
         } else {
-          // Valor padrão caso o plano não seja encontrado ou não tenha valor
           valorNumerico = 49.90;
         }
 
@@ -124,15 +153,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           user.id,
           user.email,
           user.origem_assinatura || 'hotmart',
-          `backfill_${user.id}`,
+          `backfill_user_${user.id}`,
           valorNumerico,
           'approved',
           user.plano_id || 'Premium',
           user.created_at
         ]);
-      }
-      if (usersToBackfill.rows.length > 0) {
-        console.log(`Backfill concluído: ${usersToBackfill.rows.length} transações geradas.`);
       }
     } catch (backfillErr) {
       console.error('Erro no backfill de transações:', backfillErr);
