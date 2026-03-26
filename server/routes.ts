@@ -95,12 +95,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     `);
     console.log('Tabela transactions verificada/criada com sucesso');
 
-    // Tentar migrar dados existentes de webhook_logs para transactions (Backfill básico)
-    // Isso é opcional e falha silenciosamente se der erro
+    // Tentar migrar dados existentes (Backfill de usuários premium atuais)
     try {
-      // Este é um exemplo simplificado, em produção faríamos um parse mais robusto
-      // Mas para o Jean, vamos focar em capturar os novos
-    } catch (backfillErr) { }
+      // 1. Buscar todos os usuários premium que não têm transação registrada
+      const usersToBackfill = await pool.query(`
+        SELECT u.id, u.email, u.plano_id, u.origem_assinatura, u.created_at, p.valor
+        FROM users u
+        LEFT JOIN plans p ON u.plano_id = p.codigo_hotmart OR u.plano_id = p.id::text
+        WHERE u.tipo = 'premium' 
+        AND NOT EXISTS (SELECT 1 FROM transactions t WHERE t.user_id = u.id)
+      `);
+
+      for (const user of usersToBackfill.rows) {
+        // Limpar o valor (de "R$ 49,90" para 49.90)
+        let valorNumerico = 0;
+        if (user.valor) {
+          valorNumerico = parseFloat(user.valor.replace('R$', '').replace('.', '').replace(',', '.').trim());
+        } else {
+          // Valor padrão caso o plano não seja encontrado ou não tenha valor
+          valorNumerico = 49.90;
+        }
+
+        await pool.query(`
+          INSERT INTO transactions (user_id, email, gateway, transaction_id, valor, status, plano_nome, data_compra)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          ON CONFLICT (transaction_id) DO NOTHING
+        `, [
+          user.id,
+          user.email,
+          user.origem_assinatura || 'hotmart',
+          `backfill_${user.id}`,
+          valorNumerico,
+          'approved',
+          user.plano_id || 'Premium',
+          user.created_at
+        ]);
+      }
+      if (usersToBackfill.rows.length > 0) {
+        console.log(`Backfill concluído: ${usersToBackfill.rows.length} transações geradas.`);
+      }
+    } catch (backfillErr) {
+      console.error('Erro no backfill de transações:', backfillErr);
+    }
 
   } catch (err) {
     console.error('Erro ao inicializar banco de dados de monetização:', err);

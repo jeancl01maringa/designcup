@@ -183,14 +183,14 @@ export default function MonetizacaoPage() {
               </div>
               <div className="flex flex-col">
                 <span className="text-2xl font-medium tracking-tight text-foreground">
-                  {statsLoading ? "..." : stats?.activePremiumUsers || 0}
+                  {statsLoading ? "..." : (periodo === "all" || periodo === "365" || periodo === "30" ? stats?.activePremiumUsers : stats?.newPremiumUsers) || 0}
                 </span>
                 <div className="flex items-center mt-1.5 text-[11px] font-normal text-muted-foreground">
                   <span className="text-blue-500 font-medium flex items-center mr-1">
                     <UserPlus className="h-3 w-3 mr-0.5" />
-                    +{stats?.newPremiumUsers || 0}
+                    {stats?.newPremiumUsers || 0}
                   </span>
-                  novos no período
+                  {(periodo === "all" || periodo === "365" || periodo === "30") ? "total na plataforma" : "novas assinaturas"}
                 </div>
               </div>
             </CardContent>
