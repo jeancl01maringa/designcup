@@ -124,8 +124,8 @@ export default function PlansPage() {
         ];
 
       return defaultItems.map((item, index) => (
-        <li key={index} className={`flex items-start gap-3 ${item.startsWith('❌') ? 'text-gray-500' : 'text-gray-300'}`}>
-          <div className={`mt-0.5 flex-shrink-0 ${item.startsWith('❌') ? 'text-red-400/60' : 'text-emerald-400'}`}>
+        <li key={index} className={`flex items-start gap-3 ${item.startsWith('❌') ? 'text-muted-foreground' : 'text-foreground/90'}`}>
+          <div className={`mt-0.5 flex-shrink-0 ${item.startsWith('❌') ? 'opacity-40' : 'text-primary'}`}>
             {item.startsWith('❌') ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
           </div>
           <span className="text-sm font-normal">{item.replace('❌ ', '')}</span>
@@ -134,23 +134,23 @@ export default function PlansPage() {
     }
 
     return allItems.map((item, index) => (
-      <li key={index} className={`flex items-start gap-3 ${item.startsWith('❌') ? 'text-gray-500' : 'text-gray-300'}`}>
-        <div className={`mt-0.5 flex-shrink-0 ${item.startsWith('❌') ? 'text-red-400/60' : 'text-emerald-400'}`}>
-          {item.startsWith('❌') ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+      <li key={index} className={`flex items-start gap-2.5 ${item.startsWith('❌') ? 'text-muted-foreground/50' : 'text-foreground/80'}`}>
+        <div className={`mt-0.5 flex-shrink-0 ${item.startsWith('❌') ? 'opacity-30' : 'text-emerald-500'}`}>
+          {item.startsWith('❌') ? <X className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" strokeWidth={3} />}
         </div>
-        <span className="text-sm font-normal">{item.replace('❌ ', '')}</span>
+        <span className="text-[13px] font-normal leading-tight">{item.replace('❌ ', '')}</span>
       </li>
     ));
   };
 
   const getPlanIcon = (plan: Plan) => {
-    if (plan.isGratuito) return <Gift className="h-6 w-6 text-emerald-400" />;
+    if (plan.isGratuito) return <Gift className="h-5 w-5 text-[#8C8261]" />;
     const periodo = plan.periodo?.toLowerCase();
-    if (periodo === 'mensal') return <Calendar className="h-6 w-6 text-blue-400" />;
-    if (periodo === 'trimestral') return <Clock className="h-6 w-6 text-purple-400" />;
-    if (periodo === 'anual') return <Star className="h-6 w-6 text-amber-400" />;
-    if (periodo === 'vitalicio') return <Crown className="h-6 w-6 text-amber-400" />;
-    return <Sparkles className="h-6 w-6 text-blue-400" />;
+    if (periodo === 'mensal') return <Calendar className="h-5 w-5 text-blue-400/80" />;
+    if (periodo === 'trimestral') return <Clock className="h-5 w-5 text-purple-400/80" />;
+    if (periodo === 'anual') return <Star className="h-5 w-5 text-amber-500/80" />;
+    if (periodo === 'vitalicio') return <Crown className="h-5 w-5 text-[#8C8261]" />;
+    return <Sparkles className="h-5 w-5 text-blue-400/80" />;
   };
 
   const handlePlanClick = (plan: Plan) => {
@@ -162,20 +162,20 @@ export default function PlansPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212]">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="pt-20 pb-10">
         <div className="container-global text-center">
-          <div className="inline-flex items-center gap-2 bg-white/5 rounded-full px-4 py-2 mb-4 border border-white/10">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-xs font-normal text-gray-400">Escolha o plano ideal para você</span>
+          <div className="inline-flex items-center gap-2 bg-accent/50 rounded-full px-4 py-2 mb-4 border border-border">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-normal text-muted-foreground">Escolha o plano ideal para você</span>
           </div>
 
-          <h1 className="text-xl md:text-2xl font-medium mb-2 text-white">
-            Junte-se ao <span className="text-amber-400">premium</span>
+          <h1 className="text-xl md:text-2xl font-medium mb-2 text-foreground">
+            Junte-se ao <span className="text-primary font-bold">premium</span>
           </h1>
 
-          <p className="text-sm mb-12 text-gray-400 max-w-2xl mx-auto font-normal">
+          <p className="text-sm mb-12 text-muted-foreground max-w-2xl mx-auto font-normal">
             Templates profissionais para seu negócio. Comece grátis ou escolha um plano premium.
           </p>
 
@@ -184,105 +184,104 @@ export default function PlansPage() {
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl w-full">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-[#1a1a1a] rounded-xl border border-white/5 p-6">
-                    <Skeleton className="h-6 w-6 rounded mb-3 bg-white/10" />
-                    <Skeleton className="h-5 w-32 mb-4 bg-white/10" />
-                    <Skeleton className="h-10 w-24 mb-6 bg-white/10" />
+                  <div key={i} className="bg-card rounded-xl border border-border p-6">
+                    <Skeleton className="h-6 w-6 rounded mb-3 bg-muted" />
+                    <Skeleton className="h-5 w-32 mb-4 bg-muted" />
+                    <Skeleton className="h-10 w-24 mb-6 bg-muted" />
                     <div className="space-y-3">
                       {[1, 2, 3, 4].map((j) => (
                         <div key={j} className="flex items-center gap-3">
-                          <Skeleton className="h-4 w-4 bg-white/10" />
-                          <Skeleton className="h-4 flex-1 bg-white/10" />
+                          <Skeleton className="h-4 w-4 bg-muted" />
+                          <Skeleton className="h-4 flex-1 bg-muted" />
                         </div>
                       ))}
                     </div>
-                    <Skeleton className="h-12 w-full mt-6 bg-white/10" />
+                    <Skeleton className="h-12 w-full mt-6 bg-muted" />
                   </div>
                 ))}
               </div>
             ) : error ? (
               <div className="text-center py-12">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
-                  <X className="h-6 w-6 text-red-400" />
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                  <X className="h-6 w-6 text-destructive" />
                 </div>
-                <h3 className="mt-4 text-lg font-medium text-white">Erro ao carregar planos</h3>
-                <p className="mt-2 text-gray-400 text-sm">Tente novamente mais tarde.</p>
+                <h3 className="mt-4 text-lg font-medium text-foreground">Erro ao carregar planos</h3>
+                <p className="mt-2 text-muted-foreground text-sm">Tente novamente mais tarde.</p>
               </div>
             ) : sortedPlans.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-400 text-sm">Nenhum plano disponível no momento.</p>
+                <p className="text-muted-foreground text-sm">Nenhum plano disponível no momento.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full">
                 {sortedPlans.map((plan) => (
                   <div
                     key={plan.id}
-                    className={`relative flex flex-col rounded-xl border transition-all duration-300 hover:scale-[1.02] ${plan.isPrincipal
-                        ? 'border-amber-500/40 bg-[#1a1a1a] shadow-lg shadow-amber-500/5'
-                        : 'border-white/8 bg-[#1a1a1a] hover:border-white/15'
+                    className={`relative flex flex-col rounded-2xl transition-all duration-300 hover:scale-[1.01] ${plan.isPrincipal
+                      ? 'bg-card shadow-lg shadow-black/5'
+                      : 'bg-card/40'
                       }`}
                   >
                     {/* Badge Superior */}
                     {plan.isPrincipal && (
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                        <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-1 text-xs font-medium rounded-full shadow-lg inline-flex items-center gap-1">
-                          <Crown className="h-3 w-3" /> MAIS POPULAR
+                        <span className="bg-gradient-to-r from-[#8C8261] to-white text-[#121212] px-3 py-1 text-[9px] font-bold tracking-tight rounded-full shadow-md inline-flex items-center gap-1">
+                          <Crown className="h-2.5 w-2.5" /> MAIS POPULAR
                         </span>
                       </div>
                     )}
 
                     {/* Card Content */}
-                    <div className="p-6 flex flex-col flex-grow">
-                      {/* Icon + Name */}
-                      <div className="flex items-center gap-2 mb-4">
-                        {getPlanIcon(plan)}
-                        <span className="text-base font-medium text-white">{plan.name}</span>
+                    <div className="p-6 flex flex-col flex-grow items-center text-center">
+                      {/* Name */}
+                      <div className="flex flex-col items-center mb-6">
+                        <h3 className="text-sm font-bold text-foreground/80 uppercase tracking-widest">{plan.name}</h3>
                       </div>
 
-                      {/* Price */}
-                      <div className="mb-6">
+                      {/* Price Section */}
+                      <div className="mb-6 flex flex-col items-center w-full">
                         {plan.isGratuito ? (
-                          <div className="text-3xl font-semibold text-white">Grátis</div>
+                          <div className="text-2xl font-bold text-foreground">Grátis</div>
                         ) : (
-                          <div>
+                          <div className="flex flex-col items-center">
                             {plan.valorOriginal && (
-                              <div className="text-xs text-gray-500 line-through mb-1">
+                              <div className="text-[11px] text-muted-foreground/40 line-through mb-0.5">
                                 De R$ {parseFloat(plan.valorOriginal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </div>
                             )}
-                            <div className="flex items-baseline">
-                              <span className="text-lg font-medium text-gray-400">R$</span>
-                              <span className="text-3xl font-semibold text-white ml-1">
-                                {getPlanPrice(plan).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <div className="flex items-baseline justify-center">
+                              <span className="text-base font-medium text-muted-foreground mr-0.5">R$</span>
+                              <span className="text-3xl font-bold text-foreground tracking-tight">
+                                {getPlanPrice(plan).toLocaleString('pt-BR', { minimumFractionDigits: 0 }).replace(/,00$/, '')}
                               </span>
-                              <span className="text-xs text-gray-500 ml-1">
+                              <span className="text-3xl font-bold text-foreground">,00</span>
+                              <span className="text-[11px] text-muted-foreground ml-1 font-medium">
                                 /{getPlanPeriod(plan).replace('por ', '').replace('para ', '')}
                               </span>
                             </div>
                             {plan.porcentagemEconomia && (
-                              <div className="mt-2">
-                                <span className="bg-emerald-500/10 text-emerald-400 text-xs font-normal px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                              <div className="mt-2.5">
+                                <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-wide px-3 py-1 rounded-full border border-emerald-500/20">
                                   Economize {plan.porcentagemEconomia}
                                 </span>
                               </div>
                             )}
                           </div>
                         )}
-                        <div className="text-xs text-gray-500 mt-1 font-normal">
-                          {plan.isGratuito ? 'Para sempre' : ''}
-                        </div>
                       </div>
 
                       {/* Separator */}
-                      <div className="border-t border-white/5 mb-5" />
+                      <div className="w-full border-t border-border/40 mb-6" />
 
-                      {/* Benefits */}
-                      <ul className="space-y-3 flex-grow">
-                        {renderPlanItems(plan)}
-                      </ul>
+                      {/* Benefits List */}
+                      <div className="w-full">
+                        <ul className="space-y-3.5 flex-grow w-full text-left">
+                          {renderPlanItems(plan)}
+                        </ul>
+                      </div>
 
-                      {/* Button */}
-                      <div className="mt-6">
+                      {/* CTA Button */}
+                      <div className="mt-8 w-full">
                         {plan.urlHotmart ? (
                           <a
                             href={plan.urlHotmart}
@@ -291,9 +290,9 @@ export default function PlansPage() {
                             className="block w-full"
                           >
                             <button
-                              className={`w-full py-4 text-sm font-medium rounded-lg transition-all duration-300 ${plan.isGratuito
-                                  ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
-                                  : 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 text-black shadow-lg hover:shadow-amber-500/20'
+                              className={`w-full py-4 text-[12px] font-bold uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-95 ${plan.isGratuito
+                                ? 'bg-muted/50 hover:bg-muted text-foreground border border-border/50'
+                                : 'bg-gradient-to-r from-[#8C8261] to-white hover:opacity-90 text-[#121212] shadow-md border-0'
                                 }`}
                             >
                               {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
@@ -302,9 +301,9 @@ export default function PlansPage() {
                         ) : (
                           <button
                             onClick={() => handlePlanClick(plan)}
-                            className={`w-full py-4 text-sm font-medium rounded-lg transition-all duration-300 ${plan.isGratuito
-                                ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
-                                : 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 text-black shadow-lg hover:shadow-amber-500/20'
+                            className={`w-full py-4 text-[12px] font-bold uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-95 ${plan.isGratuito
+                              ? 'bg-muted/50 hover:bg-muted text-foreground border border-border/50'
+                              : 'bg-gradient-to-r from-[#8C8261] to-white hover:opacity-90 text-[#121212] shadow-md border-0'
                               }`}
                           >
                             {plan.isGratuito ? 'Começar Grátis' : 'Assinar Agora'}
@@ -320,29 +319,29 @@ export default function PlansPage() {
         </div>
       </div>
 
-      {/* Seção de garantias e benefícios */}
-      <div className="bg-[#0d0d0d] py-16 border-t border-white/5">
-        <div className="container-global max-w-5xl">
-          <div className="text-center mb-10">
-            <h3 className="text-lg font-medium text-white mb-2">Por que escolher nossos planos?</h3>
-            <p className="text-sm text-gray-400 font-normal">Benefícios exclusivos para todos os nossos clientes</p>
+      {/* Trust Section */}
+      <div className="bg-card/30 py-20 border-t border-border/50">
+        <div className="container-global max-w-6xl">
+          <div className="text-center mb-16">
+            <h3 className="text-xl font-bold text-foreground mb-3">Por que escolher nossos planos?</h3>
+            <p className="text-sm text-muted-foreground font-normal max-w-lg mx-auto">Benefícios exclusivos pensados para acelerar seu processo criativo e elevar o nível dos seus designs.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: <Crown className="h-6 w-6" />, title: "+300 Templates Premium", desc: "Acesso completo à nossa biblioteca com centenas de templates profissionais." },
-              { icon: <RefreshCw className="h-6 w-6" />, title: "Qualidade Premium", desc: "Artes de altíssima qualidade criadas por designers profissionais experientes." },
-              { icon: <Headphones className="h-6 w-6" />, title: "Suporte Exclusivo", desc: "Atendimento premium disponível 24 horas por dia, 7 dias por semana." },
-              { icon: <BadgeCheck className="h-6 w-6" />, title: "Garantia de 7 dias", desc: "Não ficou satisfeito? Devolvemos 100% do seu dinheiro em até 7 dias." },
-              { icon: <Infinity className="h-6 w-6" />, title: "Download Ilimitado", desc: "Baixe quantos templates quiser, sem limites de download." },
-              { icon: <Zap className="h-6 w-6" />, title: "Sempre Atualizado", desc: "Plataforma constantemente atualizada com novos recursos e melhorias." },
+              { icon: <Crown className="h-6 w-6" />, title: "+300 Templates Premium", desc: "Acesso completo à nossa biblioteca com centenas de templates profissionais de alta conversão.", color: "text-amber-500" },
+              { icon: <RefreshCw className="h-6 w-6" />, title: "Qualidade de Estúdio", desc: "Artes de altíssima fidelidade criadas por designers especialistas no nicho.", color: "text-blue-500" },
+              { icon: <Headphones className="h-6 w-6" />, title: "Suporte VIP", desc: "Atendimento prioritário e consultoria rápida via WhatsApp para todos os assinantes premium.", color: "text-purple-500" },
+              { icon: <BadgeCheck className="h-6 w-6" />, title: "Garantia Blindada", desc: "7 dias de satisfação total ou 100% do seu dinheiro de volta, sem perguntas.", color: "text-emerald-500" },
+              { icon: <Infinity className="h-6 w-6" />, title: "Limite? Desconhecemos", desc: "Baixe e utilize quantos arquivos precisar, sem nenhuma barreira ou limite diário.", color: "text-pink-500" },
+              { icon: <Zap className="h-6 w-6" />, title: "Always Fresh", desc: "Nossa biblioteca é atualizada semanalmente com as últimas tendências do mercado.", color: "text-yellow-500" },
             ].map((item, i) => (
-              <div key={i} className="text-center p-5 bg-[#1a1a1a] rounded-xl border border-white/5">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/5 text-amber-400 rounded-full mb-3">
+              <div key={i} className="group p-8 bg-card rounded-2xl transition-all hover:bg-card/80 hover:shadow-lg hover:shadow-black/5">
+                <div className={`inline-flex items-center justify-center w-12 h-12 mb-6 group-hover:scale-110 transition-all duration-300 ${item.color}`}>
                   {item.icon}
                 </div>
-                <h4 className="text-sm font-medium text-white mb-1.5">{item.title}</h4>
-                <p className="text-xs text-gray-400 font-normal leading-relaxed">{item.desc}</p>
+                <h4 className="text-base font-bold text-foreground mb-2">{item.title}</h4>
+                <p className="text-xs text-muted-foreground font-normal leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>

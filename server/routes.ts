@@ -95,57 +95,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     `);
     console.log('Tabela transactions verificada/criada com sucesso');
 
-    // Tentar migrar dados existentes (Backfill de real data via webhook_logs)
+    // Limpar e reconstruir tabela de transações com dados 100% REAIS (Valores Líquidos)
     try {
+      // Limpar todos os dados para reconstrução limpa a partir dos logs reais
+      await pool.query("DELETE FROM transactions");
+
       const logsToBackfill = await pool.query(`
         SELECT provider, payload, created_at
         FROM webhook_logs
-        WHERE (provider = 'hotmart' AND payload->>'event' = 'PURCHASE_APPROVED')
-           OR (provider = 'greenn' AND (payload->>'event' = 'salePaid' OR payload->>'event' = 'waiting_payment'))
+        WHERE ((provider = 'hotmart' AND payload->>'event' = 'PURCHASE_APPROVED')
+           OR (provider = 'greenn' AND (payload->>'event' = 'salePaid' OR payload->>'event' = 'saleUpdated')))
+           AND (payload->'data'->'purchase'->>'test' IS NULL OR payload->'data'->'purchase'->>'test' = 'false')
       `);
 
       for (const log of logsToBackfill.rows) {
         const payload = log.payload;
         let email = '';
         let transaction_id = '';
-        let valor = 0;
+        let valor_liquido = 0;
         let gateway = log.provider;
         let data_compra = log.created_at;
-        let status = 'approved';
         let plano_nome = 'Premium';
 
         if (gateway === 'hotmart') {
           email = payload.data?.buyer?.email;
           transaction_id = payload.data?.purchase?.transaction;
-          valor = payload.data?.purchase?.price?.value || 0;
-          // Hotmart sends value in cents sometimes? Or as number?
-          // Based on user feedback, we use the value directly but ensure decimal if it looks like cents
-          if (valor > 5000) { // Ex: 4990 -> 49.90
-            // valor = valor / 100; // Depuração sugeriu que o usuário quer valores reais. 
-            // Se for 4990 e o plano custa 49.90...
-          }
+
+          // Buscar a comissão do produtor (valor líquido que o Jean recebe)
+          const commissions = payload.data?.commissions || [];
+          const producerComm = commissions.find((c: any) => c.source === 'PRODUCER');
+          valor_liquido = producerComm ? parseFloat(producerComm.value) : (parseFloat(payload.data?.purchase?.price?.value) || 0);
+
           data_compra = payload.data?.purchase?.approved_date ? new Date(payload.data.purchase.approved_date) : data_compra;
           plano_nome = payload.data?.subscription?.plan?.name || payload.data?.product?.name || 'Premium';
         } else if (gateway === 'greenn') {
           email = payload.client?.email;
-          transaction_id = payload.sale?.id?.toString();
-          valor = payload.sale?.total || payload.sale?.amount || 0;
-          data_compra = payload.sale?.created_at ? new Date(payload.sale.created_at) : data_compra;
+          transaction_id = payload.sale?.id?.toString() || payload.currentSale?.id?.toString();
+
+          // Greenn chama de seller_balance o valor líquido
+          valor_liquido = parseFloat(payload.sale?.seller_balance || payload.currentSale?.seller_balance) || 0;
+
+          // Se ainda for 0, tenta o total (gross)
+          if (valor_liquido === 0) {
+            valor_liquido = parseFloat(payload.sale?.total || payload.sale?.amount || payload.currentSale?.total) || 0;
+          }
+
+          data_compra = (payload.sale?.created_at || payload.currentSale?.created_at) ? new Date(payload.sale?.created_at || payload.currentSale?.created_at) : data_compra;
           plano_nome = payload.product?.name || 'Premium';
         }
 
-        if (transaction_id && email) {
+        if (transaction_id && email && valor_liquido > 0 && payload.sale?.status !== 'refunded') {
           await pool.query(`
             INSERT INTO transactions (email, gateway, transaction_id, valor, status, plano_nome, data_compra)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
-            ON CONFLICT (transaction_id) DO NOTHING
-          `, [email, gateway, transaction_id, valor, status, plano_nome, data_compra]);
+            ON CONFLICT (transaction_id) DO UPDATE SET valor = EXCLUDED.valor
+          `, [email, gateway, transaction_id, valor_liquido, 'approved', plano_nome, data_compra]);
         }
       }
-
-      console.log(`Backfill via webhook_logs concluído: ${logsToBackfill.rows.length} processados.`);
+      console.log(`Migração de dados líquidos concluída: ${logsToBackfill.rows.length} logs processados.`);
     } catch (backfillErr) {
-      console.error('Erro no backfill de webhook_logs:', backfillErr);
+      console.error('Erro na migração de dados líquidos:', backfillErr);
     }
 
   } catch (err) {
@@ -4710,15 +4719,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Adicionar no início da lista
         recentEdits.unshift(postId);
 
-        // Limitar a 20 itens
         if (recentEdits.length > 20) {
           recentEdits = recentEdits.slice(0, 20);
         }
 
-        // Atualizar o banco
+        // Atualizar o banco do usuário
         await pool.query(`
           UPDATE users SET recent_edits = $1 WHERE id = $2
-        `, [JSON.stringify(recentEdits), userId]);
+        `, [recentEdits, userId]);
+
+        // Incrementar contador global de downloads e registrar no log de analytics
+        await storage.incrementPostDownloads(postId, userId);
 
         console.log(`Edições recentes atualizadas para usuário ${userId}:`, recentEdits);
         res.json({
@@ -5442,30 +5453,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('Error fetching logo:', error);
-      res.status(500).json({ message: 'Erro ao buscar logo' });
+      res.status(500).json({ message: 'Erro ao remover logo' });
     }
   });
 
-  // Remover logo
-  app.delete('/api/logo', async (req, res) => {
+  app.get('/api/admin/stats', async (req, res) => {
     try {
       if (!req.isAuthenticated() || !req.user?.isAdmin) {
-        return res.status(403).json({ message: 'Acesso negado' });
+        return res.status(403).send('Forbidden');
       }
 
-      // Remover todos os logos
-      const result = await pool.query('DELETE FROM platform_logo');
-
-      console.log(`${result.rowCount || 0} logo(s) removido(s) do banco`);
+      const [postsCount, categoriesCount, usersCount] = await Promise.all([
+        pool.query('SELECT COUNT(*) FROM posts'),
+        pool.query('SELECT COUNT(*) FROM categories'),
+        pool.query('SELECT COUNT(*) FROM users')
+      ]);
 
       res.json({
-        success: true,
-        message: 'Logo removido com sucesso'
+        posts: parseInt(postsCount.rows[0].count),
+        categories: parseInt(categoriesCount.rows[0].count),
+        users: parseInt(usersCount.rows[0].count)
       });
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
 
-    } catch (error: any) {
-      console.error('Error deleting logo:', error);
-      res.status(500).json({ message: 'Erro ao remover logo' });
+  // Novos endpoints para Desempenho de Conteúdo
+  app.get('/api/admin/content-stats', async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).send('Forbidden');
+      }
+
+      // 1. Métricas Gerais
+      const generalStats = await pool.query(`
+        SELECT 
+          COUNT(*) as total_artworks,
+          SUM(views) as total_views,
+          SUM(downloads) as total_downloads,
+          (SELECT COUNT(DISTINCT user_id) FROM post_downloads) as unique_download_users
+        FROM posts
+      `);
+
+      const totalLikes = await pool.query('SELECT COUNT(*) FROM post_likes');
+      const totalSaves = await pool.query('SELECT COUNT(*) FROM post_saves');
+
+      // 2. Top 10 Artes Mais Engajadas (por visualização + download + like)
+      const topArts = await pool.query(`
+        SELECT 
+          p.id, p.title, p.image_url, p.views, p.downloads,
+          (SELECT COUNT(*) FROM post_likes l WHERE l.post_id = p.id) as likes,
+          (SELECT COUNT(*) FROM post_saves s WHERE s.post_id = p.id) as saves
+        FROM posts p
+        ORDER BY (p.views + p.downloads * 2) DESC
+        LIMIT 10
+      `);
+
+      // 3. Desempenho por Categoria
+      const categoryStats = await pool.query(`
+        SELECT 
+          c.name,
+          COUNT(p.id) as artworks_count,
+          SUM(p.views) as total_views,
+          SUM(p.downloads) as total_downloads
+        FROM categories c
+        LEFT JOIN posts p ON p.category_id = c.id
+        GROUP BY c.id, c.name
+        ORDER BY total_views DESC
+      `);
+
+      res.json({
+        cards: {
+          totalArtworks: parseInt(generalStats.rows[0].total_artworks) || 0,
+          totalViews: parseInt(generalStats.rows[0].total_views) || 0,
+          totalDownloads: parseInt(generalStats.rows[0].total_downloads) || 0,
+          totalLikes: parseInt(totalLikes.rows[0].count) || 0,
+          totalSaves: parseInt(totalSaves.rows[0].count) || 0,
+          uniqueUsers: parseInt(generalStats.rows[0].unique_download_users) || 0
+        },
+        topArts: topArts.rows.map(row => ({
+          ...row,
+          views: parseInt(row.views),
+          downloads: parseInt(row.downloads),
+          likes: parseInt(row.likes),
+          saves: parseInt(row.saves)
+        })),
+        categories: categoryStats.rows.map(row => ({
+          ...row,
+          artworks_count: parseInt(row.artworks_count),
+          total_views: parseInt(row.total_views) || 0,
+          total_downloads: parseInt(row.total_downloads) || 0
+        }))
+      });
+    } catch (error) {
+      console.error('Error fetching content stats:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+  // Endpoint para registrar visualização de arte
+  app.post('/api/posts/:id/view', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      if (isNaN(postId)) return res.status(400).send('Invalid post ID');
+
+      const userId = req.isAuthenticated() ? req.user!.id : null;
+      await storage.incrementPostViews(postId, userId || undefined);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error incrementing view:', error);
+      res.status(500).send('Internal Server Error');
     }
   });
 

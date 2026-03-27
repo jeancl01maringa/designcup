@@ -135,6 +135,10 @@ export interface IStorage {
 
   // Author methods
   getAllAuthors(): Promise<any[]>;
+
+  // Analytics methods
+  incrementPostViews(id: number, userId?: number): Promise<void>;
+  incrementPostDownloads(id: number, userId?: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -321,7 +325,9 @@ export class DatabaseStorage implements IStorage {
         password: '', // Não retornar senha
         isAdmin: userData.is_admin || false,
         telefone: userData.telefone || null,
+        whatsapp: null,
         profileImage: userData.profile_image || null,
+        bio: null,
         createdAt: new Date(userData.created_at),
         tipo: userData.tipo || 'free',
         plano_id: userData.plano_id || null,
@@ -680,17 +686,23 @@ export class DatabaseStorage implements IStorage {
 
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const result = data
-        .filter(item => item.artworks) // Filtrar apenas os itens que têm artworks
-        .map(item => ({
-          id: item.artworks.id,
-          title: item.artworks.title,
-          description: item.artworks.description,
-          imageUrl: item.artworks.image_url,
-          format: item.artworks.format,
-          isPro: item.artworks.is_pro,
-          category: item.artworks.category,
-          createdAt: new Date(item.artworks.created_at)
-        }));
+        .filter((item: any) => item.artworks) // Filtrar apenas os itens que têm artworks
+        .map((item: any) => {
+          const art = Array.isArray(item.artworks) ? item.artworks[0] : item.artworks;
+          if (!art) return null;
+
+          return {
+            id: art.id,
+            title: art.title,
+            description: art.description,
+            imageUrl: art.image_url,
+            format: art.format,
+            isPro: art.is_pro,
+            category: art.category,
+            createdAt: new Date(art.created_at)
+          };
+        })
+        .filter((art: any): art is any => art !== null); // Remover nulos com type guard as any
 
       console.log(`DATABASE getFavoritesByUserId - Encontrados ${result.length} favoritos para o usuário ${userId}`);
       return result;
@@ -797,17 +809,23 @@ export class DatabaseStorage implements IStorage {
 
       // Mapear os dados do Supabase para o formato esperado pela aplicação
       const result = data
-        .filter(item => item.artworks) // Filtrar apenas os itens que têm artworks
-        .map(item => ({
-          id: item.artworks.id,
-          title: item.artworks.title,
-          description: item.artworks.description,
-          imageUrl: item.artworks.image_url,
-          format: item.artworks.format,
-          isPro: item.artworks.is_pro,
-          category: item.artworks.category,
-          createdAt: new Date(item.artworks.created_at)
-        }));
+        .filter((item: any) => item.artworks) // Filtrar apenas os itens que têm artworks
+        .map((item: any) => {
+          const art = Array.isArray(item.artworks) ? item.artworks[0] : item.artworks;
+          if (!art) return null;
+
+          return {
+            id: art.id,
+            title: art.title,
+            description: art.description,
+            imageUrl: art.image_url,
+            format: art.format,
+            isPro: art.is_pro,
+            category: art.category,
+            createdAt: new Date(art.created_at)
+          };
+        })
+        .filter((art: any): art is any => art !== null); // Remover nulos
 
       console.log(`DATABASE getUserArtworksByUserId - Encontradas ${result.length} artes para o usuário ${userId}`);
       return result;
@@ -1556,7 +1574,9 @@ export class DatabaseStorage implements IStorage {
           tags: post.tags || [],
           formats: post.formats || [],
           formatData: post.format_data || null,
-          isVisible: post.is_visible !== false // se for null ou undefined, assume true
+          isVisible: post.is_visible !== false, // se for null ou undefined, assume true
+          views: post.views || 0,
+          downloads: post.downloads || 0
         };
 
         // Normalizar campos premium
@@ -1665,7 +1685,9 @@ export class DatabaseStorage implements IStorage {
         tags: post.tags || [],
         formats: post.formats || [],
         formatData: cleanFormatData || null,
-        isVisible: post.is_visible !== false // se for null ou undefined, assume true
+        isVisible: post.is_visible !== false, // se for null ou undefined, assume true
+        views: post.views || 0,
+        downloads: post.downloads || 0
       };
 
       // Normalizar os campos premium do post (garante consistência)
@@ -1761,7 +1783,9 @@ export class DatabaseStorage implements IStorage {
           tags: post.tags || [],
           formats: post.formats || [],
           formatData: post.format_data || null,
-          isVisible: post.is_visible !== false // se for null ou undefined, assume true
+          isVisible: post.is_visible !== false, // se for null ou undefined, assume true
+          views: post.views || 0,
+          downloads: post.downloads || 0
         };
 
         // Normalizar campos premium
@@ -1827,8 +1851,7 @@ export class DatabaseStorage implements IStorage {
         image_url: post.imageUrl,
         unique_code: post.uniqueCode,
         category_id: post.categoryId,
-        status: post.status || 'rascunho',
-        published_at: post.publishedAt ? post.publishedAt.toISOString() : null
+        status: post.status || 'rascunho'
       };
 
       // Adicionar informações do autor se fornecidas
@@ -1935,7 +1958,9 @@ export class DatabaseStorage implements IStorage {
             // Campos do autor armazenados com a arte
             authorName: supabaseData.author_name,
             authorProfileImage: supabaseData.author_profile_image,
-            authorType: supabaseData.author_type
+            authorType: supabaseData.author_type,
+            views: supabaseData.views || 0,
+            downloads: supabaseData.downloads || 0
           };
 
           // Aplicar normalização para campos premium
@@ -1980,6 +2005,7 @@ export class DatabaseStorage implements IStorage {
           imageUrl: data.image_url,
           uniqueCode: data.unique_code,
           categoryId: data.category_id,
+          userId: data.user_id || null,
           status: data.status,
           createdAt: new Date(data.created_at),
           publishedAt: data.published_at ? new Date(data.published_at) : null,
@@ -1997,7 +2023,9 @@ export class DatabaseStorage implements IStorage {
           // Campos do autor armazenados com a arte
           authorName: data.author_name,
           authorProfileImage: data.author_profile_image,
-          authorType: data.author_type
+          authorType: data.author_type,
+          views: data.views || 0,
+          downloads: data.downloads || 0
         };
 
         console.log(`DATABASE createPost - Post criado com ID: ${postResult.id} via PostgreSQL direto`);
@@ -2032,7 +2060,7 @@ export class DatabaseStorage implements IStorage {
         }
 
         return postResult;
-      } catch (pgError) {
+      } catch (pgError: any) {
         console.error("DATABASE createPost - Erro PostgreSQL:", pgError);
         throw new Error(`Erro ao criar post: ${pgError.message}`);
       }
@@ -2170,7 +2198,9 @@ export class DatabaseStorage implements IStorage {
             // Campos do autor armazenados com a arte
             authorName: supabaseData.author_name,
             authorProfileImage: supabaseData.author_profile_image,
-            authorType: supabaseData.author_type
+            authorType: supabaseData.author_type,
+            views: supabaseData.views || 0,
+            downloads: supabaseData.downloads || 0
           };
 
           // Aplicar normalização para campos premium
@@ -2340,6 +2370,7 @@ export class DatabaseStorage implements IStorage {
               imageUrl: data.image_url,
               uniqueCode: data.unique_code,
               categoryId: data.category_id,
+              userId: data.user_id || null,
               status: data.status,
               createdAt: new Date(data.created_at),
               publishedAt: data.published_at ? new Date(data.published_at) : null,
@@ -2353,7 +2384,12 @@ export class DatabaseStorage implements IStorage {
               formatoData: data.formato_data,
               isVisible: data.is_visible !== false,
               tags: data.tags || [],
-              formats: data.formats || []
+              formats: data.formats || [],
+              authorName: data.author_name,
+              authorProfileImage: data.author_profile_image,
+              authorType: data.author_type,
+              views: data.views || 0,
+              downloads: data.downloads || 0
             };
 
             console.log(`DATABASE updatePost - Post sincronizado entre Supabase e PostgreSQL`);
@@ -2397,6 +2433,7 @@ export class DatabaseStorage implements IStorage {
               imageUrl: data.image_url,
               uniqueCode: data.unique_code || '',
               categoryId: data.category_id,
+              userId: data.user_id || null,
               status: data.status,
               createdAt: new Date(data.created_at),
               publishedAt: data.published_at ? new Date(data.published_at) : null,
@@ -2410,7 +2447,12 @@ export class DatabaseStorage implements IStorage {
               formatoData: data.formato_data || null,
               isVisible: data.is_visible !== false,
               tags: data.tags || [],
-              formats: data.formats || []
+              formats: data.formats || [],
+              authorName: data.author_name,
+              authorProfileImage: data.author_profile_image,
+              authorType: data.author_type,
+              views: data.views || 0,
+              downloads: data.downloads || 0
             };
 
             console.log(`DATABASE updatePost - Post sincronizado com dados mínimos entre Supabase e PostgreSQL`);
@@ -2428,6 +2470,7 @@ export class DatabaseStorage implements IStorage {
           imageUrl: data.image_url,
           uniqueCode: data.unique_code,
           categoryId: data.category_id,
+          userId: data.user_id || null,
           status: data.status,
           createdAt: new Date(data.created_at),
           publishedAt: data.published_at ? new Date(data.published_at) : null,
@@ -2441,12 +2484,17 @@ export class DatabaseStorage implements IStorage {
           formatoData: data.formato_data,
           isVisible: data.is_visible !== false,
           tags: data.tags || [],
-          formats: data.formats || []
+          formats: data.formats || [],
+          authorName: data.author_name,
+          authorProfileImage: data.author_profile_image,
+          authorType: data.author_type,
+          views: data.views || 0,
+          downloads: data.downloads || 0
         };
 
         console.log(`DATABASE updatePost - Post atualizado: ${postResult.title} via PostgreSQL direto`);
         return postResult;
-      } catch (pgError) {
+      } catch (pgError: any) {
         console.error("DATABASE updatePost - Erro PostgreSQL:", pgError);
         throw new Error(`Erro ao atualizar post: ${pgError.message}`);
       }
@@ -2591,7 +2639,7 @@ export class DatabaseStorage implements IStorage {
           id, title, description, image_url, unique_code, category_id, status,
           created_at, published_at, formato, group_id, titulo_base,
           is_pro, license_type, canva_url, formato_data, tags, formats,
-          format_data, is_visible, user_id
+          format_data, is_visible, user_id, views, downloads
         FROM posts 
         WHERE status = 'aprovado' 
         AND (is_visible IS NULL OR is_visible = true)
@@ -2628,7 +2676,9 @@ export class DatabaseStorage implements IStorage {
           tags: item.tags || [],
           formats: item.formats || [],
           formatData: item.format_data || null,
-          isVisible: item.is_visible !== false
+          isVisible: item.is_visible !== false,
+          views: item.views || 0,
+          downloads: item.downloads || 0
         };
 
         // Normalizar os campos premium
@@ -4358,6 +4408,43 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("DATABASE getAllAuthors - Erro:", error);
       throw error;
+    }
+  }
+
+  // Analytics methods
+  async incrementPostViews(id: number, userId?: number): Promise<void> {
+    try {
+      console.log(`DATABASE incrementPostViews - Incrementando views do post ${id}${userId ? ` (Usuário: ${userId})` : ''}`);
+
+      // 1. Incrementa o contador global na tabela posts
+      await pool.query(`UPDATE posts SET views = views + 1 WHERE id = $1`, [id]);
+
+      // 2. Registra o evento na tabela de logs (mesmo que duplicado, para série temporal)
+      await pool.query(`
+        INSERT INTO post_views (post_id, user_id) 
+        VALUES ($1, $2)
+      `, [id, userId || null]);
+
+    } catch (error) {
+      console.error(`DATABASE incrementPostViews - Erro:`, error);
+    }
+  }
+
+  async incrementPostDownloads(id: number, userId?: number): Promise<void> {
+    try {
+      console.log(`DATABASE incrementPostDownloads - Incrementando downloads do post ${id}${userId ? ` (Usuário: ${userId})` : ''}`);
+
+      // 1. Incrementa o contador global na tabela posts
+      await pool.query(`UPDATE posts SET downloads = downloads + 1 WHERE id = $1`, [id]);
+
+      // 2. Registra o evento na tabela de logs
+      await pool.query(`
+        INSERT INTO post_downloads (post_id, user_id) 
+        VALUES ($1, $2)
+      `, [id, userId || null]);
+
+    } catch (error) {
+      console.error(`DATABASE incrementPostDownloads - Erro:`, error);
     }
   }
 }

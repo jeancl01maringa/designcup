@@ -330,6 +330,15 @@ export default function ArtDetailPage() {
     }
   }, [post, trackViewContent]);
 
+  // Rastrear visualização da arte no servidor (analytics interno)
+  useEffect(() => {
+    if (postId && postId > 0) {
+      console.log(`Analytics: Rastreando visualização interna para o post ${postId}`);
+      fetch(`/api/posts/${postId}/view`, { method: 'POST' })
+        .catch(err => console.error('Erro ao rastrear visualização no servidor:', err));
+    }
+  }, [postId]);
+
   // Formatar objetos para exibição
   const formatLabel = (format: string | null | undefined) => {
     if (!format) return 'FEED'; // Valor padrão se não houver formato

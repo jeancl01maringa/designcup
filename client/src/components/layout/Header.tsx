@@ -354,8 +354,9 @@ const MobileMenu = () => {
   const navItems = [
     { name: "Início", path: "/" },
     { name: "Categorias", path: "/categorias" },
-    { name: "Planos", path: "/planos" },
     { name: "Cursos", path: "/cursos" },
+    { name: "Ferramentas", path: "/ferramentas" },
+    { name: "Planos", path: "/planos" },
     { name: "Suporte", path: "whatsapp" } // Especial para WhatsApp
   ];
 

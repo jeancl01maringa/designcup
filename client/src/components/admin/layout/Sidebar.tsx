@@ -58,13 +58,6 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
   // Itens do menu da sidebar com seus respectivos ícones e caminhos
   const menuItems = [
     {
-      id: "home",
-      label: "Ir para o Site",
-      path: "/",
-      icon: <ExternalLink className="h-4 w-4" />,
-      separator: true,
-    },
-    {
       id: "dashboard",
       label: "Dashboard",
       path: "/admin",
@@ -259,41 +252,39 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
         <div className="h-full flex flex-col overflow-hidden">
           {/* Cabeçalho da sidebar */}
           <div className="p-4 border-b flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center gap-2", isOpen && "flex-1 justify-center")}>
               {/* Logo/Ícone com link para home */}
               <Link href="/">
                 <div className="flex-shrink-0 text-primary font-bold hover:text-primary/90 transition-colors cursor-pointer flex items-center">
                   {isOpen ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center">
                       {hasCustomLogo ? (
                         <img
                           src={logoUrl}
                           alt="Logo da Plataforma"
-                          className="h-6 w-auto max-w-[120px] object-contain"
+                          className="h-5 w-auto max-w-[120px] object-contain"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                           }}
                         />
                       ) : (
-                        <span className="mr-1">Design para Estética</span>
+                        <span className="text-base">Estetflix</span>
                       )}
-                      <Home className="h-3.5 w-3.5" />
                     </div>
                   ) : (
                     hasCustomLogo ? (
                       <img
                         src={logoUrl}
                         alt="Logo"
-                        className="h-6 w-6 object-contain"
+                        className="h-5 w-5 object-contain"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
-                          target.insertAdjacentHTML('afterend', 'DE');
                         }}
                       />
                     ) : (
-                      "DE"
+                      "ES"
                     )
                   )}
                 </div>
@@ -330,7 +321,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
             {isOpen && (
               <div className="overflow-hidden">
                 <p className="text-sm font-medium truncate">
-                  {userData?.username || "Admin"}
+                  {userData?.username?.split(' ')[0] || "Admin"}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
                   {userData?.email || "admin@example.com"}
@@ -380,16 +371,16 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                           {item.subItems.map((subItem) => (
                             <Button
                               key={subItem.id}
-                              variant={isActive(subItem.path) ? "default" : "ghost"}
+                              variant={isActive(subItem.path || "") ? "default" : "ghost"}
                               className={cn(
                                 "w-full justify-start text-sm",
-                                isActive(subItem.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : ""
+                                isActive(subItem.path || "") ? "bg-primary/10 text-primary hover:bg-primary/15" : ""
                               )}
                               size="sm"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setLocation(subItem.path);
+                                if (subItem.path) setLocation(subItem.path);
                               }}
                             >
                               <span className={cn(
@@ -406,19 +397,19 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
                     </div>
                   ) : (
                     // Item normal sem submenu
-                    <Link href={item.path}>
+                    <Link href={item.path || "#"}>
                       <Button
-                        variant={isActive(item.path) ? "default" : "ghost"}
+                        variant={isActive(item.path || "") ? "default" : "ghost"}
                         className={cn(
                           "w-full justify-start",
-                          isActive(item.path) ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
+                          isActive(item.path || "") ? "bg-primary/10 text-primary hover:bg-primary/15" : "",
                           !isOpen && "md:justify-center"
                         )}
                         size="sm"
                       >
                         <span className={cn(
                           "mr-2",
-                          isActive(item.path) ? "text-primary" : "text-muted-foreground",
+                          isActive(item.path || "") ? "text-primary" : "text-muted-foreground",
                           !isOpen && "md:mr-0"
                         )}>
                           {item.icon}
@@ -451,12 +442,7 @@ export function Sidebar({ isOpen, onToggle, currentPath, userData }: SidebarProp
               {isOpen && <span>{theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>}
             </Button>
 
-            {isOpen && (
-              <div className="text-xs text-center text-muted-foreground w-full">
-                <p>Design para Estética</p>
-                <p className="mt-1">v1.0.0</p>
-              </div>
-            )}
+
           </div>
         </div>
       </aside>

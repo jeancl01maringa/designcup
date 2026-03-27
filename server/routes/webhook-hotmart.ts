@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { BrevoService } from '../services/brevo-service.js';
+import { UTMifyService } from '../services/utmify-service.js';
 import { pool } from '../db';
 
 export const router = Router();
@@ -120,33 +121,24 @@ router.post('/', async (req, res) => {
         startDate = new Date(payload.data.subscription.start_date);
       }
 
-      // Extrai preço corretamente do formato da Hotmart
+      // Extrai preço corretamente do formato da Hotmart (Valor Líquido do Produtor)
       let planPrice = 0;
       let planCurrency = 'BRL';
 
-      console.log('🔍 Debug preço original:', JSON.stringify({
-        subscriptionPrice: payload.data?.subscription?.plan?.price,
-        purchasePrice: payload.data?.purchase?.price,
-        productPrice: payload.data?.product?.price
-      }));
+      // Busca comissão do produtor
+      const commissions = payload.data?.commissions || [];
+      const producerComm = commissions.find((c: any) => c.source === 'PRODUCER');
 
-      // Tenta extrair do subscription.plan.price primeiro (mais específico)
-      if (payload.data?.subscription?.plan?.price) {
-        const priceData = payload.data.subscription.plan.price;
-        if (typeof priceData === 'object' && priceData !== null && priceData.value !== undefined) {
-          planPrice = parseFloat(priceData.value) || 0;
-          planCurrency = priceData.currency_value || 'BRL';
-          console.log('✅ Preço extraído do subscription.plan.price (objeto):', planPrice, planCurrency);
-        } else if (typeof priceData === 'number') {
-          planPrice = priceData;
-          console.log('✅ Preço extraído do subscription.plan.price (número):', planPrice);
-        } else if (typeof priceData === 'string') {
-          planPrice = parseFloat(priceData) || 0;
-          console.log('✅ Preço extraído do subscription.plan.price (string):', planPrice);
-        }
+      if (producerComm) {
+        planPrice = parseFloat(producerComm.value) || 0;
+        planCurrency = producerComm.currency_value || 'BRL';
+        console.log('✅ Valor líquido extraído da comissão do PRODUTOR:', planPrice, planCurrency);
+      } else {
+        planPrice = parseFloat(payload.data?.purchase?.price?.value) || 0;
+        planCurrency = payload.data?.purchase?.price?.currency_value || 'BRL';
+        console.log('⚠️ Comissão do produtor não encontrada, usando preço bruto:', planPrice);
       }
 
-      // Se não encontrou no subscription, tenta extrair do purchase.price
       if (planPrice === 0 && payload.data?.purchase?.price) {
         const priceData = payload.data.purchase.price;
         if (typeof priceData === 'object' && priceData !== null && priceData.value !== undefined) {
@@ -276,6 +268,24 @@ router.post('/', async (req, res) => {
         console.log('📧 Emails de confirmação enviados para:', email);
       } catch (emailError) {
         console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
+      }
+
+      // Envia conversão para UTMify
+      try {
+        await UTMifyService.sendConversion({
+          email: email,
+          phone: telefone,
+          ip: req.headers['x-forwarded-for'] as string || req.ip,
+          userAgent: req.headers['user-agent']
+        }, {
+          transactionId: transactionId,
+          value: planPrice,
+          currency: planCurrency,
+          productName: planName,
+          productId: payload.data?.product?.id?.toString() || 'hotmart_product'
+        });
+      } catch (utmifyErr) {
+        console.error('❌ Erro ao enviar conversão para UTMify:', utmifyErr);
       }
 
       return res.status(200).json({

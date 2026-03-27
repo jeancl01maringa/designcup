@@ -158,6 +158,8 @@ export const posts = pgTable("posts", {
   authorName: text("author_name"), // nome do usuário que criou
   authorProfileImage: text("author_profile_image"), // foto de perfil do autor
   authorType: text("author_type"), // tipo do usuário (free/premium)
+  views: integer("views").default(0).notNull(), // contador de visualizações
+  downloads: integer("downloads").default(0).notNull(), // contador de downloads
 });
 
 export const categoriesRelations = relations(categories, ({ many }) => ({

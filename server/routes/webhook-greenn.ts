@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { BrevoService } from '../services/brevo-service.js';
+import { UTMifyService } from '../services/utmify-service.js';
 import { pool } from '../db';
 
 export const router = Router();
@@ -126,7 +127,8 @@ router.post('/', async (req, res) => {
             let planPrice = 0;
             let planCurrency = 'BRL';
 
-            const priceVal = saleData?.price || saleData?.value || saleData?.amount || productData?.price || 0;
+            // Extrai valor líquido (seller_balance)
+            const priceVal = saleData?.seller_balance || saleData?.price || saleData?.value || saleData?.amount || productData?.price || 0;
             if (typeof priceVal === 'object' && priceVal !== null) {
                 planPrice = parseFloat(priceVal.value || priceVal.amount) || 0;
                 planCurrency = priceVal.currency || priceVal.currency_value || 'BRL';
@@ -224,6 +226,24 @@ router.post('/', async (req, res) => {
                 console.log('📧 Emails de confirmação enviados para:', email);
             } catch (emailError) {
                 console.log('⚠️ Erro ao enviar email de confirmação:', emailError);
+            }
+
+            // Envia conversão para UTMify
+            try {
+                await UTMifyService.sendConversion({
+                    email: email,
+                    phone: telefone,
+                    ip: req.headers['x-forwarded-for'] as string || req.ip,
+                    userAgent: req.headers['user-agent']
+                }, {
+                    transactionId: transactionId,
+                    value: planPrice,
+                    currency: planCurrency,
+                    productName: planName,
+                    productId: productData?.id?.toString() || 'greenn_product'
+                });
+            } catch (utmifyErr) {
+                console.error('❌ Erro ao enviar conversão para UTMify:', utmifyErr);
             }
 
             return res.status(200).json({ success: true, message: 'Processado com sucesso (Greenn)' });
