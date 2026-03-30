@@ -1382,9 +1382,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       const featuredCategories = result.rows;
 
-      // 2. For each, we need their 4 newest Cartaz posts just like the old route did
+      // 2. For each, we need their 4 newest Cartaz posts and total count
       const configData = await Promise.all(featuredCategories.map(async (category) => {
-        // Obter os 4 últimos posts de formato 'Cartaz'
+        // Obter o total real de artes aprovadas e visíveis
+        const countResult = await pool.query(`
+          SELECT COUNT(*) as total
+          FROM posts 
+          WHERE category_id = $1 
+          AND status = 'aprovado'
+          AND (is_visible IS NULL OR is_visible = true)
+        `, [category.id]);
+
+        const totalPosts = parseInt(countResult.rows[0].total) || 0;
+
+        // Obter os 4 últimos posts de formato 'Cartaz' para prévia
         const postsResult = await pool.query(`
           WITH grouped_posts AS (
             SELECT DISTINCT ON (COALESCE(group_id, 'single_' || id::text)) 
@@ -1406,6 +1417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: category.name,
           slug: category.slug,
           description: category.description,
+          totalPosts,
           posts: postsResult.rows
         };
       }));
