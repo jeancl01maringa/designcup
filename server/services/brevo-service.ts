@@ -310,7 +310,7 @@ export class BrevoService {
             <p>Se tiver alguma dúvida ou feedback, nossa equipe está sempre disponível.</p>
           </div>
           <div class="footer">
-            <p>Design para Estética - A melhor plataforma de artes para estética do Brasil</p>
+            <p>Designcup - A melhor plataforma de artes para estética do Brasil</p>
             <p>Este é um email automático, não responda esta mensagem.</p>
           </div>
         </div>

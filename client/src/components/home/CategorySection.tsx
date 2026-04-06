@@ -34,6 +34,7 @@ interface CategoryWithPosts {
   name: string;
   slug: string | null;
   description: string | null;
+  totalPosts?: number; // Total real de artes na categoria
   posts: {
     id: number;
     title: string;
@@ -120,8 +121,7 @@ export default function CategorySection() {
     categoriesWithPosts = dbCategories.map(category => {
       const categoryPosts = dbPosts
         .filter(post =>
-          post.categoryId === category.id &&
-          (post as any).formato === 'Cartaz'
+          post.categoryId === category.id
         )
         .map(post => ({
           id: post.id,
@@ -338,7 +338,9 @@ export default function CategorySection() {
 
                         {/* Overlay com nome da categoria no hover */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                          <span className="text-white text-sm font-medium">{category.posts.length.toString().padStart(2, '0')} Artes</span>
+                          <span className="text-white text-sm font-medium">
+                            {(category.totalPosts || category.posts.length).toString().padStart(2, '0')} Artes
+                          </span>
                         </div>
                       </div>
                     </Link>

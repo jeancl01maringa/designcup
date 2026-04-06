@@ -14,7 +14,7 @@ export default function SocialSharingDemo() {
   const [title, setTitle] = useState("Novo curso de design para profissionais de estética");
   const [description, setDescription] = useState("Aprenda design profissional para destacar seu negócio nas redes sociais. Curso exclusivo para profissionais de estética.");
   const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
-  const [brandName, setBrandName] = useState("Design para Estética");
+  const [brandName, setBrandName] = useState("Designcup");
   const [brandColor, setBrandColor] = useState("#AA5E2F");
   const [useOverlay, setUseOverlay] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(0.3);
@@ -29,7 +29,7 @@ export default function SocialSharingDemo() {
           Pré-visualize e personalize como seu conteúdo aparecerá nas redes sociais
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-5 space-y-6">
           <Card>
@@ -49,7 +49,7 @@ export default function SocialSharingDemo() {
                   placeholder="Título do compartilhamento"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="description">Descrição</Label>
                 <Textarea
@@ -60,7 +60,7 @@ export default function SocialSharingDemo() {
                   rows={3}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="imageUpload">Imagem</Label>
                 <ImageUploader
@@ -74,7 +74,7 @@ export default function SocialSharingDemo() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Marca e Estilo</CardTitle>
@@ -92,7 +92,7 @@ export default function SocialSharingDemo() {
                   placeholder="Nome da sua marca ou empresa"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="brandColor">Cor da Marca</Label>
                 <ColorPicker
@@ -100,7 +100,7 @@ export default function SocialSharingDemo() {
                   onChange={setBrandColor}
                 />
               </div>
-              
+
               <div className="space-y-4 pt-2">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -115,7 +115,7 @@ export default function SocialSharingDemo() {
                     onCheckedChange={setUseOverlay}
                   />
                 </div>
-                
+
                 {useOverlay && (
                   <div className="space-y-2">
                     <div className="flex justify-between">
@@ -135,7 +135,7 @@ export default function SocialSharingDemo() {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex items-center justify-between pt-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="addWatermark">Adicionar marca d'água</Label>
@@ -149,11 +149,11 @@ export default function SocialSharingDemo() {
                   onCheckedChange={setAddWatermark}
                 />
               </div>
-              
+
               <div className="space-y-2 pt-2">
                 <Label htmlFor="platformSelect">Plataforma Padrão</Label>
-                <Tabs 
-                  value={platform} 
+                <Tabs
+                  value={platform}
                   onValueChange={setPlatform}
                   className="w-full"
                 >
@@ -168,7 +168,7 @@ export default function SocialSharingDemo() {
             </CardContent>
           </Card>
         </div>
-        
+
         <div className="lg:col-span-7 space-y-6">
           <Card>
             <CardHeader>

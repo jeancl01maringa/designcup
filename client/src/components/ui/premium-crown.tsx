@@ -8,8 +8,8 @@ interface PremiumCrownProps {
   tooltipSide?: 'top' | 'bottom' | 'left' | 'right';
 }
 
-export function PremiumCrown({ 
-  size = 'md', 
+export function PremiumCrown({
+  size = 'md',
   className,
   tooltipSide = 'left'
 }: PremiumCrownProps) {
@@ -38,7 +38,7 @@ export function PremiumCrown({
           </div>
         </TooltipTrigger>
         <TooltipContent side={tooltipSide} className="max-w-48 text-center">
-          <p className="text-sm font-medium">Esse é um modelo premium, exclusivo do Design para Estética</p>
+          <p className="text-sm font-medium">Esse é um modelo premium, exclusivo do Designcup</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

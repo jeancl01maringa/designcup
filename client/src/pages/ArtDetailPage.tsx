@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation, Link } from "wouter";
 import {
@@ -828,6 +829,9 @@ export default function ArtDetailPage() {
 
   return (
     <div className="container-global py-4 max-w-7xl">
+      <Helmet>
+        <title>{post?.title ? `${post.title} - Designcup` : 'Arte - Designcup'}</title>
+      </Helmet>
       <Button
         variant="ghost"
         className="mb-6 -ml-2"
@@ -878,12 +882,6 @@ export default function ArtDetailPage() {
             {(() => {
               const imageUrl = selectedFormat?.previewUrl || currentPost?.imageUrl || currentPost?.image_url || post?.imageUrl || post?.image_url || "/placeholder.jpg";
               console.log('ART DETAIL PAGE - Media src:', imageUrl);
-              console.log('ART DETAIL PAGE - Post data:', {
-                postId: post?.id,
-                postImageUrl: post?.imageUrl,
-                currentPostImageUrl: currentPost?.imageUrl,
-                selectedFormatUrl: selectedFormat?.previewUrl
-              });
               return (
                 <MediaDisplay
                   src={imageUrl}
@@ -1092,232 +1090,212 @@ export default function ArtDetailPage() {
           </div>
 
           {/* Botão principal de ação */}
-          {!user ? (
-            // Botão desabilitado para usuários não logados
-            <div className="space-y-3">
-              {isPremium ? (
-                <>
-                  {/* Botão amarelo para artes premium quando não logado */}
-                  <Button
-                    onClick={() => setLocation('/planos')}
-                    className="w-full bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
-                  >
-                    <Crown size={16} className="text-[#121212]" />
-                    <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
-                    <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
-                  </Button>
-
-                  {/* Linha de ações */}
-                  <div className="flex items-center justify-center gap-3">
+          <div className="space-y-3">
+            {!user ? (
+              // Botão desabilitado para usuários não logados
+              <>
+                {isPremium ? (
+                  <>
                     <Button
-                      onClick={() => setLocation('/loguin')}
-                      variant="outline"
-                      size="sm"
-                      className="border-border text-muted-foreground flex items-center gap-1.5"
+                      onClick={() => setLocation('/planos')}
+                      className="w-full bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
                     >
-                      <Heart size={16} />
-                      <span>Favoritar</span>
+                      <Crown size={16} className="text-[#121212]" />
+                      <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
+                      <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
                     </Button>
 
-                    <Button
-                      onClick={() => setLocation('/loguin')}
-                      variant="outline"
-                      size="sm"
-                      className="border-border text-muted-foreground flex items-center gap-1.5"
-                    >
-                      <Bookmark size={16} />
-                      <span>Salvar</span>
-                    </Button>
+                    {/* Linha de ações */}
+                    <div className="flex items-center justify-center gap-3">
+                      <Button
+                        onClick={() => setLocation('/loguin')}
+                        variant="outline"
+                        size="sm"
+                        className="border-border text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <Heart size={16} />
+                        <span>Favoritar</span>
+                      </Button>
 
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      size="sm"
-                      className="border-border text-muted-foreground flex items-center gap-1.5"
-                    >
-                      <Share2 size={16} />
-                      <span>Compartilhar</span>
-                    </Button>
-                  </div>
+                      <Button
+                        onClick={() => setLocation('/loguin')}
+                        variant="outline"
+                        size="sm"
+                        className="border-border text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <Bookmark size={16} />
+                        <span>Salvar</span>
+                      </Button>
 
-                  {/* Aviso premium */}
-                  <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-sm">
-                        <p className="font-medium text-amber-800 dark:text-amber-400">Arquivo premium</p>
-                        <p className="text-amber-700 dark:text-amber-300/80 mt-1">
-                          Este arquivo está disponível exclusivamente para membros premium. Torne-se premium para utilizar.
-                        </p>
+                      <Button
+                        onClick={handleShare}
+                        variant="outline"
+                        size="sm"
+                        className="border-border text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <Share2 size={16} />
+                        <span>Compartilhar</span>
+                      </Button>
+                    </div>
+
+                    <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm">
+                          <p className="font-medium text-amber-800 dark:text-amber-400">Arquivo premium</p>
+                          <p className="text-amber-700 dark:text-amber-300/80 mt-1">
+                            Este arquivo está disponível exclusivamente para membros premium. Torne-se premium para utilizar.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              ) : (
-                /* Botão azul para artes gratuitas quando não logado */
-                <>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => setLocation('/loguin')}
+                      className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
+                    >
+                      <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
+                    </Button>
+
+                    <div className="flex items-center justify-center gap-3">
+                      <Button
+                        onClick={() => setLocation('/loguin')}
+                        variant="outline"
+                        size="sm"
+                        className="border-border text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <Heart size={16} />
+                        <span>Favoritar</span>
+                      </Button>
+
+                      <Button
+                        onClick={() => setLocation('/loguin')}
+                        variant="outline"
+                        size="sm"
+                        className="border-border text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <Bookmark size={16} />
+                        <span>Salvar</span>
+                      </Button>
+
+                      <Button
+                        onClick={handleShare}
+                        variant="outline"
+                        size="sm"
+                        className="border-border text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <Share2 size={16} />
+                        <span>Compartilhar</span>
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </>
+            ) : isPremium && !isUserPremium ? (
+              <>
+                <Button
+                  onClick={() => setLocation('/planos')}
+                  className="w-full bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
+                >
+                  <Crown size={16} className="text-[#121212]" />
+                  <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
+                  <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
+                </Button>
+
+                <div className="flex items-center justify-center gap-3">
                   <Button
-                    onClick={() => setLocation('/loguin')}
-                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all"
+                    onClick={postActions.handleLike}
+                    variant="outline"
+                    size="sm"
+                    disabled={postActions.isLiking}
+                    className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-500 text-red-500" : "text-muted-foreground"}`}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                    <span className="font-medium text-sm">FAÇA LOGIN PARA EDITAR</span>
+                    <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
+                    <span>Favoritar</span>
                   </Button>
 
-                  {/* Linha de ações */}
-                  <div className="flex items-center justify-center gap-3">
-                    <Button
-                      onClick={() => setLocation('/loguin')}
-                      variant="outline"
-                      size="sm"
-                      className="border-border text-muted-foreground flex items-center gap-1.5"
-                    >
-                      <Heart size={16} />
-                      <span>Favoritar</span>
-                    </Button>
+                  <Button
+                    onClick={postActions.handleSave}
+                    variant="outline"
+                    size="sm"
+                    disabled={postActions.isSaving}
+                    className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-500 text-blue-500" : "text-muted-foreground"}`}
+                  >
+                    <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
+                    <span>Salvar</span>
+                  </Button>
 
-                    <Button
-                      onClick={() => setLocation('/loguin')}
-                      variant="outline"
-                      size="sm"
-                      className="border-border text-muted-foreground flex items-center gap-1.5"
-                    >
-                      <Bookmark size={16} />
-                      <span>Salvar</span>
-                    </Button>
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    size="sm"
+                    className="border-border text-muted-foreground flex items-center gap-1.5"
+                  >
+                    <Share2 size={16} />
+                    <span>Compartilhar</span>
+                  </Button>
+                </div>
 
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      size="sm"
-                      className="border-border text-muted-foreground flex items-center gap-1.5"
-                    >
-                      <Share2 size={16} />
-                      <span>Compartilhar</span>
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          ) : isPremium && !isUserPremium ? (
-            // Arte premium para usuários gratuitos - botão amarelo que redireciona para planos
-            <div className="space-y-3">
-              <Button
-                onClick={() => setLocation('/planos')}
-                className="w-full bg-gradient-to-r from-[#8C8261] to-[#FFFFFF] hover:opacity-90 text-[#121212] py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md transition-all group"
-              >
-                <Crown size={16} className="text-[#121212]" />
-                <span className="font-medium text-sm group-hover:hidden">EDITAR NO CANVA</span>
-                <span className="font-medium text-sm hidden group-hover:block">ASSINE O PREMIUM</span>
-              </Button>
-
-              {/* Linha de ações */}
-              <div className="flex items-center justify-center gap-3">
-                <Button
-                  onClick={postActions.handleLike}
-                  variant="outline"
-                  size="sm"
-                  disabled={postActions.isLiking}
-                  className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-500 text-red-500" : "text-muted-foreground"
-                    }`}
-                >
-                  <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
-                  <span>Favoritar</span>
-                </Button>
-
-                <Button
-                  onClick={postActions.handleSave}
-                  variant="outline"
-                  size="sm"
-                  disabled={postActions.isSaving}
-                  className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-500 text-blue-500" : "text-muted-foreground"
-                    }`}
-                >
-                  <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
-                  <span>Salvar</span>
-                </Button>
-
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  size="sm"
-                  className="border-border text-muted-foreground flex items-center gap-1.5"
-                >
-                  <Share2 size={16} />
-                  <span>Compartilhar</span>
-                </Button>
-              </div>
-
-              {/* Aviso premium */}
-              <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium text-amber-800 dark:text-amber-400">Arquivo premium</p>
-                    <p className="text-amber-700 dark:text-amber-300/80 mt-1">
-                      Este arquivo está disponível exclusivamente para membros premium. Torne-se premium para utilizar.
-                    </p>
+                <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <Crown size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-amber-800 dark:text-amber-400">Arquivo premium</p>
+                      <p className="text-amber-700 dark:text-amber-300/80 mt-1">
+                        Este arquivo está disponível exclusivamente para membros premium. Torne-se premium para utilizar.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            // Botão normal para usuários com permissão (premium ou arte gratuita)
-            <div className="space-y-3">
-              <Button
-                onClick={handleEditCanva}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
-                <span className="font-medium text-sm">EDITAR NO CANVA</span>
-              </Button>
-
-              {/* Linha de ações */}
-              <div className="flex items-center justify-center gap-3">
+              </>
+            ) : (
+              <>
                 <Button
-                  onClick={postActions.handleLike}
-                  variant="outline"
-                  size="sm"
-                  disabled={postActions.isLiking}
-                  className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-500 text-red-500" : "text-muted-foreground"
-                    }`}
+                  onClick={handleEditCanva}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 lg:py-5 h-auto flex items-center justify-center gap-2 rounded-md"
                 >
-                  <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
-                  <span>Favoritar</span>
+                  <ExternalLink size={16} />
+                  <span className="font-medium text-sm">EDITAR NO CANVA</span>
                 </Button>
 
-                <Button
-                  onClick={postActions.handleSave}
-                  variant="outline"
-                  size="sm"
-                  disabled={postActions.isSaving}
-                  className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-500 text-blue-500" : "text-muted-foreground"
-                    }`}
-                >
-                  <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
-                  <span>Salvar</span>
-                </Button>
+                <div className="flex items-center justify-center gap-3">
+                  <Button
+                    onClick={postActions.handleLike}
+                    variant="outline"
+                    size="sm"
+                    disabled={postActions.isLiking}
+                    className={`border-border flex items-center gap-1.5 ${postActions.liked ? "border-red-500 text-red-500" : "text-muted-foreground"}`}
+                  >
+                    <Heart size={16} className={postActions.liked ? "fill-red-500 text-red-500" : ""} />
+                    <span>Favoritar</span>
+                  </Button>
 
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  size="sm"
-                  className="border-border text-muted-foreground flex items-center gap-1.5"
-                >
-                  <Share2 size={16} />
-                  <span>Compartilhar</span>
-                </Button>
-              </div>
-            </div>
-          )}
+                  <Button
+                    onClick={postActions.handleSave}
+                    variant="outline"
+                    size="sm"
+                    disabled={postActions.isSaving}
+                    className={`border-border flex items-center gap-1.5 ${postActions.saved ? "border-blue-500 text-blue-500" : "text-muted-foreground"}`}
+                  >
+                    <Bookmark size={16} className={postActions.saved ? "fill-blue-500 text-blue-500" : ""} />
+                    <span>Salvar</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    size="sm"
+                    className="border-border text-muted-foreground flex items-center gap-1.5"
+                  >
+                    <Share2 size={16} />
+                    <span>Compartilhar</span>
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Informações do criador */}
           <div className="pt-2 mt-4">
@@ -1350,7 +1328,7 @@ export default function ArtDetailPage() {
                   </Avatar>
                   <div>
                     <p className="font-medium hover:text-blue-600 transition-colors">
-                      {author?.username || 'Design para Estética'}
+                      {author?.username || 'Designcup'}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {authorStats?.postsCount ? `${authorStats.postsCount} artes postadas` : '100+ artes postadas'}

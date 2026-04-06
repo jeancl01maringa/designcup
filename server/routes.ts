@@ -1382,9 +1382,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       const featuredCategories = result.rows;
 
-      // 2. For each, we need their 4 newest Cartaz posts just like the old route did
+      // 2. For each, we need their 4 newest Cartaz posts and total count
       const configData = await Promise.all(featuredCategories.map(async (category) => {
-        // Obter os 4 últimos posts de formato 'Cartaz'
+        // Obter o total real de artes aprovadas e visíveis
+        const countResult = await pool.query(`
+          SELECT COUNT(*) as total
+          FROM posts 
+          WHERE category_id = $1 
+          AND status = 'aprovado'
+          AND (is_visible IS NULL OR is_visible = true)
+        `, [category.id]);
+
+        const totalPosts = parseInt(countResult.rows[0].total) || 0;
+
+        // Obter os 4 últimos posts de formato 'Cartaz' para prévia
         const postsResult = await pool.query(`
           WITH grouped_posts AS (
             SELECT DISTINCT ON (COALESCE(group_id, 'single_' || id::text)) 
@@ -1392,7 +1403,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             FROM posts 
             WHERE category_id = $1 
             AND status = 'aprovado' 
-            AND formato = 'Cartaz'
             AND (is_visible IS NULL OR is_visible = true)
             ORDER BY COALESCE(group_id, 'single_' || id::text), created_at DESC
           )
@@ -1406,6 +1416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: category.name,
           slug: category.slug,
           description: category.description,
+          totalPosts,
           posts: postsResult.rows
         };
       }));
@@ -3606,28 +3617,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Plano Mensal Premium',
           periodo: 'Mensal',
           valor: '29,90',
-          description: 'Acesso completo mensal - Design para Estética'
+          description: 'Acesso completo mensal - Designcup'
         },
         {
           id: 'trimestral',
           name: 'Plano Trimestral Premium',
           periodo: 'Trimestral',
           valor: '67,00',
-          description: 'Acesso completo trimestral - Design para Estética'
+          description: 'Acesso completo trimestral - Designcup'
         },
         {
           id: 'semestral',
           name: 'Plano Semestral Premium',
           periodo: 'Semestral',
           valor: '127,00',
-          description: 'Acesso completo semestral - Design para Estética'
+          description: 'Acesso completo semestral - Designcup'
         },
         {
           id: 'anual',
           name: 'Plano Anual Premium',
           periodo: 'Anual',
           valor: '197,00',
-          description: 'Acesso completo anual - Design para Estética'
+          description: 'Acesso completo anual - Designcup'
         }
       ];
 

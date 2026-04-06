@@ -1,5 +1,5 @@
 // Serviço para gerenciar eventos do Facebook Pixel
-// Design para Estética - Plataforma de Artes
+// Designcup - Plataforma de Artes
 
 declare global {
   interface Window {
@@ -30,9 +30,9 @@ export class FacebookPixelService {
   // Inicializa o pixel se ainda não estiver carregado
   static init(): void {
     if (typeof window === 'undefined') return;
-    
+
     if (!window.fbq) {
-      window.fbq = function() {
+      window.fbq = function () {
         (window.fbq.q = window.fbq.q || []).push(arguments);
       };
     }
@@ -161,7 +161,7 @@ export class FacebookPixelService {
   static trackPageView(pageName: string, data?: PixelEventData) {
     // Inicializa o pixel se necessário
     this.init();
-    
+
     if (!this.isLoaded()) {
       console.warn('Facebook Pixel não está carregado');
       return;

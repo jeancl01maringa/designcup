@@ -9,7 +9,7 @@ import { supabase } from './server/supabase-client';
 async function createPopupsTable() {
   try {
     console.log('Criando tabela popups...');
-    
+
     // Criar enums primeiro
     const enumQueries = [
       `DO $$ BEGIN
@@ -17,31 +17,31 @@ async function createPopupsTable() {
       EXCEPTION
         WHEN duplicate_object THEN null;
       END $$;`,
-      
+
       `DO $$ BEGIN
         CREATE TYPE popup_user_type AS ENUM ('free', 'premium', 'designers', 'admins', 'all');
       EXCEPTION
         WHEN duplicate_object THEN null;
       END $$;`,
-      
+
       `DO $$ BEGIN
         CREATE TYPE popup_frequency AS ENUM ('always', 'once_per_session', 'once_per_day', 'once_per_week');
       EXCEPTION
         WHEN duplicate_object THEN null;
       END $$;`,
-      
+
       `DO $$ BEGIN
         CREATE TYPE popup_animation AS ENUM ('fade', 'slide', 'zoom', 'bounce');
       EXCEPTION
         WHEN duplicate_object THEN null;
       END $$;`,
-      
+
       `DO $$ BEGIN
         CREATE TYPE popup_position AS ENUM ('center', 'top', 'bottom', 'left', 'right');
       EXCEPTION
         WHEN duplicate_object THEN null;
       END $$;`,
-      
+
       `DO $$ BEGIN
         CREATE TYPE popup_size AS ENUM ('small', 'medium', 'large');
       EXCEPTION
@@ -139,19 +139,19 @@ async function createPopupsTable() {
     `;
 
     const { error } = await supabase.rpc('exec_sql', { sql: createTableQuery });
-    
+
     if (error) {
       console.error('Erro ao criar tabela popups:', error);
       throw error;
     }
 
     console.log('Tabela popups criada com sucesso!');
-    
+
     // Inserir um popup de exemplo
     const { data: samplePopup, error: insertError } = await supabase
       .from('popups')
       .insert({
-        title: 'Bem-vindo ao Design para Estética!',
+        title: 'Bem-vindo ao Designcup!',
         content: 'Descubra milhares de templates profissionais para sua clínica de estética. Comece sua avaliação gratuita hoje mesmo!',
         button_text: 'Começar Agora',
         button_url: '/plans',

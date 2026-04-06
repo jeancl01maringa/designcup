@@ -5,20 +5,20 @@ export default function More() {
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-3xl font-serif font-bold text-center mb-10">Mais Informações</h1>
-      
+
       <Tabs defaultValue="about" className="max-w-3xl mx-auto">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="about">Sobre Nós</TabsTrigger>
           <TabsTrigger value="faq">Perguntas Frequentes</TabsTrigger>
           <TabsTrigger value="contact">Contato</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="about" className="mt-6">
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-2xl font-medium mb-4">Sobre o Design para Estética</h2>
+              <h2 className="text-2xl font-medium mb-4">Sobre o Designcup</h2>
               <p className="mb-4">
-                Somos a principal plataforma de artes para profissionais de estética no Brasil, 
+                Somos a principal plataforma de artes para profissionais de estética no Brasil,
                 oferecendo templates de alta qualidade 100% editáveis para todas as suas necessidades.
               </p>
               <p>
@@ -28,7 +28,7 @@ export default function More() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="faq" className="mt-6">
           <Card>
             <CardContent className="p-6 space-y-4">
@@ -47,13 +47,13 @@ export default function More() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="contact" className="mt-6">
           <Card>
             <CardContent className="p-6">
               <h2 className="text-2xl font-medium mb-4">Entre em Contato</h2>
               <p className="mb-6">Estamos sempre disponíveis para ajudar com qualquer dúvida.</p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center">
                   <svg className="h-5 w-5 mr-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">

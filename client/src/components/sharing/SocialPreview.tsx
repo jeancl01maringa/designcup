@@ -14,11 +14,11 @@ interface SocialPreviewProps {
   platform?: string;
 }
 
-export function SocialPreview({ 
-  imageUrl, 
-  title, 
-  description, 
-  brandName = "Design para Estética", 
+export function SocialPreview({
+  imageUrl,
+  title,
+  description,
+  brandName = "Designcup",
   brandColor = "#AA5E2F",
   useOverlay = false,
   overlayOpacity = 0.2,
@@ -43,23 +43,23 @@ export function SocialPreview({
 
   const renderImage = () => (
     <div className="relative">
-      <img 
-        src={imageUrl} 
-        alt={title} 
+      <img
+        src={imageUrl}
+        alt={title}
         className="w-full h-64 object-cover"
       />
-      
+
       {/* Sobreposição colorida */}
       {useOverlay && (
-        <div 
-          className="absolute inset-0" 
-          style={{ 
+        <div
+          className="absolute inset-0"
+          style={{
             backgroundColor: brandColor,
             opacity: overlayOpacity
           }}
         />
       )}
-      
+
       {/* Marca d'água */}
       {addWatermark && (
         <div className="absolute bottom-2 right-2 text-white text-xs font-semibold drop-shadow-md">
@@ -78,7 +78,7 @@ export function SocialPreview({
           <TabsTrigger value="instagram">Instagram</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="facebook" className="mt-4">
           <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-md">
             <div className="bg-muted py-1 px-2 text-xs text-muted-foreground border-b border-border">
@@ -86,7 +86,7 @@ export function SocialPreview({
             </div>
             {renderImage()}
             <CardContent className="p-3">
-              <h3 
+              <h3
                 className="text-sm font-semibold hover:underline"
                 style={{ color: brandColor }}
               >
@@ -101,12 +101,12 @@ export function SocialPreview({
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="twitter" className="mt-4">
           <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-2">
-                <div 
+                <div
                   className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center"
                   style={{ backgroundColor: brandColor }}
                 >
@@ -117,7 +117,7 @@ export function SocialPreview({
                   <p className="text-muted-foreground text-sm">{getSocialUsername(brandName)}</p>
                 </div>
               </div>
-              
+
               <p className="text-foreground mb-3">
                 {title}
               </p>
@@ -132,11 +132,11 @@ export function SocialPreview({
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="instagram" className="mt-4">
           <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-xl">
             <div className="p-2 border-b border-border flex items-center gap-2">
-              <div 
+              <div
                 className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
                 style={{ backgroundColor: brandColor }}
               >
@@ -159,10 +159,10 @@ export function SocialPreview({
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="whatsapp" className="mt-4">
           <Card className="overflow-hidden max-w-[500px] mx-auto border border-border rounded-md">
-            <div 
+            <div
               className="py-1 px-3 text-xs text-white"
               style={{ backgroundColor: "#128C7E" }}
             >

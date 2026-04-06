@@ -61,8 +61,8 @@ export default function ToolsPage() {
     return (
       <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando ferramentas...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8C8261] mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-inter text-sm">Carregando ferramentas...</p>
         </div>
       </div>
     );
@@ -71,23 +71,23 @@ export default function ToolsPage() {
   return (
     <div className="min-h-screen bg-muted">
       <Helmet>
-        <title>Ferramentas Úteis - Design para Estética</title>
-        <meta name="description" content="Descubra ferramentas úteis para design, produtividade e marketing. Recursos selecionados para profissionais da estética." />
+        <title>Ferramentas Úteis - Designcup</title>
+        <meta name="description" content="Descubra ferramentas úteis para design, produtividade e marketing. Recursos selecionados para profissionais de estética." />
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 py-4">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full">
-              <Wrench className="h-8 w-8 text-white" />
+            <div className="p-3 bg-gradient-to-r from-[#8C8261] to-[#C5B358] rounded-full shadow-sm">
+              <Wrench className="h-7 w-7 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Ferramentas Úteis
             </h1>
           </div>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Descubra ferramentas úteis selecionadas para profissionais de estética.
+          <p className="text-muted-foreground text-base md:text-lg font-light max-w-2xl mx-auto">
+            Descubra recursos selecionados para elevar o nível dos seus designs e produtividade.
           </p>
         </div>
 
@@ -173,18 +173,18 @@ export default function ToolsPage() {
                         </div>
                       )}
                       <div>
-                        <CardTitle className="text-lg text-foreground group-hover:text-orange-600 transition-colors">
+                        <CardTitle className="text-lg font-bold text-foreground group-hover:text-[#8C8261] transition-colors duration-300">
                           {tool.name}
                         </CardTitle>
                         {tool.category_name && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="secondary" className="text-[10px] uppercase tracking-wider font-bold bg-muted/50">
                             {tool.category_name}
                           </Badge>
                         )}
                       </div>
                     </div>
                     {tool.is_new && (
-                      <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+                      <Badge className="bg-gradient-to-r from-[#8C8261] to-[#C5B358] text-white border-none shadow-sm">
                         <Crown className="h-3 w-3 mr-1" />
                         Nova
                       </Badge>
@@ -201,10 +201,10 @@ export default function ToolsPage() {
 
                   <Button
                     onClick={() => window.open(tool.url, '_blank')}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto flex items-center justify-center gap-2 rounded-md"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 h-auto flex items-center justify-center gap-2 rounded-lg border-none shadow-sm font-bold tracking-tight transition-all duration-300"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    <span className="font-medium text-sm">ACESSAR FERRAMENTA</span>
+                    <span className="text-sm">ACESSAR FERRAMENTA</span>
                   </Button>
                 </CardContent>
               </Card>

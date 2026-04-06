@@ -38,15 +38,15 @@ export default function CursosPage() {
     return (
       <div className="min-h-screen bg-muted">
         <Helmet>
-          <title>Cursos - Design para Estética</title>
+          <title>Cursos - Designcup</title>
         </Helmet>
-        
+
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Meus Cursos</h1>
             <p className="text-muted-foreground">Acesse seus cursos e continue aprendendo</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <Card key={i} className="h-80">
@@ -66,9 +66,9 @@ export default function CursosPage() {
   return (
     <div className="min-h-screen bg-muted">
       <Helmet>
-        <title>Cursos - Design para Estética</title>
+        <title>Cursos - Designcup</title>
       </Helmet>
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Cabeçalho */}
         <div className="mb-8">
@@ -96,7 +96,7 @@ export default function CursosPage() {
                 {searchTerm ? "Nenhum curso encontrado" : "Nenhum curso disponível"}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm 
+                {searchTerm
                   ? "Tente buscar com outros termos"
                   : "Você ainda não tem acesso a nenhum curso"
                 }
@@ -125,7 +125,7 @@ export default function CursosPage() {
                       <BookOpen className="h-16 w-16 text-pink-300" />
                     </div>
                   )}
-                  
+
                   {/* Badge de status */}
                   <div className="absolute top-4 right-4">
                     {course.hasAccess ? (
@@ -151,7 +151,7 @@ export default function CursosPage() {
                   <CardTitle className="text-lg mb-2 line-clamp-2">
                     {course.title}
                   </CardTitle>
-                  
+
                   {course.shortDescription && (
                     <CardDescription className="mb-4 line-clamp-2">
                       {course.shortDescription}
@@ -174,7 +174,7 @@ export default function CursosPage() {
 
                   {/* Botão de ação */}
                   {course.hasAccess ? (
-                    <Button 
+                    <Button
                       onClick={() => {
                         // Redirecionar direto para primeira aula do curso
                         setLocation(`/cursos/${course.id}/primeira-aula`);

@@ -1,5 +1,5 @@
 // Hook para integrar Facebook Pixel com componentes React
-// Design para Estética - Plataforma de Artes
+// Designcup - Plataforma de Artes
 
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
