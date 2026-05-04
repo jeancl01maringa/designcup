@@ -400,7 +400,8 @@ export default function AssinantesPage() {
                           assinante.origem_assinatura === 'greenn' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30' :
                             assinante.origem_assinatura === 'hotmart' ? 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/30' :
                               assinante.origem_assinatura === 'kiwify' ? 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/30' :
-                                'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30'
+                                assinante.origem_assinatura === 'cakto' ? 'bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/30' :
+                                  'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30'
                         }>
                           {assinante.origem_assinatura.charAt(0).toUpperCase() + assinante.origem_assinatura.slice(1)}
                         </Badge>

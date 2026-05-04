@@ -14,6 +14,7 @@ import * as path from "path";
 import * as fs from "fs";
 import webhookHotmart from "./routes/webhook-hotmart";
 import webhookGreenn from "./routes/webhook-greenn";
+import webhookCakto from "./routes/webhook-cakto";
 
 // Configurar multer para upload de imagens
 const storage_multer = multer.memoryStorage();
@@ -73,6 +74,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Registrar webhook da Greenn
   app.use('/webhook/greenn', webhookGreenn);
+
+  // Registrar webhook da Cakto
+  app.use('/webhook/cakto', webhookCakto);
 
   // Set up authentication
   setupAuth(app);

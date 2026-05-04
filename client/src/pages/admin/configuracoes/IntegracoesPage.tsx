@@ -49,6 +49,14 @@ export default function IntegracoesPage() {
             url: `${mainDomain}/webhook/kiwify`, // Futura rota ou rota atual placeholder
             icon: <PlugZap className="h-5 w-5 text-white" />,
             color: "bg-[#1E1E1E]" // Pretp/Chumbo aproximado da Kiwify
+        },
+        {
+            id: "cakto",
+            name: "Cakto",
+            description: "Copie a URL abaixo e cole na tela de Webhooks da plataforma Cakto (eventos de compra aprovada, assinaturas e chargeback).",
+            url: `${mainDomain}/webhook/cakto`,
+            icon: <PlugZap className="h-5 w-5 text-white" />,
+            color: "bg-[#0A889A]" // Ciano/Teal escuro aproximado da Cakto
         }
     ];
 

@@ -337,7 +337,7 @@ export default function MonetizacaoPage() {
             <Card className="border-border bg-card shadow-sm">
               <CardHeader className="border-b border-border/50">
                 <CardTitle className="text-sm font-medium">Receita por Origem de Pagamento</CardTitle>
-                <CardDescription className="text-[11px]">Hotmart, Greenn, Kiwify e Doppus</CardDescription>
+                <CardDescription className="text-[11px]">Hotmart, Greenn, Kiwify, Doppus e Cakto</CardDescription>
               </CardHeader>
               <CardContent className="pt-0 px-0">
                 <div className="overflow-x-auto">
@@ -351,13 +351,13 @@ export default function MonetizacaoPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
-                      {['hotmart', 'greenn', 'kiwify', 'doppus'].map((name) => {
+                      {['hotmart', 'greenn', 'kiwify', 'doppus', 'cakto'].map((name) => {
                         const gw = stats?.gateways?.find((g: any) => g.name === name) || { subscribers: 0, revenue: 0 };
                         return (
                           <tr key={name} className="hover:bg-muted/10 transition-colors">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2.5">
-                                <div className={`w-2 h-2 rounded-full ${name === 'hotmart' ? 'bg-orange-500' : name === 'greenn' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                                <div className={`w-2 h-2 rounded-full ${name === 'hotmart' ? 'bg-orange-500' : name === 'greenn' ? 'bg-emerald-500' : name === 'cakto' ? 'bg-cyan-500' : 'bg-blue-500'}`} />
                                 <span className="text-[13px] font-medium capitalize">{name}</span>
                               </div>
                             </td>
